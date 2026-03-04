@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  Users, 
-  Share2, 
-  Heart, 
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  Users,
+  Share2,
+  Heart,
   ChevronLeft,
   Ticket,
-  User
+  User,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -30,20 +30,28 @@ const EventDetailPage = () => {
   const navigate = useNavigate();
   const [showShareSnippet, setShowShareSnippet] = useState(false);
 
-  const { data: event, isLoading, error } = useQuery({
-    queryKey: ['event', id],
+  const {
+    data: event,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["event", id],
     queryFn: async () => {
       const { data } = await api.get(`/events/${id}`);
       return data;
     },
-    enabled: !!id
+    enabled: !!id,
   });
 
   const bookingMutation = useMutation({
-    mutationFn: async (ticketData: { type: string; quantity: number; price: number }) => {
-      const { data } = await api.post('/bookings', {
+    mutationFn: async (ticketData: {
+      type: string;
+      quantity: number;
+      price: number;
+    }) => {
+      const { data } = await api.post("/bookings", {
         eventId: id,
-        tickets: [ticketData]
+        tickets: [ticketData],
       });
       return data;
     },
@@ -52,14 +60,14 @@ const EventDetailPage = () => {
         particleCount: 150,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#6366f1', '#ec4899', '#ffffff']
+        colors: ["#6366f1", "#ec4899", "#ffffff"],
       });
       toast.success("Tickets booked successfully! Get ready for the event.");
       setTimeout(() => navigate("/my-tickets"), 2000);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Booking failed.");
-    }
+    },
   });
 
   const handleBooking = (ticketType: string, price: number) => {
@@ -76,7 +84,9 @@ const EventDetailPage = () => {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <main className="flex-1 container py-16 text-center">
-          <p className="text-muted-foreground animate-pulse">Loading event details...</p>
+          <p className="text-muted-foreground animate-pulse">
+            Loading event details...
+          </p>
         </main>
         <Footer />
       </div>
@@ -120,10 +130,14 @@ const EventDetailPage = () => {
     }).format(price);
   };
 
-  const totalCapacity = event.ticketTypes?.reduce((acc: number, t: any) => acc + t.capacity, 0) || 0;
-  const totalSold = event.ticketTypes?.reduce((acc: number, t: any) => acc + t.sold, 0) || 0;
+  const totalCapacity =
+    event.ticketTypes?.reduce((acc: number, t: any) => acc + t.capacity, 0) ||
+    0;
+  const totalSold =
+    event.ticketTypes?.reduce((acc: number, t: any) => acc + t.sold, 0) || 0;
   const availableTickets = totalCapacity - totalSold;
-  const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
+  const soldPercentage =
+    totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -131,7 +145,7 @@ const EventDetailPage = () => {
 
       <main className="flex-1">
         {/* Hero Image */}
-        <div className="relative h-[300px] md:h-[400px] lg:h-[500px]">
+        <div className="relative h-[40vh] md:h-[50vh] lg:h-[60vh]">
           {event.image ? (
             <img
               src={event.image}
@@ -141,14 +155,18 @@ const EventDetailPage = () => {
           ) : (
             <div className="w-full h-full gradient-hero" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-black/30" />
+
           {/* Back Button */}
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-20 left-6">
             <Link to="/events">
-              <Button variant="secondary" size="sm" className="gap-2 backdrop-blur-sm">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="gap-2 rounded-full backdrop-blur-md bg-white/90 hover:bg-white shadow-lg"
+              >
                 <ChevronLeft className="h-4 w-4" />
-                Back to Events
+                Back
               </Button>
             </Link>
           </div>
@@ -163,16 +181,19 @@ const EventDetailPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="lg:col-span-2"
             >
-              <div className="bg-card rounded-2xl shadow-card p-6 md:p-8">
+              <div className="bg-card rounded-[1.5rem] shadow-card p-6 md:p-8">
                 {/* Header */}
                 <div className="mb-6">
-                  <Badge variant="category" className="mb-4">
+                  <Badge
+                    variant="secondary"
+                    className="mb-4 rounded-full px-4 py-1 font-bold text-xs"
+                  >
                     {event.category}
                   </Badge>
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">
                     {event.title}
                   </h1>
-                  
+
                   <div className="flex flex-wrap gap-4 text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-primary" />
@@ -180,23 +201,30 @@ const EventDetailPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-5 w-5 text-primary" />
-                      <span>{event.time}{event.endTime && ` - ${event.endTime}`}</span>
+                      <span>
+                        {event.time}
+                        {event.endTime && ` - ${event.endTime}`}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Location */}
-                <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-xl mb-6">
+                <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-[1rem] mb-6">
                   <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold">Event Venue</p>
-                    <p className="text-muted-foreground">{event.location.address}</p>
+                    <p className="text-muted-foreground">
+                      {event.location.address}
+                    </p>
                   </div>
                 </div>
 
                 {/* Description */}
                 <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4">About This Event</h2>
+                  <h2 className="text-xl font-semibold mb-4">
+                    About This Event
+                  </h2>
                   <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
                     {event.description}
                   </p>
@@ -208,7 +236,11 @@ const EventDetailPage = () => {
                     <h2 className="text-xl font-semibold mb-4">Tags</h2>
                     <div className="flex flex-wrap gap-2">
                       {event.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary">
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="rounded-full"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -225,7 +257,9 @@ const EventDetailPage = () => {
                     </div>
                     <div>
                       <p className="font-semibold">{event.creator.name}</p>
-                      <p className="text-sm text-muted-foreground">Event Organizer</p>
+                      <p className="text-sm text-muted-foreground">
+                        Event Organizer
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -239,25 +273,35 @@ const EventDetailPage = () => {
               transition={{ delay: 0.1 }}
               className="lg:col-span-1"
             >
-              <div className="sticky top-20 bg-card rounded-2xl shadow-card p-6">
+              <div className="sticky top-20 bg-card rounded-[1.5rem] shadow-card p-6">
                 <h2 className="text-xl font-bold mb-6">Tickets</h2>
-                
+
                 <div className="space-y-4 mb-6">
                   {event.ticketTypes.map((ticket: any) => (
-                    <div key={ticket.name} className="p-4 border rounded-xl flex flex-col gap-3">
+                    <div
+                      key={ticket.name}
+                      className="p-4 border rounded-[1rem] flex flex-col gap-3"
+                    >
                       <div className="flex justify-between items-center">
                         <span className="font-semibold">{ticket.name}</span>
-                        <span className="font-bold text-primary">{formatPrice(ticket.price)}</span>
+                        <span className="font-bold text-primary">
+                          {formatPrice(ticket.price)}
+                        </span>
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {ticket.capacity - ticket.sold} remaining
                       </div>
-                      <Button 
+                      <Button
                         onClick={() => handleBooking(ticket.name, ticket.price)}
-                        disabled={ticket.sold >= ticket.capacity || bookingMutation.isPending}
-                        className="w-full"
+                        disabled={
+                          ticket.sold >= ticket.capacity ||
+                          bookingMutation.isPending
+                        }
+                        className="w-full rounded-full font-bold shadow-button"
                       >
-                        {ticket.sold >= ticket.capacity ? "Sold Out" : "Book Now"}
+                        {ticket.sold >= ticket.capacity
+                          ? "Sold Out"
+                          : "Book Now"}
                       </Button>
                     </div>
                   ))}
@@ -266,9 +310,12 @@ const EventDetailPage = () => {
                 {/* Availability Bar */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Overall availability</span>
+                    <span className="text-muted-foreground">
+                      Overall availability
+                    </span>
                     <span className="font-semibold">
-                      {totalSold.toLocaleString()} / {totalCapacity.toLocaleString()}
+                      {totalSold.toLocaleString()} /{" "}
+                      {totalCapacity.toLocaleString()}
                     </span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -278,23 +325,34 @@ const EventDetailPage = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex gap-3">
-                  <Button variant="outline" size="lg" className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 rounded-full"
+                  >
                     <Heart className="h-5 w-5" />
                   </Button>
-                  <Button variant="outline" size="lg" className="flex-1" onClick={() => setShowShareSnippet(true)}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="flex-1 rounded-full"
+                    onClick={() => setShowShareSnippet(true)}
+                  >
                     <Share2 className="h-5 w-5" />
                   </Button>
                 </div>
 
                 <div className="mt-6 pt-6 border-t border-border">
-                  <p className="text-sm font-medium mb-4">Don't forget the date!</p>
+                  <p className="text-sm font-medium mb-4">
+                    Don't forget the date!
+                  </p>
                   <AddToCalendarButton
                     name={event.title}
-                    options={['Google', 'Apple', 'Outlook.com']}
+                    options={["Google", "Apple", "Outlook.com"]}
                     location={event.location.address}
-                    startDate={event.date.split('T')[0]}
+                    startDate={event.date.split("T")[0]}
                     startTime={event.time}
                     endTime={event.endTime || "23:59"}
                     description={event.description}
@@ -310,7 +368,10 @@ const EventDetailPage = () => {
                 <div className="mt-6 pt-6 border-t border-border">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Users className="h-4 w-4" />
-                    <span>{event.soldTickets?.toLocaleString() || 0} people attending</span>
+                    <span>
+                      {event.soldTickets?.toLocaleString() || 0} people
+                      attending
+                    </span>
                   </div>
                 </div>
               </div>
@@ -320,9 +381,9 @@ const EventDetailPage = () => {
       </main>
 
       {showShareSnippet && (
-        <ShareSnippet 
-          event={event} 
-          onClose={() => setShowShareSnippet(false)} 
+        <ShareSnippet
+          event={event}
+          onClose={() => setShowShareSnippet(false)}
         />
       )}
 

@@ -5,22 +5,19 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
-    "Use City Pulse": [
-      { label: "Create Events", href: "/events/create" },
+    Explore: [
       { label: "Browse Events", href: "/events" },
-      { label: "Pricing", href: "/pricing" },
+      { label: "Categories", href: "/categories" },
+      { label: "Create Events", href: "/events/create" },
     ],
-    "Plan Events": [
-      { label: "Event Planning", href: "/planning" },
-      { label: "Sell Tickets", href: "/sell-tickets" },
-      { label: "Promote Events", href: "/promote" },
-    ],
-    Connect: [
+    Company: [
       { label: "About Us", href: "/about" },
-      { label: "Terms of Service", href: "/terms" },
-      { label: "Privacy Policy", href: "/privacy" },
       { label: "Contact", href: "/contact" },
       { label: "Help Center", href: "/help" },
+    ],
+    Legal: [
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy" },
     ],
   };
 
@@ -32,35 +29,32 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="border-t border-border bg-muted/30">
-      <div className="container py-12 md:py-16 text-center md:text-left">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
+    <footer className="bg-foreground text-background">
+      <div className="container py-16 md:py-20">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-2">
-            <Link
-              to="/"
-              className="flex items-center gap-2 mb-4 justify-center md:justify-start"
-            >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl gradient-hero">
-                <Calendar className="h-5 w-5 text-primary-foreground" />
+          <div className="col-span-2">
+            <Link to="/" className="flex items-center gap-2.5 mb-5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-hero">
+                <Calendar className="h-4 w-4 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight">
-                City<span className="gradient-text">Pulse</span>
+              <span className="text-lg font-extrabold uppercase tracking-wider text-background">
+                City Pulse
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm max-w-xs mb-6 mx-auto md:mx-0">
+            <p className="text-background/50 text-sm max-w-xs mb-8 leading-relaxed">
               Discover and book the best events in your city. Concerts,
               workshops, and unforgettable experiences.
             </p>
-            <div className="flex gap-3 justify-center md:justify-start">
+            <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-background/10 hover:bg-background/20 text-background/70 hover:text-background transition-all duration-300"
                 >
-                  <social.icon className="h-5 w-5" />
+                  <social.icon className="h-4 w-4" />
                 </a>
               ))}
             </div>
@@ -69,13 +63,15 @@ const Footer = () => {
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold mb-4">{title}</h4>
+              <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-background/40 mb-5">
+                {title}
+              </h4>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       to={link.href}
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                      className="text-sm text-background/60 hover:text-background transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -87,19 +83,22 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-16 pt-8 border-t border-background/10 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-background/40">
             © {currentYear} City Pulse. All rights reserved.
           </p>
-          <div className="flex gap-6 text-sm text-muted-foreground">
+          <div className="flex gap-6 text-sm text-background/40">
             <Link
               to="/privacy"
-              className="hover:text-primary transition-colors"
+              className="hover:text-background/70 transition-colors"
             >
-              Privacy Policy
+              Privacy
             </Link>
-            <Link to="/terms" className="hover:text-primary transition-colors">
-              Terms of Service
+            <Link
+              to="/terms"
+              className="hover:text-background/70 transition-colors"
+            >
+              Terms
             </Link>
           </div>
         </div>
