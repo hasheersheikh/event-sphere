@@ -2,7 +2,18 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Calendar, Search, User, Plus, LogOut, LayoutDashboard, Ticket, ScanLine } from "lucide-react";
+import {
+  Menu,
+  X,
+  Calendar,
+  Search,
+  User,
+  Plus,
+  LogOut,
+  LayoutDashboard,
+  Ticket,
+  ScanLine,
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -28,7 +39,7 @@ const Navbar = () => {
             <Calendar className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-xl font-bold">
-            Event<span className="gradient-text">Hub</span>
+            City<span className="gradient-text">Pulse</span>
           </span>
         </Link>
 
@@ -55,8 +66,8 @@ const Navbar = () => {
             <Search className="h-5 w-5" />
           </Button>
           <ThemeToggle />
-          
-          {(user?.role === 'event_manager' || user?.role === 'admin') && (
+
+          {(user?.role === "event_manager" || user?.role === "admin") && (
             <Link to="/scanner">
               <Button variant="ghost" size="icon" className="rounded-xl">
                 <ScanLine className="h-5 w-5" />
@@ -64,7 +75,7 @@ const Navbar = () => {
             </Link>
           )}
 
-          {(user?.role === 'event_manager' || user?.role === 'admin') && (
+          {(user?.role === "event_manager" || user?.role === "admin") && (
             <Link to="/events/create">
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -87,7 +98,12 @@ const Navbar = () => {
                   My Tickets
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={logout} className="text-muted-foreground">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={logout}
+                className="text-muted-foreground"
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
@@ -139,7 +155,7 @@ const Navbar = () => {
               <div className="pt-4 border-t border-border space-y-2">
                 <ThemeToggle />
 
-                {(user?.role === 'event_manager' || user?.role === 'admin') && (
+                {(user?.role === "event_manager" || user?.role === "admin") && (
                   <Link to="/events/create" onClick={() => setIsOpen(false)}>
                     <Button variant="outline" className="w-full gap-2">
                       <Plus className="h-4 w-4" />
@@ -162,19 +178,26 @@ const Navbar = () => {
                         My Tickets
                       </Button>
                     </Link>
-                    {(user?.role === 'event_manager' || user?.role === 'admin') && (
-                  <Link to="/scanner" onClick={() => setIsOpen(false)}>
-                    <Button variant="ghost" className="w-full justify-start gap-3">
-                      <ScanLine className="h-5 w-5" />
-                      Scanner
-                    </Button>
-                  </Link>
-                )}
-                
-                <Button 
-                      variant="ghost" 
-                      className="w-full gap-2 text-muted-foreground" 
-                      onClick={() => { logout(); setIsOpen(false); }}
+                    {(user?.role === "event_manager" ||
+                      user?.role === "admin") && (
+                      <Link to="/scanner" onClick={() => setIsOpen(false)}>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start gap-3"
+                        >
+                          <ScanLine className="h-5 w-5" />
+                          Scanner
+                        </Button>
+                      </Link>
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      className="w-full gap-2 text-muted-foreground"
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
                     >
                       <LogOut className="h-4 w-4" />
                       Sign Out

@@ -15,11 +15,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const Index = () => {
   const { data: events, isLoading } = useQuery({
-    queryKey: ['events', 'featured'],
+    queryKey: ["events", "featured"],
     queryFn: async () => {
-      const { data } = await api.get('/events');
+      const { data } = await api.get("/events");
       return data;
-    }
+    },
   });
 
   const featuredEvent = events?.[0]; // Use the first event as featured for now
@@ -28,7 +28,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1">
         {/* Hero Section */}
         <HeroSection />
@@ -59,13 +59,16 @@ const Index = () => {
           ) : null}
         </section>
 
-     
         {/* Upcoming Events */}
         <section className="container py-12 md:py-16">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Upcoming Events</h2>
-              <p className="text-muted-foreground">Don't miss out on these amazing experiences</p>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">
+                Upcoming Events
+              </h2>
+              <p className="text-muted-foreground">
+                Don't miss out on these amazing experiences
+              </p>
             </div>
             <Link to="/events">
               <Button variant="ghost" className="gap-2">
@@ -74,25 +77,23 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex flex-col space-y-3">
-                  <Skeleton className="h-[200px] w-full rounded-2xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-[80%]" />
+            {isLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex flex-col space-y-3">
+                    <Skeleton className="h-[200px] w-full rounded-2xl" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-[80%]" />
+                    </div>
+                    <div className="flex justify-between items-center pt-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center pt-4">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              upcomingEvents.map((event: any, index: number) => (
-                <EventCard key={event._id} event={event} index={index} />
-              ))
-            )}
+                ))
+              : upcomingEvents.map((event: any, index: number) => (
+                  <EventCard key={event._id} event={event} index={index} />
+                ))}
           </div>
         </section>
 
@@ -106,7 +107,7 @@ const Index = () => {
               className="text-center max-w-2xl mx-auto mb-12"
             >
               <h2 className="text-2xl md:text-3xl font-bold mb-4">
-                Why Choose <span className="gradient-text">EventHub</span>?
+                Why Choose <span className="gradient-text">CityPulse</span>?
               </h2>
               <p className="text-muted-foreground text-lg">
                 We make discovering and attending events effortless
@@ -118,17 +119,20 @@ const Index = () => {
                 {
                   icon: Sparkles,
                   title: "Curated Events",
-                  description: "Hand-picked events from trusted organizers, ensuring quality experiences every time.",
+                  description:
+                    "Hand-picked events from trusted organizers, ensuring quality experiences every time.",
                 },
                 {
                   icon: Shield,
                   title: "Secure Booking",
-                  description: "Your tickets and payments are protected with industry-leading security measures.",
+                  description:
+                    "Your tickets and payments are protected with industry-leading security measures.",
                 },
                 {
                   icon: Zap,
                   title: "Instant Access",
-                  description: "Get your tickets instantly via email and mobile app. No waiting, no hassle.",
+                  description:
+                    "Get your tickets instantly via email and mobile app. No waiting, no hassle.",
                 },
               ].map((feature, index) => (
                 <motion.div
@@ -163,11 +167,16 @@ const Index = () => {
                 Ready to Host Your Own Event?
               </h2>
               <p className="text-primary-foreground/80 text-lg mb-8">
-                Join thousands of event organizers who trust EventHub to bring their events to life.
+                Join thousands of event organizers who trust City Pulse to bring
+                their events to life.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/events/create">
-                  <Button size="xl" variant="hero" className="bg-white text-primary hover:bg-white/90">
+                  <Button
+                    size="xl"
+                    variant="hero"
+                    className="bg-white text-primary hover:bg-white/90"
+                  >
                     Start Creating
                   </Button>
                 </Link>

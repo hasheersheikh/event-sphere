@@ -14,7 +14,7 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,13 +29,18 @@ const AuthPage = () => {
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
       const { data } = await api.post(endpoint, formData);
-      
+
       login(data);
-      toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
+      toast.success(
+        isLogin ? "Welcome back!" : "Account created successfully!",
+      );
       navigate("/");
     } catch (error: any) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +72,7 @@ const AuthPage = () => {
           <p className="text-muted-foreground mb-8">
             {isLogin
               ? "Sign in to access your events and tickets"
-              : "Join EventHub to discover amazing events"}
+              : "Join City Pulse to discover amazing events"}
           </p>
 
           {/* Form */}
@@ -87,7 +92,7 @@ const AuthPage = () => {
                 />
               </div>
             )}
-            
+
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
@@ -142,7 +147,9 @@ const AuthPage = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({ ...formData, role: "event_manager" })}
+                  onClick={() =>
+                    setFormData({ ...formData, role: "event_manager" })
+                  }
                   className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                     formData.role === "event_manager"
                       ? "bg-background shadow-sm text-primary"
@@ -174,8 +181,8 @@ const AuthPage = () => {
               {isLoading
                 ? "Please wait..."
                 : isLogin
-                ? "Sign In"
-                : "Create Account"}
+                  ? "Sign In"
+                  : "Create Account"}
             </Button>
           </form>
 
@@ -196,7 +203,7 @@ const AuthPage = () => {
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
-        
+
         <div className="relative z-10 flex items-center justify-center p-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -208,7 +215,8 @@ const AuthPage = () => {
               Discover Events That Inspire
             </h2>
             <p className="text-lg text-primary-foreground/80">
-              Join millions of people who use EventHub to find and create unforgettable experiences.
+              Join millions of people who use City Pulse to find and create
+              unforgettable experiences.
             </p>
           </motion.div>
         </div>

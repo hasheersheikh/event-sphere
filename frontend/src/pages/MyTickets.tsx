@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Ticket, Calendar, MapPin, Download, ExternalLink, Clock } from "lucide-react";
+import {
+  Ticket,
+  Calendar,
+  MapPin,
+  Download,
+  ExternalLink,
+  Clock,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -13,12 +20,12 @@ import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { QrCode, CheckCircle2, Share2, CalendarPlus } from "lucide-react";
@@ -35,20 +42,29 @@ const MyTickets = () => {
   const [shareEvent, setShareEvent] = useState<any>(null);
 
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ['my-bookings'],
+    queryKey: ["my-bookings"],
     queryFn: async () => {
-      const { data } = await api.get('/bookings');
+      const { data } = await api.get("/bookings");
       return data;
-    }
+    },
   });
 
-  const activeTickets = bookings?.filter((b: any) => b.status === 'confirmed' || b.status === 'pending') || [];
-  const pastTickets = bookings?.filter((b: any) => b.status === 'expired' || b.status === 'cancelled' || b.status === 'refunded') || [];
+  const activeTickets =
+    bookings?.filter(
+      (b: any) => b.status === "confirmed" || b.status === "pending",
+    ) || [];
+  const pastTickets =
+    bookings?.filter(
+      (b: any) =>
+        b.status === "expired" ||
+        b.status === "cancelled" ||
+        b.status === "refunded",
+    ) || [];
 
   const handleDownload = async (booking: any) => {
     setIsDownloading(booking._id);
     setActiveDownloadBooking(booking);
-    
+
     // Wait for the template to render
     setTimeout(async () => {
       try {
@@ -59,25 +75,25 @@ const MyTickets = () => {
           scale: 2,
           useCORS: true,
           logging: false,
-          backgroundColor: '#ffffff'
-        });
-        
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [800, 500]
+          backgroundColor: "#ffffff",
         });
 
-        pdf.addImage(imgData, 'PNG', 0, 0, 800, 500);
-        pdf.setProperties({
-          title: `EventSphere-Ticket-${booking._id}`,
-          subject: 'Event Admission Ticket',
-          author: 'Event Sphere',
-          creator: 'Event Sphere Portal'
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "px",
+          format: [800, 500],
         });
-        
-        pdf.save(`Ticket-${booking.event.title.replace(/\s+/g, '-')}.pdf`);
+
+        pdf.addImage(imgData, "PNG", 0, 0, 800, 500);
+        pdf.setProperties({
+          title: `CityPulse-Ticket-${booking._id}`,
+          subject: "Event Admission Ticket",
+          author: "City Pulse",
+          creator: "City Pulse Portal",
+        });
+
+        pdf.save(`Ticket-${booking.event.title.replace(/\s+/g, "-")}.pdf`);
         toast.success("Ticket downloaded successfully!");
       } catch (err) {
         console.error(err);
@@ -95,7 +111,9 @@ const MyTickets = () => {
       <main className="flex-1 container py-8 md:py-12">
         <header className="mb-8">
           <h1 className="text-3xl font-bold mb-2">My Tickets</h1>
-          <p className="text-muted-foreground text-lg">Manage and view your event tickets</p>
+          <p className="text-muted-foreground text-lg">
+            Manage and view your event tickets
+          </p>
         </header>
 
         {isLoading ? (
@@ -127,13 +145,13 @@ const MyTickets = () => {
                 <Ticket className="h-5 w-5 text-primary" />
                 Active Tickets ({activeTickets.length})
               </h2>
-              
+
               {activeTickets.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {activeTickets.map((booking: any) => (
-                    <TicketCard 
-                      key={booking._id} 
-                      booking={booking} 
+                    <TicketCard
+                      key={booking._id}
+                      booking={booking}
                       onDownload={() => handleDownload(booking)}
                       onShare={() => setShareEvent(booking.event)}
                       isLoading={isDownloading === booking._id}
@@ -143,8 +161,12 @@ const MyTickets = () => {
               ) : (
                 <div className="bg-background rounded-2xl border border-dashed p-12 text-center shadow-sm">
                   <Ticket className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No active tickets</h3>
-                  <p className="text-muted-foreground mb-6">You don't have any upcoming events at the moment.</p>
+                  <h3 className="text-lg font-semibold mb-2">
+                    No active tickets
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    You don't have any upcoming events at the moment.
+                  </p>
                   <Link to="/events">
                     <Button variant="default">Browse Events</Button>
                   </Link>
@@ -161,10 +183,10 @@ const MyTickets = () => {
                 </h2>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   {pastTickets.map((booking: any) => (
-                    <TicketCard 
-                      key={booking._id} 
-                      booking={booking} 
-                      isPast 
+                    <TicketCard
+                      key={booking._id}
+                      booking={booking}
+                      isPast
                       onDownload={() => handleDownload(booking)}
                       onShare={() => setShareEvent(booking.event)}
                       isLoading={isDownloading === booking._id}
@@ -178,42 +200,40 @@ const MyTickets = () => {
       </main>
 
       {shareEvent && (
-        <ShareSnippet 
-          event={shareEvent} 
-          onClose={() => setShareEvent(null)} 
-        />
+        <ShareSnippet event={shareEvent} onClose={() => setShareEvent(null)} />
       )}
 
       <Footer />
 
       {/* Hidden container for PDF capture */}
       <div className="absolute left-[-9999px] top-[-9999px]">
-        {activeDownloadBooking && activeDownloadBooking.tickets.map((t: any, idx: number) => (
-          <div key={`${activeDownloadBooking._id}-${idx}`}>
-            <TicketTemplate 
-              ref={ticketRef} 
-              booking={activeDownloadBooking} 
-              ticket={t} 
-            />
-          </div>
-        ))}
+        {activeDownloadBooking &&
+          activeDownloadBooking.tickets.map((t: any, idx: number) => (
+            <div key={`${activeDownloadBooking._id}-${idx}`}>
+              <TicketTemplate
+                ref={ticketRef}
+                booking={activeDownloadBooking}
+                ticket={t}
+              />
+            </div>
+          ))}
       </div>
     </div>
   );
 };
 
-const TicketCard = ({ 
-  booking, 
-  isPast, 
+const TicketCard = ({
+  booking,
+  isPast,
   onDownload,
   onShare,
-  isLoading
-}: { 
-  booking: any, 
-  isPast?: boolean,
-  onDownload?: () => void,
-  onShare?: () => void,
-  isLoading?: boolean
+  isLoading,
+}: {
+  booking: any;
+  isPast?: boolean;
+  onDownload?: () => void;
+  onShare?: () => void;
+  isLoading?: boolean;
 }) => {
   return (
     <motion.div
@@ -221,20 +241,34 @@ const TicketCard = ({
       animate={{ opacity: 1, y: 0 }}
       className="bg-card rounded-2xl shadow-card border overflow-hidden flex flex-col"
     >
-      <div className={`p-1 text-center text-[10px] font-bold uppercase tracking-wider ${isPast ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
-        {booking.status === 'confirmed' ? 'Valid Ticket' : booking.status}
+      <div
+        className={`p-1 text-center text-[10px] font-bold uppercase tracking-wider ${isPast ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"}`}
+      >
+        {booking.status === "confirmed" ? "Valid Ticket" : booking.status}
       </div>
       <div className="p-6 flex-1">
-        <h3 className="font-bold text-lg mb-4 line-clamp-1 group-hover:text-primary transition-colors">{booking.event.title}</h3>
-        
+        <h3 className="font-bold text-lg mb-4 line-clamp-1 group-hover:text-primary transition-colors">
+          {booking.event.title}
+        </h3>
+
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 text-primary shrink-0" />
-            <span>{new Date(booking.event.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+            <span>
+              {new Date(booking.event.date).toLocaleDateString(undefined, {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-primary shrink-0" />
-            <span className="line-clamp-1">{booking.event.location.venueName || booking.event.location.address}</span>
+            <span className="line-clamp-1">
+              {booking.event.location.venueName ||
+                booking.event.location.address}
+            </span>
           </div>
         </div>
 
@@ -258,7 +292,11 @@ const TicketCard = ({
       <div className="bg-muted/50 p-4 flex flex-wrap gap-2">
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 rounded-xl border-primary/20 hover:border-primary/50 text-primary">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 rounded-xl border-primary/20 hover:border-primary/50 text-primary"
+            >
               <QrCode className="h-4 w-4" />
               View QR
             </Button>
@@ -269,8 +307,8 @@ const TicketCard = ({
             </DialogHeader>
             <div className="flex flex-col items-center justify-center py-8 space-y-6">
               <div className="bg-white p-6 rounded-3xl shadow-xl border-4 border-primary/10">
-                <QRCodeSVG 
-                  value={`eventsphere://ticket/${booking._id}`} 
+                <QRCodeSVG
+                  value={`citypulse://ticket/${booking._id}`}
                   size={240}
                   level="H"
                   includeMargin={true}
@@ -278,26 +316,39 @@ const TicketCard = ({
               </div>
               <div className="text-center space-y-2">
                 <p className="font-bold text-xl">{booking.event.title}</p>
-                <p className="text-muted-foreground">Show this code to the event organizer at the door.</p>
+                <p className="text-muted-foreground">
+                  Show this code to the event organizer at the door.
+                </p>
               </div>
               <div className="w-full bg-muted/50 p-4 rounded-xl space-y-4">
                 {booking.tickets.map((t: any, i: number) => (
-                  <div key={i} className="flex justify-between items-center text-sm">
-                    <span className="font-medium">{t.type} (x{t.quantity})</span>
-                    <Badge variant={t.checkedInCount >= t.quantity ? "success" : "secondary"}>
+                  <div
+                    key={i}
+                    className="flex justify-between items-center text-sm"
+                  >
+                    <span className="font-medium">
+                      {t.type} (x{t.quantity})
+                    </span>
+                    <Badge
+                      variant={
+                        t.checkedInCount >= t.quantity ? "success" : "secondary"
+                      }
+                    >
                       {t.checkedInCount} / {t.quantity} Scanned
                     </Badge>
                   </div>
                 ))}
 
                 <div className="pt-2 border-t border-border">
-                  <p className="text-xs text-muted-foreground mb-3 text-center">Sync to your calendar</p>
+                  <p className="text-xs text-muted-foreground mb-3 text-center">
+                    Sync to your calendar
+                  </p>
                   <div className="flex justify-center">
                     <AddToCalendarButton
                       name={booking.event.title}
-                      options={['Google', 'Apple', 'Outlook.com']}
+                      options={["Google", "Apple", "Outlook.com"]}
                       location={booking.event.location.address}
-                      startDate={booking.event.date.split('T')[0]}
+                      startDate={booking.event.date.split("T")[0]}
                       startTime={booking.event.time}
                       description={`Your tickets for ${booking.event.title}`}
                       timeZone="Asia/Kolkata"
@@ -313,9 +364,9 @@ const TicketCard = ({
           </DialogContent>
         </Dialog>
 
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2 rounded-xl"
           onClick={onShare}
         >
@@ -323,16 +374,23 @@ const TicketCard = ({
           Share
         </Button>
 
-        <Link to={`/events/${booking.event._id}`} className="flex-1 min-w-[120px]">
-          <Button variant="outline" size="sm" className="w-full gap-2 rounded-xl">
+        <Link
+          to={`/events/${booking.event._id}`}
+          className="flex-1 min-w-[120px]"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-2 rounded-xl"
+          >
             <ExternalLink className="h-4 w-4" />
             Event Details
           </Button>
         </Link>
         {!isPast && (
-          <Button 
-            variant="default" 
-            size="sm" 
+          <Button
+            variant="default"
+            size="sm"
             className="gap-2 rounded-xl shadow-button"
             onClick={onDownload}
             disabled={isLoading}
