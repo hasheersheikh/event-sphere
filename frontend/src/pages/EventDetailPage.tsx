@@ -256,7 +256,9 @@ const EventDetailPage = () => {
                       <User className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold">{event.creator.name}</p>
+                      <p className="font-semibold">
+                        {event.creator?.name || "Verified Organizer"}
+                      </p>
                       <p className="text-sm text-muted-foreground">
                         Event Organizer
                       </p>

@@ -49,7 +49,7 @@ const EventSchema: Schema = new Schema(
     },
     category: { type: String, required: true },
     image: { type: String },
-    creator: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    creator: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
     ticketTypes: [
       {
         name: { type: String, required: true },

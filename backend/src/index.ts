@@ -6,6 +6,9 @@ import winston from 'winston';
 import authRoutes from './routes/authRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+import managerRoutes from './routes/managerRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 dotenv.config();
@@ -38,6 +41,9 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/manager', managerRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Basic Route
 app.get('/health', (req, res) => {

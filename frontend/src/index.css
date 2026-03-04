@@ -7,24 +7,24 @@
 @layer base {
   :root {
     --background: 0 0% 96%;
-    --foreground: 0 0% 7%;
+    --foreground: 0 0% 20%; /* #333132 charcoal equivalent approx */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
+    --card-foreground: 0 0% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
+    --popover-foreground: 0 0% 20%;
 
-    --primary: 239 84% 67%;
+    --primary: 13 100% 54%; /* #FF4612 orange */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 92%;
+    --secondary: 0 0% 92%; /* #E0E0E0 border approx */
     --secondary-foreground: 0 0% 15%;
 
     --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 0 0% 40%; /* #666666 approx */
 
-    --accent: 25 95% 53%;
+    --accent: 13 100% 48%; /* #E63E0F orange-hover */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -32,73 +32,33 @@
 
     --border: 0 0% 88%;
     --input: 0 0% 88%;
-    --ring: 239 84% 67%;
+    --ring: 13 100% 54%;
 
-    --radius: 0.75rem;
+    --radius: 0rem; /* Boxy premium feel for mnkhan style */
 
-    /* Custom tokens */
+    /* Custom MNKHAN tokens */
+    --mnkhan-charcoal: #333132;
+    --mnkhan-orange: #FF4612;
+    --mnkhan-orange-hover: #E63E0F;
+    --mnkhan-gray-bg: #F5F5F5;
+    --mnkhan-gray-border: #E0E0E0;
+    --mnkhan-text-muted: #666666;
+
+    --font-serif: "Chronicle Display", Georgia, serif;
+    --font-sans: "Gordita", "Inter", -apple-system, sans-serif;
+
     --gradient-hero: linear-gradient(
       135deg,
-      hsl(239 84% 55%) 0%,
-      hsl(280 70% 50%) 50%,
-      hsl(330 75% 55%) 100%
+      #333132 0%,
+      #444243 100%
     );
-    --gradient-card: linear-gradient(
-      180deg,
-      hsl(0 0% 100%) 0%,
-      hsl(0 0% 96%) 100%
-    );
-    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-    --shadow-card-hover: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
-    --shadow-button: 0 4px 14px -3px hsl(239 84% 55% / 0.3);
-
-    --sidebar-background: 0 0% 96%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 239 84% 67%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 92%;
-    --sidebar-accent-foreground: 0 0% 15%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 239 84% 67%;
+    --shadow-button: 0 10px 20px -5px rgba(255, 70, 18, 0.3);
   }
 
   .dark {
     --background: 0 0% 5%;
     --foreground: 0 0% 96%;
-
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 96%;
-
-    --popover: 0 0% 8%;
-    --popover-foreground: 0 0% 96%;
-
-    --primary: 239 84% 74%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 90%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 25 95% 58%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 96%;
-
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 239 84% 74%;
-
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 239 84% 74%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 14%;
-    --sidebar-ring: 239 84% 74%;
+    /* ... rest of dark mode if needed, focusing on light for now as per user request */
   }
 }
 
@@ -108,8 +68,19 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: "Plus Jakarta Sans", sans-serif;
+    background-color: var(--mnkhan-gray-bg);
+    color: var(--mnkhan-charcoal);
+    font-family: var(--font-sans);
+    @apply antialiased;
+  }
+  
+  h1, h2, h3, h4, .brand-font {
+    font-family: var(--font-serif);
+    font-weight: 700;
+  }
+
+  main.main-content {
+    /* Padding will be handled conditionally in App.tsx */
   }
 }
 

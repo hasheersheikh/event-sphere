@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Request, Response } from 'express';
+import { Request, Response, RequestHandler } from 'express';
 import Event from '../models/Event.js';
 import { AuthRequest } from '../middleware/auth.js';
 
@@ -111,7 +111,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getMyEvents = async (req: AuthRequest, res: Response) => {
+export const getMyEvents: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
     const events = await Event.find({ creator: req.user?._id }).sort({ date: 1 });
     res.json(events);

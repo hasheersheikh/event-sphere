@@ -1,25 +1,30 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IUser extends Document {
+export interface IEventManager extends Document {
   name: string;
   email: string;
   password?: string;
-  role: 'user';
+  role: 'event_manager';
+  isApproved: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema(
+const EventManagerSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true },
     role: {
       type: String,
-      default: 'user',
+      default: 'event_manager',
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IEventManager>('EventManager', EventManagerSchema);

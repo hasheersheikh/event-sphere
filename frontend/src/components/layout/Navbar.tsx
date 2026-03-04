@@ -2,26 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  X,
-  Calendar,
-  Search,
-  User,
-  Plus,
-  LogOut,
-  LayoutDashboard,
-  Ticket,
-  ScanLine,
-} from "lucide-react";
+import { Menu, X, Calendar, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "./ThemeToggle";
+import ProfileDropdown from "./ProfileDropdown";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const isHome = location.pathname === "/";
 
@@ -33,7 +22,7 @@ const Navbar = () => {
 
   const navLinks = [
     { href: "/events", label: "Events" },
-    { href: "/categories", label: "Categories" },
+    { href: "/categories", label: "Lineup" },
     { href: "/about", label: "About" },
   ];
 
@@ -42,39 +31,41 @@ const Navbar = () => {
   const navBg =
     isHome && !isScrolled
       ? "bg-transparent border-transparent"
-      : "bg-background/95 backdrop-blur border-border/50 supports-[backdrop-filter]:bg-background/60";
+      : "bg-background/95 backdrop-blur-md border-border/50 supports-[backdrop-filter]:bg-background/80 shadow-sm";
 
-  const textColor = isHome && !isScrolled ? "text-white" : "text-foreground";
+  // White text on home hero, Charcoal (primary text) elsewhere
+  const textColor =
+    isHome && !isScrolled ? "text-white" : "text-[var(--mnkhan-charcoal)]";
   const mutedColor =
-    isHome && !isScrolled ? "text-white/70" : "text-muted-foreground";
+    isHome && !isScrolled ? "text-white/80" : "text-[var(--mnkhan-text-muted)]";
 
   return (
     <header
-      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${navBg}`}
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-500 ease-in-out ${navBg}`}
     >
-      <nav className="container flex h-16 items-center justify-between">
+      <nav className="container flex h-16 md:h-20 items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-hero">
-            <Calendar className="h-4 w-4 text-white" />
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="flex h-9 w-9 items-center justify-center bg-[var(--mnkhan-orange)] group-hover:bg-[var(--mnkhan-orange-hover)] transition-colors shadow-lg shadow-orange-500/20">
+            <Calendar className="h-5 w-5 text-white" />
           </div>
           <span
-            className={`text-lg font-extrabold uppercase tracking-wider ${textColor}`}
+            className={`text-xl font-black tracking-tighter brand-font uppercase transition-colors duration-300 ${textColor}`}
           >
             City Pulse
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-2">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`px-5 py-2 text-xs font-black uppercase tracking-widest transition-all ${
                 isActive(link.href)
-                  ? "bg-primary/10 text-primary"
-                  : `${mutedColor} hover:${textColor} hover:bg-white/10`
+                  ? "text-[var(--mnkhan-orange)]"
+                  : `${mutedColor} hover:${textColor} hover:opacity-100`
               }`}
             >
               {link.label}
@@ -83,89 +74,34 @@ const Navbar = () => {
         </div>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            className={`rounded-full ${mutedColor}`}
+            className={`rounded-full transition-colors ${mutedColor} hover:bg-muted/30`}
           >
             <Search className="h-5 w-5" />
           </Button>
-          <ThemeToggle />
-
-          {(user?.role === "event_manager" || user?.role === "admin") && (
-            <Link to="/scanner">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`rounded-full ${mutedColor}`}
-              >
-                <ScanLine className="h-5 w-5" />
-              </Button>
-            </Link>
-          )}
-
-          {(user?.role === "event_manager" || user?.role === "admin") && (
-            <Link to="/events/create">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 rounded-full"
-              >
-                <Plus className="h-4 w-4" />
-                Create
-              </Button>
-            </Link>
-          )}
 
           {isAuthenticated ? (
-            <div className="flex items-center gap-2">
-              <Link to="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`gap-2 rounded-full ${mutedColor}`}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </Button>
-              </Link>
-              <Link to="/my-tickets">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={`gap-2 rounded-full ${mutedColor}`}
-                >
-                  <Ticket className="h-4 w-4" />
-                  Tickets
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={logout}
-                className={`rounded-full ${mutedColor}`}
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
+            <ProfileDropdown />
           ) : (
-            <Link to="/auth">
-              <Button
-                size="sm"
-                className="gap-2 rounded-full shadow-button font-bold"
-              >
-                <User className="h-4 w-4" />
-                Sign In
-              </Button>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/auth">
+                <Button
+                  size="sm"
+                  className="bg-[var(--mnkhan-orange)] hover:bg-[var(--mnkhan-orange-hover)] text-white text-[10px] font-black uppercase tracking-[0.2em] px-8 rounded-none shadow-button border-none"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
 
         {/* Mobile Menu Button */}
         <button
-          className={`md:hidden p-2 rounded-full hover:bg-white/10 transition-colors ${textColor}`}
+          className={`md:hidden p-2 transition-colors ${textColor}`}
           onClick={() => setIsOpen(!isOpen)}
           aria-label="Toggle menu"
         >
@@ -177,92 +113,46 @@ const Navbar = () => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-border bg-background"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="md:hidden border-t border-border bg-background/98 backdrop-blur-xl shadow-2xl"
           >
-            <div className="container py-4 space-y-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`block px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                    isActive(link.href)
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <div className="pt-4 border-t border-border space-y-2">
-                <ThemeToggle />
-
-                {(user?.role === "event_manager" || user?.role === "admin") && (
-                  <Link to="/events/create" onClick={() => setIsOpen(false)}>
-                    <Button
-                      variant="outline"
-                      className="w-full gap-2 rounded-full"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Create Event
-                    </Button>
+            <div className="container py-8 space-y-6">
+              <div className="space-y-2">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setIsOpen(false)}
+                    className={`block px-6 py-4 text-sm font-black uppercase tracking-widest border-l-4 transition-all ${
+                      isActive(link.href)
+                        ? "border-[var(--mnkhan-orange)] text-[var(--mnkhan-orange)] bg-orange-500/5 transition-all"
+                        : "border-transparent text-[var(--mnkhan-text-muted)] hover:text-[var(--mnkhan-charcoal)]"
+                    }`}
+                  >
+                    {link.label}
                   </Link>
-                )}
+                ))}
+              </div>
 
+              <div className="pt-6 border-t border-border space-y-4">
                 {isAuthenticated ? (
-                  <>
-                    <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2 rounded-full"
-                      >
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </Button>
-                    </Link>
-                    <Link to="/my-tickets" onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2 rounded-full"
-                      >
-                        <Ticket className="h-4 w-4" />
-                        My Tickets
-                      </Button>
-                    </Link>
-                    {(user?.role === "event_manager" ||
-                      user?.role === "admin") && (
-                      <Link to="/scanner" onClick={() => setIsOpen(false)}>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start gap-3 rounded-full"
-                        >
-                          <ScanLine className="h-5 w-5" />
-                          Scanner
-                        </Button>
-                      </Link>
-                    )}
-                    <Button
-                      variant="ghost"
-                      className="w-full gap-2 text-muted-foreground rounded-full"
-                      onClick={() => {
-                        logout();
-                        setIsOpen(false);
-                      }}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Sign Out
-                    </Button>
-                  </>
+                  <div className="px-6 pb-4">
+                    <ProfileDropdown />
+                  </div>
                 ) : (
-                  <Link to="/auth" onClick={() => setIsOpen(false)}>
-                    <Button className="w-full gap-2 shadow-button rounded-full">
-                      <User className="h-4 w-4" />
-                      Sign In
-                    </Button>
-                  </Link>
+                  <div className="px-6 space-y-3">
+                    <Link
+                      to="/auth"
+                      onClick={() => setIsOpen(false)}
+                      className="block w-full"
+                    >
+                      <Button className="w-full bg-[var(--mnkhan-orange)] text-white text-xs font-black uppercase tracking-widest py-6 border-none">
+                        Member Sign In
+                      </Button>
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>
