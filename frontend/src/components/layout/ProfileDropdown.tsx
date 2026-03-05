@@ -8,7 +8,8 @@ import {
   Ticket,
   Settings,
   ChevronDown,
-  UserCircle,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,25 +34,19 @@ const ProfileDropdown = () => {
 
   const menuItems = [
     {
-      label: "My Hub",
-      icon: LayoutDashboard,
-      href: "/dashboard",
-      show: true,
-    },
-    {
-      label: "Unified Portal",
+      label: "Pulse Portal",
       icon: LayoutDashboard,
       href: "/portal",
       show: user?.role === "admin" || user?.role === "event_manager",
     },
     {
-      label: "My Tickets",
+      label: "My Collections",
       icon: Ticket,
       href: "/my-tickets",
       show: true,
     },
     {
-      label: "Account Settings",
+      label: "Auth Settings",
       icon: Settings,
       href: "/settings",
       show: true,
@@ -62,73 +57,73 @@ const ProfileDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-muted/50 transition-all border border-transparent hover:border-border group"
+        className="flex items-center gap-4 p-1.5 pr-5 rounded-2xl glass-panel bg-white/5 border border-white/10 hover:border-emerald-500/50 transition-all duration-500 group shadow-lg"
       >
-        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden border border-primary/20">
-          {user?.name?.charAt(0) || <User className="h-4 w-4" />}
+        <div className="h-10 w-10 rounded-xl bg-emerald-500 flex items-center justify-center text-black font-black overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+          {user?.name?.charAt(0) || <User className="h-5 w-5" />}
         </div>
         <div className="hidden lg:block text-left">
-          <p className="text-xs font-black leading-tight group-hover:text-primary transition-colors">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white leading-tight group-hover:text-emerald-400 transition-colors">
             {user?.name}
           </p>
-          <p className="text-[10px] text-muted-foreground font-medium capitalize">
+          <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest italic">
             {user?.role?.replace("_", " ")}
           </p>
         </div>
         <ChevronDown
-          className={`h-3 w-3 text-muted-foreground transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+          className={`h-3 w-3 text-white/40 transition-transform duration-500 ${isOpen ? "rotate-180 text-emerald-400" : ""}`}
         />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-3 w-64 bg-white rounded-none shadow-2xl border-2 border-[var(--mnkhan-charcoal)] overflow-hidden z-[100]"
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 mt-4 w-80 glass-panel bg-zinc-950/95 border border-white/10 backdrop-blur-md rounded-[2.5rem] overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
           >
-            <div className="p-4 bg-[var(--mnkhan-gray-bg)] border-b-2 border-[var(--mnkhan-charcoal)]">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-none bg-[var(--mnkhan-charcoal)] text-white flex items-center justify-center font-black">
+            <div className="p-8 border-b border-white/10 bg-white/5">
+              <div className="flex items-center gap-5">
+                <div className="h-14 w-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center font-black text-xl shadow-[0_0_30px_rgba(16,185,129,0.4)]">
                   {user?.name?.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-black text-sm uppercase tracking-tighter">
+                  <p className="font-black text-xs uppercase tracking-[0.2em] text-white italic">
                     {user?.name}
                   </p>
-                  <p className="text-[10px] text-[var(--mnkhan-text-muted)] font-bold truncate max-w-[140px] uppercase tracking-widest">
+                  <p className="text-[9px] text-white/30 font-bold truncate max-w-[160px] uppercase tracking-[0.2em]">
                     {user?.email}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-2">
+            <div className="p-4 space-y-1">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-none text-[11px] font-black uppercase tracking-widest text-[var(--mnkhan-text-muted)] hover:text-white hover:bg-[var(--mnkhan-charcoal)] transition-all group"
+                  className="flex items-center gap-4 px-6 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-emerald-500/10 transition-all duration-300 group"
                 >
-                  <item.icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+                  <item.icon className="h-4.5 w-4.5 transition-all group-hover:scale-110 group-hover:text-emerald-400" />
                   {item.label}
                 </Link>
               ))}
             </div>
 
-            <div className="p-2 border-t mt-1 bg-muted/10">
+            <div className="p-4 pt-2 pb-6 border-t border-white/5 mt-2">
               <button
                 onClick={() => {
                   logout();
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold text-destructive hover:bg-destructive/5 transition-all"
+                className="w-full flex items-center gap-4 px-6 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-white hover:bg-rose-500/10 transition-all duration-500 group"
               >
-                <LogOut className="h-4 w-4" />
-                Sign Out
+                <LogOut className="h-4.5 w-4.5 transition-transform group-hover:scale-110" />
+                De-sync Pulse
               </button>
             </div>
           </motion.div>

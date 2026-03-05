@@ -44,7 +44,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       event: eventId,
       tickets: enrichedTickets,
       totalAmount,
-      status: 'confirmed',
+      status: req.body.status || (totalAmount === 0 ? 'confirmed' : 'pending'),
     });
 
     await event.save();

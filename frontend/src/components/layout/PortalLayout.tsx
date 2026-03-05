@@ -80,40 +80,44 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:pl-80 min-h-screen transition-all duration-300">
         {/* Top Header */}
-        <header className="h-20 bg-white border-b border-[var(--mnkhan-gray-border)] flex items-center justify-between px-8 sticky top-0 z-30">
+        <header className="h-20 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
-              className="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors"
+              className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition-colors text-white"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-6 w-6" />
             </button>
-            <div className="hidden md:flex items-center gap-3 bg-[var(--mnkhan-gray-bg)] border px-4 py-2 rounded-none group focus-within:border-[var(--mnkhan-orange)] transition-colors">
-              <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-[var(--mnkhan-orange)]" />
+            <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-xl group focus-within:border-emerald-500/50 transition-all">
+              <Search className="h-4 w-4 text-white/40 group-focus-within:text-emerald-400" />
               <input
                 type="text"
-                placeholder="Search entries..."
-                className="bg-transparent border-none outline-none text-xs font-bold uppercase tracking-widest w-64"
+                placeholder="Search control..."
+                className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest w-64 text-white placeholder:text-white/20"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button className="h-10 w-10 flex items-center justify-center rounded-none hover:bg-muted transition-colors relative">
-              <Bell className="h-5 w-5 text-[var(--mnkhan-charcoal)]" />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-[var(--mnkhan-orange)]" />
+          <div className="flex items-center gap-6">
+            <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all relative">
+              <Bell className="h-5 w-5 text-white/60" />
+              <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
             </button>
-            <div className="h-10 w-[1px] bg-border mx-2" />
-            <div className="text-right hidden sm:block">
-              <p className="text-xs font-black brand-font uppercase tracking-tighter">
-                {user?.name}
-              </p>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                {user?.role?.replace("_", " ")}
-              </p>
-            </div>
-            <div className="h-10 w-10 bg-[var(--mnkhan-charcoal)] flex items-center justify-center font-black text-white text-xs">
-              {user?.name?.charAt(0)}
+
+            <div className="h-8 w-[1px] bg-white/10 mx-2" />
+
+            <div className="flex items-center gap-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-[11px] font-black uppercase tracking-tighter text-white">
+                  {user?.name}
+                </p>
+                <p className="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">
+                  {user?.role?.replace("_", " ")}
+                </p>
+              </div>
+              <div className="h-10 w-10 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-black text-xs shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                {user?.name?.charAt(0)}
+              </div>
             </div>
           </div>
         </header>

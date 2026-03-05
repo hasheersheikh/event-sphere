@@ -50,6 +50,15 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        pulse: {
+          emerald: {
+            DEFAULT: "var(--pulse-emerald)",
+            hover: "var(--pulse-emerald-hover)",
+          },
+          indigo: "var(--pulse-indigo)",
+          violet: "var(--pulse-violet)",
+          bg: "var(--pulse-bg)",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

@@ -25,8 +25,11 @@ import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UsersManagement from "./pages/admin/UsersManagement";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import MyProductions from "./pages/manager/MyProductions";
 import PortalLayout from "./components/layout/PortalLayout";
@@ -90,6 +93,14 @@ const App = () => (
                       <Route path="events/:id" element={<EventDetailPage />} />
                       <Route path="auth" element={<AuthPage />} />
                       <Route
+                        path="forgot-password"
+                        element={<ForgotPasswordPage />}
+                      />
+                      <Route
+                        path="reset-password"
+                        element={<ResetPasswordPage />}
+                      />
+                      <Route
                         path="dashboard"
                         element={
                           <ProtectedRoute>
@@ -149,15 +160,14 @@ const App = () => (
             >
               <Route path="admin" element={<AdminDashboard />} />
               <Route path="manager" element={<ManagerDashboard />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="productions" element={<MyProductions />} />
               {/* Add more management pages here */}
               <Route
                 path="users"
                 element={<div className="p-8">Users Management Content</div>}
               />
-              <Route
-                path="settings"
-                element={<div className="p-8">Settings Content</div>}
-              />
+              <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
 
             <Route

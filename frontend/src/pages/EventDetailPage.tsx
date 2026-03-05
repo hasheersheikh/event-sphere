@@ -70,13 +70,96 @@ const EventDetailPage = () => {
     },
   });
 
-  const handleBooking = (ticketType: string, price: number) => {
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleBooking = async (ticketType: string, price: number) => {
     if (!user) {
       toast.error("Please login to book tickets.");
       navigate("/auth", { state: { from: window.location.pathname } });
       return;
     }
-    bookingMutation.mutate({ type: ticketType, quantity: 1, price });
+
+    if (price === 0) {
+      bookingMutation.mutate({ type: ticketType, quantity: 1, price });
+      return;
+    }
+
+    try {
+      const isScriptLoaded = await loadRazorpayScript();
+      if (!isScriptLoaded) {
+        toast.error("Razorpay SDK failed to load. Are you online?");
+        return;
+      }
+
+      // 1. Create Pending Booking
+      const { data: booking } = await api.post("/bookings", {
+        eventId: id,
+        tickets: [{ type: ticketType, quantity: 1, price }],
+        status: "pending",
+      });
+
+      // 2. Create Razorpay Order
+      const { data: order } = await api.post("/payments/create-order", {
+        amount: price,
+        currency: "INR",
+        receipt: `receipt_${booking._id}`,
+        bookingId: booking._id,
+      });
+
+      // 3. Open Razorpay Checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
+        amount: order.amount,
+        currency: order.currency,
+        name: "City Pulse",
+        description: `Booking for ${event.title}`,
+        image: "/logo.png",
+        order_id: order.id,
+        handler: async (response: any) => {
+          try {
+            const { data: verifyData } = await api.post("/payments/verify", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            });
+
+            if (verifyData.success) {
+              confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ["#6366f1", "#ec4899", "#ffffff"],
+              });
+              toast.success("Payment successful! Tickets confirmed.");
+              setTimeout(() => navigate("/my-tickets"), 2000);
+            }
+          } catch (err) {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: "#10B981",
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Booking failed.");
+    }
   };
 
   if (isLoading) {
@@ -139,6 +222,22 @@ const EventDetailPage = () => {
   const soldPercentage =
     totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
+  const getCategoryImage = (category: string = "general") => {
+    const cats: Record<string, string> = {
+      music:
+        "https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=2070",
+      art: "https://images.unsplash.com/photo-1540575861501-7ad05823c91b?auto=format&fit=crop&q=80&w=2070",
+      tech: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2070",
+      sports:
+        "https://images.unsplash.com/photo-1461896705182-a530af726796?auto=format&fit=crop&q=80&w=2070",
+      meetup:
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=2070",
+      general:
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070",
+    };
+    return cats[category.toLowerCase()] || cats.general;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -146,15 +245,11 @@ const EventDetailPage = () => {
       <main className="flex-1">
         {/* Hero Image */}
         <div className="relative h-[40vh] md:h-[50vh] lg:h-[60vh]">
-          {event.image ? (
-            <img
-              src={event.image}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full gradient-hero" />
-          )}
+          <img
+            src={event.image || getCategoryImage(event.category)}
+            alt={event.title}
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-black/30" />
 
           {/* Back Button */}

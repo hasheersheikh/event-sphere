@@ -23,6 +23,12 @@ interface AuthContextType {
     password: string,
     role?: string,
   ) => Promise<{ success: boolean; message?: string }>;
+  register: (
+    name: string,
+    email: string,
+    password: string,
+    role: string,
+  ) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   isLoading: boolean;
   setAuthUser: (userData: User) => void;
@@ -53,7 +59,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ) => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5002"}/api/auth/login`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/auth/login`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -64,12 +70,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        const userData = { ...data.user, token: data.token };
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
+        const userData = { ...data, token: data.token }; // Backend returns user fields directly or in data.user?
+        // Based on controller, it returns: { _id, name, email, role, isApproved, token }
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
         return { success: true };
       } else {
         return { success: false, message: data.message || "Login failed" };
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: "Server error. Please try again later.",
+      };
+    }
+  };
+
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    role: string = "user",
+  ) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data);
+        localStorage.setItem("user", JSON.stringify(data));
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          message: data.message || "Registration failed",
+        };
       }
     } catch (error) {
       return {
@@ -95,6 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         isAuthenticated: !!user,
         login,
+        register,
         logout,
         isLoading,
         setAuthUser,

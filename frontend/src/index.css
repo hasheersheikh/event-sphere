@@ -5,60 +5,52 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 15px; /* Subtle global scaling down */
+  }
+
   :root {
-    --background: 0 0% 96%;
-    --foreground: 0 0% 20%; /* #333132 charcoal equivalent approx */
+    --background: 240 10% 2%; /* #050505 equivalent */
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card: 240 10% 4%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 13 100% 54%; /* #FF4612 orange */
-    --primary-foreground: 0 0% 100%;
+    --primary: 161 72% 40%; /* Emerald-500 #10B981 */
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 92%; /* #E0E0E0 border approx */
-    --secondary-foreground: 0 0% 15%;
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 93%;
-    --muted-foreground: 0 0% 40%; /* #666666 approx */
+    --muted: 240 5% 15%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 13 100% 48%; /* #E63E0F orange-hover */
+    --accent: 239 84% 67%; /* Indigo-500 #6366F1 */
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 13 100% 54%;
+    --border: 240 5% 15%;
+    --input: 240 5% 15%;
+    --ring: 161 72% 40%;
 
-    --radius: 0rem; /* Boxy premium feel for mnkhan style */
+    --radius: 1.5rem;
 
-    /* Custom MNKHAN tokens */
-    --mnkhan-charcoal: #333132;
-    --mnkhan-orange: #FF4612;
-    --mnkhan-orange-hover: #E63E0F;
-    --mnkhan-gray-bg: #F5F5F5;
-    --mnkhan-gray-border: #E0E0E0;
-    --mnkhan-text-muted: #666666;
+    /* Custom Pulse Tokens */
+    --pulse-emerald: #10B981;
+    --pulse-indigo: #6366F1;
+    --pulse-violet: #8B5CF6;
+    --pulse-bg: #050505;
+    
+    --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+    --font-serif: "Plus Jakarta Sans", sans-serif; /* Simplified for fluid look */
 
-    --font-serif: "Chronicle Display", Georgia, serif;
-    --font-sans: "Gordita", "Inter", -apple-system, sans-serif;
-
-    --gradient-hero: linear-gradient(
-      135deg,
-      #333132 0%,
-      #444243 100%
-    );
-    --shadow-button: 0 10px 20px -5px rgba(255, 70, 18, 0.3);
-  }
-
-  .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 96%;
-    /* ... rest of dark mode if needed, focusing on light for now as per user request */
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -68,43 +60,48 @@
   }
 
   body {
-    background-color: var(--mnkhan-gray-bg);
-    color: var(--mnkhan-charcoal);
+    background-color: var(--pulse-bg);
+    color: white;
     font-family: var(--font-sans);
     @apply antialiased;
   }
+
+  ::selection {
+    background: rgba(16, 185, 129, 0.3);
+    color: white;
+  }
   
   h1, h2, h3, h4, .brand-font {
-    font-family: var(--font-serif);
-    font-weight: 700;
-  }
-
-  main.main-content {
-    /* Padding will be handled conditionally in App.tsx */
+    font-family: var(--font-sans);
+    font-weight: 800;
+    letter-spacing: -0.04em;
   }
 }
 
 @layer utilities {
-  .gradient-hero {
-    background: var(--gradient-hero);
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--glass-border);
+    border-radius: 2.5rem;
   }
 
-  .gradient-text {
-    background: var(--gradient-hero);
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .text-gradient {
+    background: linear-gradient(to right, var(--pulse-emerald), var(--pulse-indigo), var(--pulse-violet));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-
-  .shadow-card-hover {
-    box-shadow: var(--shadow-card-hover);
-  }
-
-  .shadow-button {
-    box-shadow: var(--shadow-button);
+  .bg-pulse-gradient {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
   }
 }

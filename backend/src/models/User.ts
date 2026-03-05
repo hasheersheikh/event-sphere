@@ -5,6 +5,8 @@ export interface IUser extends Document {
   email: string;
   password?: string;
   role: 'user';
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +20,8 @@ const UserSchema: Schema = new Schema(
       type: String,
       default: 'user',
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

@@ -5,6 +5,8 @@ export interface IAdmin extends Document {
   email: string;
   password?: string;
   role: 'admin';
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +20,8 @@ const AdminSchema: Schema = new Schema(
       type: String,
       default: 'admin',
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

@@ -6,6 +6,8 @@ export interface IEventManager extends Document {
   password?: string;
   role: 'event_manager';
   isApproved: boolean;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +25,8 @@ const EventManagerSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );

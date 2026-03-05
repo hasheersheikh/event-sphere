@@ -9,6 +9,7 @@ import {
   Search,
   CheckCircle,
   Clock,
+  Scan,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -24,6 +25,8 @@ const Sidebar = () => {
     },
     { label: "Account Control", icon: Users, href: "/portal/users" },
     { label: "Event Moderation", icon: Calendar, href: "/portal/events" },
+    { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
+    { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },
   ];
 
@@ -31,6 +34,7 @@ const Sidebar = () => {
     { label: "Manager Hub", icon: LayoutDashboard, href: "/portal/manager" },
     { label: "My Productions", icon: Calendar, href: "/portal/productions" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
+    { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Profile Settings", icon: Settings, href: "/portal/settings" },
   ];
 

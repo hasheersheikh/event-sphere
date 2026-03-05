@@ -16,6 +16,8 @@ export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Respons
   }
 };
 
+import { sendManagerApprovalEmail } from '../utils/emailService.js';
+
 export const approveManager: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   try {
@@ -26,6 +28,16 @@ export const approveManager: RequestHandler = async (req: AuthRequest, res: Resp
     }
     user.isApproved = true;
     await user.save();
+
+    // Trigger Approval Email (Non-blocking)
+    (async () => {
+      try {
+        await sendManagerApprovalEmail(user.email, user.name);
+      } catch (err) {
+        console.error('Failed to send manager approval email:', err);
+      }
+    })();
+
     res.json({ message: 'Manager approved successfully', user });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -49,6 +61,59 @@ export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Respo
       totalEvents,
       totalBookings,
       totalRevenue
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getAnalytics: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const totalTransactions = await Booking.countDocuments({});
+    const bookings = await Booking.find({}).populate('event');
+    
+    // Aggregate Revenue
+    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    
+    // Aggregate Tickets
+    const totalTickets = bookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    }, 0);
+
+    const activeUsers = await User.countDocuments({});
+
+    // Simple revenue history (last 7 days)
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const day = d.toISOString().split('T')[0];
+      const amount = bookings
+        .filter(b => b.createdAt.toISOString().split('T')[0] === day)
+        .reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+      return { date: day.slice(5), amount };
+    }).reverse();
+
+    // Ticket distribution by category
+    const categoryMap: { [key: string]: number } = {};
+    bookings.forEach(b => {
+      const event: any = b.event;
+      if (event && event.category) {
+        const count = b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+        categoryMap[event.category] = (categoryMap[event.category] || 0) + count;
+      }
+    });
+
+    const ticketDistribution = Object.keys(categoryMap).map(name => ({
+      name,
+      count: categoryMap[name]
+    }));
+
+    res.json({
+      totalRevenue,
+      totalTickets,
+      activeUsers,
+      revenueHistory: last7Days,
+      ticketDistribution
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });

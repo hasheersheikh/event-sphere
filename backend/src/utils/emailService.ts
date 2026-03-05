@@ -148,3 +148,128 @@ export const sendReviewEmail = async (email: string, userName: string, eventTitl
     logger.error('Failed to send review email', err);
   }
 };
+
+export const sendPasswordResetEmail = async (email: string, userName: string, resetUrl: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <security@eventsphere.dev>',
+      to: [email],
+      subject: 'Reset Your Password | City Pulse security',
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #050505; padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-style: italic; font-weight: 900; letter-spacing: -0.05em; text-transform: uppercase;">City Pulse</h1>
+            <p style="margin: 5px 0 0; color: #10B981; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px;">Security Protocol</p>
+          </div>
+          <div style="padding: 40px; background-color: white;">
+            <h2 style="margin-top: 0; font-size: 24px; color: #0f172a;">Password Recovery Request</h2>
+            <p style="color: #475569; line-height: 1.6;">Hello ${userName},</p>
+            <p style="color: #475569; line-height: 1.6;">We received a request to reset the access credentials for your pulse identity. If you didn't make this request, you can safely ignore this email.</p>
+            
+            <div style="margin: 35px 0;">
+              <a href="${resetUrl}" style="background-color: #10B981; color: black; padding: 18px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px; box-shadow: 0 10px 20px rgba(16,185,129,0.2);">Reset Keywords</a>
+            </div>
+            
+            <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">This link will expire in 1 hour for security reasons.</p>
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;" />
+            <p style="color: #64748b; font-size: 12px; font-style: italic;">Stay synced, stay secure.<br/>City Pulse Collective</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Password reset email sent to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send password reset email', err);
+  }
+};
+
+export const sendWelcomeEmail = async (email: string, userName: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <welcome@eventsphere.dev>',
+      to: [email],
+      subject: 'Welcome to the Pulse! ⚡',
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #10B981; padding: 40px; text-align: center; color: black;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">City Pulse</h1>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Welcome, ${userName}!</h2>
+            <p>Your presence has been successfully synced with the City Pulse frequency. Get ready to discover the most exclusive events and connections.</p>
+            <p>We're thrilled to have you as part of our collective.</p>
+            <div style="margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/events" style="background-color: #050505; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Explore Events</a>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+            <p style="color: #64748b; font-size: 14px;">Let the experience unfold.</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Welcome email sent to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send welcome email', err);
+  }
+};
+
+export const sendManagerSignUpNotificationToAdmin = async (managerName: string, managerEmail: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@eventsphere.dev';
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <system@eventsphere.dev>',
+      to: [adminEmail],
+      subject: 'New Manager Application Pending 📋',
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h2>New Manager Sign-up</h2>
+          <p>A new event manager has initialized their presence and is waiting for your approval.</p>
+          <div style="background: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0;">
+            <p style="margin: 5px 0;"><strong>Name:</strong> ${managerName}</p>
+            <p style="margin: 5px 0;"><strong>Email:</strong> ${managerEmail}</p>
+          </div>
+          <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/portal/users" style="background-color: #4f46e5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Review Application</a>
+        </div>
+      `,
+    });
+    logger.info(`Admin notified of new manager: ${managerEmail}`);
+  } catch (err) {
+    logger.error('Failed to notify admin of manager sign-up', err);
+  }
+};
+
+export const sendManagerApprovalEmail = async (email: string, userName: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <portal@eventsphere.dev>',
+      to: [email],
+      subject: 'Pulse Manager Access Authorized! ✅',
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #4f46e5; padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0;">Access Authorized</h1>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Congratulations ${userName},</h2>
+            <p>Your application for manager access has been approved by the City Pulse Collective. You can now host your own productions and view detailed sales analytics.</p>
+            <div style="margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/portal/manager" style="background-color: #050505; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Enter Manager Portal</a>
+            </div>
+            <p>We look forward to seeing your amazing events on the platform.</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Approval email sent to manager: ${email}`);
+  } catch (err) {
+    logger.error('Failed to send manager approval email', err);
+  }
+};

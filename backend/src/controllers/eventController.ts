@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Request, Response, RequestHandler } from 'express';
 import Event from '../models/Event.js';
+import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
 
 export const createEvent = async (req: AuthRequest, res: Response) => {
@@ -102,6 +103,15 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
 
     if (event.creator.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
       return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    const bookingCount = await Booking.countDocuments({ event: req.params.id, status: 'confirmed' });
+    if (bookingCount > 0 && req.query.force !== 'true') {
+      return res.status(400).json({ 
+        message: 'Cannot delete event with active bookings.', 
+        hasBookings: true,
+        bookingCount 
+      });
     }
 
     await event.deleteOne();
