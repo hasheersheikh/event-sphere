@@ -3,7 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Plus, Trash2, Calendar as CalendarIcon, MapPin, Ticket, Info, Image as ImageIcon } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Calendar as CalendarIcon,
+  MapPin,
+  Ticket,
+  Info,
+  Image as ImageIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
@@ -29,7 +37,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
 
@@ -45,12 +59,16 @@ const eventSchema = z.object({
     venueName: z.string().optional(),
   }),
   image: z.string().url("Please enter a valid image URL").or(z.literal("")),
-  ticketTypes: z.array(z.object({
-    name: z.string().min(1, "Ticket name is required"),
-    description: z.string().optional(),
-    price: z.coerce.number().min(0, "Price cannot be negative"),
-    capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-  })).min(1, "At least one ticket type is required"),
+  ticketTypes: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Ticket name is required"),
+        description: z.string().optional(),
+        price: z.coerce.number().min(0, "Price cannot be negative"),
+        capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
+      }),
+    )
+    .min(1, "At least one ticket type is required"),
 });
 
 type EventFormValues = z.infer<typeof eventSchema>;
@@ -58,7 +76,7 @@ type EventFormValues = z.infer<typeof eventSchema>;
 const CreateEventPage = () => {
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
     defaultValues: {
@@ -88,10 +106,13 @@ const CreateEventPage = () => {
     },
     onSuccess: (data) => {
       toast.success("Event created successfully!");
-      navigate(`/events/${data._id}`);
+      navigate(`/events/${data._id}/success`);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Something went wrong. Please try again.");
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
     },
   });
 
@@ -100,8 +121,14 @@ const CreateEventPage = () => {
   };
 
   const categories = [
-    "Music", "Technology", "Business", "Entertainment", 
-    "Health", "Sports", "Education", "Other"
+    "Music",
+    "Technology",
+    "Business",
+    "Entertainment",
+    "Health",
+    "Sports",
+    "Education",
+    "Other",
   ];
 
   const handleUpload = () => {
@@ -124,7 +151,7 @@ const CreateEventPage = () => {
         if (error) {
           toast.error("Upload failed. Please try again.");
         }
-      }
+      },
     );
     widget.open();
   };
@@ -132,11 +159,15 @@ const CreateEventPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
       <Navbar />
-      
+
       <main className="flex-1 container max-w-4xl py-12 px-4 md:px-6">
         <header className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Create New Event</h1>
-          <p className="text-muted-foreground text-lg">Bring people together with your amazing event</p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">
+            Create New Event
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Bring people together with your amazing event
+          </p>
         </header>
 
         <Form {...form}>
@@ -148,7 +179,9 @@ const CreateEventPage = () => {
                   <Info className="h-5 w-5 text-primary" />
                   General Information
                 </CardTitle>
-                <CardDescription>Tell us the basic details about your event</CardDescription>
+                <CardDescription>
+                  Tell us the basic details about your event
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
                 <FormField
@@ -158,7 +191,10 @@ const CreateEventPage = () => {
                     <FormItem>
                       <FormLabel>Event Title</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Modern Web Development Summit 2024" {...field} />
+                        <Input
+                          placeholder="e.g. Modern Web Development Summit 2024"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -172,7 +208,10 @@ const CreateEventPage = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
@@ -201,15 +240,15 @@ const CreateEventPage = () => {
                           <div className="space-y-4">
                             {field.value ? (
                               <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-muted group">
-                                <img 
-                                  src={field.value} 
-                                  alt="Preview" 
-                                  className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                                <img
+                                  src={field.value}
+                                  alt="Preview"
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                  <Button 
-                                    type="button" 
-                                    variant="secondary" 
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
                                     size="sm"
                                     onClick={handleUpload}
                                   >
@@ -226,14 +265,15 @@ const CreateEventPage = () => {
                                 <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10">
                                   <ImageIcon className="h-5 w-5" />
                                 </div>
-                                <span className="font-medium">Upload Event Banner</span>
-                                <span className="text-xs">Recommended size: 1200 x 750 (1.6:1)</span>
+                                <span className="font-medium">
+                                  Upload Event Banner
+                                </span>
+                                <span className="text-xs">
+                                  Recommended size: 1200 x 750 (1.6:1)
+                                </span>
                               </button>
                             )}
-                            <Input 
-                              type="hidden" 
-                              {...field} 
-                            />
+                            <Input type="hidden" {...field} />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -249,10 +289,10 @@ const CreateEventPage = () => {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="What is this event about? What can attendees expect?" 
+                        <Textarea
+                          placeholder="What is this event about? What can attendees expect?"
                           className="min-h-[150px] resize-none"
-                          {...field} 
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -285,7 +325,7 @@ const CreateEventPage = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="time"
@@ -333,7 +373,10 @@ const CreateEventPage = () => {
                     <FormItem>
                       <FormLabel>Venue Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Grand Convention Center" {...field} />
+                        <Input
+                          placeholder="e.g. Grand Convention Center"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -347,7 +390,10 @@ const CreateEventPage = () => {
                     <FormItem>
                       <FormLabel>Full Address</FormLabel>
                       <FormControl>
-                        <Input placeholder="123 Event St, City, State" {...field} />
+                        <Input
+                          placeholder="123 Event St, City, State"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -365,13 +411,17 @@ const CreateEventPage = () => {
                       <Ticket className="h-5 w-5 text-primary" />
                       Ticket Options
                     </CardTitle>
-                    <CardDescription>Create different ticket tiers for your event</CardDescription>
+                    <CardDescription>
+                      Create different ticket tiers for your event
+                    </CardDescription>
                   </div>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => append({ name: "", price: 0, capacity: 100 })}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      append({ name: "", price: 0, capacity: 100 })
+                    }
                     className="gap-2"
                   >
                     <Plus className="h-4 w-4" /> Add Tier
@@ -380,14 +430,19 @@ const CreateEventPage = () => {
               </CardHeader>
               <CardContent className="space-y-6 pt-2">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="p-4 border rounded-xl bg-muted/20 space-y-4">
+                  <div
+                    key={field.id}
+                    className="p-4 border rounded-xl bg-muted/20 space-y-4"
+                  >
                     <div className="flex justify-between items-center">
-                      <h4 className="font-semibold text-primary">Ticket Tier #{index + 1}</h4>
+                      <h4 className="font-semibold text-primary">
+                        Ticket Tier #{index + 1}
+                      </h4>
                       {fields.length > 1 && (
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => remove(index)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
@@ -395,14 +450,16 @@ const CreateEventPage = () => {
                         </Button>
                       )}
                     </div>
-                    
+
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name={`ticketTypes.${index}.name`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs">Ticket Name</FormLabel>
+                            <FormLabel className="text-xs">
+                              Ticket Name
+                            </FormLabel>
                             <FormControl>
                               <Input placeholder="e.g. Early Bird" {...field} />
                             </FormControl>
@@ -410,7 +467,7 @@ const CreateEventPage = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name={`ticketTypes.${index}.price`}
@@ -445,9 +502,14 @@ const CreateEventPage = () => {
                       name={`ticketTypes.${index}.description`}
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Description (Optional)</FormLabel>
+                          <FormLabel className="text-xs">
+                            Description (Optional)
+                          </FormLabel>
                           <FormControl>
-                            <Input placeholder="What's included in this ticket?" {...field} />
+                            <Input
+                              placeholder="What's included in this ticket?"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -459,18 +521,18 @@ const CreateEventPage = () => {
             </Card>
 
             <div className="flex gap-4 pt-4 border-t sticky bottom-6 bg-muted/30 backdrop-blur-sm p-4 rounded-2xl z-20">
-              <Button 
-                type="submit" 
-                size="lg" 
+              <Button
+                type="submit"
+                size="lg"
                 className="flex-1 shadow-button"
                 disabled={mutation.isPending}
               >
                 {mutation.isPending ? "Creating Event..." : "Publish Event"}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="lg" 
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
                 onClick={() => navigate("/")}
                 disabled={mutation.isPending}
               >

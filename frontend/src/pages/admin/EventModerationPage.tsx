@@ -8,6 +8,7 @@ import {
   XCircle,
   Eye,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +31,7 @@ const EventModerationPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [declineEventId, setDeclineEventId] = useState<string | null>(null);
   const [declineReason, setDeclineReason] = useState("");
+  const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -76,6 +78,21 @@ const EventModerationPage = () => {
       fetchAllEvents();
     } catch (error) {
       toast.error("Decline action failed.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEventId) return;
+    setIsProcessing(true);
+    try {
+      await api.delete(`/admin/events/${deleteEventId}`);
+      toast.success("Event and all associated data purged.");
+      setDeleteEventId(null);
+      fetchAllEvents();
+    } catch (error) {
+      toast.error("Purge protocol failed.");
     } finally {
       setIsProcessing(false);
     }
@@ -198,14 +215,26 @@ const EventModerationPage = () => {
                     </Button>
                   </>
                 ) : (
-                  <Button
-                    onClick={() => navigate(`/events/${event._id}`)}
-                    variant="ghost"
-                    className="flex-1 md:flex-none h-12 px-6 rounded-none bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black"
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Manage
-                  </Button>
+                  <>
+                    <Button
+                      onClick={() =>
+                        navigate(`/portal/admin/events/${event._id}`)
+                      }
+                      variant="ghost"
+                      className="flex-1 md:flex-none h-12 px-6 rounded-none bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Manage
+                    </Button>
+                    <Button
+                      onClick={() => setDeleteEventId(event._id)}
+                      variant="ghost"
+                      className="flex-1 md:flex-none h-12 px-6 rounded-none bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </>
                 )}
               </div>
             </motion.div>
@@ -245,6 +274,41 @@ const EventModerationPage = () => {
               className="bg-rose-600 hover:bg-rose-700 text-white rounded-none text-[10px] font-black uppercase tracking-widest px-8 shadow-lg transition-all"
             >
               {isProcessing ? "PROCESSING..." : "CONFIRM DECLINE"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!deleteEventId}
+        onOpenChange={(open) => !open && setDeleteEventId(null)}
+      >
+        <AlertDialogContent className="bg-zinc-950 border border-white/10 rounded-none text-white max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
+              Purge <span className="text-rose-500">Production</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-500 font-medium italic pt-4">
+              <div className="bg-rose-500/10 border border-rose-500/20 p-4 mb-4">
+                <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest leading-relaxed">
+                  CRITICAL WARNING: This action will permanently delete this
+                  event and all associated ticket sales, bookings, and revenue
+                  records. This operation is irreversible.
+                </p>
+              </div>
+              Are you absolutely certain you wish to proceed with the total
+              deletion of this production?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/5 border-white/10 text-white rounded-none hover:bg-white/10 text-[10px] font-black uppercase tracking-widest px-8">
+              ABORT
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-rose-600 hover:bg-rose-700 text-white rounded-none text-[10px] font-black uppercase tracking-widest px-8 shadow-lg transition-all"
+            >
+              {isProcessing ? "PURGING..." : "CONFIRM PURGE"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

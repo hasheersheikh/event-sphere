@@ -82,9 +82,9 @@ const ProfileDropdown = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 mt-4 w-80 glass-panel bg-zinc-950/95 border border-white/10 backdrop-blur-md rounded-[2.5rem] overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
+            className="absolute right-0 mt-4 w-72 glass-panel bg-black border border-white/10 backdrop-blur-md rounded-3xl overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
           >
-            <div className="p-8 border-b border-white/10 bg-white/5">
+            <div className="p-6 border-b border-white/10 bg-white/5">
               <div className="flex items-center gap-5">
                 <div className="h-14 w-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center font-black text-xl shadow-[0_0_30px_rgba(16,185,129,0.4)]">
                   {user?.name?.charAt(0)}
@@ -100,13 +100,13 @@ const ProfileDropdown = () => {
               </div>
             </div>
 
-            <div className="p-4 space-y-1">
+            <div className="p-3 space-y-1">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-4 px-6 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-emerald-500/10 transition-all duration-300 group"
+                  className="flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-emerald-500/10 transition-all duration-300 group"
                 >
                   <item.icon className="h-4.5 w-4.5 transition-all group-hover:scale-110 group-hover:text-emerald-400" />
                   {item.label}
@@ -114,13 +114,13 @@ const ProfileDropdown = () => {
               ))}
             </div>
 
-            <div className="p-4 pt-2 pb-6 border-t border-white/5 mt-2">
+            <div className="p-3 pt-2 pb-5 border-t border-white/5 mt-1">
               <button
                 onClick={() => {
                   logout();
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-4 px-6 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-white hover:bg-rose-500/10 transition-all duration-500 group"
+                className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-white hover:bg-rose-500/10 transition-all duration-500 group"
               >
                 <LogOut className="h-4.5 w-4.5 transition-transform group-hover:scale-110" />
                 De-sync Pulse

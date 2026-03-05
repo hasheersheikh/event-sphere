@@ -15,6 +15,7 @@ import EventDetailPage from "./pages/EventDetailPage";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import CreateEventPage from "./pages/CreateEventPage";
+import EventPendingPage from "./pages/EventPendingPage";
 import MyTickets from "./pages/MyTickets";
 import ScannerPage from "./pages/ScannerPage";
 import TermsOfService from "./pages/TermsOfService";
@@ -32,9 +33,11 @@ import AttendeesPage from "./pages/admin/AttendeesPage";
 import ManagersPage from "./pages/admin/ManagersPage";
 import ManagerDetailPage from "./pages/admin/ManagerDetailPage";
 import EventModerationPage from "./pages/admin/EventModerationPage";
+import EventInsightsPage from "./pages/admin/EventInsightsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import MyProductions from "./pages/manager/MyProductions";
+import ManagerEventAnalyticsPage from "./pages/manager/ManagerEventAnalyticsPage";
 import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -94,6 +97,10 @@ const App = () => (
                         }
                       />
                       <Route path="events/:id" element={<EventDetailPage />} />
+                      <Route
+                        path="events/:id/success"
+                        element={<EventPendingPage />}
+                      />
                       <Route path="auth" element={<AuthPage />} />
                       <Route
                         path="forgot-password"
@@ -169,9 +176,14 @@ const App = () => (
                 element={<ManagerDetailPage />}
               />
               <Route path="events" element={<EventModerationPage />} />
+              <Route path="admin/events/:id" element={<EventInsightsPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="productions" element={<MyProductions />} />
+              <Route
+                path="manager/events/:id/analytics"
+                element={<ManagerEventAnalyticsPage />}
+              />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
 

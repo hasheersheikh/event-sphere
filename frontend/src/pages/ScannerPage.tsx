@@ -1,176 +1,332 @@
 import { useEffect, useState, useRef } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
 import api from "@/lib/api";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, Camera, RefreshCw } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Camera,
+  RefreshCw,
+  ArrowLeft,
+  Zap,
+  ZapOff,
+  Maximize2,
+  Lock,
+  Search,
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const ScannerPage = () => {
+  const navigate = useNavigate();
   const [scanResult, setScanResult] = useState<any>(null);
   const [isScanning, setIsScanning] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [isTorchOn, setIsTorchOn] = useState(false);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    if (isScanning) {
-      const scanner = new Html5QrcodeScanner(
-        "reader",
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        },
-        /* verbose= */ false,
-      );
-
-      scanner.render(onScanSuccess, onScanFailure);
-      scannerRef.current = scanner;
-    }
-
-    return () => {
-      if (scannerRef.current) {
-        scannerRef.current
-          .clear()
-          .catch((err) => console.error("Failed to clear scanner", err));
-      }
+    const init = async () => {
+      await startScanner();
     };
-  }, [isScanning]);
+    init();
+    return () => {
+      stopScanner();
+    };
+  }, []);
+
+  const startScanner = async () => {
+    try {
+      const html5QrCode = new Html5Qrcode("reader");
+      html5QrCodeRef.current = html5QrCode;
+
+      const config = {
+        fps: 20,
+        qrbox: { width: 280, height: 280 },
+        aspectRatio: window.innerWidth / window.innerHeight,
+      };
+
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanFailure,
+      );
+    } catch (err) {
+      setError("Failed to initialize optics. Camera access required.");
+      toast.error("Optics initialization failed");
+    }
+  };
+
+  const stopScanner = async () => {
+    if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+      await html5QrCodeRef.current.stop();
+    }
+  };
+
+  const toggleTorch = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        const newState = !isTorchOn;
+        await html5QrCodeRef.current.applyVideoConstraints({
+          //@ts-ignore
+          advanced: [{ torch: newState }],
+        });
+        setIsTorchOn(newState);
+      } catch (e) {
+        toast.info("Torch control not supported on this unit.");
+      }
+    }
+  };
 
   const onScanSuccess = async (decodedText: string) => {
-    // Expected format: citypulse://ticket/BOOKING_ID
     if (!decodedText.startsWith("citypulse://ticket/")) {
-      toast.error("Invalid QR Code format");
+      toast.error("Invalid frequency detected.");
       return;
     }
 
     const bookingId = decodedText.replace("citypulse://ticket/", "");
     setIsScanning(false);
+    setIsLoading(true);
+    await stopScanner();
+
+    // Trigger Haptics
+    if ("vibrate" in navigator) {
+      navigator.vibrate([100, 50, 100]);
+    }
 
     try {
-      // First, get the booking details to let the user select ticket type if multiple exist
-      // For simplicity in this version, we'll try to check-in the first available ticket type
-      const { data: booking } = await api.get(`/bookings`); // This is not ideal, should have getById
-      // Actually, let's just use the check-in endpoint directly with the first ticket type for now
-      // A real app would show a list of ticket types to check-in
-
       const { data: result } = await api.patch(
         `/bookings/${bookingId}/check-in`,
-        {
-          ticketType: "General Admission", // Hardcoded for now, ideally parsed or selected
-        },
+        { ticketType: "General Admission" }, // Fallback, ideally should handle selection if multiple
       );
-
       setScanResult(result);
-      toast.success("Check-in successful!");
+      toast.success("Identity Verified.");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Check-in failed");
-      toast.error("Check-in failed");
+      setError(err.response?.data?.message || "Security clearance denied.");
+      toast.error("Clearance Denied");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const onScanFailure = (error: any) => {
-    // Silently ignore failures to keep UI clean
+    // Silent
   };
 
   const resetScanner = () => {
     setScanResult(null);
     setError(null);
     setIsScanning(true);
+    startScanner();
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
+    <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden z-[9999]">
+      <AnimatePresence mode="wait">
+        {isScanning ? (
+          <motion.div
+            key="scanner-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="relative flex-1 flex flex-col"
+          >
+            {/* Camera View */}
+            <div id="reader" className="absolute inset-0 z-0" />
 
-      <main className="flex-1 container max-w-lg py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold mb-2">Event Scanner</h1>
-          <p className="text-muted-foreground">
-            Scan tickets at the door for instant check-in
-          </p>
-        </div>
+            {/* UI Overlay */}
+            <div className="relative z-10 flex-1 flex flex-col justify-between p-6 bg-transparent">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <div className="px-4 py-2 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
+                  Secure Scanner v2.0
+                </div>
+                <button
+                  onClick={toggleTorch}
+                  className={`h-12 w-12 rounded-full backdrop-blur-md flex items-center justify-center border ${isTorchOn ? "bg-orange-500 border-none text-black" : "bg-black/40 border-white/10"}`}
+                >
+                  {isTorchOn ? (
+                    <Zap className="h-5 w-5 fill-current" />
+                  ) : (
+                    <ZapOff className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
 
-        <div className="relative aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-2xl border-4 border-primary/20">
-          <AnimatePresence mode="wait">
-            {isScanning ? (
-              <motion.div
-                key="scanner"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                id="reader"
-                className="w-full h-full"
-              />
-            ) : (
-              <motion.div
-                key="result"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute inset-0 flex flex-col items-center justify-center p-8 bg-card"
-              >
-                {scanResult ? (
-                  <>
-                    <div className="h-20 w-20 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
-                      <CheckCircle className="h-12 w-12 text-green-500" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2 text-green-500">
-                      Success!
+              {/* Scanning Box Helper */}
+              <div className="relative flex-1 flex items-center justify-center">
+                <div className="w-72 h-72 border-2 border-white/20 relative group">
+                  {/* Corners */}
+                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-emerald-500" />
+                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-emerald-500" />
+                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-emerald-500" />
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-emerald-500" />
+
+                  {/* Laser Line */}
+                  <motion.div
+                    animate={{ top: ["10%", "90%"] }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="absolute left-4 right-4 h-0.5 bg-emerald-500/60 shadow-[0_0_15px_#10b981]"
+                  />
+                </div>
+
+                <div className="absolute bottom-1/4 translate-y-20 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-2">
+                    Align QR Code
+                  </p>
+                  <div className="flex items-center gap-2 justify-center">
+                    <Search className="h-3 w-3 text-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase text-emerald-500">
+                      Searching...
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Info */}
+              <div className="bg-black/80 backdrop-blur-xl border border-white/5 p-6 -mx-6 -mb-6 flex items-center gap-5">
+                <div className="h-12 w-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center">
+                  <Maximize2 className="h-6 w-6 text-emerald-500" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-white/90">
+                    Mobile Capture
+                  </h3>
+                  <p className="text-zinc-500 text-[10px] font-bold italic">
+                    Verify production access IDs in real-time.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="result-view"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex-1 flex flex-col p-8 items-center justify-center text-center space-y-12"
+          >
+            {isLoading ? (
+              <div className="space-y-6">
+                <div className="h-20 w-20 border-t-4 border-emerald-500 rounded-full animate-spin mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500">
+                  Decrypting Frequency...
+                </p>
+              </div>
+            ) : scanResult ? (
+              <>
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="h-32 w-32 rounded-full bg-emerald-500/10 border-4 border-emerald-500 flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(16,185,129,0.3)]"
+                  >
+                    <CheckCircle className="h-16 w-16 text-emerald-500" />
+                  </motion.div>
+                  <div className="space-y-2">
+                    <h2 className="text-4xl font-black brand-font tracking-tighter uppercase text-emerald-400 italic">
+                      Clearance Granted.
                     </h2>
-                    <div className="text-center space-y-1 mb-8">
-                      <p className="font-semibold text-lg">
-                        {scanResult.booking.userName}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {scanResult.booking.ticketType}
-                      </p>
-                      <p className="text-sm font-mono bg-muted px-2 py-0.5 rounded text-primary">
-                        Checked-in: {scanResult.booking.checkedInCount} /{" "}
-                        {scanResult.booking.totalQuantity}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
-                      <XCircle className="h-12 w-12 text-destructive" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2 text-destructive">
-                      Error
-                    </h2>
-                    <p className="text-center text-muted-foreground mb-8 max-w-xs">
-                      {error}
+                    <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">
+                      Identity Protocol Verified
                     </p>
-                  </>
-                )}
+                  </div>
+                </div>
+
+                <div className="w-full space-y-4">
+                  <div className="bg-white/5 border border-white/10 p-8 text-left space-y-6">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 italic">
+                        Authorized Participant
+                      </p>
+                      <h3 className="text-2xl font-black uppercase italic tracking-tighter">
+                        {scanResult.booking.userName}
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">
+                          Access Tier
+                        </p>
+                        <p className="text-xs font-black uppercase text-emerald-500">
+                          {scanResult.booking.ticketType}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">
+                          Scan Index
+                        </p>
+                        <p className="text-xs font-black uppercase tabular-nums">
+                          {scanResult.booking.checkedInCount} /{" "}
+                          {scanResult.booking.totalQuantity}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-1 w-full bg-white/5">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.5 }}
+                      className="h-full bg-emerald-500"
+                    />
+                  </div>
+                </div>
 
                 <Button
                   onClick={resetScanner}
-                  className="w-full py-6 rounded-2xl gap-2 text-lg shadow-button"
+                  className="w-full h-16 rounded-none bg-emerald-500 text-black hover:bg-emerald-400 font-black uppercase tracking-[0.3em] text-xs shadow-[0_0_30px_rgba(16,185,129,0.2)]"
                 >
-                  <RefreshCw className="h-5 w-5" />
-                  Scan Next
+                  Scan Next Unit
                 </Button>
-              </motion.div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-6">
+                  <div className="h-32 w-32 rounded-full bg-rose-500/10 border-4 border-rose-500 flex items-center justify-center mx-auto shadow-[0_0_50px_rgba(244,63,94,0.3)]">
+                    <XCircle className="h-16 w-16 text-rose-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <h2 className="text-4xl font-black brand-font tracking-tighter uppercase text-rose-500 italic">
+                      Access Revoked.
+                    </h2>
+                    <p className="text-zinc-500 text-xs font-black uppercase tracking-widest italic">
+                      {error || "Security Clearance Denied"}
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={resetScanner}
+                  className="w-full h-16 rounded-none bg-rose-500 text-white hover:bg-rose-600 font-black uppercase tracking-[0.3em] text-xs"
+                >
+                  Retry Scan
+                </Button>
+              </>
             )}
-          </AnimatePresence>
-        </div>
 
-        <div className="mt-8 flex items-center justify-center gap-6">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-              <Camera className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
-              Camera Ready
-            </span>
-          </div>
-        </div>
-      </main>
-
-      <Footer />
+            <button
+              onClick={() => navigate(-1)}
+              className="text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors"
+            >
+              Abandon Post
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

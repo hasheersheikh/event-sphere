@@ -199,7 +199,10 @@ const MyProductions = () => {
                 </h3>
 
                 <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-6 items-center">
-                  <Link to={`/portal/analytics`} className="flex-1">
+                  <Link
+                    to={`/portal/manager/events/${p._id}/analytics`}
+                    className="flex-1"
+                  >
                     <Button
                       variant="ghost"
                       className="w-full justify-start p-0 h-auto text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-transparent hover:text-emerald-400 group-hover:translate-x-1 transition-transform"

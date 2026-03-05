@@ -11,9 +11,11 @@ import {
   approveEvent,
   declineEvent,
   getAllAdminEvents,
+  getEventInsights,
   processPayout,
   deleteManager,
-  updateManagerCommission
+  updateManagerCommission,
+  deleteEvent
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -31,8 +33,10 @@ router.patch('/managers/:id/commission', updateManagerCommission);
 router.delete('/managers/:id', deleteManager);
 router.get('/events/all', getAllAdminEvents);
 router.get('/events/pending', getPendingEvents);
+router.get('/events/:id/insights', getEventInsights);
 router.patch('/events/:id/approve', approveEvent);
 router.patch('/events/:id/decline', declineEvent);
+router.delete('/events/:id', deleteEvent);
 router.patch('/users/:id/approve', approveManager);
 router.get('/stats', getAdminStats);
 router.get('/analytics', getAnalytics);

@@ -222,20 +222,22 @@ const EventDetailPage = () => {
   const soldPercentage =
     totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
-  const getCategoryImage = (category: string = "general") => {
+  const getCategoryImage = (category: string = "other") => {
     const cats: Record<string, string> = {
-      music:
-        "https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=2070",
-      art: "https://images.unsplash.com/photo-1540575861501-7ad05823c91b?auto=format&fit=crop&q=80&w=2070",
-      tech: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2070",
-      sports:
-        "https://images.unsplash.com/photo-1461896705182-a530af726796?auto=format&fit=crop&q=80&w=2070",
-      meetup:
-        "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=2070",
-      general:
-        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070",
+      music: "/images/categories/music.jpg",
+      technology: "/images/categories/technology.jpg",
+      business: "/images/categories/business.jpg",
+      entertainment: "/images/categories/entertainment.jpg",
+      health: "/images/categories/health.jpg",
+      sports: "/images/categories/sports.jpg",
+      education: "/images/categories/education.jpg",
+      other: "/images/categories/other.jpg",
+      // Map existing categories to closest local image
+      art: "/images/categories/entertainment.jpg",
+      meetup: "/images/categories/business.jpg",
+      tech: "/images/categories/technology.jpg",
     };
-    return cats[category.toLowerCase()] || cats.general;
+    return cats[category.toLowerCase()] || cats.other;
   };
 
   return (

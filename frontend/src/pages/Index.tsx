@@ -15,37 +15,18 @@ import {
   Cpu,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { Event } from "@/types/event";
 
 const Index = () => {
-  // Mock events for the new fluid UI
-  const featuredEvents = [
-    {
-      _id: "1",
-      title: "Solstice Music Festival 2024",
-      date: "2024-06-21",
-      location: { address: "Central Park, New York" },
-      ticketTypes: [
-        { price: 8500, name: "General Admission", capacity: 1000, sold: 200 },
-      ],
-      image:
-        "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=2070",
-      category: "Music",
-      creator: { name: "Pulse Events" },
+  const { data: trendingEvents, isLoading: isTrendingLoading } = useQuery({
+    queryKey: ["trendingEvents"],
+    queryFn: async () => {
+      const { data } = await api.get("/events?limit=4&sort=-createdAt");
+      return data;
     },
-    {
-      _id: "2",
-      title: "Visionary Art Expo",
-      date: "2024-07-15",
-      location: { address: "Grand Gallery, London" },
-      ticketTypes: [
-        { price: 2500, name: "Student Pass", capacity: 500, sold: 100 },
-      ],
-      image:
-        "https://images.unsplash.com/photo-1540575861501-7ad05823c91b?auto=format&fit=crop&q=80&w=2070",
-      category: "Art",
-      creator: { name: "Art Pulse" },
-    },
-  ];
+  });
 
   const categories = [
     {
@@ -315,14 +296,32 @@ const Index = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-12">
-              {featuredEvents.map((event) => (
-                <div
-                  key={event._id}
-                  className="hover:scale-[1.02] transition-transform duration-500"
-                >
-                  <EventCard event={event as any} />
+              {isTrendingLoading ? (
+                Array(4)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-[30rem] w-full rounded-[2.5rem] bg-white/5 animate-pulse border border-white/5"
+                    />
+                  ))
+              ) : trendingEvents?.length > 0 ? (
+                trendingEvents.map((event: Event) => (
+                  <div
+                    key={event?._id}
+                    className="hover:scale-[1.02] transition-transform duration-500"
+                  >
+                    <EventCard event={event} />
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-2 py-20 text-center border border-dashed border-white/10 bg-white/5 flex flex-col items-center gap-4 rounded-[2rem]">
+                  <Sparkles className="h-10 w-10 text-emerald-500/30" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                    The pulse is silent. Production incoming.
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>

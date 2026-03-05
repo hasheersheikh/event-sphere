@@ -329,6 +329,27 @@ export const updateManagerCommission: RequestHandler = async (req: AuthRequest, 
   }
 };
 
+export const deleteEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const event = await Event.findById(id);
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+
+    // Delete all associated bookings
+    await Booking.deleteMany({ event: id });
+    
+    // Delete the event
+    await event.deleteOne();
+
+    res.json({ message: 'Event and all associated ticket data permanently removed.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
     const customerCount = await User.countDocuments({});
@@ -399,6 +420,62 @@ export const getAnalytics: RequestHandler = async (req: AuthRequest, res: Respon
       activeUsers,
       revenueHistory: last7Days,
       ticketDistribution
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const event = await Event.findById(id).populate('creator', 'name email');
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+
+    const bookings = await Booking.find({ event: id, status: 'confirmed' }).populate('user', 'name email');
+    
+    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const totalTicketsSold = bookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    }, 0);
+
+    // Group sales by ticket type
+    const ticketStats = event.ticketTypes.map(tt => {
+      const soldForType = bookings.reduce((acc, b) => {
+        return acc + b.tickets
+          .filter(t => t.type === tt.name)
+          .reduce((sum, t) => sum + t.quantity, 0);
+      }, 0);
+      return {
+        name: tt.name,
+        price: tt.price,
+        capacity: tt.capacity,
+        sold: soldForType,
+        revenue: soldForType * tt.price
+      };
+    });
+
+    res.json({
+      event,
+      stats: {
+        totalRevenue,
+        totalTicketsSold,
+        capacity: event.ticketTypes.reduce((acc, tt) => acc + tt.capacity, 0),
+      },
+      ticketStats,
+      attendees: bookings.map(b => {
+        const attendee: any = b.user;
+        return {
+          _id: attendee?._id,
+          name: attendee?.name,
+          email: attendee?.email,
+          tickets: b.tickets,
+          bookedAt: b.createdAt,
+          totalAmount: b.totalAmount
+        };
+      })
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });

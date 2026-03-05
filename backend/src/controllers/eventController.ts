@@ -39,7 +39,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const { q, category, location, date } = req.query;
+    const { q, category, location, date, sort, limit } = req.query;
     let query: any = { 
       status: 'published',
       isApproved: true // Only show approved events
@@ -55,7 +55,14 @@ export const getEvents = async (req: Request, res: Response) => {
     if (location) query['location.address'] = { $regex: location as string, $options: 'i' };
     if (date) query.date = { $gte: new Date(date as string) };
 
-    const events = await Event.find(query).populate('creator', 'name email').sort({ date: 1 });
+    const sortOption: any = sort ? (sort as string).split(',').join(' ') : { date: 1 };
+    const limitOption = limit ? parseInt(limit as string) : 0;
+
+    const events = await Event.find(query)
+      .populate('creator', 'name email')
+      .sort(sortOption)
+      .limit(limitOption);
+
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
