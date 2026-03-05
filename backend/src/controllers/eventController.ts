@@ -40,7 +40,10 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 export const getEvents = async (req: Request, res: Response) => {
   try {
     const { q, category, location, date } = req.query;
-    let query: any = { status: 'published' };
+    let query: any = { 
+      status: 'published',
+      isApproved: true // Only show approved events
+    };
 
     if (q) {
       query.$or = [

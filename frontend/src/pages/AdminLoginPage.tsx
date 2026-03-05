@@ -19,7 +19,7 @@ import { toast } from "sonner";
 const AdminLoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
-  const { login } = useAuth();
+  const { setAuthUser } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,15 +31,15 @@ const AdminLoginPage = () => {
         role: "admin", // Default to admin for this page, but server will verify
       });
 
-      const { user, token } = response.data;
-      if (user.role !== "admin" && user.role !== "event_manager") {
+      const data = response.data;
+      if (data.role !== "admin" && data.role !== "event_manager") {
         toast.error("Unauthorized individual. Access denied.");
         setIsLoading(false);
         return;
       }
 
-      login(user, token);
-      toast.success(`Access Granted: Welcome back, ${user.name}`);
+      setAuthUser(data);
+      toast.success(`Access Granted: Welcome back, ${data.name}`);
       navigate("/portal");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Invalid credentials");
@@ -94,59 +94,59 @@ const AdminLoginPage = () => {
       </div>
 
       {/* Right Side - Auth Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-20 relative bg-white">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 md:p-20 relative bg-zinc-950">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-md"
         >
           <div className="mb-12">
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-[var(--mnkhan-gray-bg)] border-2 border-[var(--mnkhan-charcoal)] text-[10px] font-black uppercase tracking-[0.3em] text-[var(--mnkhan-charcoal)] mb-8">
-              <ShieldAlert className="h-4 w-4 text-[var(--mnkhan-orange)]" />
-              Restricted Access
+            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-8 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+              <ShieldAlert className="h-4 w-4" />
+              Restricted Protocol
             </div>
-            <h2 className="text-4xl font-black brand-font tracking-tighter uppercase leading-none mb-4">
-              Initialize Session
+            <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-4 text-white italic">
+              Initialize <span className="text-emerald-500">Session.</span>
             </h2>
-            <p className="text-[var(--mnkhan-text-muted)] font-bold italic">
+            <p className="text-white/40 font-bold italic">
               Enter your administrative credentials to continue.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--mnkhan-text-muted)] ml-1">
-                Secure Email ID
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                Access Identifier
               </label>
               <div className="relative group">
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--mnkhan-text-muted)] group-focus-within:text-[var(--mnkhan-orange)] transition-colors" />
+                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
                 <Input
                   type="email"
-                  placeholder="IDENTIFIER..."
+                  placeholder="USER@SYSTEM..."
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="h-20 pl-16 bg-[var(--mnkhan-gray-bg)] border-2 border-transparent focus:border-[var(--mnkhan-charcoal)] rounded-none font-black text-xs uppercase tracking-widest placeholder:text-muted-foreground/30 transition-all"
+                  className="h-20 pl-16 bg-white/5 border-white/10 focus:border-emerald-500/50 rounded-2xl font-black text-xs uppercase tracking-widest text-white placeholder:text-white/10 transition-all backdrop-blur-xl"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-[var(--mnkhan-text-muted)] ml-1">
-                Access Keyword
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                Secure Keyphrase
               </label>
               <div className="relative group">
-                <Key className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--mnkhan-text-muted)] group-focus-within:text-[var(--mnkhan-orange)] transition-colors" />
+                <Key className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-emerald-400 transition-colors" />
                 <Input
                   type="password"
-                  placeholder="ENCRYPTED PASSWORD..."
+                  placeholder="••••••••••••"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="h-20 pl-16 bg-[var(--mnkhan-gray-bg)] border-2 border-transparent focus:border-[var(--mnkhan-charcoal)] rounded-none font-black text-xs uppercase tracking-widest placeholder:text-muted-foreground/30 transition-all"
+                  className="h-20 pl-16 bg-white/5 border-white/10 focus:border-emerald-500/50 rounded-2xl font-black text-xs uppercase tracking-widest text-white placeholder:text-white/10 transition-all backdrop-blur-xl"
                   required
                 />
               </div>
@@ -155,24 +155,24 @@ const AdminLoginPage = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-20 bg-[var(--mnkhan-charcoal)] hover:bg-black text-white rounded-none font-black uppercase tracking-[0.4em] text-xs group transition-all"
+              className="w-full h-20 bg-emerald-500 hover:bg-emerald-400 text-black rounded-2xl font-black uppercase tracking-[0.4em] text-xs group transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)]"
             >
-              {isLoading ? "AUTHORIZING..." : "VERIFY IDENTITY"}
+              {isLoading ? "AUTHORIZING..." : "Verify Identity"}
               <ChevronRight className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform" />
             </Button>
           </form>
 
           <Link
             to="/"
-            className="mt-12 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--mnkhan-text-muted)] hover:text-[var(--mnkhan-charcoal)] transition-colors"
+            className="mt-12 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-all group"
           >
-            <ArrowLeft className="h-4 w-4 text-[var(--mnkhan-orange)]" />
+            <ArrowLeft className="h-4 w-4 text-emerald-500 group-hover:-translate-x-2 transition-transform" />
             Abort & Exit to Public Site
           </Link>
         </motion.div>
 
-        <div className="absolute bottom-10 text-[9px] font-bold text-[var(--mnkhan-text-muted)] uppercase tracking-[0.2em] opacity-30">
-          System Monitoring Active • Unauthorized access will be recorded
+        <div className="absolute bottom-10 text-[9px] font-bold text-white/20 uppercase tracking-[0.2em]">
+          System Monitoring Active • Unauthorized access will be flagged
         </div>
       </div>
     </div>

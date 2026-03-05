@@ -30,7 +30,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     let userModel: any = null;
 
     for (const Model of models) {
-      userFound = await Model.findOne({ email });
+      userFound = await (Model as any).findOne({ email });
       if (userFound) {
         userModel = Model;
         break;
@@ -65,7 +65,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     let userFound: any = null;
 
     for (const Model of models) {
-      userFound = await Model.findOne({
+      userFound = await (Model as any).findOne({
         resetPasswordToken: token,
         resetPasswordExpires: { $gt: Date.now() },
       });
@@ -90,15 +90,19 @@ export const resetPassword = async (req: Request, res: Response) => {
 };
 
 export const register = async (req: Request, res: Response) => {
-  const { name, email, password, role } = req.body;
+  const { name, password, role } = req.body;
+  const email = req.body.email?.toLowerCase();
   const userRole = role || 'user';
   const Model = getModelByRole(userRole);
 
   try {
-    const userExists = await Model.findOne({ email });
-
-    if (userExists) {
-      return res.status(400).json({ message: 'User already exists in this category' });
+    // Check all collections for email uniqueness across the platform
+    const models = [User, Admin, EventManager];
+    for (const M of models) {
+      const existing = await (M as any).findOne({ email });
+      if (existing) {
+        return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+      }
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -142,14 +146,36 @@ export const register = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password, role } = req.body;
+  const { password, role } = req.body;
+  const email = req.body.email?.toLowerCase();
   const userRole = role || 'user';
-  const Model = getModelByRole(userRole);
-
+  
   try {
-    const user = await Model.findOne({ email });
+    // Attempt to find user in all relevant models to handle cross-portal login
+    const models = [User, Admin, EventManager];
+    let user: any = null;
+
+    // First try the suggested role for efficiency
+    const PrimaryModel = getModelByRole(userRole);
+    user = await (PrimaryModel as any).findOne({ email });
+
+    // Fallback: search other models if not found in primary
+    if (!user) {
+      for (const M of models) {
+        if (M === PrimaryModel) continue;
+        user = await (M as any).findOne({ email });
+        if (user) break;
+      }
+    }
 
     if (user && (await bcrypt.compare(password, user.password || ''))) {
+      if (user.role === 'event_manager' && !user.isApproved) {
+        return res.status(403).json({ 
+          message: 'Your account is pending administrative approval.',
+          isApproved: false 
+        });
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -217,7 +243,10 @@ export const changePassword = async (req: Request, res: Response) => {
 };
 
 export const getMe = async (req: any, res: Response) => {
-  const user = await User.findById(req.user._id).select('-password');
+  const userRole = req.user?.role || 'user';
+  const Model = getModelByRole(userRole);
+  const user = await Model.findById(req.user._id).select('-password');
+  
   if (user) {
     res.json(user);
   } else {

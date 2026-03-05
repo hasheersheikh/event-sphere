@@ -273,3 +273,69 @@ export const sendManagerApprovalEmail = async (email: string, userName: string) 
     logger.error('Failed to send manager approval email', err);
   }
 };
+
+export const sendEventApprovalEmail = async (email: string, userName: string, eventTitle: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <moderation@eventsphere.dev>',
+      to: [email],
+      subject: `Production Authorized: ${eventTitle} 🚀`,
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #10B981; padding: 40px; text-align: center; color: black;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase;">AUTHORIZED</h1>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Great news ${userName},</h2>
+            <p>Your production <strong>${eventTitle}</strong> has been reviewed and authorized by the City Pulse moderation collective. It is now live and listed on the platform.</p>
+            <div style="margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/events" style="background-color: #050505; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View Listing</a>
+            </div>
+            <p>Success with your production!</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Event approval email sent to manager: ${email} for ${eventTitle}`);
+  } catch (err) {
+    logger.error('Failed to send event approval email', err);
+  }
+};
+
+export const sendEventDeclineEmail = async (email: string, userName: string, eventTitle: string, reason: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <moderation@eventsphere.dev>',
+      to: [email],
+      subject: `Moderation Update: ${eventTitle} ⚠️`,
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #f43f5e; padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase;">Action Required</h1>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Hello ${userName},</h2>
+            <p>Our moderation collective has reviewed your production <strong>${eventTitle}</strong> and determined that it cannot be listed in its current state.</p>
+            
+            <div style="background-color: #fff1f2; border-left: 4px solid #f43f5e; padding: 20px; margin: 25px 0;">
+              <p style="margin: 0; font-weight: bold; color: #e11d48; text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em;">Reason for Decline</p>
+              <p style="margin: 10px 0 0; color: #475569; font-style: italic;">"${reason}"</p>
+            </div>
+
+            <p>Please review our production guidelines and update your event details accordingly from your manager portal.</p>
+            <div style="margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}/portal" style="background-color: #050505; color: white; padding: 15px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Manage Production</a>
+            </div>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Event decline email sent to manager: ${email} for ${eventTitle}`);
+  } catch (err) {
+    logger.error('Failed to send event decline email', err);
+  }
+};

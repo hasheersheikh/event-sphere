@@ -5,6 +5,231 @@ import EventManager from '../models/EventManager.js';
 import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
+import Payout from '../models/Payout.js';
+
+export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getManagers: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const managers = await EventManager.find().select('-password').sort({ createdAt: -1 });
+    res.json(managers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getManagerDetail: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const manager = await EventManager.findById(id).select('-password');
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+
+    const events = await Event.find({ creator: id }).sort({ date: -1 });
+    const eventIds = events.map(e => e._id);
+    
+    const bookings = await Booking.find({ 
+      event: { $in: eventIds },
+      status: 'confirmed'
+    });
+
+    const payouts = await Payout.find({ manager: id }).sort({ createdAt: -1 });
+
+    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const totalTicketsSold = bookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    }, 0);
+
+    // Group stats by event
+    const eventStats = events.map(event => {
+      const eventBookings = bookings.filter(b => b.event.toString() === event._id.toString());
+      const revenue = eventBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+      const tickets = eventBookings.reduce((acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0);
+      return {
+        _id: event._id,
+        title: event.title,
+        date: event.date,
+        status: event.status,
+        isApproved: event.isApproved,
+        revenue,
+        ticketsSold: tickets
+      };
+    });
+
+    const commissionType = manager.commissionType || 'percentage';
+    const commissionValue = manager.commissionValue ?? 10;
+    let totalCommission = 0;
+
+    if (commissionType === 'percentage') {
+      totalCommission = (totalRevenue * commissionValue) / 100;
+    } else {
+      // Flat fee - this is tricky if we don't know per event or total
+      // User said "can be flat fee or percentage whise based on deal made"
+      // Assuming flat fee is per manager total for now, or we might need it per event.
+      // Usually flat fee per event is better, but let's stick to simple flat fee for the "deal" for now.
+      totalCommission = commissionValue;
+    }
+
+    const netPayable = Math.max(0, totalRevenue - totalCommission - (manager.totalPaid || 0));
+
+    res.json({
+      manager,
+      stats: {
+        totalEvents: events.length,
+        totalRevenue,
+        totalTicketsSold,
+        totalPaid: manager.totalPaid || 0,
+        totalCommission,
+        netDue: totalRevenue - totalCommission,
+        pendingPayout: netPayable
+      },
+      events: eventStats,
+      payouts
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const approveEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const event = await Event.findById(id).populate('creator', 'name email');
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+    event.isApproved = true;
+    event.status = 'published';
+    await event.save();
+
+    // Notify Manager (Non-blocking)
+    (async () => {
+      try {
+        const creator: any = event.creator;
+        await sendEventApprovalEmail(creator.email, creator.name, event.title);
+      } catch (err) {
+        console.error('Failed to send event approval email:', err);
+      }
+    })();
+
+    res.json({ message: 'Event approved and published', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const declineEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+  
+  if (!reason) {
+    res.status(400).json({ message: 'A reason for decline is required.' });
+    return;
+  }
+
+  try {
+    const event = await Event.findById(id).populate('creator', 'name email');
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+
+    event.isApproved = false;
+    event.status = 'blocked';
+    await event.save();
+
+    // Notify Manager (Non-blocking)
+    (async () => {
+      try {
+        const creator: any = event.creator;
+        await sendEventDeclineEmail(creator.email, creator.name, event.title, reason);
+      } catch (err) {
+        console.error('Failed to send event decline email:', err);
+      }
+    })();
+
+    res.json({ message: 'Event declined and manager notified.', event });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const processPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { amount, notes, referenceId } = req.body;
+  try {
+    const manager = await EventManager.findById(id);
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+
+    // Initialize settlement record
+    const payout = await Payout.create({
+      manager: id,
+      amount,
+      notes,
+      referenceId,
+      status: 'completed'
+    });
+
+    manager.totalPaid = (manager.totalPaid || 0) + amount;
+    await manager.save();
+
+    res.json({ message: 'Payout processed successfully', payout, totalPaid: manager.totalPaid });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getAllAdminEvents: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const events = await Event.find().populate('creator', 'name email').sort({ createdAt: -1 });
+    const eventIds = events.map(e => e._id);
+    
+    const bookings = await Booking.find({ 
+      event: { $in: eventIds },
+      status: 'confirmed'
+    });
+
+    const eventsWithStats = events.map(event => {
+      const eventBookings = bookings.filter(b => b.event.toString() === event._id.toString());
+      const revenue = eventBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+      const ticketsSold = eventBookings.reduce((acc, b) => {
+        return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+      }, 0);
+
+      return {
+        ...event.toObject(),
+        revenue,
+        ticketsSold
+      };
+    });
+
+    res.json(eventsWithStats);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getPendingEvents: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const events = await Event.find({ isApproved: false }).populate('creator', 'name email').sort({ createdAt: -1 });
+    res.json(events);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
 
 export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
@@ -16,7 +241,11 @@ export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Respons
   }
 };
 
-import { sendManagerApprovalEmail } from '../utils/emailService.js';
+import { 
+  sendManagerApprovalEmail, 
+  sendEventApprovalEmail, 
+  sendEventDeclineEmail 
+} from '../utils/emailService.js';
 
 export const approveManager: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
@@ -39,6 +268,62 @@ export const approveManager: RequestHandler = async (req: AuthRequest, res: Resp
     })();
 
     res.json({ message: 'Manager approved successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const deleteManager: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const manager = await EventManager.findById(id);
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+
+    // Check for active events or bookings
+    const events = await Event.find({ creator: id });
+    const eventIds = events.map(e => e._id);
+    const bookingCount = await Booking.countDocuments({ 
+      event: { $in: eventIds },
+      status: 'confirmed'
+    });
+
+    if (bookingCount > 0 && req.query.force !== 'true') {
+      res.status(400).json({ 
+        message: 'Manager has active bookings. Cannot delete without force authorization.',
+        hasBookings: true,
+        bookingCount
+      });
+      return;
+    }
+
+    // Delete events first or keep them? Usually delete.
+    await Event.deleteMany({ creator: id });
+    await manager.deleteOne();
+
+    res.json({ message: 'Manager and associated productions removed from platform.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const updateManagerCommission: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { commissionType, commissionValue } = req.body;
+  try {
+    const manager = await EventManager.findById(id);
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+
+    if (commissionType) manager.commissionType = commissionType;
+    if (commissionValue !== undefined) manager.commissionValue = commissionValue;
+
+    await manager.save();
+    res.json({ message: 'Commission protocol updated.', manager });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

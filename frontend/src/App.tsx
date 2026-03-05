@@ -28,7 +28,10 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import UsersManagement from "./pages/admin/UsersManagement";
+import AttendeesPage from "./pages/admin/AttendeesPage";
+import ManagersPage from "./pages/admin/ManagersPage";
+import ManagerDetailPage from "./pages/admin/ManagerDetailPage";
+import EventModerationPage from "./pages/admin/EventModerationPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import MyProductions from "./pages/manager/MyProductions";
@@ -159,14 +162,16 @@ const App = () => (
               }
             >
               <Route path="admin" element={<AdminDashboard />} />
+              <Route path="admin/attendees" element={<AttendeesPage />} />
+              <Route path="admin/managers" element={<ManagersPage />} />
+              <Route
+                path="admin/managers/:id"
+                element={<ManagerDetailPage />}
+              />
+              <Route path="events" element={<EventModerationPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="productions" element={<MyProductions />} />
-              {/* Add more management pages here */}
-              <Route
-                path="users"
-                element={<div className="p-8">Users Management Content</div>}
-              />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
 
