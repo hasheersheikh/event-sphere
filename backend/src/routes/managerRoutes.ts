@@ -1,5 +1,14 @@
 import express from 'express';
-import { getManagerStats, getManagerEventAnalytics } from '../controllers/managerController.js';
+import { 
+  getManagerStats, 
+  getManagerEventAnalytics,
+  updatePayoutDetails,
+  getPayoutDetails,
+  addVolunteer,
+  getVolunteersByEvent,
+  removeVolunteer,
+  getManagerPayouts
+} from '../controllers/managerController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -9,5 +18,15 @@ router.use(authorize('event_manager', 'admin'));
 
 router.get('/stats', getManagerStats);
 router.get('/events/:id/analytics', getManagerEventAnalytics);
+
+// Payout Details
+router.get('/payout-details', getPayoutDetails);
+router.patch('/payout-details', updatePayoutDetails);
+
+// Volunteer Management
+router.post('/volunteers', addVolunteer);
+router.get('/events/:eventId/volunteers', getVolunteersByEvent);
+router.delete('/volunteers/:id', removeVolunteer);
+router.get('/payouts', getManagerPayouts);
 
 export default router;

@@ -38,6 +38,10 @@ import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
 import MyProductions from "./pages/manager/MyProductions";
 import ManagerEventAnalyticsPage from "./pages/manager/ManagerEventAnalyticsPage";
+import ManageVolunteersPage from "./pages/manager/ManageVolunteersPage";
+import PayoutsPage from "./pages/manager/PayoutsPage";
+import AdminVolunteersPage from "./pages/admin/AdminVolunteersPage";
+import VolunteerLoginPage from "./pages/VolunteerLoginPage";
 import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -139,11 +143,19 @@ const App = () => (
                         path="scanner"
                         element={
                           <ProtectedRoute
-                            allowedRoles={["event_manager", "admin"]}
+                            allowedRoles={[
+                              "event_manager",
+                              "admin",
+                              "volunteer",
+                            ]}
                           >
                             <ScannerPage />
                           </ProtectedRoute>
                         }
+                      />
+                      <Route
+                        path="volunteer-login"
+                        element={<VolunteerLoginPage />}
                       />
                       <Route path="about" element={<AboutPage />} />
                       <Route path="terms" element={<TermsOfService />} />
@@ -175,14 +187,23 @@ const App = () => (
                 path="admin/managers/:id"
                 element={<ManagerDetailPage />}
               />
+              <Route
+                path="admin/volunteers"
+                element={<AdminVolunteersPage />}
+              />
               <Route path="events" element={<EventModerationPage />} />
               <Route path="admin/events/:id" element={<EventInsightsPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
+              <Route path="manager/payouts" element={<PayoutsPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="productions" element={<MyProductions />} />
               <Route
                 path="manager/events/:id/analytics"
                 element={<ManagerEventAnalyticsPage />}
+              />
+              <Route
+                path="manager/events/:eventId/volunteers"
+                element={<ManageVolunteersPage />}
               />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>

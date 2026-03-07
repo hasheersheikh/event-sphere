@@ -68,75 +68,67 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
       }}
       className="group relative"
     >
-      <Link to={`/events/${event._id || event.id}`} className="block">
-        <article className="glass-card overflow-hidden bg-white/[0.03] backdrop-blur-3xl border border-white/10 hover:border-emerald-500/30 transition-all duration-500 shadow-2xl hover:shadow-[0_30px_60px_rgba(16,185,129,0.1)]">
+      <Link to={`/events/${event._id}`} className="block">
+        <article className="bg-card border border-border/50 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 group-hover:border-primary/30">
           {/* Image Container */}
-          <div className="relative aspect-[16/10] overflow-hidden">
+          <div className="relative aspect-[16/9] overflow-hidden">
             <img
               src={event.image || getCategoryImage(event.category)}
               alt={event.title}
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
-
-            {/* Price Badge */}
-            <div className="absolute bottom-6 right-6 px-5 py-2 glass-panel rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-white">
+            {/* Price Badge - Softened */}
+            <div className="absolute bottom-4 left-4 px-3 py-1 bg-background/90 backdrop-blur-md border border-border rounded-lg text-[10px] font-bold uppercase text-foreground shadow-lg">
               {formatPrice(event.ticketTypes || [])}
             </div>
 
             {/* Category / Sold Out Badge */}
-            <div className="absolute top-6 left-6 flex flex-col gap-2">
-              <div className="px-4 py-1.5 glass-panel rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">
+            <div className="absolute top-4 right-4 flex flex-col gap-2">
+              <div className="px-3 py-1 bg-primary text-primary-foreground text-[9px] font-bold uppercase tracking-widest rounded-md">
                 {event.category || "GENERAL"}
               </div>
               {isAlmostSoldOut && (
-                <div className="px-4 py-1.5 bg-rose-500/80 backdrop-blur-md rounded-full text-[9px] font-black uppercase tracking-[0.2em] text-white animate-pulse">
-                  Almost Sold Out
+                <div className="px-3 py-1 bg-red-600 text-white text-[9px] font-bold uppercase tracking-widest rounded-md shadow-lg">
+                  ALMOST SOLD OUT
                 </div>
               )}
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-10">
-            <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-5">
-              <Calendar className="h-3.5 w-3.5 text-emerald-500" />
+          <div className="p-6">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-primary mb-3">
+              <Calendar className="h-3 w-3" />
               {formatDate(event.date)}
             </div>
 
-            <h3 className="text-2xl font-medium tracking-tighter leading-tight mb-4 group-hover:text-emerald-400 transition-colors italic">
+            <h3 className="text-xl font-bold leading-tight mb-3 text-foreground line-clamp-2 min-h-[3.5rem] group-hover:text-primary transition-colors">
               {event.title}
             </h3>
 
-            <div className="flex items-center gap-2 text-white/40 text-[11px] mb-10 font-light italic">
-              <MapPin className="h-3.5 w-3.5 text-emerald-500" />
-              {typeof event.location === "string"
-                ? event.location
-                : event.location?.address?.split(",")[0]}
+            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-6 font-medium italic">
+              <MapPin className="h-3 w-3 text-primary" />
+              <span className="truncate">
+                {typeof event.location === "string"
+                  ? event.location
+                  : event.location?.address?.split(",")[0]}
+              </span>
             </div>
 
-            <div className="flex items-center justify-between pt-8 border-t border-white/5">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center font-black text-xs text-white/40 group-hover:bg-emerald-500 group-hover:text-black transition-all">
+            <div className="flex items-center justify-between pt-4 border-t border-border/50">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-full bg-muted border border-border flex items-center justify-center font-bold text-[10px] text-muted-foreground uppercase">
                   {event.creator?.name?.charAt(0) || "P"}
                 </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white/20">
-                    Curated By
-                  </p>
-                  <p className="text-[11px] font-bold text-white/60 group-hover:text-white transition-colors capitalize">
-                    {event.creator?.name || "Pulse Host"}
-                  </p>
-                </div>
+                <span className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-tight">
+                  {event.creator?.name || "Pulse Host"}
+                </span>
               </div>
 
-              <Button
-                variant="ghost"
-                className="h-12 w-12 rounded-full p-0 flex items-center justify-center border border-white/5 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all group-hover:translate-x-1"
-              >
-                <ArrowRight className="h-5 w-5" />
-              </Button>
+              <div className="h-8 w-8 rounded-full flex items-center justify-center bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                <ArrowRight className="h-4 w-4" />
+              </div>
             </div>
           </div>
         </article>

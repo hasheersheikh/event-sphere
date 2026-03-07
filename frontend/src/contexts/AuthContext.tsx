@@ -10,9 +10,11 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: "user" | "event_manager" | "admin";
+  role: "user" | "event_manager" | "admin" | "volunteer";
   isApproved: boolean;
   token: string;
+  eventId?: string;
+  gate?: string;
 }
 
 interface AuthContextType {

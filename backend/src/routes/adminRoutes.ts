@@ -15,7 +15,10 @@ import {
   processPayout,
   deleteManager,
   updateManagerCommission,
-  deleteEvent
+  deleteEvent,
+  getAllVolunteers,
+  adminAddVolunteer,
+  adminRemoveVolunteer
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -40,5 +43,10 @@ router.delete('/events/:id', deleteEvent);
 router.patch('/users/:id/approve', approveManager);
 router.get('/stats', getAdminStats);
 router.get('/analytics', getAnalytics);
+
+// Volunteer Management (Global)
+router.get('/volunteers', getAllVolunteers);
+router.post('/volunteers', adminAddVolunteer);
+router.delete('/volunteers/:id', adminRemoveVolunteer);
 
 export default router;

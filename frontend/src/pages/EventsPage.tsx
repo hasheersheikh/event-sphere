@@ -16,22 +16,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
-  const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "",
+  );
+  const [locationFilter, setLocationFilter] = useState(
+    searchParams.get("location") || "",
+  );
   const [showFilters, setShowFilters] = useState(false);
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ['events', searchQuery, selectedCategory, locationFilter],
+    queryKey: ["events", searchQuery, selectedCategory, locationFilter],
     queryFn: async () => {
-      const { data } = await api.get('/events', {
+      const { data } = await api.get("/events", {
         params: {
           q: searchQuery,
           category: selectedCategory,
-          location: locationFilter
-        }
+          location: locationFilter,
+        },
       });
       return data;
-    }
+    },
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -53,12 +57,13 @@ const EventsPage = () => {
   const hasActiveFilters = searchQuery || selectedCategory || locationFilter;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground relative">
+      <div className="fixed inset-0 bg-muted/20 z-0" />
       <Navbar />
 
       <main className="flex-1">
         {/* Header */}
-        <section className="bg-muted/50 py-8 md:py-12">
+        <section className="bg-muted/30 py-8 md:py-12 border-b border-border">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -81,34 +86,38 @@ const EventsPage = () => {
               onSubmit={handleSearch}
               className="mt-8 flex flex-col md:flex-row gap-3"
             >
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <div className="relative flex-1 group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   type="text"
                   placeholder="Search events..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 pl-12"
+                  className="h-12 pl-12 rounded-xl border-border focus:border-primary transition-all"
                 />
               </div>
-              <div className="relative md:w-64">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <div className="relative md:w-64 group">
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                 <Input
                   type="text"
                   placeholder="Location"
                   value={locationFilter}
                   onChange={(e) => setLocationFilter(e.target.value)}
-                  className="h-12 pl-12"
+                  className="h-12 pl-12 rounded-xl border-border focus:border-primary transition-all"
                 />
               </div>
-              <Button type="submit" size="lg" className="h-12">
+              <Button
+                type="submit"
+                size="lg"
+                className="h-12 rounded-xl font-bold uppercase tracking-wider px-8 shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
                 Search
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="lg"
-                className="h-12 md:hidden"
+                className="h-12 md:hidden rounded-none font-bold"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-5 w-5 mr-2" />
@@ -122,7 +131,9 @@ const EventsPage = () => {
         <section className="container py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar Filters */}
-            <aside className={`lg:w-64 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}>
+            <aside
+              className={`lg:w-64 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}
+            >
               <div className="sticky top-20 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Categories</h3>
@@ -138,17 +149,18 @@ const EventsPage = () => {
                       key={category.id}
                       onClick={() =>
                         setSelectedCategory(
-                          selectedCategory === category.name ? "" : category.name
+                          selectedCategory === category.name
+                            ? ""
+                            : category.name,
                         )
                       }
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-colors ${
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all border ${
                         selectedCategory === category.name
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-card hover:bg-muted"
+                          ? "bg-primary text-primary-foreground border-primary shadow-lg"
+                          : "bg-background hover:bg-muted border-border"
                       }`}
                     >
                       <span className="flex items-center gap-3">
-                        <span>{category.icon}</span>
                         <span>{category.name}</span>
                       </span>
                     </button>
@@ -162,7 +174,9 @@ const EventsPage = () => {
               {/* Active Filters */}
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2 mb-6">
-                  <span className="text-sm text-muted-foreground">Active filters:</span>
+                  <span className="text-sm text-muted-foreground">
+                    Active filters:
+                  </span>
                   {searchQuery && (
                     <Badge variant="secondary" className="gap-1">
                       Search: {searchQuery}
@@ -216,7 +230,9 @@ const EventsPage = () => {
               ) : (
                 <div className="text-center py-16">
                   <div className="text-6xl mb-4">🔍</div>
-                  <h3 className="text-xl font-semibold mb-2">No events found</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    No events found
+                  </h3>
                   <p className="text-muted-foreground mb-6">
                     Try adjusting your filters or search query
                   </p>

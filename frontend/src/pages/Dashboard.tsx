@@ -29,31 +29,32 @@ const Dashboard = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground relative">
+      <div className="fixed inset-0 mesh-bg z-0" />
       <Navbar />
       <main className="flex-1 container py-12 md:py-20">
         <header className="mb-16 md:flex items-center justify-between gap-8">
           <div className="flex items-center gap-5">
-            <div className="h-16 w-16 rounded-[2rem] gradient-hero flex items-center justify-center shadow-xl shadow-primary/20 shrink-0">
-              <UserIcon className="h-8 w-8 text-white" />
+            <div className="h-16 w-16 bg-primary/10 border border-primary/20 flex items-center justify-center shadow-lg shrink-0 rounded-2xl">
+              <UserIcon className="h-8 w-8 text-primary" />
             </div>
             <div>
               <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">
-                Hey, <span className="gradient-text">{user?.name}</span>
+                Hey, <span className="text-primary">{user?.name}</span>
               </h1>
-              <p className="text-muted-foreground text-lg font-medium">
+              <p className="text-muted-foreground text-lg font-medium italic">
                 Your personal event command center.
               </p>
             </div>
           </div>
           <div className="mt-8 md:mt-0 flex gap-4">
-            <div className="bg-muted/50 rounded-2xl px-6 py-4 border">
+            <div className="bg-muted/50 border border-border px-6 py-4 rounded-xl">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
                 Passes
               </p>
               <p className="text-2xl font-black">{bookings?.length || 0}</p>
             </div>
-            <div className="bg-primary/5 rounded-2xl px-6 py-4 border border-primary/10">
+            <div className="bg-primary/5 border border-primary/10 px-6 py-4 rounded-xl">
               <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">
                 Status
               </p>
@@ -76,7 +77,7 @@ const Dashboard = () => {
             <Link to="/events">
               <Button
                 variant="ghost"
-                className="rounded-full gap-2 font-black text-xs uppercase tracking-widest"
+                className="rounded-none gap-2 font-bold text-xs uppercase tracking-widest border border-transparent hover:border-border"
               >
                 Discover More <ArrowRight className="h-4 w-4" />
               </Button>
@@ -102,7 +103,7 @@ const Dashboard = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Link to={`/events/${booking.event._id}`}>
-                    <div className="glass-card rounded-[2.5rem] p-8 h-full border hover:border-primary/50 transition-all group relative overflow-hidden">
+                    <div className="bg-card border border-border/50 p-8 h-full rounded-2xl hover:shadow-xl transition-all group relative overflow-hidden">
                       <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Star className="h-20 w-20 text-primary rotate-12" />
                       </div>
@@ -110,11 +111,11 @@ const Dashboard = () => {
                       <div className="mb-8">
                         <Badge
                           variant="secondary"
-                          className="rounded-full px-4 py-1 font-black text-[9px] uppercase tracking-widest mb-4 bg-primary/5 text-primary border-primary/10"
+                          className="px-4 py-1 font-bold text-[10px] uppercase tracking-widest mb-4 bg-primary/10 text-primary border border-primary/20 rounded-lg"
                         >
                           Confirmed Entry
                         </Badge>
-                        <h3 className="text-2xl font-black tracking-tight leading-none group-hover:text-primary transition-colors">
+                        <h3 className="text-2xl font-bold tracking-tight leading-none group-hover:text-primary transition-colors">
                           {booking.event.title}
                         </h3>
                       </div>

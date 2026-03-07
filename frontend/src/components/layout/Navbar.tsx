@@ -6,6 +6,7 @@ import { Menu, X, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileDropdown from "./ProfileDropdown";
 import PulseLogo from "./PulseLogo";
+import { ThemeToggle } from "./ThemeToggle";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,14 +30,14 @@ const Navbar = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Dark glassmorphism on scroll or non-home, transparent on home top
+  // Theme-aware glassmorphism
   const navBg =
     isHome && !isScrolled
       ? "bg-transparent border-transparent"
-      : "glass-panel bg-black/40 border-white/10 shadow-2xl backdrop-blur-3xl";
+      : "bg-background border-border shadow-xl backdrop-blur-3xl";
 
-  const textColor = "text-white";
-  const mutedColor = "text-white/60";
+  const textColor = "text-foreground";
+  const mutedColor = "text-foreground/60";
 
   return (
     <header
@@ -59,15 +60,15 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1 bg-white/5 backdrop-blur-3xl border border-white/10 p-1.5 rounded-full">
+        <div className="hidden md:flex items-center gap-1 bg-muted/40 border border-border/30 p-1 rounded-full">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               to={link.href}
-              className={`px-8 py-2.5 text-[10px] font-black uppercase tracking-[0.3em] rounded-full transition-all duration-500 ${
+              className={`px-8 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 ${
                 isActive(link.href)
-                  ? "bg-white text-black shadow-xl"
-                  : `${mutedColor} hover:text-white hover:bg-white/5`
+                  ? "bg-primary text-primary-foreground shadow-lg"
+                  : `${mutedColor} hover:text-foreground hover:bg-foreground/5`
               }`}
             >
               {link.label}
@@ -80,10 +81,12 @@ const Navbar = () => {
           <Button
             variant="ghost"
             size="icon"
-            className={`rounded-full h-12 w-12 transition-all duration-500 ${mutedColor} hover:bg-white/10 hover:text-pulse-emerald border border-transparent hover:border-white/10`}
+            className={`rounded-full h-12 w-12 transition-all duration-500 ${mutedColor} hover:bg-foreground/10 hover:text-pulse-emerald border border-transparent hover:border-foreground/10`}
           >
             <Search className="h-5 w-5" />
           </Button>
+
+          <ThemeToggle />
 
           {isAuthenticated ? (
             <ProfileDropdown />
@@ -92,7 +95,7 @@ const Navbar = () => {
               <Link to="/auth">
                 <Button
                   size="lg"
-                  className="bg-white text-black hover:bg-pulse-emerald hover:text-black text-[10px] font-black uppercase tracking-[0.3em] px-10 rounded-full shadow-[0_15px_30px_rgba(255,255,255,0.1)] border-none transition-all duration-500 hover:scale-105 active:scale-95 group"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 text-[10px] font-bold uppercase tracking-[0.2em] px-8 py-6 rounded-xl shadow-lg border-none transition-all duration-300 hover:scale-105 active:scale-95 group"
                 >
                   Join Pulse
                 </Button>
@@ -118,9 +121,15 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "100vh" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-white/10 bg-black/95 backdrop-blur-3xl overflow-hidden"
+            className="md:hidden border-t border-border bg-background/95 backdrop-blur-3xl overflow-hidden"
           >
             <div className="container py-12 space-y-10 h-full flex flex-col">
+              <div className="flex justify-between items-center px-8 mb-4">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+                  Appearance
+                </span>
+                <ThemeToggle />
+              </div>
               <div className="space-y-4">
                 {navLinks.map((link) => (
                   <Link
@@ -129,8 +138,8 @@ const Navbar = () => {
                     onClick={() => setIsOpen(false)}
                     className={`block px-8 py-6 text-2xl font-black uppercase tracking-widest border-l-4 transition-all duration-500 ${
                       isActive(link.href)
-                        ? "border-pulse-emerald text-emerald-400 bg-emerald-500/5"
-                        : "border-transparent text-white/40 hover:text-white"
+                        ? "border-pulse-emerald text-pulse-emerald bg-pulse-emerald/5"
+                        : "border-transparent text-foreground/40 hover:text-foreground"
                     }`}
                   >
                     {link.label}
@@ -138,7 +147,7 @@ const Navbar = () => {
                 ))}
               </div>
 
-              <div className="pt-10 border-t border-white/10 mt-auto pb-20 space-y-6">
+              <div className="pt-10 border-t border-border mt-auto pb-20 space-y-6">
                 {isAuthenticated ? (
                   <div className="px-8">
                     <ProfileDropdown />
@@ -150,7 +159,7 @@ const Navbar = () => {
                       onClick={() => setIsOpen(false)}
                       className="block w-full"
                     >
-                      <Button className="w-full h-16 bg-white text-black text-xs font-black uppercase tracking-[0.3em] rounded-2xl border-none hover:bg-pulse-emerald transition-colors">
+                      <Button className="w-full h-16 bg-foreground text-background text-xs font-black uppercase tracking-[0.3em] rounded-2xl border-none hover:bg-pulse-emerald transition-colors">
                         Pulse In
                       </Button>
                     </Link>

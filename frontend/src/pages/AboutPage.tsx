@@ -22,7 +22,7 @@ const AboutPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] text-white overflow-x-hidden selection:bg-emerald-500/30">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-emerald-500/30">
       <Navbar />
 
       <main className="flex-1">
@@ -34,7 +34,7 @@ const AboutPage = () => {
               alt="Vibrant Crowd"
               className="w-full h-full object-cover opacity-30 scale-110 blur-[3px]"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-[#050505]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
           </div>
 
           <div className="container relative z-10 text-center">
@@ -43,7 +43,7 @@ const AboutPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-panel text-[10px] font-black uppercase tracking-[0.4em] mb-12 text-emerald-400">
+              <div className="inline-flex items-center gap-3 px-6 py-2 border border-primary/30 bg-background/50 text-[10px] font-bold uppercase tracking-[0.4em] mb-12 text-primary rounded-full">
                 <Sparkles className="h-3 w-3" />
                 The Heart of Experience
               </div>
@@ -53,7 +53,7 @@ const AboutPage = () => {
                   Human Pulse.
                 </span>
               </h1>
-              <p className="text-lg md:text-2xl text-white/40 max-w-3xl mx-auto leading-relaxed font-light">
+              <p className="text-lg md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
                 City Pulse is the ultimate ecosystem for live experiences,
                 connecting event creators with an audience that's hungry for the
                 extraordinary.
@@ -73,13 +73,13 @@ const AboutPage = () => {
                   Find Magic.
                 </span>
               </h2>
-              <p className="text-2xl text-white/40 font-light leading-relaxed">
+              <p className="text-2xl text-muted-foreground font-light leading-relaxed">
                 We believe that every concert, every festival, and every local
                 meetup is a chance for a unique connection. Our platform doesn't
                 just sell tickets—it facilitates memories.
               </p>
-              <div className="p-10 glass-card border-none bg-emerald-500/5">
-                <p className="text-xl font-medium italic text-emerald-400">
+              <div className="p-10 border border-border bg-muted/30 rounded-2xl shadow-sm">
+                <p className="text-xl font-medium italic text-primary">
                   "Our mission is to sync the world's rhythm, making every event
                   discovery feel like destiny."
                 </p>
@@ -91,14 +91,14 @@ const AboutPage = () => {
               <img
                 src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&q=80&w=2070"
                 alt="Crowd Interaction"
-                className="w-full aspect-[4/5] object-cover rounded-[4rem] border-2 border-white/5 shadow-2xl scale-95"
+                className="w-full aspect-[4/5] object-cover border border-border shadow-2xl scale-95 rounded-3xl"
               />
             </div>
           </div>
         </section>
 
         {/* Infinite Scrolling Stats */}
-        <section className="py-32 bg-white/5 backdrop-blur-3xl border-y border-white/10 overflow-hidden">
+        <section className="py-32 bg-muted/30 backdrop-blur-3xl border-y border-border overflow-hidden">
           <div className="flex animate-marquee whitespace-nowrap">
             {[...stats, ...stats].map((stat, i) => (
               <div key={i} className="flex items-center gap-10 px-20">
@@ -107,7 +107,7 @@ const AboutPage = () => {
                   <span className="text-4xl font-black subpixel-antialiased uppercase tracking-tighter">
                     {stat.value}
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
                     {stat.label}
                   </span>
                 </div>
@@ -138,13 +138,13 @@ const AboutPage = () => {
             ].map((item, i) => (
               <div
                 key={i}
-                className="p-12 glass-card hover:bg-white/5 transition-all duration-500 group border-white/5 hover:border-emerald-500/20"
+                className="p-12 border border-border/50 hover:bg-muted/50 transition-all duration-500 group rounded-2xl shadow-sm"
               >
-                <item.icon className="h-10 w-10 text-emerald-500 mb-10 group-hover:scale-110 transition-transform" />
-                <h3 className="text-3xl font-black uppercase italic tracking-tighter mb-6">
+                <item.icon className="h-10 w-10 text-primary mb-10 group-hover:scale-110 transition-transform" />
+                <h3 className="text-3xl font-bold uppercase italic tracking-tighter mb-6 text-foreground">
                   {item.title}
                 </h3>
-                <p className="text-white/40 font-light leading-relaxed">
+                <p className="text-muted-foreground font-light leading-relaxed">
                   {item.desc}
                 </p>
               </div>

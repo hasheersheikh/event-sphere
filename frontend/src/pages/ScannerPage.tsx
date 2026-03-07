@@ -3,6 +3,7 @@ import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   CheckCircle,
   XCircle,
@@ -20,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 const ScannerPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [scanResult, setScanResult] = useState<any>(null);
   const [isScanning, setIsScanning] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -148,7 +150,9 @@ const ScannerPage = () => {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
                 <div className="px-4 py-2 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                  Secure Scanner v2.0
+                  {user?.role === "volunteer"
+                    ? `GATE: ${user.gate || "ALPHA"}`
+                    : "Secure Scanner v2.0"}
                 </div>
                 <button
                   onClick={toggleTorch}
@@ -203,10 +207,14 @@ const ScannerPage = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-xs font-black uppercase tracking-widest text-white/90">
-                    Mobile Capture
+                    {user?.role === "volunteer"
+                      ? "Personnel Capture"
+                      : "Mobile Capture"}
                   </h3>
                   <p className="text-zinc-500 text-[10px] font-bold italic">
-                    Verify production access IDs in real-time.
+                    {user?.role === "volunteer"
+                      ? `Stationed at ${user.gate || "Primary Gate"}`
+                      : "Verify production access IDs in real-time."}
                   </p>
                 </div>
               </div>

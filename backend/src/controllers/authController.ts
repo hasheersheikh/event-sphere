@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import EventManager from '../models/EventManager.js';
+import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailService.js';
@@ -17,6 +18,7 @@ const generateToken = (id: string, role: string) => {
 const getModelByRole = (role: string): any => {
   if (role === 'admin') return Admin;
   if (role === 'event_manager') return EventManager;
+  if (role === 'volunteer') return Volunteer;
   return User;
 };
 
@@ -152,7 +154,7 @@ export const login = async (req: Request, res: Response) => {
   
   try {
     // Attempt to find user in all relevant models to handle cross-portal login
-    const models = [User, Admin, EventManager];
+    const models = [User, Admin, EventManager, Volunteer];
     let user: any = null;
 
     // First try the suggested role for efficiency
@@ -183,6 +185,8 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
         isApproved: (user as any).isApproved ?? true,
         token: generateToken(user._id.toString(), user.role),
+        eventId: user.eventId,
+        gate: user.gate,
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });

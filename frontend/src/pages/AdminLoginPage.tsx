@@ -49,7 +49,7 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[var(--mnkhan-charcoal)] font-sans selection:bg-orange-500/30">
+    <div className="min-h-screen flex bg-background font-sans selection:bg-orange-500/30">
       {/* Left Side - Security Visual */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden border-r-4 border-white/10">
         <div
@@ -78,7 +78,7 @@ const AdminLoginPage = () => {
                 Command Center.
               </span>
             </h1>
-            <p className="text-xl text-white/50 font-medium leading-relaxed max-w-md italic">
+            <p className="text-xl text-muted-foreground/60 font-medium leading-relaxed max-w-md italic">
               Secure access gateway for verified creators and system
               administrators. Unauthorized access is strictly prohibited and
               monitored.
@@ -108,14 +108,14 @@ const AdminLoginPage = () => {
             <h2 className="text-4xl font-black tracking-tighter uppercase leading-none mb-4 text-white italic">
               Initialize <span className="text-emerald-500">Session.</span>
             </h2>
-            <p className="text-white/40 font-bold italic">
+            <p className="text-muted-foreground/60 font-bold italic">
               Enter your administrative credentials to continue.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                 Access Identifier
               </label>
               <div className="relative group">
@@ -134,7 +134,7 @@ const AdminLoginPage = () => {
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                 Secure Keyphrase
               </label>
               <div className="relative group">

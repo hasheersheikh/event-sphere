@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import EventManager from '../models/EventManager.js';
+import Volunteer from '../models/Volunteer.js';
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -11,6 +12,7 @@ export interface AuthRequest extends Request {
 const getModelByRole = (role: string) => {
   if (role === 'admin') return Admin;
   if (role === 'event_manager') return EventManager;
+  if (role === 'volunteer') return Volunteer;
   return User;
 };
 

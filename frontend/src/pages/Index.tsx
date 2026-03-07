@@ -32,44 +32,41 @@ const Index = () => {
     {
       label: "Concerts",
       icon: Music,
-      color: "text-emerald-400",
-      image:
-        "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=800",
+      color: "text-blue-600",
+      image: "/assets/images/category_concert_stage_1772894563661.png",
     },
     {
       label: "Art Shows",
       icon: Camera,
-      color: "text-indigo-400",
-      image:
-        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
+      color: "text-orange-600",
+      image: "/assets/images/category_art_modern_1772894580509.png",
     },
     {
       label: "Tech Talks",
       icon: Cpu,
-      color: "text-violet-400",
-      image:
-        "https://images.unsplash.com/photo-1505373633560-fa26f63fbc1e?auto=format&fit=crop&q=80&w=800",
+      color: "text-purple-600",
+      image: "/assets/images/category_tech_visionary_1772894596927.png",
     },
     {
       label: "Meetups",
       icon: Sparkles,
-      color: "text-rose-400",
-      image:
-        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800",
+      color: "text-red-600",
+      image: "/assets/images/category_meetup_networking_1772894613805.png",
     },
   ];
 
   const moments = [
-    "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1514525253361-bee8718a7439?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=800",
+    "/assets/images/category_concert_stage_1772894563661.png",
+    "/assets/images/category_art_modern_1772894580509.png",
+    "/assets/images/category_tech_visionary_1772894596927.png",
+    "/assets/images/category_meetup_networking_1772894613805.png",
+    "/assets/images/hero_concert_energy_1772894546288.png",
+    "/assets/images/cta_production_hq_1772894634095.png",
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#050505] text-white overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden relative">
+      <div className="fixed inset-0 mesh-bg z-[-1]" />
       <Navbar />
 
       <main className="flex-1">
@@ -77,11 +74,13 @@ const Index = () => {
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0">
             <img
-              src="https://images.unsplash.com/photo-1459749411177-042180ce673c?auto=format&fit=crop&q=80&w=2070"
+              src="/assets/images/hero_concert_energy_1772894546288.png"
               alt="Concert Crowd"
-              className="w-full h-full object-cover opacity-60 scale-110 blur-[2px] animate-pulse-slow"
+              className="w-full h-full object-cover opacity-80"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#050505]" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/90" />
+            <div className="absolute inset-0 bg-black/10 dark:bg-transparent" />{" "}
+            {/* Subtle darkening for light theme text */}
           </div>
 
           <div className="container relative z-10 text-center">
@@ -100,21 +99,21 @@ const Index = () => {
                   Next Memory.
                 </span>
               </h1>
-              <p className="text-lg md:text-2xl text-white/50 max-w-2xl mx-auto mb-14 leading-relaxed font-light">
+              <p className="text-lg md:text-2xl text-foreground/80 dark:text-muted-foreground max-w-2xl mx-auto mb-14 leading-relaxed font-light">
                 The world's most immersive platform for concerts, festivals, and
                 cultural gatherings. Synced to your pulse.
               </p>
               <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                 <Link to="/events">
-                  <Button className="h-20 px-16 bg-white text-black hover:bg-emerald-500 hover:scale-105 active:scale-95 transition-all duration-500 rounded-full font-black uppercase tracking-[0.3em] text-xs shadow-[0_20px_50px_rgba(255,255,255,0.2)]">
+                  <Button className="h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-xl font-bold uppercase tracking-wider text-xs shadow-lg">
                     Discover Events
-                    <ArrowRight className="h-5 w-5 ml-3" />
+                    <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
                 <Link to="/auth">
                   <Button
                     variant="outline"
-                    className="h-20 px-16 border-2 border-white/10 text-white hover:bg-white/5 rounded-full font-black uppercase tracking-[0.3em] text-xs backdrop-blur-3xl"
+                    className="h-14 px-10 border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground rounded-xl font-bold uppercase tracking-wider text-xs"
                   >
                     Join the Audience
                   </Button>
@@ -130,24 +129,17 @@ const Index = () => {
             {categories.map((cat, i) => (
               <motion.div
                 key={i}
-                whileHover={{ y: -10 }}
-                className="relative h-64 md:h-80 rounded-[2.5rem] overflow-hidden group cursor-pointer border border-white/5 shadow-2xl"
+                whileHover={{ y: -5 }}
+                className="relative h-64 rounded-2xl overflow-hidden group cursor-pointer border border-border shadow-md"
               >
                 <img
                   src={cat.image}
                   alt={cat.label}
-                  className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                  <div
-                    className={`h-12 w-12 rounded-2xl glass-panel flex items-center justify-center mb-4 transition-transform duration-500 group-hover:scale-110 group-hover:bg-white group-hover:text-black`}
-                  >
-                    <cat.icon
-                      className={`h-6 w-6 ${cat.color} group-hover:text-current transition-colors`}
-                    />
-                  </div>
-                  <span className="text-sm font-black uppercase tracking-[0.2em] text-white">
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all" />
+                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                  <span className="text-sm font-bold uppercase tracking-widest text-white bg-black/60 backdrop-blur-sm px-4 py-2 inline-block w-fit rounded-lg">
                     {cat.label}
                   </span>
                 </div>
@@ -167,7 +159,7 @@ const Index = () => {
                   Creators.
                 </span>
               </h2>
-              <p className="text-2xl text-white/40 font-light leading-relaxed mb-16">
+              <p className="text-2xl text-foreground/70 dark:text-muted-foreground font-light leading-relaxed mb-16">
                 Pulse provides organizers with liquid analytics and precision
                 tools to build unforgettable experiences. From underground shows
                 to global arenas.
@@ -197,11 +189,11 @@ const Index = () => {
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-5 group">
                     <div
-                      className={`h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all group-hover:bg-white group-hover:text-black`}
+                      className={`h-12 w-12 rounded-2xl bg-muted border border-border flex items-center justify-center transition-all group-hover:bg-foreground group-hover:text-background`}
                     >
                       <item.icon className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-black uppercase tracking-widest text-white/60 group-hover:text-white transition-colors">
+                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
                       {item.label}
                     </span>
                   </div>
@@ -213,7 +205,7 @@ const Index = () => {
               <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-violet-500/20 blur-[100px] rounded-full" />
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="relative z-10 glass-card p-4 aspect-square flex items-center justify-center overflow-hidden border-2 border-white/5"
+                className="relative z-10 glass-card p-4 aspect-square flex items-center justify-center overflow-hidden border-2 border-border"
               >
                 <img
                   src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&q=80&w=2070"
@@ -227,7 +219,7 @@ const Index = () => {
                   <h3 className="text-2xl font-black italic tracking-tighter uppercase mb-2">
                     Measure the Hype
                   </h3>
-                  <p className="text-xs text-white/40 uppercase tracking-widest italic font-light">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest italic font-light">
                     Real-time Audience Feedback Flow
                   </p>
                 </div>
@@ -241,17 +233,17 @@ const Index = () => {
           <div className="container mb-16 flex justify-between items-end">
             <div>
               <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2">
-                Moments that <span className="text-emerald-400">Pulse.</span>
+                Moments that <span className="text-pulse-emerald">Pulse.</span>
               </h2>
-              <p className="text-white/40 font-light tracking-widest uppercase text-xs">
+              <p className="text-muted-foreground font-light tracking-widest uppercase text-xs">
                 A glimpse into the extraordinary
               </p>
             </div>
             <div className="hidden md:flex gap-4">
-              <div className="h-12 w-12 rounded-full border border-white/10 flex items-center justify-center text-white/20">
+              <div className="h-12 w-12 rounded-full border border-border flex items-center justify-center text-muted-foreground/20">
                 <ArrowRight className="h-5 w-5 rotate-180" />
               </div>
-              <div className="h-12 w-12 rounded-full border border-white/10 flex items-center justify-center text-emerald-400">
+              <div className="h-12 w-12 rounded-full border border-border flex items-center justify-center text-pulse-emerald">
                 <ArrowRight className="h-5 w-5" />
               </div>
             </div>
@@ -279,16 +271,16 @@ const Index = () => {
               <div className="max-w-xl">
                 <h2 className="text-4xl md:text-6xl font-medium tracking-tighter uppercase mb-6">
                   Trending{" "}
-                  <span className="text-emerald-400 italic">Pulses.</span>
+                  <span className="text-pulse-emerald italic">Pulses.</span>
                 </h2>
-                <p className="text-white/40 font-light text-lg">
+                <p className="text-muted-foreground font-light text-lg">
                   Curated selections from the world's most vibrant event
                   communities.
                 </p>
               </div>
               <Link
                 to="/events"
-                className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] text-emerald-400 hover:text-white transition-colors"
+                className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] text-pulse-emerald hover:text-foreground transition-colors"
               >
                 View Entire Season
                 <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-3" />
@@ -302,7 +294,7 @@ const Index = () => {
                   .map((_, i) => (
                     <div
                       key={i}
-                      className="h-[30rem] w-full rounded-[2.5rem] bg-white/5 animate-pulse border border-white/5"
+                      className="h-[30rem] w-full rounded-[2.5rem] bg-muted animate-pulse border border-border"
                     />
                   ))
               ) : trendingEvents?.length > 0 ? (
@@ -315,9 +307,9 @@ const Index = () => {
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 py-20 text-center border border-dashed border-white/10 bg-white/5 flex flex-col items-center gap-4 rounded-[2rem]">
-                  <Sparkles className="h-10 w-10 text-emerald-500/30" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                <div className="col-span-2 py-20 text-center border border-dashed border-border bg-muted flex flex-col items-center gap-4 rounded-[2rem]">
+                  <Sparkles className="h-10 w-10 text-pulse-emerald/30" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                     The pulse is silent. Production incoming.
                   </p>
                 </div>
@@ -332,27 +324,28 @@ const Index = () => {
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative py-32 md:py-64 px-10 rounded-[6rem] overflow-hidden group"
+            className="relative py-32 md:py-64 px-10 rounded-3xl overflow-hidden group"
           >
             <div className="absolute inset-0 z-0">
               <img
-                src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070"
-                className="w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-[20s]"
+                src="/assets/images/cta_production_hq_1772894634095.png"
+                className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000"
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-violet-500/20 backdrop-blur-[100px] border border-white/5" />
+              <div className="absolute inset-0 bg-gradient-to-br from-pulse-emerald/20 to-pulse-indigo/20 backdrop-blur-[100px] border border-border/50" />
+              <div className="absolute inset-0 bg-black/5 dark:bg-transparent" />
             </div>
 
             <div className="relative z-10 max-w-4xl mx-auto">
-              <h2 className="text-6xl md:text-9xl font-medium tracking-tighter leading-none mb-12">
+              <h2 className="text-5xl md:text-7xl font-medium tracking-tighter leading-none mb-12">
                 Start Your <br />
                 <span className="text-gradient italic">Production.</span>
               </h2>
-              <p className="text-white/50 text-xl md:text-2xl mb-16 font-light max-w-2xl mx-auto leading-relaxed">
+              <p className="text-foreground/80 dark:text-muted-foreground text-xl md:text-2xl mb-16 font-light max-w-2xl mx-auto leading-relaxed">
                 Join thousands of organizers who use Pulse to bridge the
                 connection between their vision and the fans.
               </p>
               <Link to="/auth">
-                <Button className="h-24 px-24 bg-white text-black hover:bg-emerald-500 hover:text-black rounded-full font-black uppercase tracking-[0.4em] text-sm shadow-[0_30px_60px_rgba(255,255,255,0.1)] transition-all duration-500 hover:scale-110 active:scale-95">
+                <Button className="h-16 px-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase tracking-widest text-sm shadow-xl transition-all">
                   Register Profile
                 </Button>
               </Link>

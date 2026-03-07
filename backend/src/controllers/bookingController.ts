@@ -107,8 +107,12 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
 
     const event: any = booking.event;
     
-    // Check if the user is the creator of the event or an admin
-    if (event.creator.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
+    // Check if the user is authorized: Creator, Admin, or Assigned Volunteer
+    const isCreator = event.creator.toString() === req.user?._id.toString();
+    const isAdmin = req.user?.role === 'admin';
+    const isAssignedVolunteer = req.user?.role === 'volunteer' && req.user?.eventId?.toString() === event._id.toString();
+
+    if (!isCreator && !isAdmin && !isAssignedVolunteer) {
       return res.status(403).json({ message: 'Not authorized to check-in for this event' });
     }
 

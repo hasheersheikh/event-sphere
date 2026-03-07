@@ -27,7 +27,7 @@ const HeroSection = () => {
           alt="Live event atmosphere"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/70" />
       </div>
 
       {/* Content */}
@@ -38,12 +38,12 @@ const HeroSection = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="max-w-4xl mx-auto"
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tight mb-8 leading-[0.95]">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-foreground tracking-tight mb-8 leading-[0.95]">
             The Pulse
             <br />
-            <span className="text-white/80">of Your City.</span>
+            <span className="text-foreground/80">of Your City.</span>
           </h1>
-          <p className="text-lg md:text-xl text-white/70 mb-12 max-w-2xl mx-auto font-medium">
+          <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto font-medium">
             Discover concerts, workshops, and experiences happening around you.
           </p>
 

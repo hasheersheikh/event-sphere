@@ -241,7 +241,8 @@ const EventDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground relative">
+      <div className="fixed inset-0 bg-muted/20 z-0" />
       <Navbar />
 
       <main className="flex-1">
@@ -252,7 +253,7 @@ const EventDetailPage = () => {
             alt={event.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-black/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-foreground/10" />
 
           {/* Back Button */}
           <div className="absolute top-20 left-6">
@@ -260,7 +261,7 @@ const EventDetailPage = () => {
               <Button
                 variant="secondary"
                 size="sm"
-                className="gap-2 rounded-full backdrop-blur-md bg-white/90 hover:bg-white shadow-lg"
+                className="gap-2 rounded-lg bg-background/90 hover:bg-background shadow-lg border border-border font-bold uppercase tracking-wider"
               >
                 <ChevronLeft className="h-4 w-4" />
                 Back
@@ -278,12 +279,12 @@ const EventDetailPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="lg:col-span-2"
             >
-              <div className="bg-card rounded-[1.5rem] shadow-card p-6 md:p-8">
+              <div className="bg-card border border-border/50 p-6 md:p-10 rounded-2xl shadow-sm">
                 {/* Header */}
                 <div className="mb-6">
                   <Badge
                     variant="secondary"
-                    className="mb-4 rounded-full px-4 py-1 font-bold text-xs"
+                    className="mb-6 rounded-lg px-4 py-1.5 font-bold text-[10px] uppercase tracking-widest border border-border"
                   >
                     {event.category}
                   </Badge>
@@ -372,7 +373,7 @@ const EventDetailPage = () => {
               transition={{ delay: 0.1 }}
               className="lg:col-span-1"
             >
-              <div className="sticky top-20 bg-card rounded-[1.5rem] shadow-card p-6">
+              <div className="sticky top-20 bg-card border border-border/50 p-8 rounded-2xl shadow-lg">
                 <h2 className="text-xl font-bold mb-6">Tickets</h2>
 
                 <div className="space-y-4 mb-6">
@@ -396,7 +397,7 @@ const EventDetailPage = () => {
                           ticket.sold >= ticket.capacity ||
                           bookingMutation.isPending
                         }
-                        className="w-full rounded-full font-bold shadow-button"
+                        className="w-full rounded-xl font-bold uppercase tracking-widest transition-all duration-300 shadow-md hover:shadow-lg"
                       >
                         {ticket.sold >= ticket.capacity
                           ? "Sold Out"

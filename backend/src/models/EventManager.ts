@@ -11,6 +11,13 @@ export interface IEventManager extends Document {
   commissionValue: number;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  bankDetails?: {
+    accountHolder: string;
+    accountNumber: string;
+    bankName: string;
+    ifscCode: string;
+  };
+  upiId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +50,13 @@ const EventManagerSchema: Schema = new Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    bankDetails: {
+      accountHolder: String,
+      accountNumber: String,
+      bankName: String,
+      ifscCode: String,
+    },
+    upiId: String,
   },
   { timestamps: true }
 );

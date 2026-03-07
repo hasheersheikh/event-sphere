@@ -3,6 +3,9 @@ import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import EventManager from '../models/EventManager.js';
 import { AuthRequest } from '../middleware/auth.js';
+import Volunteer from '../models/Volunteer.js';
+import Payout from '../models/Payout.js';
+import bcrypt from 'bcrypt';
 
 export const getManagerStats: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
@@ -118,6 +121,106 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
         createdAt: b.createdAt
       }))
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const updatePayoutDetails: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { bankDetails, upiId } = req.body;
+    const manager = await EventManager.findById(req.user?._id);
+    
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+
+    if (bankDetails) manager.bankDetails = bankDetails;
+    if (upiId !== undefined) manager.upiId = upiId;
+
+    await manager.save();
+    res.json({ message: 'Payout details updated', manager });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getPayoutDetails: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const manager = await EventManager.findById(req.user?._id).select('bankDetails upiId');
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found' });
+      return;
+    }
+    res.json(manager);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const addVolunteer: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, email, password, eventId, gate } = req.body;
+    const managerId = req.user?._id;
+
+    const event = await Event.findById(eventId);
+    if (!event || event.creator.toString() !== managerId.toString()) {
+      res.status(403).json({ message: 'Not authorized to add volunteers for this event.' });
+      return;
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const volunteer = await Volunteer.create({
+      name,
+      email,
+      password: hashedPassword,
+      event: eventId,
+      manager: managerId,
+      gate
+    });
+
+    res.status(201).json(volunteer);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getVolunteersByEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { eventId } = req.params;
+    const managerId = req.user?._id;
+
+    const volunteers = await Volunteer.find({ event: eventId, manager: managerId }).select('-password');
+    res.json(volunteers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const removeVolunteer: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const managerId = req.user?._id;
+
+    const volunteer = await Volunteer.findOneAndDelete({ _id: id, manager: managerId });
+    if (!volunteer) {
+      res.status(404).json({ message: 'Volunteer not found or not managed by you.' });
+      return;
+    }
+
+    res.json({ message: 'Volunteer removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getManagerPayouts: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const payouts = await Payout.find({ manager: req.user?._id }).sort({ createdAt: -1 });
+    res.json(payouts);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   Clock,
   ChevronRight,
+  Landmark,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -272,8 +274,79 @@ const ManagerDetailPage = () => {
           </section>
         </div>
 
-        {/* Payout History */}
+        {/* Right Column: Payout Info & History */}
         <div className="space-y-10">
+          {/* Settlement Destination */}
+          <section className="bg-zinc-900/50 border border-white/5 overflow-hidden backdrop-blur-xl">
+            <div className="p-6 border-b border-white/5 bg-white/5">
+              <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-white">
+                <Landmark className="h-4 w-4 text-emerald-500" />
+                Settlement Destination
+              </h3>
+            </div>
+            <div className="p-8 space-y-8">
+              {manager.bankDetails ? (
+                <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-zinc-500 mb-1">
+                      Account Holder
+                    </p>
+                    <p className="text-sm font-black text-white">
+                      {manager.bankDetails.accountHolder}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-zinc-500 mb-1">
+                      Account Number
+                    </p>
+                    <p className="text-sm font-black text-white">
+                      {manager.bankDetails.accountNumber}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-zinc-500 mb-1">
+                      Bank Name
+                    </p>
+                    <p className="text-sm font-black text-white">
+                      {manager.bankDetails.bankName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black uppercase text-zinc-500 mb-1">
+                      IFSC / Routing
+                    </p>
+                    <p className="text-sm font-black text-white uppercase">
+                      {manager.bankDetails.ifscCode}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[10px] font-medium text-zinc-600 italic">
+                  No bank credentials recorded.
+                </p>
+              )}
+
+              <div className="h-px bg-white/5" />
+
+              <div>
+                <p className="text-[8px] font-black uppercase text-emerald-500 mb-2 flex items-center gap-2">
+                  <QrCode className="h-3 w-3" />
+                  UPI Frequency
+                </p>
+                {manager.upiId ? (
+                  <p className="text-lg font-black text-white italic">
+                    {manager.upiId}
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-medium text-zinc-600 italic">
+                    No UPI ID registered.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+
+          {/* Settlement History */}
           <section className="bg-zinc-900/50 border border-white/5 overflow-hidden backdrop-blur-xl h-full">
             <div className="p-6 border-b border-white/5 bg-white/5">
               <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-white">

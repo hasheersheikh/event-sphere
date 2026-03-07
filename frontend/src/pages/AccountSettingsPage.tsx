@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import {
   Settings2,
   Bell,
   Fingerprint,
+  CreditCard,
+  Landmark,
+  QrCode,
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -29,6 +32,62 @@ const AccountSettingsPage = () => {
     newPassword: "",
     confirmPassword: "",
   });
+
+  const [payoutData, setPayoutData] = useState({
+    accountHolder: "",
+    accountNumber: "",
+    bankName: "",
+    ifscCode: "",
+    upiId: "",
+  });
+
+  const [isPayoutLoading, setIsPayoutLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === "event_manager") {
+      fetchPayoutDetails();
+    }
+  }, [user]);
+
+  const fetchPayoutDetails = async () => {
+    try {
+      const { data } = await api.get("/manager/payout-details");
+      if (data) {
+        setPayoutData({
+          accountHolder: data.bankDetails?.accountHolder || "",
+          accountNumber: data.bankDetails?.accountNumber || "",
+          bankName: data.bankDetails?.bankName || "",
+          ifscCode: data.bankDetails?.ifscCode || "",
+          upiId: data.upiId || "",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch payout records.");
+    }
+  };
+
+  const handleUpdatePayout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsPayoutLoading(true);
+    try {
+      await api.patch("/manager/payout-details", {
+        bankDetails: {
+          accountHolder: payoutData.accountHolder,
+          accountNumber: payoutData.accountNumber,
+          bankName: payoutData.bankName,
+          ifscCode: payoutData.ifscCode,
+        },
+        upiId: payoutData.upiId,
+      });
+      toast.success("Settlement parameters synchronized.");
+    } catch (error: any) {
+      toast.error(
+        error.response?.data?.message || "Failed to update payout details",
+      );
+    } finally {
+      setIsPayoutLoading(false);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +139,9 @@ const AccountSettingsPage = () => {
   const tabs = [
     { id: "profile", label: "Identity", icon: User },
     { id: "security", label: "Security", icon: ShieldCheck },
+    ...(user?.role === "event_manager"
+      ? [{ id: "payout", label: "Settlement", icon: CreditCard }]
+      : []),
     { id: "notifications", label: "Frequency", icon: Bell },
   ];
 
@@ -318,6 +380,138 @@ const AccountSettingsPage = () => {
                           className="h-14 px-10 bg-white text-black hover:bg-white/90 rounded-2xl font-black uppercase tracking-widest"
                         >
                           Modify Protocols
+                        </Button>
+                      </div>
+                    </form>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === "payout" && (
+                <motion.div
+                  key="payout"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-12">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 bg-pulse-emerald/10 rounded-2xl flex items-center justify-center text-pulse-emerald">
+                        <Landmark className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black italic uppercase tracking-tighter">
+                          Payout Configuration
+                        </h3>
+                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
+                          Manage your settlement endpoints
+                        </p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleUpdatePayout} className="space-y-10">
+                      <div className="grid md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                            Bank Account Holder
+                          </label>
+                          <Input
+                            value={payoutData.accountHolder}
+                            onChange={(e) =>
+                              setPayoutData({
+                                ...payoutData,
+                                accountHolder: e.target.value,
+                              })
+                            }
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                            Account Number
+                          </label>
+                          <Input
+                            value={payoutData.accountNumber}
+                            onChange={(e) =>
+                              setPayoutData({
+                                ...payoutData,
+                                accountNumber: e.target.value,
+                              })
+                            }
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                            Bank Name
+                          </label>
+                          <Input
+                            value={payoutData.bankName}
+                            onChange={(e) =>
+                              setPayoutData({
+                                ...payoutData,
+                                bankName: e.target.value,
+                              })
+                            }
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                            IFSC / Routing Code
+                          </label>
+                          <Input
+                            value={payoutData.ifscCode}
+                            onChange={(e) =>
+                              setPayoutData({
+                                ...payoutData,
+                                ifscCode: e.target.value,
+                              })
+                            }
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="h-px bg-white/5" />
+
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-3 text-pulse-emerald mb-2">
+                          <QrCode className="h-4 w-4" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">
+                            Digital Settlement (UPI)
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                            UPI ID (e.g., name@bank)
+                          </label>
+                          <Input
+                            value={payoutData.upiId}
+                            onChange={(e) =>
+                              setPayoutData({
+                                ...payoutData,
+                                upiId: e.target.value,
+                              })
+                            }
+                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold max-w-md"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-4">
+                        <Button
+                          disabled={isPayoutLoading}
+                          className="h-14 px-10 bg-pulse-emerald text-background hover:bg-pulse-emerald/90 rounded-2xl font-black uppercase tracking-widest"
+                        >
+                          {isPayoutLoading
+                            ? "Synchronizing..."
+                            : "Synchronize Payout Details"}
                         </Button>
                       </div>
                     </form>

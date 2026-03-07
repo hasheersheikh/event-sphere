@@ -57,9 +57,9 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#050505] text-white selection:bg-emerald-500/30 overflow-hidden">
+    <div className="min-h-screen flex bg-background text-foreground selection:bg-emerald-500/30 overflow-hidden">
       {/* Left Side - Fluid Abstract Visual */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden border-r border-white/10">
+      <div className="hidden lg:flex flex-1 relative overflow-hidden border-r border-border">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=2070"
@@ -71,7 +71,7 @@ const AuthPage = () => {
 
         <div className="relative z-10 flex flex-col justify-between p-24 w-full max-w-2xl mx-auto">
           <Link to="/" className="flex items-center gap-4 group">
-            <div className="h-12 w-12 bg-white/5 backdrop-blur-3xl border border-white/10 flex items-center justify-center rounded-2xl group-hover:border-emerald-500/50 transition-colors">
+            <div className="h-12 w-12 bg-muted border border-border flex items-center justify-center rounded-xl group-hover:border-primary/50 transition-colors">
               <PulseLogo size={28} />
             </div>
             <span className="text-3xl font-black brand-font tracking-tighter uppercase italic">
@@ -86,20 +86,18 @@ const AuthPage = () => {
               transition={{ duration: 0.8 }}
             >
               <div className="h-1 w-20 bg-emerald-500 mb-10 shadow-[0_0_20px_#10B981]" />
-              <h1 className="text-7xl font-medium tracking-tighter leading-none mb-8">
-                Unfold Your <br />
-                <span className="text-gradient italic font-light">
-                  Experience.
-                </span>
+              <h1 className="text-6xl font-medium tracking-tighter leading-none mb-6">
+                Forge Your <br />
+                <span className="text-gradient italic font-light">Pulse.</span>
               </h1>
-              <p className="text-xl text-white/40 font-light leading-relaxed max-w-md">
-                Enter the flow of curated events and global connections. Your
-                journey into the pulse starts here.
+              <p className="text-lg text-muted-foreground/60 font-light leading-relaxed max-w-sm">
+                The ultimate command center for modern organizers. Precision
+                tools for world-class experiences.
               </p>
             </motion.div>
           </div>
 
-          <div className="flex items-center gap-10 text-[9px] font-black uppercase tracking-[0.4em] opacity-30">
+          <div className="flex items-center gap-10 text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/30">
             <span>Encrypted Protocol</span>
             <span>Identity Verified</span>
             <span>PULSE-AUTH-03</span>
@@ -118,14 +116,14 @@ const AuthPage = () => {
           className="w-full max-w-md relative z-10"
         >
           <div className="mb-12 text-center md:text-left">
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 glass-panel text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-8 rounded-full">
+            <div className="inline-flex items-center gap-3 px-4 py-1.5 border border-primary/30 bg-background/50 text-[10px] font-bold uppercase tracking-[0.3em] text-primary mb-8 rounded-lg">
               <Sparkles className="h-3 w-3" />
               Auth Verification Hub
             </div>
             <h2 className="text-5xl font-medium tracking-tighter uppercase mb-4 italic">
               {isLogin ? "Welcome back." : "Initialize."}
             </h2>
-            <p className="text-white/40 font-light italic">
+            <p className="text-muted-foreground/60 font-light italic">
               {isLogin
                 ? "Authenticate your presence to continue."
                 : "Create your unique presence in the pulse."}
@@ -133,17 +131,17 @@ const AuthPage = () => {
           </div>
 
           {/* Role Toggle */}
-          <div className="flex p-1 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-2xl mb-10">
+          <div className="flex p-1 bg-muted/50 border border-border rounded-xl mb-10 overflow-hidden">
             <button
               onClick={() => setRole("user")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${role === "user" ? "bg-white text-black shadow-xl" : "text-white/40 hover:text-white"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-4 text-[10px] font-black uppercase tracking-widest transition-all duration-300 rounded-lg ${role === "user" ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground/60 hover:text-white"}`}
             >
               <User className="h-4 w-4" />
               Attendee
             </button>
             <button
               onClick={() => setRole("event_manager")}
-              className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all duration-500 ${role === "event_manager" ? "bg-white text-black shadow-xl" : "text-white/40 hover:text-white"}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-4 text-[10px] font-black uppercase tracking-widest transition-all duration-300 rounded-lg ${role === "event_manager" ? "bg-primary text-primary-foreground shadow-lg" : "text-muted-foreground/60 hover:text-white"}`}
             >
               <Zap className="h-4 w-4" />
               Manager
@@ -159,17 +157,17 @@ const AuthPage = () => {
                   exit={{ opacity: 0, y: -10 }}
                   className="space-y-2"
                 >
-                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                     Display Name
                   </label>
                   <div className="relative group">
-                    <User className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
+                    <User className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 group-focus-within:text-emerald-400 transition-colors" />
                     <Input
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="YOUR NAME..."
-                      className="h-20 pl-16 bg-white/5 border-2 border-transparent focus:border-emerald-500/30 rounded-[1.5rem] font-medium text-sm tracking-wide transition-all"
+                      className="h-20 pl-16 bg-muted/10 border-border/10 focus:border-emerald-500/20 rounded-xl border-border focus:border-primary/50 shadow-sm transition-all duration-200 font-medium italic text-sm tracking-wide"
                     />
                   </div>
                 </motion.div>
@@ -177,25 +175,25 @@ const AuthPage = () => {
             </AnimatePresence>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                 Identity Identifier
               </label>
               <div className="relative group">
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
+                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 group-focus-within:text-emerald-400 transition-colors" />
                 <Input
                   required
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="EMAIL ADDRESS..."
-                  className="h-20 pl-16 bg-white/5 border-2 border-transparent focus:border-emerald-500/30 rounded-[1.5rem] font-medium text-sm tracking-wide transition-all"
+                  className="h-20 pl-16 bg-muted/10 border-border/10 focus:border-emerald-500/20 rounded-xl border-border focus:border-primary/50 shadow-sm transition-all duration-200 font-medium italic text-sm tracking-wide"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center px-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                   Access Keyword
                 </label>
                 {isLogin && (
@@ -208,14 +206,14 @@ const AuthPage = () => {
                 )}
               </div>
               <div className="relative group">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 group-focus-within:text-emerald-400 transition-colors" />
                 <Input
                   required
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="ENCRYPTED PASSWORD..."
-                  className="h-20 pl-16 bg-white/5 border-2 border-transparent focus:border-emerald-500/30 rounded-[1.5rem] font-medium text-sm tracking-wide transition-all"
+                  className="h-20 pl-16 bg-muted/10 border-border/10 focus:border-emerald-500/20 rounded-xl border-border focus:border-primary/50 shadow-sm transition-all duration-200 font-medium italic text-sm tracking-wide"
                 />
               </div>
             </div>
@@ -223,7 +221,7 @@ const AuthPage = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-20 bg-emerald-500 hover:bg-emerald-400 text-black rounded-[1.5rem] font-black uppercase tracking-[0.4em] text-xs shadow-[0_20px_40px_rgba(16,185,129,0.2)] group transition-all duration-500 hover:scale-[1.02] active:scale-95"
+              className="w-full h-16 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold uppercase tracking-[0.2em] text-xs shadow-xl group transition-all duration-300 hover:scale-105 active:scale-95"
             >
               {isLoading
                 ? "Syncing..."
@@ -236,7 +234,7 @@ const AuthPage = () => {
             </Button>
           </form>
 
-          <p className="mt-12 text-center text-xs font-medium text-white/40">
+          <p className="mt-12 text-center text-xs font-medium text-muted-foreground/60">
             {isLogin ? "New to the frequency?" : "Already synced?"}
             <button
               onClick={() => setIsLogin(!isLogin)}

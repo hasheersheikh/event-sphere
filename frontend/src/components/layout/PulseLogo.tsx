@@ -37,7 +37,7 @@ const PulseLogo = ({ className = "", size = 32 }: PulseLogoProps) => {
       {/* Offset Secondary Star (Double Star effect) */}
       <path
         d="M50 15L58 39H83L63 54L71 78L50 63L29 78L37 54L17 39H42L50 15Z"
-        fill="white"
+        fill="currentColor"
         fillOpacity="0.4"
       />
     </svg>

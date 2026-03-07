@@ -30,8 +30,8 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-[var(--mnkhan-gray-bg)]">
-        <div className="h-12 w-12 border-4 border-[var(--mnkhan-orange)] border-t-transparent rounded-full animate-spin" />
+      <div className="h-screen w-full flex items-center justify-center bg-background">
+        <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -41,7 +41,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--mnkhan-gray-bg)] flex overflow-x-hidden">
+    <div className="min-h-screen bg-background flex overflow-x-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar />
@@ -68,7 +68,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
               <Sidebar />
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="absolute top-8 right-[-50px] p-3 bg-[var(--mnkhan-charcoal)] text-white"
+                className="absolute top-8 right-[-50px] p-3 bg-card border border-border text-foreground rounded-r-xl"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -80,35 +80,35 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:pl-80 min-h-screen transition-all duration-300">
         {/* Top Header */}
-        <header className="h-20 bg-zinc-950/80 backdrop-blur-xl border-b border-white/10 flex items-center justify-between px-8 sticky top-0 z-30">
+        <header className="h-20 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
-              className="lg:hidden p-2 hover:bg-white/5 rounded-lg transition-colors text-white"
+              className="lg:hidden p-2 hover:bg-foreground/5 rounded-lg transition-colors text-foreground"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="h-6 w-6" />
             </button>
-            <div className="hidden md:flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-2 rounded-xl group focus-within:border-emerald-500/50 transition-all">
-              <Search className="h-4 w-4 text-white/40 group-focus-within:text-emerald-400" />
+            <div className="hidden md:flex items-center gap-3 bg-muted border border-border px-4 py-2 rounded-xl group focus-within:border-emerald-500/50 transition-all">
+              <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-emerald-400" />
               <input
                 type="text"
                 placeholder="Search control..."
-                className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest w-64 text-white placeholder:text-white/20"
+                className="bg-transparent border-none outline-none text-[10px] font-black uppercase tracking-widest w-64 text-foreground placeholder:text-muted-foreground/40"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all relative">
-              <Bell className="h-5 w-5 text-white/60" />
+            <button className="h-10 w-10 flex items-center justify-center rounded-xl bg-muted border border-border hover:bg-accent transition-all relative">
+              <Bell className="h-5 w-5 text-muted-foreground" />
               <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
             </button>
 
-            <div className="h-8 w-[1px] bg-white/10 mx-2" />
+            <div className="h-8 w-[1px] bg-border mx-2" />
 
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
-                <p className="text-[11px] font-black uppercase tracking-tighter text-white">
+                <p className="text-[11px] font-black uppercase tracking-tighter text-foreground">
                   {user?.name}
                 </p>
                 <p className="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">

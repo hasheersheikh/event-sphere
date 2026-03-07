@@ -481,3 +481,51 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+import Volunteer from '../models/Volunteer.js';
+import bcrypt from 'bcrypt';
+
+export const getAllVolunteers: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const volunteers = await Volunteer.find()
+      .populate('event', 'title')
+      .populate('manager', 'name email')
+      .select('-password')
+      .sort({ createdAt: -1 });
+    res.json(volunteers);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const adminAddVolunteer: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, email, password, eventId, gate, managerId } = req.body;
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const volunteer = await Volunteer.create({
+      name,
+      email,
+      password: hashedPassword,
+      event: eventId,
+      manager: managerId,
+      gate
+    });
+
+    res.status(201).json(volunteer);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const adminRemoveVolunteer: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Volunteer.findByIdAndDelete(id);
+    res.json({ message: 'Volunteer removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};

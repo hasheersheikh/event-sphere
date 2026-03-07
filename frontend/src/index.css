@@ -10,6 +10,57 @@
   }
 
   :root {
+    --background: 210 40% 98%; /* Sophisticated off-white with hint of blue/emerald */
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 161 72% 35%; /* Slightly deeper emerald for better light contrast */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 40%; /* Darkened for better readability */
+
+    --accent: 239 84% 60%; /* Vibrant but balanced indigo */
+    --accent-foreground: 222 47% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 161 72% 35%;
+
+    --radius: 1.25rem;
+
+    /* Custom Pulse Tokens */
+    --pulse-emerald: #059669; /* Emerald-600 */
+    --pulse-indigo: #4F46E5; /* Indigo-600 */
+    --pulse-violet: #7C3AED; /* Violet-600 */
+    --pulse-bg: #F8FAFC;
+    
+    --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
+    --font-serif: "Plus Jakarta Sans", sans-serif;
+
+    --glass-bg: rgba(255, 255, 255, 0.85); /* More opaque for light mode */
+    --glass-border: rgba(0, 0, 0, 0.08);
+
+    /* Premium Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  }
+
+  .dark {
     --background: 240 10% 2%; /* #050505 equivalent */
     --foreground: 0 0% 100%;
 
@@ -19,35 +70,26 @@
     --popover: 240 10% 4%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 161 72% 40%; /* Emerald-500 #10B981 */
-    --primary-foreground: 0 0% 0%;
+    --primary: 161 72% 40%;
+    --primary-foreground: 240 10% 2%;
 
-    --secondary: 240 5% 15%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 239 84% 67%; /* Indigo-500 #6366F1 */
+    --accent: 239 84% 67%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5% 15%;
-    --input: 240 5% 15%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
     --ring: 161 72% 40%;
 
-    --radius: 1.5rem;
-
-    /* Custom Pulse Tokens */
-    --pulse-emerald: #10B981;
-    --pulse-indigo: #6366F1;
-    --pulse-violet: #8B5CF6;
     --pulse-bg: #050505;
-    
-    --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
-    --font-serif: "Plus Jakarta Sans", sans-serif; /* Simplified for fluid look */
 
     --glass-bg: rgba(255, 255, 255, 0.03);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -60,8 +102,8 @@
   }
 
   body {
-    background-color: var(--pulse-bg);
-    color: white;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-family: var(--font-sans);
     @apply antialiased;
   }
@@ -94,14 +136,21 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .text-gradient {
+  .text-gradient, .gradient-text {
     background: linear-gradient(to right, var(--pulse-emerald), var(--pulse-indigo), var(--pulse-violet));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .bg-pulse-gradient {
+  .bg-pulse-gradient, .gradient-hero {
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    @apply border border-border/50;
+  }
+
+  .mesh-bg {
+    background-image: radial-gradient(circle at 2px 2px, hsl(var(--border)) 1px, transparent 0);
+    background-size: 32px 32px;
+    opacity: 0.15;
   }
 }

@@ -88,7 +88,7 @@ const ManagerDashboard = () => {
   }
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-12 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -178,7 +178,7 @@ const ManagerDashboard = () => {
                     <div className="w-full h-full gradient-hero opacity-60" />
                   )}
                   <div className="absolute top-4 right-4">
-                    <Badge className="rounded-full uppercase text-[9px] font-black px-4 py-1.5 backdrop-blur-md bg-black/40 text-white border-white/20">
+                    <Badge className="rounded-full uppercase text-[9px] font-black px-4 py-1.5 backdrop-blur-md bg-background/60 text-foreground border border-border">
                       {event.status}
                     </Badge>
                   </div>
