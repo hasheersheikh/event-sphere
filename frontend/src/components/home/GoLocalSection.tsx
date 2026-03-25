@@ -1,12 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ShoppingBag, MapPin, Plus, Minus, ShoppingCart, Star, Tag, ArrowRight } from "lucide-react";
+import { ShoppingBag, MapPin, Star, Tag, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import api from "@/lib/api";
-import { useLocalStoreCart } from "@/contexts/LocalStoreCartContext";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 
 interface Product {
   _id: string;
@@ -28,23 +25,8 @@ interface LocalStore {
   products: Product[];
 }
 
-const ProductCard = ({ product, store }: { product: Product; store: LocalStore }) => {
-  const { addItem, items, updateQty } = useLocalStoreCart();
-  const cartItem = items.find((i) => i.productId === product._id);
+const ProductCard = ({ product }: { product: Product }) => {
   const discountedPrice = product.price * (1 - (product.discountPercent || 0) / 100);
-
-  const handleAdd = () => {
-    addItem({
-      storeId: store._id,
-      storeName: store.name,
-      productId: product._id,
-      name: product.name,
-      price: product.price,
-      discountPercent: product.discountPercent,
-      image: product.image,
-    });
-    toast.success(`${product.name} added to cart`);
-  };
 
   return (
     <motion.div
@@ -69,6 +51,11 @@ const ProductCard = ({ product, store }: { product: Product; store: LocalStore }
             {product.discountPercent}% off
           </div>
         ) : null}
+        {!product.isAvailable && (
+          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Unavailable</span>
+          </div>
+        )}
       </div>
 
       <div className="p-3">
@@ -82,37 +69,6 @@ const ProductCard = ({ product, store }: { product: Product; store: LocalStore }
             <span className="text-[10px] text-muted-foreground line-through">₹{product.price}</span>
           ) : null}
         </div>
-
-        {/* Add / Qty */}
-        {!product.isAvailable ? (
-          <p className="text-[10px] text-muted-foreground font-bold mt-2 uppercase tracking-wider">Unavailable</p>
-        ) : cartItem ? (
-          <div className="flex items-center justify-between mt-2 bg-primary/10 rounded-xl p-1">
-            <button
-              type="button"
-              onClick={() => updateQty(product._id, cartItem.quantity - 1)}
-              className="h-6 w-6 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
-            >
-              <Minus className="h-3 w-3" />
-            </button>
-            <span className="text-xs font-black text-primary">{cartItem.quantity}</span>
-            <button
-              type="button"
-              onClick={() => updateQty(product._id, cartItem.quantity + 1)}
-              className="h-6 w-6 rounded-lg bg-primary text-primary-foreground flex items-center justify-center"
-            >
-              <Plus className="h-3 w-3" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={handleAdd}
-            className="mt-2 w-full h-7 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-3 w-3" /> Add
-          </button>
-        )}
       </div>
     </motion.div>
   );
@@ -158,7 +114,7 @@ const StoreCard = ({ store }: { store: LocalStore }) => {
 
         {/* Star rating (static visual) */}
         <div className="flex items-center gap-1 mb-4">
-          {[1,2,3,4,5].map(i => (
+          {[1, 2, 3, 4, 5].map((i) => (
             <Star key={i} className={cn("h-3 w-3", i <= 4 ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30")} />
           ))}
           <span className="text-[10px] text-muted-foreground ml-1">({store.products.length} items)</span>
@@ -172,7 +128,7 @@ const StoreCard = ({ store }: { store: LocalStore }) => {
               style={{ scrollbarWidth: "none" }}
             >
               {(expanded ? store.products : store.products.slice(0, 6)).map((product) => (
-                <ProductCard key={product._id} product={product} store={store} />
+                <ProductCard key={product._id} product={product} />
               ))}
             </div>
             {store.products.length > 6 && (
@@ -204,13 +160,11 @@ const GoLocalSection = () => {
       return data as LocalStore[];
     },
   });
-  const { totalItems, setIsOpen } = useLocalStoreCart();
 
   if (!isLoading && (!stores || stores.length === 0)) return null;
 
   return (
     <section className="py-24 relative overflow-hidden">
-      {/* Ambient glow */}
       <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-amber-500/5 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="container relative z-10">
@@ -230,21 +184,9 @@ const GoLocalSection = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            {totalItems > 0 && (
-              <button
-                type="button"
-                onClick={() => setIsOpen(true)}
-                className="flex items-center gap-2 px-5 py-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-500 hover:bg-amber-500/20 transition-all"
-              >
-                <ShoppingCart className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">{totalItems} items</span>
-              </button>
-            )}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-border/50 text-muted-foreground">
-              <Tag className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-black uppercase tracking-widest">Local Deals</span>
-            </div>
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl border border-border/50 text-muted-foreground">
+            <Tag className="h-3.5 w-3.5" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Local Deals</span>
           </div>
         </div>
 

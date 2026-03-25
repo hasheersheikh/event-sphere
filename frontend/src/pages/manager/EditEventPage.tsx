@@ -210,8 +210,8 @@ const EditEventPage = () => {
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
-        cloudName: "demo",
-        uploadPreset: "unsigned_preset",
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
         sources: ["local", "url", "camera"],
         multiple: false,
         cropping: true,

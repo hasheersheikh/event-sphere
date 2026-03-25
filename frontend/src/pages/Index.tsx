@@ -26,7 +26,6 @@ import { useRef, useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import SafeImage from "@/components/ui/SafeImage";
 import GoLocalSection from "@/components/home/GoLocalSection";
-import LocalStoreCartDrawer from "@/components/home/LocalStoreCartDrawer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -137,7 +136,7 @@ const Index = () => {
               className={`absolute inset-0 bg-gradient-to-b ${
                 theme === "dark"
                   ? "from-background/60 via-background/20 to-background/95"
-                  : "from-white/40 via-transparent to-white/90"
+                  : "from-background/10 via-transparent to-background/80"
               }`}
             />
             <div
@@ -354,7 +353,7 @@ const Index = () => {
                <div className={`absolute inset-0 bg-gradient-to-br transition-colors duration-1000 ${
                  theme === "dark" 
                    ? "from-pulse-emerald/10 via-transparent to-pulse-indigo/10" 
-                   : "from-pulse-emerald/20 via-white/40 to-pulse-indigo/20"
+                   : "from-pulse-emerald/10 via-transparent to-pulse-indigo/10"
                }`} />
                <div className={`absolute inset-0 mesh-bg transition-opacity duration-1000 ${
                  theme === "dark" ? "opacity-20" : "opacity-40"
@@ -417,7 +416,6 @@ const Index = () => {
       </main>
 
       <Footer />
-      <LocalStoreCartDrawer />
 
       <style>{`
         @keyframes shimmer {

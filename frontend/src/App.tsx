@@ -48,18 +48,17 @@ import ScannerDashboardPage from "./pages/ScannerDashboardPage";
 import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
-import { LocalStoreCartProvider } from "./contexts/LocalStoreCartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PwaInstallPrompt from "./components/layout/PwaInstallPrompt";
 import LocalStoresPage from "./pages/LocalStoresPage";
 import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
+import StoreDetailPage from "./pages/StoreDetailPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <LocalStoreCartProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -92,6 +91,10 @@ const App = () => (
                       <Route
                         path="local-stores"
                         element={<LocalStoresPage />}
+                      />
+                      <Route
+                        path="local-stores/:id"
+                        element={<StoreDetailPage />}
                       />
                       <Route
                         path="events/create"
@@ -238,7 +241,6 @@ const App = () => (
           </Routes>
         </Router>
       </TooltipProvider>
-      </LocalStoreCartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

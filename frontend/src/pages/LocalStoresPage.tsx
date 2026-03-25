@@ -10,14 +10,13 @@ import {
   Store,
 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import api from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import GoLocalSection from "@/components/home/GoLocalSection";
-import LocalStoreCartDrawer from "@/components/home/LocalStoreCartDrawer";
 
 const CATEGORIES = [
   "All",
@@ -171,15 +170,12 @@ const LocalStoresPage = () => {
       </main>
 
       <Footer />
-      <LocalStoreCartDrawer />
     </div>
   );
 };
 
 // Internal component for the full-page grid (can be refactored into components later)
 const GoLocalStoreCard = ({ store }: { store: any }) => {
-  const [expanded, setExpanded] = useState(false);
-  
   return (
     <div className="bg-card border border-border/60 rounded-[3rem] overflow-hidden group hover:border-amber-500/30 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 h-full flex flex-col">
        <div className="relative h-56 overflow-hidden">
@@ -218,8 +214,7 @@ const GoLocalStoreCard = ({ store }: { store: any }) => {
 
         <div className="mt-auto space-y-6">
            <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-           
-           <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
               <div className="flex -space-x-3">
                  {store.products.slice(0, 3).map((p: any) => (
                    <div key={p._id} className="h-10 w-10 rounded-full border-2 border-card overflow-hidden bg-muted">
@@ -233,10 +228,12 @@ const GoLocalStoreCard = ({ store }: { store: any }) => {
                  )}
               </div>
               
-              <button className="h-12 px-8 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:bg-amber-500 hover:text-black transition-all active:scale-95 flex items-center gap-2 group/btn">
-                 Visit Store
-                 <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-              </button>
+              <Link to={`/local-stores/${store._id}`}>
+                <button className="h-12 px-8 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:bg-amber-500 hover:text-black transition-all active:scale-95 flex items-center gap-2 group/btn">
+                   Visit Store
+                   <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                </button>
+              </Link>
            </div>
         </div>
       </div>

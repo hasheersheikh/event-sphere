@@ -1,23 +1,26 @@
+import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import {
   motion,
   useScroll,
   useTransform,
-  AnimatePresence,
 } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import {
   Users,
-  Zap,
-  Heart,
   ShieldCheck,
   Globe,
   Sparkles,
   Music,
   ArrowRight,
-  Trophy,
+  Zap,
+  Star,
+  Shield,
+  Target,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const AboutPage = () => {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -39,137 +42,227 @@ const AboutPage = () => {
     return () => observer.disconnect();
   }, []);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"],
-  });
-
-  const yBg = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const opacityHero = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
   const stats = [
-    { label: "Community Nodes", value: "2.4M+", icon: Globe },
-    { label: "Live Experiences", value: "85K+", icon: Music },
-    { label: "Global Organizers", value: "12K+", icon: Users },
-    { label: "Trust Score", value: "99.9%", icon: ShieldCheck },
+    { label: "Community Nodes", value: "2.4M+", icon: Globe, color: "text-blue-500" },
+    { label: "Live Experiences", value: "85K+", icon: Music, color: "text-emerald-500" },
+    { label: "Global Organizers", value: "12K+", icon: Users, color: "text-indigo-500" },
+    { label: "Trust Score", value: "99.9%", icon: ShieldCheck, color: "text-amber-500" },
   ];
-
-  const variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  };
 
   return (
     <div
-      className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/30"
+      className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden"
       ref={containerRef}
     >
+      {/* Background Decor */}
+      <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
+
       <Navbar />
 
-      <main className="flex-1">
-        {/* Immersive Hero Section */}
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          <motion.div
-            className="absolute inset-0 z-0"
-            style={{ y: yBg, opacity: opacityHero }}
-          >
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={theme}
-                src={
-                  theme === "dark"
-                    ? "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070"
-                    : "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=2070"
-                }
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.8 }}
-                alt="Immersive Festival"
-                className="w-full h-full object-cover scale-110"
-              />
-            </AnimatePresence>
-            <div
-              className={`absolute inset-0 bg-gradient-to-b ${
-                theme === "dark"
-                  ? "from-background/20 via-background/40 to-background"
-                  : "from-white/40 via-white/60 to-background"
-              }`}
-            />
-            <div className="absolute inset-0 mesh-bg opacity-30" />
-          </motion.div>
-
-          <div className="container relative z-10 text-center">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 30 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="inline-flex items-center gap-3 px-6 py-2 glass-panel text-[10px] font-black uppercase tracking-[0.5em] mb-12 text-primary">
-                <Sparkles className="h-3 w-3 animate-pulse" />
-                The Protocol of Connection
-              </div>
-              <h1 className="text-6xl md:text-[9.5rem] font-bold tracking-tighter leading-[0.8] mb-12 mix-blend-difference">
-                Unified by <br />
-                <span className="text-gradient italic font-light">
-                  The Pulse.
+      <main className="flex-1 relative z-10">
+        {/* Premium Header Section */}
+        <section className="relative pt-32 pb-20 overflow-hidden">
+          <div className="container relative z-20">
+            <header className="max-w-4xl mx-auto text-center space-y-8">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center justify-center gap-3 mb-2"
+              >
+                <div className="h-px w-10 bg-primary/30 rounded-full" />
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-primary">
+                  The Protocol of Connection
                 </span>
-              </h1>
-              <p className="text-xl md:text-3xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light mb-16">
+                <div className="h-px w-10 bg-primary/30 rounded-full" />
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.85]"
+              >
+                Unified by <br />
+                <span className="text-primary italic">The Pulse.</span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-muted-foreground text-xl md:text-2xl font-medium max-w-2xl mx-auto italic leading-relaxed"
+              >
                 Event Sphere is a decentralized ecosystem for extraordinary live
                 experiences, syncing human connection across the globe.
-              </p>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-              >
-                <ArrowRight className="h-10 w-10 mx-auto text-primary animate-bounce opacity-30" />
-              </motion.div>
-            </motion.div>
+              </motion.p>
+            </header>
           </div>
         </section>
 
-
-        {/* Infinite Scrolling Stats - Refined */}
-        <section className="py-40 bg-muted/20 border-y border-border/50 overflow-hidden relative">
-          <div className="absolute inset-0 mesh-bg opacity-10" />
-          <div className="flex animate-marquee whitespace-nowrap relative z-10">
-            {[...stats, ...stats, ...stats].map((stat, i) => (
-              <div key={i} className="flex items-center gap-12 px-24 group">
-                <stat.icon className="h-10 w-10 text-primary/40 group-hover:text-primary transition-colors duration-500" />
-                <div className="flex flex-col">
-                  <span className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
-                    {stat.value}
-                  </span>
-                  <span className="text-[11px] font-black uppercase tracking-[0.5em] text-muted-foreground/40 group-hover:text-muted-foreground transition-colors duration-500">
-                    {stat.label}
-                  </span>
-                </div>
+        {/* Vision Image Section */}
+        <section className="container py-12 px-4">
+           <motion.div 
+             initial={{ opacity: 0, y: 40 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true }}
+             className="relative h-[40rem] rounded-[4rem] overflow-hidden border border-border/50 shadow-2xl"
+           >
+              <img 
+                src={theme === 'dark' 
+                  ? "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070" 
+                  : "https://images.unsplash.com/photo-1549451371-64aa98a6f660?auto=format&fit=crop&q=80&w=2070"
+                } 
+                className="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-1000"
+                alt="Pulse Community"
+              />
+              <div className={`absolute inset-0 bg-gradient-to-t ${
+                theme === 'dark' ? 'from-background via-background/20 to-transparent' : 'from-background/40 via-transparent to-transparent'
+              }`} />
+              
+              <div className="absolute bottom-12 left-12 right-12 flex flex-col md:flex-row items-end justify-between gap-8">
+                 <div className="max-w-xl space-y-4">
+                    <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 rounded-xl px-4 py-1.5 font-bold uppercase tracking-widest text-[9px]">
+                      Our Core Philosophy
+                    </Badge>
+                    <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-2xl">
+                      Beyond The <br />Spectacle.
+                    </h2>
+                 </div>
+                 <div className="hidden md:block">
+                    <div className="h-24 w-24 rounded-full border border-white/20 backdrop-blur-xl flex items-center justify-center animate-pulse">
+                        <Zap className="h-8 w-8 text-white" />
+                    </div>
+                 </div>
               </div>
-            ))}
-          </div>
+           </motion.div>
         </section>
 
+        {/* Stats Grid - High Density */}
+        <section className="py-32 container">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                {stats.map((stat, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.1 }}
+                        className="p-10 rounded-[2.5rem] bg-card/50 border border-border/50 backdrop-blur-xl hover:border-primary/30 transition-all duration-500 group text-center space-y-6"
+                    >
+                        <div className={`h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-500 ${stat.color}`}>
+                            <stat.icon className="h-8 w-8" />
+                        </div>
+                        <div className="space-y-1">
+                            <h3 className="text-4xl md:text-5xl font-black tracking-tighter italic uppercase text-foreground">
+                                {stat.value}
+                            </h3>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
+                                {stat.label}
+                            </p>
+                        </div>
+                    </motion.div>
+                ))}
+            </div>
+        </section>
+
+        {/* Values Section */}
+        <section className="py-32 bg-primary/[0.02] border-y border-border/50 relative overflow-hidden">
+            <div className="container relative z-10">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-16">
+                    <div className="max-w-xl space-y-6 text-center md:text-left">
+                        <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none">
+                            Our <span className="text-primary italic">DNA.</span>
+                        </h2>
+                        <p className="text-muted-foreground text-lg font-medium italic">
+                            We believe that the most powerful form of technology is the one that facilitates human presence.
+                        </p>
+                        <div className="pt-6">
+                            <Link to="/auth">
+                                <Button className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-button bg-primary text-primary-foreground">
+                                    Join the Network
+                                    <ArrowRight className="h-4 w-4 ml-4" />
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+                    
+                    <div className="grid sm:grid-cols-2 gap-6 w-full md:w-auto">
+                        <ValueCard 
+                            icon={Target} 
+                            title="Precision" 
+                            description="Highly curated experiences that resonate with your specific frequency."
+                        />
+                        <ValueCard 
+                            icon={Shield} 
+                            title="Integrity" 
+                            description="Decentralized trust protocols ensuring absolute security for every ticket."
+                        />
+                        <ValueCard 
+                            icon={Star} 
+                            title="Legacy" 
+                            description="Building moments that echo long after the final note has faded."
+                        />
+                        <ValueCard 
+                            icon={Users} 
+                            title="Community" 
+                            description="Connecting organizers and fans in a symbiotic, local ecosystem."
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        {/* Call to Connect - Reused from Index but simplified */}
+        <section className="py-40 container text-center">
+            <div className="max-w-3xl mx-auto space-y-10">
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none italic">
+                    Ready to <br />
+                    <span className="text-primary">Sync?</span>
+                </h2>
+                <p className="text-muted-foreground text-lg font-medium italic max-w-xl mx-auto">
+                    Whether you're an organizer with a vision or a fan seeking the next memory, the Pulse is waiting for your signature.
+                </p>
+                <div className="flex flex-wrap justify-center gap-6">
+                    <Link to="/auth">
+                        <Button className="h-14 px-12 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-button">
+                            Get Started
+                        </Button>
+                    </Link>
+                    <Link to="/events">
+                        <Button variant="outline" className="h-14 px-12 rounded-2xl font-black uppercase tracking-widest text-[10px] border-2 border-primary text-primary">
+                            Explore Pulses
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+        </section>
       </main>
 
       <Footer />
-
-      <style>{`
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.33%); }
-        }
-        .animate-marquee {
-          animation: marquee 60s linear infinite;
-        }
-        .mesh-bg {
-          background-image: radial-gradient(circle at 2px 2px, hsl(var(--border)) 1px, transparent 0);
-          background-size: 32px 32px;
-        }
-      `}</style>
     </div>
   );
 };
+
+const ValueCard = ({ icon: Icon, title, description }: { icon: any, title: string, description: string }) => (
+    <div className="p-8 rounded-[2rem] bg-card/50 border border-border/50 backdrop-blur-xl hover:border-primary/30 transition-all duration-500 group space-y-4 max-w-[280px]">
+        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <Icon className="h-6 w-6" />
+        </div>
+        <h4 className="text-lg font-black uppercase tracking-tight italic">{title}</h4>
+        <p className="text-xs text-muted-foreground font-medium leading-relaxed">{description}</p>
+    </div>
+);
+
+const Badge = ({ children, variant = "default", className }: { children: React.ReactNode, variant?: string, className?: string }) => (
+    <div className={cn(
+        "inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest",
+        variant === "secondary" ? "bg-secondary text-secondary-foreground" : "bg-primary text-primary-foreground",
+        className
+    )}>
+        {children}
+    </div>
+);
 
 export default AboutPage;
