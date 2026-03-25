@@ -4,6 +4,7 @@ export interface ITicketType {
   price: number;
   capacity: number;
   sold: number;
+  isSoldOut?: boolean;
 }
 
 export interface Event {
@@ -23,13 +24,15 @@ export interface Event {
   };
   image?: string;
   category: string;
+  videoUrl?: string;
+  reels?: string[];
   creator: {
     _id: string;
     name: string;
     email: string;
   };
   ticketTypes: ITicketType[];
-  status: 'draft' | 'published' | 'cancelled' | 'blocked';
+  status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
   createdAt: string;
   updatedAt: string;

@@ -182,9 +182,9 @@ export const login = async (req: Request, res: Response) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role || userRole,
         isApproved: (user as any).isApproved ?? true,
-        token: generateToken(user._id.toString(), user.role),
+        token: generateToken(user._id.toString(), user.role || userRole),
         eventId: user.eventId,
         gate: user.gate,
       });

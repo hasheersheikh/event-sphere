@@ -1,7 +1,8 @@
 import { ReactNode, useState } from "react";
 import Sidebar from "./Sidebar";
+import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, Link } from "react-router-dom";
 import { Menu, X, Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -63,7 +64,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-80 z-50 lg:hidden"
+              className="fixed inset-y-0 left-0 w-72 z-50 lg:hidden"
             >
               <Sidebar />
               <button
@@ -78,7 +79,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:pl-80 min-h-screen transition-all duration-300">
+      <div className="flex-1 flex flex-col lg:pl-72 min-h-screen transition-all duration-300">
         {/* Top Header */}
         <header className="h-20 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-8 sticky top-0 z-30">
           <div className="flex items-center gap-4">
@@ -104,9 +105,11 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
               <span className="absolute top-2.5 right-2.5 h-1.5 w-1.5 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
             </button>
 
+            <ThemeToggle />
+
             <div className="h-8 w-[1px] bg-border mx-2" />
 
-            <div className="flex items-center gap-4">
+            <Link to="/portal/settings" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
               <div className="text-right hidden sm:block">
                 <p className="text-[11px] font-black uppercase tracking-tighter text-foreground">
                   {user?.name}
@@ -118,12 +121,12 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
               <div className="h-10 w-10 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-black text-xs shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                 {user?.name?.charAt(0)}
               </div>
-            </div>
+            </Link>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-8 md:p-12 animate-in fade-in duration-500">
+        <main className="flex-1 p-6 md:p-10 animate-in fade-in duration-500">
           {children}
         </main>
       </div>

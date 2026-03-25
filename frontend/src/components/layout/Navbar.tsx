@@ -24,7 +24,7 @@ const Navbar = () => {
 
   const navLinks = [
     { href: "/events", label: "Events" },
-    { href: "/categories", label: "Lineup" },
+    { href: "/local-stores", label: "Local Store" },
     { href: "/about", label: "About" },
   ];
 
@@ -43,49 +43,45 @@ const Navbar = () => {
     <header
       className={`fixed top-0 z-50 w-full border-b transition-all duration-700 ease-[0.16, 1, 0.3, 1] ${navBg}`}
     >
-      <nav className="container flex h-16 md:h-24 items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-4 group">
-          <motion.div
-            whileHover={{ rotate: 180, scale: 1.1 }}
-            transition={{ duration: 0.8, ease: "anticipate" }}
-          >
-            <PulseLogo size={24} />
-          </motion.div>
-          <span
-            className={`text-2xl font-black tracking-tighter uppercase brand-font italic transition-colors duration-300 ${textColor}`}
-          >
-            City <span className="text-pulse-emerald">Pulse</span>
-          </span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1 bg-muted/40 border border-border/30 p-1 rounded-full">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className={`px-8 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 ${
-                isActive(link.href)
-                  ? "bg-primary text-primary-foreground shadow-lg"
-                  : `${mutedColor} hover:text-foreground hover:bg-foreground/5`
-              }`}
+      <nav className="container flex h-16 md:h-20 items-center justify-between">
+        {/* Logo - Fixed Width for Centering */}
+        <div className="w-48">
+          <Link to="/" className="flex items-center gap-4 group w-fit">
+            <motion.div
+              whileHover={{ rotate: 180, scale: 1.1 }}
+              transition={{ duration: 0.8, ease: "anticipate" }}
             >
-              {link.label}
-            </Link>
-          ))}
+              <PulseLogo size={24} />
+            </motion.div>
+            <span
+              className={`text-2xl font-black tracking-tighter uppercase brand-font italic transition-colors duration-300 ${textColor}`}
+            >
+              City <span className="text-pulse-emerald">Pulse</span>
+            </span>
+          </Link>
         </div>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full h-12 w-12 transition-all duration-500 ${mutedColor} hover:bg-foreground/10 hover:text-pulse-emerald border border-transparent hover:border-foreground/10`}
-          >
-            <Search className="h-5 w-5" />
-          </Button>
+        {/* Desktop Navigation - Centered */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <div className="flex items-center gap-1 bg-muted/40 border border-border/30 p-1 rounded-full">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`px-8 py-2.5 text-[10px] font-bold uppercase tracking-[0.2em] rounded-full transition-all duration-300 ${
+                  isActive(link.href)
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : `${mutedColor} hover:text-foreground hover:bg-foreground/5`
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
 
+        {/* Desktop Actions - Flexible Width */}
+        <div className="hidden md:flex items-center justify-end gap-5 min-w-[12rem] flex-shrink-0">
           <ThemeToggle />
 
           {isAuthenticated ? (

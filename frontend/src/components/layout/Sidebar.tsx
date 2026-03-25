@@ -10,8 +10,10 @@ import {
   CheckCircle,
   Clock,
   Scan,
+  Store,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import PulseLogo from "./PulseLogo";
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -25,12 +27,8 @@ const Sidebar = () => {
     },
     { label: "Attendees", icon: Users, href: "/portal/admin/attendees" },
     { label: "Managers", icon: ShieldCheck, href: "/portal/admin/managers" },
-    {
-      label: "Personnel Control",
-      icon: Users,
-      href: "/portal/admin/volunteers",
-    },
-    { label: "Event Moderation", icon: Calendar, href: "/portal/events" },
+    { label: "Event Moderation", icon: Calendar, href: "/portal/admin/events" },
+    { label: "Local Stores", icon: Store, href: "/portal/admin/local-stores" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },
@@ -38,12 +36,7 @@ const Sidebar = () => {
 
   const managerLinks = [
     { label: "Manager Hub", icon: LayoutDashboard, href: "/portal/manager" },
-    { label: "My Productions", icon: Calendar, href: "/portal/productions" },
-    {
-      label: "Personnel Control",
-      icon: Users,
-      href: "/portal/admin/volunteers",
-    },
+    { label: "My Events", icon: Calendar, href: "/portal/events" },
     {
       label: "Payout History",
       icon: TrendingUp,
@@ -57,13 +50,11 @@ const Sidebar = () => {
   const links = user?.role === "admin" ? adminLinks : managerLinks;
 
   return (
-    <aside className="w-80 h-screen bg-card text-card-foreground border-r border-border flex flex-col fixed left-0 top-0 z-40">
+    <aside className="w-72 h-screen bg-card text-card-foreground border-r border-border flex flex-col fixed left-0 top-0 z-40">
       {/* Brand */}
-      <div className="p-8 border-b border-border">
+      <div className="p-6 border-b border-border">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="h-9 w-9 bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-            <Calendar className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <PulseLogo className="h-9 w-9" />
           <span className="text-xl font-black tracking-tighter brand-font uppercase">
             City Pulse
           </span>
@@ -71,7 +62,7 @@ const Sidebar = () => {
       </div>
 
       {/* User Status */}
-      <div className="px-8 py-8 bg-muted/30">
+      <div className="px-6 py-6 bg-muted/30">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full border-2 border-primary flex items-center justify-center font-black text-lg bg-muted">
             {user?.name?.charAt(0)}
@@ -93,7 +84,7 @@ const Sidebar = () => {
       </div>
 
       {/* Search */}
-      <div className="px-8 py-6">
+      <div className="px-6 py-4">
         <div className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/30" />
           <input
@@ -133,7 +124,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Footer Info */}
-      <div className="p-8 border-t border-border bg-muted/30">
+      <div className="p-6 border-t border-border bg-muted/30">
         <div className="flex items-center justify-between mb-4">
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">
             Security Status

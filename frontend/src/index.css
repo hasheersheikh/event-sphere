@@ -7,6 +7,7 @@
 @layer base {
   html {
     font-size: 15px; /* Subtle global scaling down */
+    background-color: hsl(var(--background));
   }
 
   :root {
@@ -149,8 +150,25 @@
   }
 
   .mesh-bg {
-    background-image: radial-gradient(circle at 2px 2px, hsl(var(--border)) 1px, transparent 0);
-    background-size: 32px 32px;
-    opacity: 0.15;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(161, 72%, 40%, 0.15) 0, transparent 50%), 
+      radial-gradient(at 50% 0%, hsla(239, 84%, 67%, 0.1) 0, transparent 50%), 
+      radial-gradient(at 100% 0%, hsla(161, 72%, 40%, 0.15) 0, transparent 50%);
+    background-size: 100% 100%;
+    @apply pointer-events-none;
+  }
+
+  .shadow-button {
+    box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+  }
+
+  /* Razorpay Overlay Fix */
+  .razorpay-backdrop {
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    z-index: 999999999 !important;
+  }
+
+  .razorpay-checkout-frame {
+    z-index: 999999999 !important;
   }
 }

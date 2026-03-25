@@ -64,8 +64,8 @@ const ManagerEventAnalyticsPage = () => {
       const response = await api.get(`/manager/events/${id}/analytics`);
       setData(response.data);
     } catch (error) {
-      toast.error("Failed to recover production metrics.");
-      navigate("/portal/productions");
+      toast.error("Failed to recover event metrics.");
+      navigate("/portal/events");
     } finally {
       setIsLoading(false);
     }
@@ -73,8 +73,8 @@ const ManagerEventAnalyticsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="animate-pulse text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-[10px] font-black uppercase tracking-[0.5em] text-primary">
           Syncing Metrics...
         </div>
       </div>
@@ -87,12 +87,12 @@ const ManagerEventAnalyticsPage = () => {
   const sellThroughRate = (stats.totalTicketsSold / stats.capacity) * 100;
 
   return (
-    <div className="space-y-12 pb-20 bg-zinc-950 p-6 md:p-10 text-white min-h-screen">
+    <div className="space-y-10 pb-20 bg-background p-6 md:p-10 text-foreground min-h-screen">
       {/* Header */}
-      <header className="flex flex-col gap-6 border-b border-white/5 pb-10">
+      <header className="flex flex-col gap-6 border-b border-border pb-8">
         <Link
-          to="/portal/productions"
-          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-colors"
+          to="/portal/events"
+          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3 w-3" />
           Back to Roster
@@ -100,14 +100,14 @@ const ManagerEventAnalyticsPage = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-500">
-                Production Analytics
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
+                Event Analytics
               </span>
               <div
                 className={`h-1.5 w-1.5 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_10px_#10B981]" : "bg-orange-500 shadow-[0_0_10px_#F97316] animate-pulse"}`}
               />
             </div>
-            <h1 className="text-4xl md:text-7xl font-black brand-font tracking-tighter uppercase leading-[0.8]">
+            <h1 className="text-3xl md:text-5xl font-black brand-font tracking-tighter uppercase leading-[0.8]">
               {event.title}
             </h1>
           </div>
@@ -115,7 +115,7 @@ const ManagerEventAnalyticsPage = () => {
             <Link to={`/events/${event._id}`} target="_blank">
               <Button
                 variant="ghost"
-                className="h-12 px-6 rounded-none bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                className="h-12 px-6 rounded-none bg-muted text-[10px] font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all"
               >
                 Public Listing <ArrowUpRight className="h-4 w-4 ml-2" />
               </Button>
@@ -126,51 +126,51 @@ const ManagerEventAnalyticsPage = () => {
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-zinc-900 border border-white/5 p-8 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-6 flex items-center justify-between">
+        <div className="bg-card border border-border p-6 relative overflow-hidden group">
+          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center justify-between">
             Gross Revenue
             <IndianRupee className="h-4 w-4 opacity-20" />
           </div>
-          <div className="text-4xl font-black brand-font italic tracking-tighter">
+          <div className="text-2xl font-black brand-font italic tracking-tighter">
             ₹{stats.grossRevenue.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-white/5 p-8 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-rose-500/60 mb-6 flex items-center justify-between">
+        <div className="bg-card border border-border p-6 relative overflow-hidden group">
+          <div className="text-[10px] font-black uppercase tracking-widest text-rose-500/60 mb-4 flex items-center justify-between">
             Platform Fee
             <ShieldAlert className="h-4 w-4 opacity-20" />
           </div>
-          <div className="text-4xl font-black brand-font italic tracking-tighter text-rose-500/80">
+          <div className="text-2xl font-black brand-font italic tracking-tighter text-rose-500/80">
             -₹{stats.platformCommission.toLocaleString()}
           </div>
-          <div className="text-[8px] font-black uppercase mt-4 text-zinc-600 tracking-widest">
+          <div className="text-[8px] font-black uppercase mt-3 text-muted-foreground tracking-widest">
             Model: {stats.commissionInfo.value}
             {stats.commissionInfo.type === "percentage" ? "%" : " FLAT"} Deal
           </div>
         </div>
 
-        <div className="bg-zinc-900 border-2 border-emerald-500/20 p-8 relative overflow-hidden group shadow-[0_0_30px_rgba(16,185,129,0.05)]">
+        <div className="bg-card border-2 border-primary/20 p-6 relative overflow-hidden group shadow-[0_0_30px_rgba(16,185,129,0.05)]">
           <div className="absolute top-0 right-0 p-4">
-            <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+            <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
           </div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-6 flex items-center justify-between">
+          <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center justify-between">
             Net Revenue
             <TrendingUp className="h-4 w-4" />
           </div>
-          <div className="text-5xl font-black brand-font italic tracking-tighter text-emerald-400">
+          <div className="text-3xl font-black brand-font italic tracking-tighter text-emerald-400">
             ₹{stats.netRevenue.toLocaleString()}
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-white/5 p-8 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-6 flex items-center justify-between">
+        <div className="bg-card border border-border p-6 relative overflow-hidden group">
+          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center justify-between">
             Tickets Sold
             <Ticket className="h-4 w-4 opacity-20" />
           </div>
-          <div className="text-4xl font-black brand-font italic tracking-tighter">
+          <div className="text-2xl font-black brand-font italic tracking-tighter">
             {stats.totalTicketsSold}{" "}
-            <span className="text-sm font-light text-zinc-700">
+            <span className="text-sm font-light text-muted-foreground/30">
               / {stats.capacity}
             </span>
           </div>
@@ -181,11 +181,11 @@ const ManagerEventAnalyticsPage = () => {
         {/* Sales Chart Simulation & Ticket Types */}
         <div className="lg:col-span-8 space-y-12">
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-zinc-600 flex items-center gap-3">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
               <BarChart3 className="h-3 w-3" />
               Revenue Flow (Last 7 Days)
             </h2>
-            <div className="bg-zinc-900 border border-white/5 p-10 flex items-end justify-between h-48 gap-2">
+            <div className="bg-card border border-border p-6 flex items-end justify-between h-40 gap-2">
               {salesHistory.map((s, i) => {
                 const max = Math.max(...salesHistory.map((d) => d.amount)) || 1;
                 const height = (s.amount / max) * 100;
@@ -194,14 +194,14 @@ const ManagerEventAnalyticsPage = () => {
                     key={i}
                     className="flex-1 flex flex-col items-center gap-4 group"
                   >
-                    <div className="w-full bg-white/5 h-32 relative flex items-end overflow-hidden group-hover:bg-white/10 transition-colors">
+                    <div className="w-full bg-muted h-32 relative flex items-end overflow-hidden group-hover:bg-muted/50 transition-colors">
                       <motion.div
                         initial={{ height: 0 }}
                         animate={{ height: `${height}%` }}
-                        className="w-full bg-emerald-500/40 group-hover:bg-emerald-500 transition-colors"
+                        className="w-full bg-primary/40 group-hover:bg-primary transition-colors"
                       />
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-tighter text-zinc-700">
+                    <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground/40">
                       {s.date}
                     </span>
                   </div>
@@ -211,7 +211,7 @@ const ManagerEventAnalyticsPage = () => {
           </section>
 
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-zinc-600 flex items-center gap-3">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
               <Ticket className="h-3 w-3" />
               Ticket Distribution
             </h2>
@@ -219,33 +219,33 @@ const ManagerEventAnalyticsPage = () => {
               {ticketStats.map((tt, i) => (
                 <div
                   key={i}
-                  className="bg-zinc-900 border border-white/5 p-8 group hover:border-emerald-500/20 transition-all"
+                  className="bg-card border border-border p-6 group hover:border-primary/20 transition-all shadow-sm"
                 >
-                  <div className="flex justify-between items-start mb-6">
+                  <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h4 className="font-black uppercase text-sm tracking-widest">
+                      <h4 className="font-black uppercase text-sm tracking-widest text-foreground">
                         {tt.name}
                       </h4>
-                      <p className="text-[10px] font-bold text-zinc-500 italic mt-1">
+                      <p className="text-[10px] font-bold text-muted-foreground italic mt-1">
                         ₹{tt.price.toLocaleString()} Unit Price
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-black">{tt.sold}</div>
-                      <p className="text-[8px] font-black uppercase tracking-widest text-zinc-700">
+                      <div className="text-lg font-black text-foreground">{tt.sold}</div>
+                      <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">
                         Admitted
                       </p>
                     </div>
                   </div>
                   <Progress
                     value={(tt.sold / tt.capacity) * 100}
-                    className="h-1.5 bg-black rounded-none overflow-hidden border border-white/5"
+                    className="h-1.5 bg-muted rounded-none overflow-hidden border border-border"
                   />
                   <div className="mt-6 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-zinc-600 tracking-widest">
+                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
                       Revenue Impact
                     </span>
-                    <span className="text-xs font-black italic text-emerald-500">
+                    <span className="text-xs font-black italic text-primary">
                       ₹{tt.revenue.toLocaleString()}
                     </span>
                   </div>
@@ -258,26 +258,26 @@ const ManagerEventAnalyticsPage = () => {
         {/* Recent Transactions */}
         <div className="lg:col-span-4 space-y-12">
           <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-zinc-600 flex items-center gap-3">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
               <Clock className="h-3 w-3" />
               Recent Transactions
             </h2>
-            <div className="bg-zinc-900 border border-white/5 divide-y divide-white/5">
+            <div className="bg-card border border-border divide-y divide-border shadow-sm">
               {recentBookings.length > 0 ? (
                 recentBookings.map((b, i) => (
                   <div
                     key={i}
-                    className="p-6 hover:bg-white/[0.02] transition-all"
+                    className="p-6 hover:bg-muted/50 transition-all"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <div className="font-black uppercase text-[11px] tracking-tight truncate max-w-[150px]">
+                      <div className="font-black uppercase text-[11px] tracking-tight truncate max-w-[150px] text-foreground">
                         {b.userName}
                       </div>
-                      <div className="font-black text-[11px] text-emerald-500">
+                      <div className="font-black text-[11px] text-primary">
                         ₹{b.totalAmount.toLocaleString()}
                       </div>
                     </div>
-                    <div className="flex justify-between items-center text-[9px] font-bold text-zinc-600 italic">
+                    <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground italic">
                       <span>{new Date(b.createdAt).toLocaleDateString()}</span>
                       <span className="uppercase tracking-tighter">
                         {b.tickets.reduce((sum, t) => sum + t.quantity, 0)}{" "}
@@ -287,12 +287,12 @@ const ManagerEventAnalyticsPage = () => {
                   </div>
                 ))
               ) : (
-                <div className="p-12 text-center italic text-zinc-700 text-[10px] font-black uppercase tracking-[0.2em]">
+                <div className="p-12 text-center italic text-muted-foreground/30 text-[10px] font-black uppercase tracking-[0.2em]">
                   No transactions logged.
                 </div>
               )}
             </div>
-            <p className="mt-4 text-[8px] font-black uppercase tracking-widest text-zinc-800 text-center italic">
+            <p className="mt-4 text-[8px] font-black uppercase tracking-widest text-muted-foreground/20 text-center italic">
               Displaying last 5 syncs from database
             </p>
           </section>

@@ -26,7 +26,8 @@ import ContactPage from "./pages/ContactPage";
 import NotFound from "./pages/NotFound";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ManagerLoginPage from "./pages/ManagerLoginPage";
+import StaffLoginPage from "./pages/StaffLoginPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AttendeesPage from "./pages/admin/AttendeesPage";
@@ -36,23 +37,29 @@ import EventModerationPage from "./pages/admin/EventModerationPage";
 import EventInsightsPage from "./pages/admin/EventInsightsPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import ManagerDashboard from "./pages/manager/ManagerDashboard";
-import MyProductions from "./pages/manager/MyProductions";
+import MyEventsPage from "./pages/manager/MyEventsPage";
+import EditEventPage from "./pages/manager/EditEventPage";
+import ManageEventPage from "./pages/manager/ManageEventPage";
 import ManagerEventAnalyticsPage from "./pages/manager/ManagerEventAnalyticsPage";
 import ManageVolunteersPage from "./pages/manager/ManageVolunteersPage";
 import PayoutsPage from "./pages/manager/PayoutsPage";
-import AdminVolunteersPage from "./pages/admin/AdminVolunteersPage";
 import VolunteerLoginPage from "./pages/VolunteerLoginPage";
+import ScannerDashboardPage from "./pages/ScannerDashboardPage";
 import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
+import { LocalStoreCartProvider } from "./contexts/LocalStoreCartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PwaInstallPrompt from "./components/layout/PwaInstallPrompt";
+import LocalStoresPage from "./pages/LocalStoresPage";
+import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <LocalStoreCartProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -83,12 +90,8 @@ const App = () => (
                     <Routes>
                       <Route path="events" element={<EventsPage />} />
                       <Route
-                        path="categories"
-                        element={
-                          <div className="container py-20 text-center font-black text-4xl uppercase brand-font">
-                            Coming Soon
-                          </div>
-                        }
+                        path="local-stores"
+                        element={<LocalStoresPage />}
                       />
                       <Route
                         path="events/create"
@@ -104,11 +107,6 @@ const App = () => (
                       <Route
                         path="events/:id/success"
                         element={<EventPendingPage />}
-                      />
-                      <Route path="auth" element={<AuthPage />} />
-                      <Route
-                        path="forgot-password"
-                        element={<ForgotPasswordPage />}
                       />
                       <Route
                         path="reset-password"
@@ -130,7 +128,6 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       />
-                      <Route path="admin-auth" element={<AdminLoginPage />} />
                       <Route
                         path="my-tickets"
                         element={
@@ -154,8 +151,18 @@ const App = () => (
                         }
                       />
                       <Route
-                        path="volunteer-login"
-                        element={<VolunteerLoginPage />}
+                        path="scanner/dashboard"
+                        element={
+                          <ProtectedRoute
+                            allowedRoles={[
+                              "event_manager",
+                              "admin",
+                              "volunteer",
+                            ]}
+                          >
+                            <ScannerDashboardPage />
+                          </ProtectedRoute>
+                        }
                       />
                       <Route path="about" element={<AboutPage />} />
                       <Route path="terms" element={<TermsOfService />} />
@@ -168,6 +175,13 @@ const App = () => (
                 }
               />
             </Route>
+
+            {/* Auth Routes (No Site Navbar) */}
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/admin-auth" element={<AdminLoginPage />} />
+            <Route path="/manager/login" element={<ManagerLoginPage />} />
+            <Route path="/staff/login" element={<StaffLoginPage />} />
+            <Route path="/volunteer-login" element={<VolunteerLoginPage />} />
 
             {/* Portal Routes (No Global Navbar) */}
             <Route
@@ -187,16 +201,21 @@ const App = () => (
                 path="admin/managers/:id"
                 element={<ManagerDetailPage />}
               />
-              <Route
-                path="admin/volunteers"
-                element={<AdminVolunteersPage />}
-              />
-              <Route path="events" element={<EventModerationPage />} />
+              <Route path="admin/events" element={<EventModerationPage />} />
               <Route path="admin/events/:id" element={<EventInsightsPage />} />
+              <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="manager/payouts" element={<PayoutsPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="productions" element={<MyProductions />} />
+              <Route path="events" element={<MyEventsPage />} />
+              <Route
+                path="manager/events/:id/details"
+                element={<ManageEventPage />}
+              />
+              <Route
+                path="manager/events/:id/edit"
+                element={<EditEventPage />}
+              />
               <Route
                 path="manager/events/:id/analytics"
                 element={<ManagerEventAnalyticsPage />}
@@ -219,6 +238,7 @@ const App = () => (
           </Routes>
         </Router>
       </TooltipProvider>
+      </LocalStoreCartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

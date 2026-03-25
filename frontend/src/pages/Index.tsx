@@ -2,7 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Sparkles,
@@ -13,13 +13,54 @@ import {
   Music,
   Camera,
   Cpu,
+  Search,
+  MapPin,
+  Stars,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
+import { useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import SafeImage from "@/components/ui/SafeImage";
+import GoLocalSection from "@/components/home/GoLocalSection";
+import LocalStoreCartDrawer from "@/components/home/LocalStoreCartDrawer";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Detect theme on mount and when it changes
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    };
+
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const yText = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const yBg = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const opacityText = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
   const { data: trendingEvents, isLoading: isTrendingLoading } = useQuery({
     queryKey: ["trendingEvents"],
     queryFn: async () => {
@@ -69,40 +110,132 @@ const Index = () => {
       <div className="fixed inset-0 mesh-bg z-[-1]" />
       <Navbar />
 
-      <main className="flex-1">
+      <main className="flex-1" ref={containerRef}>
         {/* Hero Section - Immersive Event Hub */}
         <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="/assets/images/hero_concert_energy_1772894546288.png"
-              alt="Concert Crowd"
-              className="w-full h-full object-cover opacity-80"
+          <motion.div className="absolute inset-0 z-0" style={{ y: yBg }}>
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={theme}
+                src={
+                  theme === "dark"
+                    ? "/assets/images/hero_dark_premium.png"
+                    : "/assets/images/hero_light_premium.jpg"
+                }
+                initial={{ opacity: 0 }}
+                animate={{ opacity: theme === "dark" ? 0.7 : 0.9 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                onError={(e) => {
+                  e.currentTarget.src = "/images/categories/other.jpg";
+                }}
+                alt="Event Hub"
+                className="w-full h-full object-cover"
+              />
+            </AnimatePresence>
+            <div
+              className={`absolute inset-0 bg-gradient-to-b ${
+                theme === "dark"
+                  ? "from-background/60 via-background/20 to-background/95"
+                  : "from-white/40 via-transparent to-white/90"
+              }`}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/90" />
-            <div className="absolute inset-0 bg-black/10 dark:bg-transparent" />{" "}
-            {/* Subtle darkening for light theme text */}
-          </div>
+            <div
+              className={`absolute inset-0 ${
+                theme === "dark" ? "bg-black/40" : "bg-transparent"
+              }`}
+            />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.3)_100%)]" />
+          </motion.div>
 
           <div className="container relative z-10 text-center">
             <motion.div
+              style={{ y: yText, opacity: opacityText }}
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-panel text-[10px] font-black uppercase tracking-[0.4em] mb-12 text-emerald-400">
-                <Sparkles className="h-3 w-3" />
-                Now Streaming Experiences
+              <div
+                className={`inline-flex items-center gap-3 px-6 py-2 rounded-full glass-panel text-[10px] font-black uppercase tracking-[0.5em] mb-8 ${
+                  theme === "dark" ? "text-emerald-400" : "text-emerald-600"
+                }`}
+              >
+                <Sparkles className="h-3 w-3 animate-pulse" />
+                Live Experiences
               </div>
-              <h1 className="text-6xl md:text-[8.5rem] font-medium tracking-tighter leading-[0.85] mb-10 drop-shadow-2xl">
+              <motion.h1
+                animate={{ y: [0, -5, 0] }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className={`text-6xl md:text-8xl font-black tracking-tighter leading-[0.85] mb-10 ${
+                  theme === "dark"
+                    ? "[text-shadow:_0_10px_30px_rgb(0_0_0_/_40%)]"
+                    : "text-foreground"
+                }`}
+              >
                 Find Your <br />
                 <span className="text-gradient italic font-light">
                   Next Memory.
                 </span>
-              </h1>
-              <p className="text-lg md:text-2xl text-foreground/80 dark:text-muted-foreground max-w-2xl mx-auto mb-14 leading-relaxed font-light">
+              </motion.h1>
+              <p
+                className={`text-lg md:text-xl max-w-xl mx-auto mb-12 leading-relaxed ${
+                  theme === "dark"
+                    ? "text-white/80 font-medium"
+                    : "text-foreground/80 font-semibold"
+                }`}
+              >
                 The world's most immersive platform for concerts, festivals, and
-                cultural gatherings. Synced to your pulse.
+                cultural gatherings.
               </p>
+
+              <div className="max-w-3xl mx-auto mb-12 px-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (searchQuery.trim() || locationQuery.trim()) {
+                      const params = new URLSearchParams();
+                      if (searchQuery.trim()) params.append("q", searchQuery);
+                      if (locationQuery.trim())
+                        params.append("location", locationQuery);
+                      navigate(`/events?${params.toString()}`);
+                    }
+                  }}
+                  className="relative flex flex-col md:flex-row items-center gap-2 p-1.5 bg-background/40 backdrop-blur-2xl border border-border/50 rounded-2xl shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all duration-700 group"
+                >
+                  <div className="relative flex-1 w-full group/input">
+                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors" />
+                    <Input
+                      type="text"
+                      placeholder="What?"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-12 md:h-14 pl-14 pr-4 bg-transparent border-none focus-visible:ring-0 text-base font-medium"
+                    />
+                  </div>
+                  <div className="hidden md:block w-px h-6 bg-border/30" />
+                  <div className="relative flex-1 w-full group/location">
+                    <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/location:text-primary transition-colors" />
+                    <Input
+                      type="text"
+                      placeholder="Where?"
+                      value={locationQuery}
+                      onChange={(e) => setLocationQuery(e.target.value)}
+                      className="h-12 md:h-14 pl-14 pr-4 bg-transparent border-none focus-visible:ring-0 text-base font-medium"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full md:w-auto h-12 md:h-14 px-8 rounded-xl font-black uppercase tracking-widest text-[9px] bg-primary text-primary-foreground hover:scale-[1.02] active:scale-95 transition-all duration-500 shadow-lg"
+                  >
+                    Explore
+                  </Button>
+                </form>
+              </div>
+
               <div className="flex flex-col sm:flex-row gap-8 justify-center items-center">
                 <Link to="/events">
                   <Button className="h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 transition-all rounded-xl font-bold uppercase tracking-wider text-xs shadow-lg">
@@ -123,173 +256,52 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Categories Section - Improved with Backgrounds */}
-        <section className="py-32 container border-t border-white/5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+        {/* Categories Section - Simplified */}
+        <section className="py-24 container border-t border-white/5">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6">
             {categories.map((cat, i) => (
               <motion.div
                 key={i}
-                whileHover={{ y: -5 }}
-                className="relative h-64 rounded-2xl overflow-hidden group cursor-pointer border border-border shadow-md"
+                whileHover={{ y: -5, scale: 1.05 }}
+                className="relative px-8 py-4 rounded-2xl overflow-hidden group cursor-pointer border border-border/50 glass-panel bg-muted/20 flex items-center gap-3 transition-all duration-300"
               >
-                <img
-                  src={cat.image}
-                  alt={cat.label}
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all" />
-                <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                  <span className="text-sm font-bold uppercase tracking-widest text-white bg-black/60 backdrop-blur-sm px-4 py-2 inline-block w-fit rounded-lg">
-                    {cat.label}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Dynamic Highlights Section */}
-        <section className="py-32 md:py-60 container">
-          <div className="grid lg:grid-cols-2 gap-32 items-center">
-            <div>
-              <div className="h-1 w-20 bg-emerald-500 mb-10 shadow-[0_0_20px_#10B981]" />
-              <h2 className="text-5xl md:text-8xl font-medium tracking-tighter leading-none mb-10">
-                Built for <br />
-                <span className="italic font-light text-gradient">
-                  Creators.
+                <cat.icon className={`h-5 w-5 ${cat.color}`} />
+                <span className="text-xs font-black uppercase tracking-widest text-foreground">
+                  {cat.label}
                 </span>
-              </h2>
-              <p className="text-2xl text-foreground/70 dark:text-muted-foreground font-light leading-relaxed mb-16">
-                Pulse provides organizers with liquid analytics and precision
-                tools to build unforgettable experiences. From underground shows
-                to global arenas.
-              </p>
-              <div className="grid sm:grid-cols-2 gap-10">
-                {[
-                  {
-                    icon: Globe,
-                    label: "Global Reach",
-                    color: "text-emerald-400",
-                  },
-                  {
-                    icon: Zap,
-                    label: "Live Ticketing",
-                    color: "text-indigo-400",
-                  },
-                  {
-                    icon: ShieldCheck,
-                    label: "Secure Access",
-                    color: "text-violet-400",
-                  },
-                  {
-                    icon: TrendingUp,
-                    label: "Fan Insights",
-                    color: "text-rose-400",
-                  },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-5 group">
-                    <div
-                      className={`h-12 w-12 rounded-2xl bg-muted border border-border flex items-center justify-center transition-all group-hover:bg-foreground group-hover:text-background`}
-                    >
-                      <item.icon className="h-5 w-5" />
-                    </div>
-                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-violet-500/20 blur-[100px] rounded-full" />
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="relative z-10 glass-card p-4 aspect-square flex items-center justify-center overflow-hidden border-2 border-border"
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&q=80&w=2070"
-                  alt="Stadium Concert"
-                  className="w-full h-full object-cover rounded-[2rem] opacity-80"
-                />
-                <div className="absolute inset-x-8 bottom-8 p-10 glass-panel rounded-[2rem] border border-white/10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400 block mb-3">
-                    Precision Analytics
-                  </span>
-                  <h3 className="text-2xl font-black italic tracking-tighter uppercase mb-2">
-                    Measure the Hype
-                  </h3>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest italic font-light">
-                    Real-time Audience Feedback Flow
-                  </p>
-                </div>
               </motion.div>
-            </div>
-          </div>
-        </section>
-
-        {/* Immersive Moments Section */}
-        <section className="py-32 overflow-hidden border-y border-white/5 bg-white/[0.02]">
-          <div className="container mb-16 flex justify-between items-end">
-            <div>
-              <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2">
-                Moments that <span className="text-pulse-emerald">Pulse.</span>
-              </h2>
-              <p className="text-muted-foreground font-light tracking-widest uppercase text-xs">
-                A glimpse into the extraordinary
-              </p>
-            </div>
-            <div className="hidden md:flex gap-4">
-              <div className="h-12 w-12 rounded-full border border-border flex items-center justify-center text-muted-foreground/20">
-                <ArrowRight className="h-5 w-5 rotate-180" />
-              </div>
-              <div className="h-12 w-12 rounded-full border border-border flex items-center justify-center text-pulse-emerald">
-                <ArrowRight className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex animate-marquee-fast">
-            {[...moments, ...moments].map((img, i) => (
-              <div key={i} className="px-4 flex-shrink-0 w-80 md:w-[30rem]">
-                <div className="aspect-[4/5] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl relative group">
-                  <img
-                    src={img}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-              </div>
             ))}
           </div>
         </section>
 
-        {/* Featured Pulse Stream */}
-        <section className="py-32 bg-white/[0.01]">
-          <div className="container">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-24">
+
+        {/* Featured Pulse Stream - Improved */}
+        <section className="py-24 bg-white/[0.01] relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[150px] pointer-events-none rounded-full" />
+          
+          <div className="container relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-10 mb-20 text-center md:text-left">
               <div className="max-w-xl">
-                <h2 className="text-4xl md:text-6xl font-medium tracking-tighter uppercase mb-6">
-                  Trending{" "}
+                <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase mb-6 leading-none">
+                  Trending <br />
                   <span className="text-pulse-emerald italic">Pulses.</span>
                 </h2>
-                <p className="text-muted-foreground font-light text-lg">
-                  Curated selections from the world's most vibrant event
-                  communities.
+                <p className="text-muted-foreground font-light text-lg tracking-wide">
+                  The most vibrant gatherings currently echoing through the City Pulse network.
                 </p>
               </div>
               <Link
                 to="/events"
-                className="group flex items-center gap-4 text-xs font-black uppercase tracking-[0.3em] text-pulse-emerald hover:text-foreground transition-colors"
+                className="group flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] text-pulse-emerald hover:text-foreground transition-all duration-500 bg-pulse-emerald/5 px-8 py-5 rounded-2xl border border-pulse-emerald/20 hover:border-primary/50"
               >
-                View Entire Season
-                <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-3" />
+                Explore Full Season
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-2" />
               </Link>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid md:grid-cols-3 gap-8 md:gap-12">
               {isTrendingLoading ? (
-                Array(4)
+                Array(6)
                   .fill(0)
                   .map((_, i) => (
                     <div
@@ -307,46 +319,96 @@ const Index = () => {
                   </div>
                 ))
               ) : (
-                <div className="col-span-2 py-20 text-center border border-dashed border-border bg-muted flex flex-col items-center gap-4 rounded-[2rem]">
-                  <Sparkles className="h-10 w-10 text-pulse-emerald/30" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                    The pulse is silent. Production incoming.
+                <div className="col-span-3 py-24 text-center border border-dashed border-border bg-muted/20 flex flex-col items-center gap-6 rounded-[3rem]">
+                  <Sparkles className="h-12 w-12 text-pulse-emerald/30 animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground">
+                    The pulse is silent. Event incoming.
                   </p>
                 </div>
               )}
             </div>
-          </div>
+</div>
         </section>
 
+        {/* Go Local Section */}
+        <GoLocalSection />
+
         {/* Call to Connect - Unified Landscape */}
-        <section className="py-40 container text-center">
+        <section className="py-40 container relative overflow-hidden">
+          {/* Background Decorative Elements */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+          
           <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            initial={{ opacity: 0, y: 100 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative py-32 md:py-64 px-10 rounded-3xl overflow-hidden group"
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            className={`relative py-20 md:py-32 px-10 rounded-[3rem] overflow-hidden border group backdrop-blur-3xl shadow-2xl ${
+              theme === "dark"
+                ? "border-white/10 bg-zinc-950/40"
+                : "border-black/5 bg-white/60"
+            }`}
           >
+            {/* Background Image / Mesh */}
             <div className="absolute inset-0 z-0">
-              <img
-                src="/assets/images/cta_production_hq_1772894634095.png"
-                className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000"
-              />
-              <div className="absolute inset-0 bg-gradient-to-br from-pulse-emerald/20 to-pulse-indigo/20 backdrop-blur-[100px] border border-border/50" />
-              <div className="absolute inset-0 bg-black/5 dark:bg-transparent" />
+               <div className={`absolute inset-0 bg-gradient-to-br transition-colors duration-1000 ${
+                 theme === "dark" 
+                   ? "from-pulse-emerald/10 via-transparent to-pulse-indigo/10" 
+                   : "from-pulse-emerald/20 via-white/40 to-pulse-indigo/20"
+               }`} />
+               <div className={`absolute inset-0 mesh-bg transition-opacity duration-1000 ${
+                 theme === "dark" ? "opacity-20" : "opacity-40"
+               }`} />
             </div>
 
-            <div className="relative z-10 max-w-4xl mx-auto">
-              <h2 className="text-5xl md:text-7xl font-medium tracking-tighter leading-none mb-12">
+            {/* Floating Stars (SVG) */}
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute top-10 right-10 opacity-20 pointer-events-none"
+            >
+              <svg width="120" height="120" viewBox="0 0 100 100" fill="none">
+                <path d="M50 0 L58 35 L100 42 L65 58 L72 100 L50 75 L28 100 L35 58 L0 42 L42 35 Z" fill="hsl(var(--primary))" />
+              </svg>
+            </motion.div>
+
+            <div className="relative z-10 max-w-4xl mx-auto text-center">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+                className={`inline-flex items-center gap-2 px-6 py-2 rounded-full border text-[10px] font-black uppercase tracking-[0.5em] mb-12 shadow-sm ${
+                  theme === "dark"
+                    ? "bg-primary/10 border-primary/20 text-primary"
+                    : "bg-primary/5 border-primary/30 text-primary"
+                }`}
+              >
+                <Stars className="h-3 w-3 animate-pulse" />
+                Next Generation Protocol
+              </motion.div>
+
+              <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-[0.8] mb-8">
                 Start Your <br />
-                <span className="text-gradient italic">Production.</span>
+                <span className={`text-gradient italic font-light ${
+                  theme === "dark" 
+                    ? "drop-shadow-[0_0_30px_hsla(var(--primary),0.3)]" 
+                    : "drop-shadow-[0_0_20px_hsla(var(--primary),0.1)]"
+                }`}>Event.</span>
               </h2>
-              <p className="text-foreground/80 dark:text-muted-foreground text-xl md:text-2xl mb-16 font-light max-w-2xl mx-auto leading-relaxed">
+              
+              <p className={`text-base md:text-lg mb-10 font-light max-w-xl mx-auto leading-relaxed italic ${
+                theme === "dark" ? "text-white/60" : "text-black/50"
+              }`}>
                 Join thousands of organizers who use Pulse to bridge the
                 connection between their vision and the fans.
               </p>
+              
               <Link to="/auth">
-                <Button className="h-16 px-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-bold uppercase tracking-widest text-sm shadow-xl transition-all">
-                  Register Profile
+                <Button className="h-14 px-12 bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] shadow-lg hover:scale-105 transition-all group overflow-hidden relative">
+                  <span className="relative z-10">Register Profile</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                  <ArrowRight className="h-4 w-4 ml-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
             </div>
@@ -355,8 +417,16 @@ const Index = () => {
       </main>
 
       <Footer />
+      <LocalStoreCartDrawer />
 
       <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 2s infinite;
+        }
         @keyframes pulse-slow {
           0%, 100% { opacity: 0.6; transform: scale(1.1); }
           50% { opacity: 0.8; transform: scale(1.15); }

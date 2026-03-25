@@ -18,6 +18,7 @@ export interface IEventManager extends Document {
     ifscCode: string;
   };
   upiId?: string;
+  payoutCycle: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +58,10 @@ const EventManagerSchema: Schema = new Schema(
       ifscCode: String,
     },
     upiId: String,
+    payoutCycle: {
+      type: String,
+      default: 'T+2',
+    },
   },
   { timestamps: true }
 );

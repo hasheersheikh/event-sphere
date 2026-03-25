@@ -15,8 +15,15 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       location, 
       category, 
       image, 
-      ticketTypes 
+      ticketTypes,
+      vouchers 
     } = req.body;
+
+    if (req.user?.role === 'event_manager' && !req.user?.isApproved) {
+      return res.status(403).json({ 
+        message: 'Your manager account is currently under review. You cannot broadcast events until authorized by the Pulse Council.' 
+      });
+    }
 
     const event = await Event.create({
       title,
@@ -28,7 +35,10 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       category,
       image,
       ticketTypes,
+      vouchers,
       creator: req.user?._id,
+      status: 'under_review',
+      isApproved: false
     });
 
     res.status(201).json(event);
@@ -42,7 +52,7 @@ export const getEvents = async (req: Request, res: Response) => {
     const { q, category, location, date, sort, limit } = req.query;
     let query: any = { 
       status: 'published',
-      isApproved: true // Only show approved events
+      isApproved: true
     };
 
     if (q) {
@@ -135,6 +145,59 @@ export const getMyEvents: RequestHandler = async (req: AuthRequest, res: Respons
   try {
     const events = await Event.find({ creator: req.user?._id }).sort({ date: 1 });
     res.json(events);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const applyVoucher = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body;
+    const { id } = req.params;
+
+    const event = await Event.findById(id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    const voucher = event.vouchers?.find((v: any) => v.code === code && v.isActive);
+    if (!voucher) {
+      return res.status(400).json({ message: 'Invalid or inactive voucher code' });
+    }
+
+    res.json({
+      message: 'Voucher applied successfully',
+      code: voucher.code,
+      discountType: voucher.discountType,
+      discountAmount: voucher.discountAmount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const toggleTicketSoldOut = async (req: AuthRequest, res: Response) => {
+  try {
+    const id = req.params.id as string;
+    const ticketIndex = req.params.ticketIndex as string;
+    const event = await Event.findById(id as string);
+
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+    if (event.creator.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    const index = parseInt(ticketIndex);
+    if (isNaN(index) || index < 0 || index >= event.ticketTypes.length) {
+      return res.status(400).json({ message: 'Invalid ticket index' });
+    }
+
+    event.ticketTypes[index].isSoldOut = !event.ticketTypes[index].isSoldOut;
+    // @ts-ignore - isSoldOut might not be in the document type yet if using old types
+    event.markModified(`ticketTypes.${index}.isSoldOut`);
+    await event.save();
+
+    res.json(event);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

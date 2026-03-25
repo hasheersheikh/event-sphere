@@ -6,6 +6,8 @@ import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
 import Payout from '../models/Payout.js';
+import Volunteer from '../models/Volunteer.js';
+import Settlement from '../models/Payout.js'; // Assuming Payout and Settlement were used interchangeably or checking models
 
 export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
@@ -93,7 +95,8 @@ export const getManagerDetail: RequestHandler = async (req: AuthRequest, res: Re
         pendingPayout: netPayable
       },
       events: eventStats,
-      payouts
+      payouts,
+      volunteers: await Volunteer.find({ manager: id }).populate('event', 'title')
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -311,7 +314,7 @@ export const deleteManager: RequestHandler = async (req: AuthRequest, res: Respo
 
 export const updateManagerCommission: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-  const { commissionType, commissionValue } = req.body;
+  const { commissionType, commissionValue, payoutCycle } = req.body;
   try {
     const manager = await EventManager.findById(id);
     if (!manager) {
@@ -321,6 +324,7 @@ export const updateManagerCommission: RequestHandler = async (req: AuthRequest, 
 
     if (commissionType) manager.commissionType = commissionType;
     if (commissionValue !== undefined) manager.commissionValue = commissionValue;
+    if (payoutCycle) manager.payoutCycle = payoutCycle;
 
     await manager.save();
     res.json({ message: 'Commission protocol updated.', manager });
@@ -359,14 +363,44 @@ export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Respo
     const totalEvents = await Event.countDocuments({});
     const totalBookings = await Booking.countDocuments({});
     
-    const bookings = await Booking.find({});
+    const bookings = await Booking.find({ status: 'confirmed' });
     const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+
+    // Get Top 5 Managers by Revenue
+    const topManagers = await EventManager.find({})
+      .select('name email totalRevenue')
+      .sort({ totalRevenue: -1 })
+      .limit(5);
+
+    // Get Recent Events
+    const recentEvents = await Event.find({})
+      .populate('creator', 'name')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Get Recent User Registrations (Attendee + Manager)
+    const recentUsers = await User.find({})
+      .select('name email role createdAt')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const recentStaff = await EventManager.find({})
+      .select('name email role createdAt')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    const combinedRecentUsers = [...recentUsers, ...recentStaff]
+      .sort((a, b) => (b.createdAt as any) - (a.createdAt as any))
+      .slice(0, 5);
 
     res.json({
       totalUsers,
       totalEvents,
       totalBookings,
-      totalRevenue
+      totalRevenue,
+      topManagers,
+      recentEvents,
+      recentUsers: combinedRecentUsers
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -434,16 +468,17 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
       return;
     }
 
-    const bookings = await Booking.find({ event: id, status: 'confirmed' }).populate('user', 'name email');
+    const passengers = await Booking.find({ event: id, status: 'confirmed' }).populate('user', 'name email');
+    const volunteers = await Volunteer.find({ event: id }).select('-password');
     
-    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
-    const totalTicketsSold = bookings.reduce((acc, b) => {
+    const totalRevenue = passengers.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const totalTicketsSold = passengers.reduce((acc, b) => {
       return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
     }, 0);
 
     // Group sales by ticket type
     const ticketStats = event.ticketTypes.map(tt => {
-      const soldForType = bookings.reduce((acc, b) => {
+      const soldForType = passengers.reduce((acc, b) => {
         return acc + b.tickets
           .filter(t => t.type === tt.name)
           .reduce((sum, t) => sum + t.quantity, 0);
@@ -465,7 +500,8 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
         capacity: event.ticketTypes.reduce((acc, tt) => acc + tt.capacity, 0),
       },
       ticketStats,
-      attendees: bookings.map(b => {
+      volunteers,
+      attendees: passengers.map(b => {
         const attendee: any = b.user;
         return {
           _id: attendee?._id,
@@ -482,7 +518,6 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
   }
 };
 
-import Volunteer from '../models/Volunteer.js';
 import bcrypt from 'bcrypt';
 
 export const getAllVolunteers: RequestHandler = async (req: AuthRequest, res: Response) => {

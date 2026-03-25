@@ -46,8 +46,8 @@ const ScannerPage = () => {
 
       const config = {
         fps: 20,
-        qrbox: { width: 280, height: 280 },
-        aspectRatio: window.innerWidth / window.innerHeight,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
       };
 
       await html5QrCode.start(
@@ -136,87 +136,86 @@ const ScannerPage = () => {
             exit={{ opacity: 0 }}
             className="relative flex-1 flex flex-col"
           >
-            {/* Camera View */}
-            <div id="reader" className="absolute inset-0 z-0" />
-
-            {/* UI Overlay */}
-            <div className="relative z-10 flex-1 flex flex-col justify-between p-6 bg-transparent">
-              {/* Header */}
-              <div className="flex items-center justify-between">
+            {/* Header / Navigation */}
+            <header className="h-20 bg-zinc-900 border-b border-white/10 flex items-center justify-between px-6 z-20">
+              <div className="flex items-center gap-4">
                 <button
                   onClick={() => navigate(-1)}
-                  className="h-12 w-12 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10"
+                  className="h-10 w-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all"
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
-                <div className="px-4 py-2 rounded-full bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">
-                  {user?.role === "volunteer"
-                    ? `GATE: ${user.gate || "ALPHA"}`
-                    : "Secure Scanner v2.0"}
+                <div>
+                  <h1 className="text-sm font-black uppercase tracking-widest text-white leading-none">
+                    Scanner <span className="text-emerald-500">Hub.</span>
+                  </h1>
+                  <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
+                    Secure Entry Node
+                  </p>
                 </div>
-                <button
+              </div>
+              <div className="flex items-center gap-3">
+                 <button
                   onClick={toggleTorch}
-                  className={`h-12 w-12 rounded-full backdrop-blur-md flex items-center justify-center border ${isTorchOn ? "bg-orange-500 border-none text-black" : "bg-black/40 border-white/10"}`}
+                  className={`h-10 px-4 rounded-xl border flex items-center gap-2 transition-all ${isTorchOn ? "bg-orange-500 border-none text-black" : "bg-white/5 border-white/10 text-white/60"}`}
                 >
-                  {isTorchOn ? (
-                    <Zap className="h-5 w-5 fill-current" />
-                  ) : (
-                    <ZapOff className="h-5 w-5" />
-                  )}
+                  {isTorchOn ? <Zap className="h-4 w-4 fill-current" /> : <ZapOff className="h-4 w-4" />}
+                  <span className="text-[9px] font-black uppercase tracking-widest">
+                    {isTorchOn ? "Torch On" : "Torch Off"}
+                  </span>
                 </button>
               </div>
+            </header>
 
-              {/* Scanning Box Helper */}
-              <div className="relative flex-1 flex items-center justify-center">
-                <div className="w-72 h-72 border-2 border-white/20 relative group">
-                  {/* Corners */}
-                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-emerald-500" />
-                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-emerald-500" />
-                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-emerald-500" />
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-emerald-500" />
-
-                  {/* Laser Line */}
-                  <motion.div
-                    animate={{ top: ["10%", "90%"] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="absolute left-4 right-4 h-0.5 bg-emerald-500/60 shadow-[0_0_15px_#10b981]"
-                  />
-                </div>
-
-                <div className="absolute bottom-1/4 translate-y-20 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-2">
-                    Align QR Code
-                  </p>
-                  <div className="flex items-center gap-2 justify-center">
-                    <Search className="h-3 w-3 text-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-black uppercase text-emerald-500">
-                      Searching...
-                    </span>
+            {/* Camera View Container */}
+            <div className="flex-1 relative bg-zinc-950 flex flex-col items-center justify-center p-6">
+              <div className="w-full max-w-[320px] aspect-square relative overflow-hidden rounded-[2.5rem] border border-white/10 shadow-2xl bg-black">
+                <div id="reader" className="absolute inset-0 z-0 [&_video]:object-cover [&_video]:w-full [&_video]:h-full" />
+                
+                {/* Scanning UI Overlays */}
+                <div className="absolute inset-0 z-10 pointer-events-none flex flex-col items-center justify-center">
+                  <div className="w-64 h-64 border-2 border-white/10 relative">
+                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-emerald-500" />
+                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-emerald-500" />
+                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-emerald-500" />
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-emerald-500" />
+                    
+                    <motion.div
+                      animate={{ top: ["10%", "90%"] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className="absolute left-4 right-4 h-0.5 bg-emerald-500/60 shadow-[0_0_15px_#10b981]"
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Bottom Info */}
-              <div className="bg-black/80 backdrop-blur-xl border border-white/5 p-6 -mx-6 -mb-6 flex items-center gap-5">
-                <div className="h-12 w-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center">
-                  <Maximize2 className="h-6 w-6 text-emerald-500" />
+              <div className="mt-12 text-center space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
+                  Align Ticket QR Protocol
+                </p>
+                <div className="flex items-center gap-3 justify-center bg-emerald-500/10 border border-emerald-500/20 px-6 py-2 rounded-full">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                    Optics Online / Scanning
+                  </span>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-xs font-black uppercase tracking-widest text-white/90">
-                    {user?.role === "volunteer"
-                      ? "Personnel Capture"
-                      : "Mobile Capture"}
-                  </h3>
-                  <p className="text-zinc-500 text-[10px] font-bold italic">
-                    {user?.role === "volunteer"
-                      ? `Stationed at ${user.gate || "Primary Gate"}`
-                      : "Verify production access IDs in real-time."}
-                  </p>
-                </div>
+              </div>
+            </div>
+
+            {/* Bottom Status Panel */}
+            <div className="h-24 bg-zinc-900 border-t border-white/5 px-8 flex items-center gap-6">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <Maximize2 className="h-6 w-6 text-emerald-500" />
+              </div>
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/90">
+                  {user?.role === "volunteer" ? "Gate Access Control" : "Event Entry Node"}
+                </h3>
+                <p className="text-zinc-600 text-[9px] font-bold italic mt-0.5">
+                  {user?.role === "volunteer"
+                    ? `Authorized Station: ${user.gate || "Primary ALPHA"}`
+                    : "Synchronizing participant IDs in real-time."}
+                </p>
               </div>
             </div>
           </motion.div>

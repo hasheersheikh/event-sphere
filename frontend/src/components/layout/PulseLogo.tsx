@@ -28,17 +28,18 @@ const PulseLogo = ({ className = "", size = 32 }: PulseLogoProps) => {
         </linearGradient>
       </defs>
 
-      {/* Main Star */}
+      {/* Main Star (Vertical/Horizontal) */}
       <path
-        d="M50 2L61 35H96L68 55L79 88L50 68L21 88L32 55L4 35H39L50 2Z"
+        d="M50 5L58 42L95 50L58 58L50 95L42 58L5 50L42 42Z"
         fill="url(#pulse-gradient-logo)"
       />
 
-      {/* Offset Secondary Star (Double Star effect) */}
+      {/* Secondary Star (Rotated 45 degrees) */}
       <path
-        d="M50 15L58 39H83L63 54L71 78L50 63L29 78L37 54L17 39H42L50 15Z"
-        fill="currentColor"
-        fillOpacity="0.4"
+        d="M50 15L56 44L85 50L56 56L50 85L44 56L15 50L44 44Z"
+        fill="url(#pulse-gradient-logo)"
+        transform="rotate(45 50 50)"
+        opacity="0.6"
       />
     </svg>
   );

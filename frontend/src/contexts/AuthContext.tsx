@@ -5,6 +5,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import api from "@/lib/api";
 
 interface User {
   _id: string;
@@ -60,30 +61,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: string = "user",
   ) => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password, role }),
-        },
-      );
+      const response = await api.post("/auth/login", { email, password, role });
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (response.ok) {
-        const userData = { ...data, token: data.token }; // Backend returns user fields directly or in data.user?
-        // Based on controller, it returns: { _id, name, email, role, isApproved, token }
-        setUser(data);
-        localStorage.setItem("user", JSON.stringify(data));
-        return { success: true };
-      } else {
-        return { success: false, message: data.message || "Login failed" };
-      }
-    } catch (error) {
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      return { success: true };
+    } catch (error: any) {
       return {
         success: false,
-        message: "Server error. Please try again later.",
+        message: error.response?.data?.message || "Login failed. Please try again.",
       };
     }
   };
@@ -95,31 +82,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     role: string = "user",
   ) => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:5001"}/api/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, role }),
-        },
-      );
+      const response = await api.post("/auth/register", {
+        name,
+        email,
+        password,
+        role,
+      });
+      const data = response.data;
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setUser(data);
-        localStorage.setItem("user", JSON.stringify(data));
-        return { success: true };
-      } else {
-        return {
-          success: false,
-          message: data.message || "Registration failed",
-        };
-      }
-    } catch (error) {
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      return { success: true };
+    } catch (error: any) {
       return {
         success: false,
-        message: "Server error. Please try again later.",
+        message: error.response?.data?.message || "Registration failed. Please try again.",
       };
     }
   };

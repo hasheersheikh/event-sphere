@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   User,
   Lock,
@@ -10,14 +10,8 @@ import {
   ShieldCheck,
   ChevronRight,
   AlertCircle,
-  CheckCircle2,
   Camera,
   Settings2,
-  Bell,
-  Fingerprint,
-  CreditCard,
-  Landmark,
-  QrCode,
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -25,69 +19,12 @@ import { toast } from "sonner";
 const AccountSettingsPage = () => {
   const { user, login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("profile");
   const [formData, setFormData] = useState({
     name: user?.name || "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-
-  const [payoutData, setPayoutData] = useState({
-    accountHolder: "",
-    accountNumber: "",
-    bankName: "",
-    ifscCode: "",
-    upiId: "",
-  });
-
-  const [isPayoutLoading, setIsPayoutLoading] = useState(false);
-
-  useEffect(() => {
-    if (user?.role === "event_manager") {
-      fetchPayoutDetails();
-    }
-  }, [user]);
-
-  const fetchPayoutDetails = async () => {
-    try {
-      const { data } = await api.get("/manager/payout-details");
-      if (data) {
-        setPayoutData({
-          accountHolder: data.bankDetails?.accountHolder || "",
-          accountNumber: data.bankDetails?.accountNumber || "",
-          bankName: data.bankDetails?.bankName || "",
-          ifscCode: data.bankDetails?.ifscCode || "",
-          upiId: data.upiId || "",
-        });
-      }
-    } catch (error) {
-      console.error("Failed to fetch payout records.");
-    }
-  };
-
-  const handleUpdatePayout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsPayoutLoading(true);
-    try {
-      await api.patch("/manager/payout-details", {
-        bankDetails: {
-          accountHolder: payoutData.accountHolder,
-          accountNumber: payoutData.accountNumber,
-          bankName: payoutData.bankName,
-          ifscCode: payoutData.ifscCode,
-        },
-        upiId: payoutData.upiId,
-      });
-      toast.success("Settlement parameters synchronized.");
-    } catch (error: any) {
-      toast.error(
-        error.response?.data?.message || "Failed to update payout details",
-      );
-    } finally {
-      setIsPayoutLoading(false);
-    }
-  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,449 +73,215 @@ const AccountSettingsPage = () => {
     }
   };
 
-  const tabs = [
-    { id: "profile", label: "Identity", icon: User },
-    { id: "security", label: "Security", icon: ShieldCheck },
-    ...(user?.role === "event_manager"
-      ? [{ id: "payout", label: "Settlement", icon: CreditCard }]
-      : []),
-    { id: "notifications", label: "Frequency", icon: Bell },
-  ];
-
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6 md:p-12 lg:p-20 overflow-hidden relative">
+    <div className="min-h-screen bg-background text-foreground p-6 md:p-8 lg:p-12 overflow-hidden relative">
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -z-10" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] -z-10" />
 
-      <div className="max-w-6xl mx-auto space-y-12">
+      <div className="max-w-4xl mx-auto space-y-12">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-white/10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-border">
           <div>
-            <div className="flex items-center gap-2 text-emerald-400 mb-4 animate-pulse">
+            <div className="flex items-center gap-2 text-primary mb-4 animate-pulse">
               <Settings2 className="h-4 w-4" />
               <span className="text-[10px] font-black uppercase tracking-[0.4em]">
                 System Configuration
               </span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-none">
-              Account <span className="text-emerald-400">Settings.</span>
-            </h1>
+            <h1 className="text-4xl md:text-5xl font-black italic tracking-tighter uppercase leading-none">
+                Account <span className="text-primary">Settings.</span>
+              </h1>
           </div>
           <div className="text-right">
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-loose">
-              Presence: <span className="text-white">{user?.role}</span>
+            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest leading-loose">
+              Presence: <span className="text-foreground">{user?.role}</span>
               <br />
-              Node: <span className="text-white">Active</span>
+              Node: <span className="text-foreground">Active</span>
             </p>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12">
-          {/* Navigation Sidebar */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="flex lg:flex-col p-2 bg-white/5 border border-white/10 rounded-2xl overflow-x-auto lg:overflow-visible">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-4 px-6 py-4 rounded-xl transition-all font-black uppercase text-[10px] tracking-widest whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "bg-emerald-500 text-black shadow-[0_0_20px_rgba(16,185,129,0.3)]"
-                      : "hover:bg-white/5 text-white/40"
-                  }`}
-                >
-                  <tab.icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              ))}
+        <div className="space-y-12">
+          {/* Identity Section */}
+          <section className="space-y-10">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                <User className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-black italic uppercase tracking-tighter">
+                Identity <span className="text-primary">Node.</span>
+              </h2>
             </div>
 
-            <div className="hidden lg:block p-6 bg-blue-500/5 border border-blue-500/20 rounded-3xl space-y-4">
-              <div className="flex items-center gap-2 text-blue-400">
-                <ShieldCheck className="h-4 w-4" />
-                <span className="text-[9px] font-black uppercase tracking-widest">
-                  Security Advisory
-                </span>
+            <div className="p-8 md:p-12 bg-card border border-border rounded-[2.5rem] relative overflow-hidden group shadow-sm">
+              <div className="relative z-10 space-y-10">
+                <div className="flex flex-col md:flex-row items-center gap-8 mb-10">
+                  <div className="relative group">
+                    <div className="h-32 w-32 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 p-1 shadow-lg">
+                      <div className="h-full w-full rounded-full bg-background flex items-center justify-center text-4xl font-black italic">
+                        {user?.name?.charAt(0)}
+                      </div>
+                    </div>
+                    <button className="absolute bottom-1 right-1 p-2 bg-primary text-primary-foreground rounded-full shadow-lg group-hover:scale-110 transition-transform">
+                      <Camera className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="text-center md:text-left">
+                    <h3 className="text-xl font-black italic uppercase tracking-tighter mb-1 text-foreground">
+                      {user?.name}
+                    </h3>
+                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
+                      Primary Biological Identifier
+                    </p>
+                  </div>
+                </div>
+
+                <form
+                  onSubmit={handleUpdateProfile}
+                  className="grid md:grid-cols-2 gap-8"
+                >
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Display Username
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                      <Input
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            name: e.target.value,
+                          })
+                        }
+                        className="h-14 pl-14 bg-muted/30 border-border focus:border-primary rounded-2xl font-bold transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2 opacity-50 cursor-not-allowed">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Primary Endpoint (Email)
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/30" />
+                      <Input
+                        value={user?.email}
+                        disabled
+                        className="h-14 pl-14 bg-muted border-border rounded-2xl font-bold cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 pt-4">
+                    <Button
+                      disabled={isLoading}
+                      className="h-14 px-10 bg-primary hover:bg-primary/90 text-black rounded-2xl font-black uppercase tracking-widest group shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                    >
+                      Update Identity
+                      <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </div>
+                </form>
               </div>
-              <p className="text-[10px] font-medium leading-relaxed italic text-white/60">
-                Rotate your access keywords periodically to maintain maximum
-                node integrity within the collective.
+            </div>
+          </section>
+
+          {/* Security Section */}
+          <section className="space-y-10">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-orange-500/10 rounded-xl flex items-center justify-center text-orange-500">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <h2 className="text-xl font-black italic uppercase tracking-tighter">
+                Security <span className="text-orange-500">Protocols.</span>
+              </h2>
+            </div>
+
+            <div className="p-8 md:p-12 bg-card border border-border rounded-[2.5rem] shadow-sm">
+              <form onSubmit={handlePasswordReset} className="space-y-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    Current Keyword
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500/50" />
+                    <Input
+                      type="password"
+                      value={formData.currentPassword}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          currentPassword: e.target.value,
+                        })
+                      }
+                      className="h-14 pl-14 bg-muted/30 border-border focus:border-orange-500 rounded-2xl font-bold transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      New Keyword
+                    </label>
+                    <Input
+                      type="password"
+                      value={formData.newPassword}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          newPassword: e.target.value,
+                        })
+                      }
+                      className="h-14 bg-muted/30 border-border focus:border-orange-500 rounded-2xl font-bold transition-all"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Confirm Protocol
+                    </label>
+                    <Input
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          confirmPassword: e.target.value,
+                        })
+                      }
+                      className="h-14 bg-muted/30 border-border focus:border-orange-500 rounded-2xl font-bold transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className="pt-4">
+                  <Button
+                    disabled={isLoading}
+                    className="h-14 px-10 bg-foreground text-background hover:bg-foreground/90 rounded-2xl font-black uppercase tracking-widest"
+                  >
+                    Rotate Security Keys
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          {/* Warning Section */}
+          <div className="p-8 bg-orange-500/5 border border-orange-500/10 rounded-[2rem] flex flex-col md:flex-row items-center gap-6">
+            <div className="h-12 w-12 rounded-full bg-orange-500/20 flex items-center justify-center text-orange-500 shrink-0">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-1">
+                Security Advisory
+              </p>
+              <p className="text-xs font-medium italic text-muted-foreground">
+                Updating your identity or protocols may require re-authentication. 
+                Ensure all session data is cached before proceeding with heavy configuration changes.
               </p>
             </div>
-          </div>
-
-          {/* Form Content */}
-          <div className="lg:col-span-9">
-            <AnimatePresence mode="wait">
-              {activeTab === "profile" && (
-                <motion.div
-                  key="profile"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[2.5rem] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                      <User className="h-40 w-40" />
-                    </div>
-
-                    <div className="relative z-10 space-y-10">
-                      <div className="flex flex-col md:flex-row items-center gap-8 mb-10">
-                        <div className="relative group">
-                          <div className="h-32 w-32 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 p-1">
-                            <div className="h-full w-full rounded-full bg-zinc-950 flex items-center justify-center text-4xl font-black italic">
-                              {user?.name?.charAt(0)}
-                            </div>
-                          </div>
-                          <button className="absolute bottom-1 right-1 p-2 bg-emerald-500 text-black rounded-full shadow-lg group-hover:scale-110 transition-transform">
-                            <Camera className="h-4 w-4" />
-                          </button>
-                        </div>
-                        <div className="text-center md:text-left">
-                          <h3 className="text-2xl font-black italic uppercase tracking-tighter mb-1">
-                            {user?.name}
-                          </h3>
-                          <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                            Individual Identity Node
-                          </p>
-                        </div>
-                      </div>
-
-                      <form
-                        onSubmit={handleUpdateProfile}
-                        className="grid md:grid-cols-2 gap-8"
-                      >
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Display Username
-                          </label>
-                          <div className="relative">
-                            <User className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-400" />
-                            <Input
-                              value={formData.name}
-                              onChange={(e) =>
-                                setFormData({
-                                  ...formData,
-                                  name: e.target.value,
-                                })
-                              }
-                              className="h-14 pl-14 bg-white/5 border-white/10 focus:border-emerald-500 rounded-2xl font-bold transition-all"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2 opacity-50 cursor-not-allowed">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Primary Endpoint (Email)
-                          </label>
-                          <div className="relative">
-                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
-                            <Input
-                              value={user?.email}
-                              disabled
-                              className="h-14 pl-14 bg-white/5 border-white/10 rounded-2xl font-bold cursor-not-allowed"
-                            />
-                          </div>
-                        </div>
-                        <div className="md:col-span-2 pt-4">
-                          <Button
-                            disabled={isLoading}
-                            className="h-14 px-10 bg-emerald-500 hover:bg-emerald-400 text-black rounded-2xl font-black uppercase tracking-widest group"
-                          >
-                            Update Identity
-                            <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "security" && (
-                <motion.div
-                  key="security"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[2.5rem]">
-                    <div className="flex items-center gap-4 mb-10">
-                      <div className="h-12 w-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-400">
-                        <Fingerprint className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black italic uppercase tracking-tighter">
-                          Access Keyword Rotation
-                        </h3>
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                          Update your security identifiers
-                        </p>
-                      </div>
-                    </div>
-
-                    <form onSubmit={handlePasswordReset} className="space-y-8">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                          Current Keyword
-                        </label>
-                        <Input
-                          type="password"
-                          value={formData.currentPassword}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              currentPassword: e.target.value,
-                            })
-                          }
-                          className="h-14 bg-white/5 border-white/10 focus:border-emerald-500 rounded-2xl font-bold transition-all"
-                          required
-                        />
-                      </div>
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            New Keyword
-                          </label>
-                          <Input
-                            type="password"
-                            value={formData.newPassword}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                newPassword: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 focus:border-emerald-500 rounded-2xl font-bold transition-all"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Confirm Protocol
-                          </label>
-                          <Input
-                            type="password"
-                            value={formData.confirmPassword}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                confirmPassword: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 focus:border-emerald-500 rounded-2xl font-bold transition-all"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="pt-4">
-                        <Button
-                          disabled={isLoading}
-                          className="h-14 px-10 bg-white text-black hover:bg-white/90 rounded-2xl font-black uppercase tracking-widest"
-                        >
-                          Modify Protocols
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "payout" && (
-                <motion.div
-                  key="payout"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-12">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 bg-pulse-emerald/10 rounded-2xl flex items-center justify-center text-pulse-emerald">
-                        <Landmark className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black italic uppercase tracking-tighter">
-                          Payout Configuration
-                        </h3>
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                          Manage your settlement endpoints
-                        </p>
-                      </div>
-                    </div>
-
-                    <form onSubmit={handleUpdatePayout} className="space-y-10">
-                      <div className="grid md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Bank Account Holder
-                          </label>
-                          <Input
-                            value={payoutData.accountHolder}
-                            onChange={(e) =>
-                              setPayoutData({
-                                ...payoutData,
-                                accountHolder: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Account Number
-                          </label>
-                          <Input
-                            value={payoutData.accountNumber}
-                            onChange={(e) =>
-                              setPayoutData({
-                                ...payoutData,
-                                accountNumber: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            Bank Name
-                          </label>
-                          <Input
-                            value={payoutData.bankName}
-                            onChange={(e) =>
-                              setPayoutData({
-                                ...payoutData,
-                                bankName: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            IFSC / Routing Code
-                          </label>
-                          <Input
-                            value={payoutData.ifscCode}
-                            onChange={(e) =>
-                              setPayoutData({
-                                ...payoutData,
-                                ifscCode: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="h-px bg-white/5" />
-
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3 text-pulse-emerald mb-2">
-                          <QrCode className="h-4 w-4" />
-                          <span className="text-[10px] font-black uppercase tracking-widest">
-                            Digital Settlement (UPI)
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                            UPI ID (e.g., name@bank)
-                          </label>
-                          <Input
-                            value={payoutData.upiId}
-                            onChange={(e) =>
-                              setPayoutData({
-                                ...payoutData,
-                                upiId: e.target.value,
-                              })
-                            }
-                            className="h-14 bg-white/5 border-white/10 rounded-2xl font-bold max-w-md"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="pt-4">
-                        <Button
-                          disabled={isPayoutLoading}
-                          className="h-14 px-10 bg-pulse-emerald text-background hover:bg-pulse-emerald/90 rounded-2xl font-black uppercase tracking-widest"
-                        >
-                          {isPayoutLoading
-                            ? "Synchronizing..."
-                            : "Synchronize Payout Details"}
-                        </Button>
-                      </div>
-                    </form>
-                  </div>
-                </motion.div>
-              )}
-
-              {activeTab === "notifications" && (
-                <motion.div
-                  key="notifications"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="space-y-8"
-                >
-                  <div className="p-8 md:p-12 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-12">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400">
-                        <Bell className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-black italic uppercase tracking-tighter">
-                          Event Frequency
-                        </h3>
-                        <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">
-                          Adjust system signal alerts
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      {[
-                        {
-                          label: "Direct Signal Emails",
-                          desc: "Receive immediate updates on ticket acquisitions and security alerts.",
-                        },
-                        {
-                          label: "Frequency Broadcasts",
-                          desc: "Weekly newsletter digest of upcoming pulse-rated events.",
-                        },
-                        {
-                          label: "Identity Verifications",
-                          desc: "Alerts when your node is accessed from new geolocations.",
-                        },
-                      ].map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/[0.07] transition-all cursor-pointer"
-                        >
-                          <div>
-                            <p className="font-black uppercase tracking-widest text-xs mb-1">
-                              {item.label}
-                            </p>
-                            <p className="text-[10px] text-white/40 italic">
-                              {item.desc}
-                            </p>
-                          </div>
-                          <div className="h-6 w-12 bg-emerald-500 rounded-full relative p-1 transition-all">
-                            <div className="absolute right-1 top-1 h-4 w-4 bg-white rounded-full" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
         </div>
       </div>

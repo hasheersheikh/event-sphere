@@ -7,6 +7,7 @@ export interface IVolunteer extends Document {
   event: mongoose.Types.ObjectId;
   manager: mongoose.Types.ObjectId;
   gate: string;
+  role: 'volunteer';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +20,7 @@ const VolunteerSchema: Schema = new Schema(
     event: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
     manager: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
     gate: { type: String, required: true },
+    role: { type: String, default: 'volunteer' },
   },
   { timestamps: true }
 );

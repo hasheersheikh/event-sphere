@@ -90,7 +90,7 @@ const MyTickets = () => {
           title: `CityPulse-Ticket-${booking._id}`,
           subject: "Event Admission Ticket",
           author: "City Pulse",
-          creator: "City Pulse Portal",
+          creator: "Portal",
         });
 
         pdf.save(`Ticket-${booking.event.title.replace(/\s+/g, "-")}.pdf`);
@@ -110,7 +110,7 @@ const MyTickets = () => {
       <Navbar />
       <main className="flex-1 container py-8 md:py-12">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">My Tickets</h1>
+          <h1 className="text-3xl font-bold mb-2">Tickets</h1>
           <p className="text-muted-foreground text-lg">
             Manage and view your event tickets
           </p>

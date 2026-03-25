@@ -7,19 +7,14 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
-    Experience: [
+    Explore: [
       { label: "Live Events", href: "/events" },
-      { label: "The Lineup", href: "/categories" },
-      { label: "Create Hub", href: "/events/create" },
-    ],
-    Network: [
       { label: "Our Story", href: "/about" },
-      { label: "Connect", href: "/contact" },
-      { label: "Support", href: "/help" },
     ],
-    Legal: [
-      { label: "Terms", href: "/terms" },
+    Support: [
+      { label: "Contact", href: "/contact" },
       { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
     ],
   };
 
@@ -35,43 +30,30 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-background border-t border-border relative overflow-hidden">
-      {/* Decorative Glow - Adjusted */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-primary/5 blur-[120px] pointer-events-none" />
+    <footer className="bg-background border-t border-border relative overflow-hidden transition-colors duration-500">
+      {/* Decorative Glow */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[400px] bg-primary/10 blur-[150px] pointer-events-none opacity-50" />
 
-      <div className="container pt-32 pb-16 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-16 md:gap-24 mb-32">
+      <div className="container pt-12 pb-8 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 md:gap-12 mb-12">
           {/* Brand & Newsletter */}
-          <div className="col-span-1 md:col-span-3">
+          <div className="col-span-1 md:col-span-4">
             <Link
               to="/"
               onClick={scrollToTop}
-              className="flex items-center gap-4 mb-8 group"
+              className="flex items-center gap-3 mb-8 group"
             >
-              <div className="flex h-12 w-12 items-center justify-center bg-muted border border-border group-hover:border-primary/50 transition-colors">
+              <div className="flex h-12 w-12 items-center justify-center bg-muted border border-border group-hover:border-primary/50 transition-all duration-500 rounded-xl backdrop-blur-sm">
                 <PulseLogo size={28} />
               </div>
               <span className="text-3xl font-black italic tracking-tighter uppercase text-foreground">
-                City <span className="text-primary">Pulse</span>
+                City <span className="text-primary glow-text">Pulse</span>
               </span>
             </Link>
-            <p className="text-muted-foreground text-lg font-light max-w-sm mb-12 leading-relaxed italic">
-              Step into the fluid world of human connection. The future of live
+            <p className="text-muted-foreground text-lg font-light max-w-md mb-8 leading-relaxed italic opacity-80">
+              Stepping into the fluid world of human connection. The future of live
               experiences is here.
             </p>
-
-            <div className="max-w-md">
-              <div className="relative group">
-                <input
-                  type="email"
-                  placeholder="SYNC YOUR EMAIL..."
-                  className="w-full h-16 bg-muted border border-border focus:border-primary/50 px-8 font-bold text-xs uppercase tracking-widest transition-all outline-none text-foreground rounded-xl"
-                />
-                <Button className="absolute right-1 top-1 h-14 w-14 bg-primary hover:bg-primary/90 text-primary-foreground p-0 transition-all rounded-lg uppercase shadow-lg">
-                  <Send className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
           </div>
 
           {/* Links */}
@@ -80,7 +62,7 @@ const Footer = () => {
               <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-pulse-emerald mb-8">
                 {title}
               </h4>
-              <ul className="space-y-6">
+              <ul className="space-y-4">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
@@ -98,7 +80,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-12 border-t border-border flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex gap-4">
             {socialLinks.map((social) => (
               <a

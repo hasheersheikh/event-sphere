@@ -1,14 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 import { Search, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+const LIGHT_IMAGES = [
+  "https://images.unsplash.com/photo-1533174000228-2a11b65e1017?auto=format&fit=crop&q=80&w=2000",
+  "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=2000",
+  "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&q=80&w=2000",
+];
+
+const DARK_IMAGES = [
+  "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&q=80&w=2000",
+  "https://images.unsplash.com/photo-1470229722913-7c092bce52f3?auto=format&fit=crop&q=80&w=2000",
+  "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=2000",
+];
+
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % 3);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const currentImages = resolvedTheme === "dark" ? DARK_IMAGES : LIGHT_IMAGES;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,11 +46,18 @@ const HeroSection = () => {
     <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img
-          src="https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&q=80&w=2000"
-          alt="Live event atmosphere"
-          className="w-full h-full object-cover"
-        />
+        <AnimatePresence mode="popLayout">
+          <motion.img
+            key={currentImages[currentImageIndex]}
+            src={currentImages[currentImageIndex]}
+            alt="Live event atmosphere"
+            className="absolute inset-0 w-full h-full object-cover"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+          />
+        </AnimatePresence>
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/70" />
       </div>
 

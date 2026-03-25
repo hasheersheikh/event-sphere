@@ -191,7 +191,7 @@ const Dashboard = () => {
               </p>
               <Link to="/events">
                 <Button className="rounded-2xl px-12 py-7 font-black shadow-button hover:scale-105 transition-transform uppercase tracking-tighter text-lg">
-                  Explore Lineup
+                  Go Local
                 </Button>
               </Link>
             </div>

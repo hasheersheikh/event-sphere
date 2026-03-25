@@ -34,19 +34,19 @@ const ProfileDropdown = () => {
 
   const menuItems = [
     {
-      label: "Pulse Portal",
+      label: "Portal",
       icon: LayoutDashboard,
       href: "/portal",
       show: user?.role === "admin" || user?.role === "event_manager",
     },
     {
-      label: "My Collections",
+      label: "Tickets",
       icon: Ticket,
       href: "/my-tickets",
       show: true,
     },
     {
-      label: "Auth Settings",
+      label: "Settings",
       icon: Settings,
       href: "/settings",
       show: true,
@@ -82,7 +82,7 @@ const ProfileDropdown = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 mt-4 w-72 glass-panel bg-background border border-border backdrop-blur-md rounded-3xl overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.2)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
+            className="absolute right-0 mt-4 w-72 bg-background border border-border rounded-3xl overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.2)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
           >
             <div className="p-6 border-b border-border bg-muted">
               <div className="flex items-center gap-5">
@@ -123,7 +123,7 @@ const ProfileDropdown = () => {
                 className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-foreground hover:bg-rose-500/10 transition-all duration-500 group"
               >
                 <LogOut className="h-4.5 w-4.5 transition-transform group-hover:scale-110" />
-                De-sync Pulse
+                Logout
               </button>
             </div>
           </motion.div>

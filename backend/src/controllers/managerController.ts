@@ -97,6 +97,8 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       return { date: day.slice(5), amount };
     }).reverse();
 
+    const volunteers = await Volunteer.find({ event: id }).select('-password');
+
     res.json({
       event,
       stats: {
@@ -112,6 +114,7 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       },
       ticketStats,
       salesHistory: last7Days,
+      volunteers,
       recentBookings: bookings.slice(-5).map(b => ({
         _id: b._id,
         userName: (b.user as any)?.name || 'Anonymous',
@@ -148,7 +151,7 @@ export const updatePayoutDetails: RequestHandler = async (req: AuthRequest, res:
 
 export const getPayoutDetails: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
-    const manager = await EventManager.findById(req.user?._id).select('bankDetails upiId');
+    const manager = await EventManager.findById(req.user?._id).select('bankDetails upiId commissionType commissionValue payoutCycle');
     if (!manager) {
       res.status(404).json({ message: 'Manager not found' });
       return;
@@ -179,7 +182,8 @@ export const addVolunteer: RequestHandler = async (req: AuthRequest, res: Respon
       password: hashedPassword,
       event: eventId,
       manager: managerId,
-      gate
+      gate,
+      role: 'volunteer'
     });
 
     res.status(201).json(volunteer);

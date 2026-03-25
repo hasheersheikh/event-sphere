@@ -9,13 +9,20 @@ import {
   ArrowUpRight,
   ArrowRight,
   IndianRupee,
+  Building,
+  CreditCard,
+  QrCode,
+  Save,
+  ShieldCheck,
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 
 const PayoutsPage = () => {
   const { user } = useAuth();
@@ -43,6 +50,50 @@ const PayoutsPage = () => {
       return data;
     },
   });
+
+  const queryClient = useQueryClient();
+  const [payoutForm, setPayoutForm] = useState({
+    upiId: "",
+    bankDetails: {
+      accountNumber: "",
+      ifscCode: "",
+      bankName: "",
+      accountHolderName: "",
+    },
+  });
+
+  useEffect(() => {
+    if (details) {
+      setPayoutForm({
+        upiId: details.upiId || "",
+        bankDetails: {
+          accountNumber: details.bankDetails?.accountNumber || "",
+          ifscCode: details.bankDetails?.ifscCode || "",
+          bankName: details.bankDetails?.bankName || "",
+          accountHolderName: details.bankDetails?.accountHolderName || "",
+        },
+      });
+    }
+  }, [details]);
+
+  const updateDetailsMutation = useMutation({
+    mutationFn: async (values: any) => {
+      const { data } = await api.patch("/manager/payout-details", values);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Payout protocols updated.");
+      queryClient.invalidateQueries({ queryKey: ["manager-payout-details"] });
+    },
+    onError: () => {
+      toast.error("Failed to update payout protocols.");
+    },
+  });
+
+  const handleUpdateDetails = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateDetailsMutation.mutate(payoutForm);
+  };
 
   const totalPaid =
     payouts?.reduce(
@@ -82,43 +133,63 @@ const PayoutsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground relative">
-      <Navbar />
-      <main className="flex-1 container py-12 md:py-20 z-10">
-        <header className="mb-16">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 glass-panel text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-6 rounded-full border border-emerald-500/20">
-            <IndianRupee className="h-3 w-3" />
-            Financial Center
+    <div className="space-y-12 bg-background text-foreground">
+      <main className="z-10">
+        {/* Governance & Fees Alert */}
+        <section className="mb-8">
+          <div className="bg-card border border-border rounded-[2rem] p-8 shadow-xl relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+              <ShieldCheck className="h-24 w-24 text-primary" />
+            </div>
+            <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+              <div className="space-y-3 max-w-2xl text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest">
+                  <ShieldCheck className="h-3 w-3" />
+                  Protocol Security
+                </div>
+                <h2 className="text-xl font-black tracking-tight uppercase italic">
+                  Governance & <span className="text-primary">Fees.</span>
+                </h2>
+                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
+                  Pulse operates on a transparent {details?.commissionType === 'percentage' ? `flat ${details?.commissionValue || 5}% service fee` : `₹${details?.commissionValue || 0} flat fee`} per transaction to maintain network security and real-time ledger synchronization. Payouts are reconciled on a {details?.payoutCycle || 'T+2'} basis.
+                </p>
+              </div>
+              <div className="flex gap-10 shrink-0 border-l border-border pl-10 hidden md:flex">
+                <div className="text-center">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Fee</p>
+                  <p className="text-2xl font-black text-foreground italic uppercase">
+                    {details?.commissionType === 'percentage' ? `${details?.commissionValue || 5}%` : `₹${details?.commissionValue || 0}`}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Cycle</p>
+                  <p className="text-2xl font-black text-foreground italic uppercase">{details?.payoutCycle || 'T+2'}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-5xl md:text-6xl font-black tracking-tight mb-4 uppercase italic">
-            Payout <span className="text-emerald-500">History.</span>
-          </h1>
-          <p className="text-muted-foreground text-lg font-medium max-w-2xl">
-            Track your production settlements and financial performance in
-            real-time.
-          </p>
-        </header>
+        </section>
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
           {cards.map((card, index) => (
             <motion.div
               key={card.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass-card rounded-[2.5rem] p-8 flex items-center gap-8 border border-border/50 shadow-xl"
+              className="glass-card rounded-[2rem] p-6 flex items-center gap-6 border border-border/50 shadow-lg"
             >
               <div
-                className={`h-20 w-20 rounded-[1.5rem] ${card.bg} flex items-center justify-center shrink-0 border border-border/10`}
+                className={`h-16 w-16 rounded-[1.2rem] ${card.bg} flex items-center justify-center shrink-0 border border-border/10`}
               >
-                <card.icon className={`h-10 w-10 ${card.color}`} />
+                <card.icon className={`h-8 w-8 ${card.color}`} />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                   {card.label}
                 </p>
-                <p className="text-3xl font-black tracking-tighter">
+                <p className="text-2xl font-black tracking-tighter">
                   {card.value}
                 </p>
               </div>
@@ -126,24 +197,135 @@ const PayoutsPage = () => {
           ))}
         </div>
 
-        {/* History Table */}
-        <section className="glass-card rounded-[3rem] border border-border/50 overflow-hidden shadow-2xl">
-          <div className="p-10 border-b border-border/50 flex justify-between items-center bg-muted/5">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <History className="h-6 w-6 text-primary" />
+        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+          {/* Payout Configuration */}
+          <section className="lg:col-span-1 space-y-6">
+            <div className="glass-card rounded-[2.5rem] border border-border/50 p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-8">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <CreditCard className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-lg font-black uppercase tracking-tight">
+                  Payout Method
+                </h2>
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tight">
-                Recent Settlements
-              </h2>
+
+              <form onSubmit={handleUpdateDetails} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                    UPI ID (Preferred)
+                  </label>
+                  <div className="relative">
+                    <QrCode className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/50" />
+                    <Input
+                      placeholder="vibe@upi"
+                      value={payoutForm.upiId}
+                      onChange={(e) =>
+                        setPayoutForm({ ...payoutForm, upiId: e.target.value })
+                      }
+                      className="h-12 pl-12 bg-muted/30 border-border rounded-xl font-bold text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="relative py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border/50" />
+                  </div>
+                  <div className="relative flex justify-center text-[10px] uppercase font-black tracking-[0.3em] text-muted-foreground/30 bg-card px-2">
+                    OR BANK
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Account Number
+                    </label>
+                    <Input
+                      value={payoutForm.bankDetails.accountNumber}
+                      onChange={(e) =>
+                        setPayoutForm({
+                          ...payoutForm,
+                          bankDetails: {
+                            ...payoutForm.bankDetails,
+                            accountNumber: e.target.value,
+                          },
+                        })
+                      }
+                      className="h-12 bg-muted/30 border-border rounded-xl font-bold text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                        IFSC
+                      </label>
+                      <Input
+                        value={payoutForm.bankDetails.ifscCode}
+                        onChange={(e) =>
+                          setPayoutForm({
+                            ...payoutForm,
+                            bankDetails: {
+                              ...payoutForm.bankDetails,
+                              ifscCode: e.target.value,
+                            },
+                          })
+                        }
+                        className="h-12 bg-muted/30 border-border rounded-xl font-bold text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                        Bank Name
+                      </label>
+                      <Input
+                        value={payoutForm.bankDetails.bankName}
+                        onChange={(e) =>
+                          setPayoutForm({
+                            ...payoutForm,
+                            bankDetails: {
+                              ...payoutForm.bankDetails,
+                              bankName: e.target.value,
+                            },
+                          })
+                        }
+                        className="h-12 bg-muted/30 border-border rounded-xl font-bold text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={updateDetailsMutation.isPending}
+                  className="w-full h-12 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg hover:scale-[1.02] transition-all"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Update Method
+                </Button>
+              </form>
             </div>
-            <Badge
-              variant="outline"
-              className="rounded-full px-6 py-2 font-black text-[10px] uppercase tracking-[0.2em]"
-            >
-              {payouts?.length || 0} Transactions
-            </Badge>
-          </div>
+          </section>
+
+          {/* History Table */}
+          <section className="lg:col-span-2 glass-card rounded-[2.5rem] border border-border/50 overflow-hidden shadow-xl">
+            <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted/5">
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <History className="h-5 w-5 text-primary" />
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tight">
+                  Ledger
+                </h2>
+              </div>
+              <Badge
+                variant="outline"
+                className="rounded-full px-4 py-1.5 font-black text-[8px] uppercase tracking-[0.2em]"
+              >
+                {payouts?.length || 0} Transactions
+              </Badge>
+            </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -168,9 +350,9 @@ const PayoutsPage = () => {
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-10 py-20 text-center animate-pulse text-[10px] font-black uppercase tracking-widest text-muted-foreground"
+                      className="px-8 py-12 text-center animate-pulse text-[10px] font-black uppercase tracking-widest text-muted-foreground"
                     >
-                      Synchronizing ledger...
+                      Ledger Sync...
                     </td>
                   </tr>
                 ) : payouts?.length > 0 ? (
@@ -182,9 +364,9 @@ const PayoutsPage = () => {
                       transition={{ delay: index * 0.05 }}
                       className="group hover:bg-muted/5 transition-colors"
                     >
-                      <td className="px-10 py-8">
+                      <td className="px-8 py-6">
                         <div className="flex flex-col">
-                          <span className="font-bold text-sm">
+                          <span className="font-bold text-xs">
                             {new Date(payout.createdAt).toLocaleDateString(
                               "en-GB",
                               {
@@ -194,17 +376,17 @@ const PayoutsPage = () => {
                               },
                             )}
                           </span>
-                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                          <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">
                             {new Date(payout.createdAt).toLocaleTimeString()}
                           </span>
                         </div>
                       </td>
-                      <td className="px-10 py-8 font-mono text-[10px] text-emerald-500 font-bold uppercase">
+                      <td className="px-8 py-6 font-mono text-[9px] text-emerald-500 font-bold uppercase tracking-tight">
                         {payout.referenceId || "TXN-MAN-00" + index}
                       </td>
-                      <td className="px-10 py-8">
+                      <td className="px-8 py-6">
                         <Badge
-                          className={`rounded-full px-4 py-1 text-[8px] font-black uppercase tracking-widest ${
+                          className={`rounded-full px-3 py-0.5 text-[7px] font-black uppercase tracking-widest ${
                             payout.status === "completed"
                               ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
                               : payout.status === "pending"
@@ -215,7 +397,7 @@ const PayoutsPage = () => {
                           {payout.status}
                         </Badge>
                       </td>
-                      <td className="px-10 py-8 text-right font-black text-lg">
+                      <td className="px-8 py-6 text-right font-black text-base">
                         ₹{payout.amount.toLocaleString()}
                       </td>
                     </motion.tr>
@@ -243,8 +425,8 @@ const PayoutsPage = () => {
             </table>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
+    </main>
     </div>
   );
 };

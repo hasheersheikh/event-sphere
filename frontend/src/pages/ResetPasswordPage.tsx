@@ -81,18 +81,18 @@ const ResetPasswordPage = () => {
             </span>
           </div>
 
-          <h2 className="text-5xl font-medium tracking-tighter uppercase mb-4 italic">
-            New Credentials.
+          <h2 className="text-5xl font-black tracking-tighter uppercase mb-4 italic">
+            Reset Password.
           </h2>
-          <p className="text-white/40 font-light italic">
-            Update your access keyword for the pulse.
+          <p className="text-white/40 font-medium italic">
+            Update your password to regain access.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-              New Access Keyword
+              New Password
             </label>
             <div className="relative group">
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
@@ -109,7 +109,7 @@ const ResetPasswordPage = () => {
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-              Verify Keyword
+              Confirm Password
             </label>
             <div className="relative group">
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
@@ -127,9 +127,9 @@ const ResetPasswordPage = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-20 bg-emerald-500 hover:bg-emerald-400 text-black rounded-[1.5rem] font-black uppercase tracking-[0.4em] text-xs shadow-[0_20px_40px_rgba(16,185,129,0.2)] group transition-all duration-500 hover:scale-[1.02] active:scale-95"
+            className="w-full h-20 bg-emerald-500 hover:bg-emerald-400 text-black rounded-[1.5rem] font-black uppercase tracking-[0.4em] text-xs shadow-lg group transition-all duration-500 hover:scale-[1.02] active:scale-95"
           >
-            {isLoading ? "Updating..." : "Authorize Update"}
+            {isLoading ? "Updating..." : "Update Password"}
             {!isLoading && (
               <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-2 transition-transform" />
             )}

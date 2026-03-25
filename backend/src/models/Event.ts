@@ -6,6 +6,7 @@ export interface ITicketType {
   price: number;
   capacity: number;
   sold: number;
+  isSoldOut?: boolean;
 }
 
 export interface IEvent extends Document {
@@ -24,8 +25,16 @@ export interface IEvent extends Document {
   };
   category: string;
   image?: string;
+  videoUrl?: string;
+  reels?: string[];
   creator: mongoose.Types.ObjectId;
   ticketTypes: ITicketType[];
+  vouchers?: {
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountAmount: number;
+    isActive: boolean;
+  }[];
   status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
   createdAt: Date;
@@ -49,6 +58,8 @@ const EventSchema: Schema = new Schema(
     },
     category: { type: String, required: true },
     image: { type: String },
+    videoUrl: { type: String },
+    reels: [{ type: String }],
     creator: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
     ticketTypes: [
       {
@@ -57,14 +68,27 @@ const EventSchema: Schema = new Schema(
         price: { type: Number, required: true },
         capacity: { type: Number, required: true },
         sold: { type: Number, default: 0 },
+        isSoldOut: { type: Boolean, default: false },
       },
     ],
     status: {
       type: String,
-      enum: ['draft', 'published', 'cancelled', 'blocked', 'past'],
-      default: 'published',
+      enum: ['draft', 'under_review', 'published', 'cancelled', 'blocked', 'past'],
+      default: 'under_review',
     },
     isApproved: { type: Boolean, default: false },
+    vouchers: [
+      {
+        code: { type: String, required: true },
+        discountType: {
+          type: String,
+          enum: ['percentage', 'fixed'],
+          default: 'percentage',
+        },
+        discountAmount: { type: Number, required: true },
+        isActive: { type: Boolean, default: true },
+      },
+    ],
   },
   { timestamps: true }
 );

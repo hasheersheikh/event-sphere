@@ -49,70 +49,70 @@ const EventPendingPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-zinc-950 text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center p-6 mt-20">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="max-w-2xl w-full"
         >
-          <div className="bg-zinc-900/50 border border-white/10 p-12 rounded-[3rem] text-center backdrop-blur-xl relative overflow-hidden">
+          <div className="bg-card border border-border p-12 rounded-[2.5rem] text-center backdrop-blur-3xl relative overflow-hidden shadow-2xl">
             {/* Background Accent */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 blur-[100px] rounded-full" />
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-orange-500/10 blur-[100px] rounded-full" />
+            <div className="absolute -top-32 -right-32 w-80 h-80 bg-primary/10 blur-[120px] rounded-full" />
+            <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-orange-500/5 blur-[120px] rounded-full" />
 
             <div className="relative z-10">
-              <div className="inline-flex items-center justify-center h-24 w-24 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-8">
-                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
+              <div className="inline-flex items-center justify-center h-28 w-28 rounded-full bg-primary/10 border border-primary/20 mb-8 shadow-inner">
+                <CheckCircle2 className="h-14 w-14 text-primary animate-pulse" />
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-black brand-font uppercase tracking-tighter italic mb-6">
-                Event Created{" "}
-                <span className="text-emerald-500">Successfully!</span>
+              <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic mb-6 leading-none">
+                Event <br />
+                <span className="text-primary">Initialized.</span>
               </h1>
 
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <div className="bg-orange-500/10 border border-orange-500/20 px-6 py-2 rounded-full flex items-center gap-2">
+              <div className="flex items-center justify-center gap-3 mb-10">
+                <div className="bg-orange-500/10 border border-orange-500/20 px-8 py-2.5 rounded-full flex items-center gap-3 shadow-lg shadow-orange-500/5">
                   <Clock className="h-4 w-4 text-orange-500" />
-                  <span className="text-xs font-black uppercase tracking-widest text-orange-500">
-                    Pending Admin Approval
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">
+                    Awaiting Administrative Authorization
                   </span>
                 </div>
               </div>
 
-              <p className="text-zinc-400 font-medium text-lg leading-relaxed mb-12 max-w-lg mx-auto italic">
-                Your production has been successfully initialized. To maintain
-                platform quality, all events undergo a high-frequency moderation
+              <p className="text-muted-foreground font-bold text-lg leading-relaxed mb-12 max-w-lg mx-auto italic">
+                Your event has been successfully queued for deployment. To maintain 
+                platform operational standards, all listings undergo high-frequency moderation 
                 review.
-                <span className="block mt-4 text-zinc-500 text-sm non-italic">
-                  The Pulse Council will authorize your listing within 24 hours.
+                <span className="block mt-6 text-muted-foreground/40 text-[10px] uppercase font-black tracking-[0.2em] not-italic underline decoration-primary underline-offset-8">
+                  Security verification complete: Node Pulse-Gamma
                 </span>
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Link to="/portal/manager">
-                  <Button className="w-full h-16 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-black transition-all group">
+                  <Button className="w-full h-16 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-primary/20 group">
                     <LayoutDashboard className="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
-                    Manager Portal
+                    Manager Command
                   </Button>
                 </Link>
                 <Link to="/">
                   <Button
                     variant="outline"
-                    className="w-full h-16 rounded-2xl border-white/10 bg-white/5 font-black uppercase tracking-widest hover:bg-white/10 transition-all group"
+                    className="w-full h-16 rounded-2xl border-border bg-muted/50 font-black uppercase tracking-widest hover:bg-muted transition-all hover:scale-[1.02] group"
                   >
                     <Home className="h-5 w-5 mr-3 transition-transform group-hover:scale-110" />
-                    Back to Terminal
+                    Main Terminal
                   </Button>
                 </Link>
               </div>
 
-              <div className="mt-12 pt-12 border-t border-white/5 flex items-center justify-center gap-4 text-zinc-600">
+              <div className="mt-12 pt-12 border-t border-border/50 flex items-center justify-center gap-4 text-muted-foreground/30">
                 <ShieldCheck className="h-4 w-4" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]">
-                  Encrypted Pulse Validation
+                <span className="text-[9px] font-black uppercase tracking-[0.4em]">
+                  Encrypted Protocol Verified
                 </span>
               </div>
             </div>

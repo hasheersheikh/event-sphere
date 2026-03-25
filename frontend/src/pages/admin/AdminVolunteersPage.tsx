@@ -209,7 +209,7 @@ const AdminVolunteersPage = () => {
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                    Assign to Production
+                    Assign to Event
                   </label>
                   <select
                     required
@@ -300,7 +300,7 @@ const AdminVolunteersPage = () => {
                   <Calendar className="h-4 w-4 text-amber-500" />
                   <div className="flex flex-col">
                     <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                      Assigned Prod.
+                      Assigned Event.
                     </span>
                     <span className="text-xs font-bold line-clamp-1">
                       {volunteer.event?.title || "PURGED EVENT"}

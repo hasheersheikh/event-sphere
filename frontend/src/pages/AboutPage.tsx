@@ -1,6 +1,12 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import { motion } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
+import { useRef, useState, useEffect } from "react";
 import {
   Users,
   Zap,
@@ -9,105 +15,134 @@ import {
   Globe,
   Sparkles,
   Music,
-  Mic2,
+  ArrowRight,
   Trophy,
 } from "lucide-react";
 
 const AboutPage = () => {
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "dark" : "light");
+    };
+
+    checkTheme();
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+
+  const yBg = useTransform(scrollYProgress, [0, 1], [0, 200]);
+  const opacityHero = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+
   const stats = [
-    { label: "Active Pulse Nodes", value: "2.4M+", icon: Globe },
+    { label: "Community Nodes", value: "2.4M+", icon: Globe },
     { label: "Live Experiences", value: "85K+", icon: Music },
     { label: "Global Organizers", value: "12K+", icon: Users },
-    { label: "Sync Successful", value: "99.9%", icon: ShieldCheck },
+    { label: "Trust Score", value: "99.9%", icon: ShieldCheck },
   ];
 
+  const variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 },
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-emerald-500/30">
+    <div
+      className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/30"
+      ref={containerRef}
+    >
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative min-h-[90vh] flex items-center justify-center pt-24 overflow-hidden">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=2070"
-              alt="Vibrant Crowd"
-              className="w-full h-full object-cover opacity-30 scale-110 blur-[3px]"
+        {/* Immersive Hero Section */}
+        <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+          <motion.div
+            className="absolute inset-0 z-0"
+            style={{ y: yBg, opacity: opacityHero }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={theme}
+                src={
+                  theme === "dark"
+                    ? "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070"
+                    : "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&q=80&w=2070"
+                }
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8 }}
+                alt="Immersive Festival"
+                className="w-full h-full object-cover scale-110"
+              />
+            </AnimatePresence>
+            <div
+              className={`absolute inset-0 bg-gradient-to-b ${
+                theme === "dark"
+                  ? "from-background/20 via-background/40 to-background"
+                  : "from-white/40 via-white/60 to-background"
+              }`}
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
-          </div>
+            <div className="absolute inset-0 mesh-bg opacity-30" />
+          </motion.div>
 
           <div className="container relative z-10 text-center">
             <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="inline-flex items-center gap-3 px-6 py-2 border border-primary/30 bg-background/50 text-[10px] font-bold uppercase tracking-[0.4em] mb-12 text-primary rounded-full">
-                <Sparkles className="h-3 w-3" />
-                The Heart of Experience
+              <div className="inline-flex items-center gap-3 px-6 py-2 glass-panel text-[10px] font-black uppercase tracking-[0.5em] mb-12 text-primary">
+                <Sparkles className="h-3 w-3 animate-pulse" />
+                The Protocol of Connection
               </div>
-              <h1 className="text-6xl md:text-[8rem] font-medium tracking-tighter leading-[0.85] mb-10 drop-shadow-2xl">
-                Bridging the <br />
+              <h1 className="text-6xl md:text-[9.5rem] font-bold tracking-tighter leading-[0.8] mb-12 mix-blend-difference">
+                Unified by <br />
                 <span className="text-gradient italic font-light">
-                  Human Pulse.
+                  The Pulse.
                 </span>
               </h1>
-              <p className="text-lg md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light">
-                City Pulse is the ultimate ecosystem for live experiences,
-                connecting event creators with an audience that's hungry for the
-                extraordinary.
+              <p className="text-xl md:text-3xl text-muted-foreground max-w-3xl mx-auto leading-relaxed font-light mb-16">
+                Event Sphere is a decentralized ecosystem for extraordinary live
+                experiences, syncing human connection across the globe.
               </p>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+              >
+                <ArrowRight className="h-10 w-10 mx-auto text-primary animate-bounce opacity-30" />
+              </motion.div>
             </motion.div>
           </div>
         </section>
 
-        {/* Narrative Section */}
-        <section className="py-40 container">
-          <div className="grid lg:grid-cols-2 gap-32 items-center">
-            <div className="space-y-12">
-              <div className="h-1 w-20 bg-emerald-500 shadow-[0_0_20px_#10B981]" />
-              <h2 className="text-5xl md:text-8xl font-medium tracking-tighter leading-none mb-10">
-                Where Fans <br />
-                <span className="italic font-light text-gradient">
-                  Find Magic.
-                </span>
-              </h2>
-              <p className="text-2xl text-muted-foreground font-light leading-relaxed">
-                We believe that every concert, every festival, and every local
-                meetup is a chance for a unique connection. Our platform doesn't
-                just sell tickets—it facilitates memories.
-              </p>
-              <div className="p-10 border border-border bg-muted/30 rounded-2xl shadow-sm">
-                <p className="text-xl font-medium italic text-primary">
-                  "Our mission is to sync the world's rhythm, making every event
-                  discovery feel like destiny."
-                </p>
-              </div>
-            </div>
 
-            <div className="relative">
-              <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-emerald-500/10 to-transparent blur-[80px]" />
-              <img
-                src="https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&q=80&w=2070"
-                alt="Crowd Interaction"
-                className="w-full aspect-[4/5] object-cover border border-border shadow-2xl scale-95 rounded-3xl"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Infinite Scrolling Stats */}
-        <section className="py-32 bg-muted/30 backdrop-blur-3xl border-y border-border overflow-hidden">
-          <div className="flex animate-marquee whitespace-nowrap">
-            {[...stats, ...stats].map((stat, i) => (
-              <div key={i} className="flex items-center gap-10 px-20">
-                <stat.icon className="h-8 w-8 text-emerald-500" />
+        {/* Infinite Scrolling Stats - Refined */}
+        <section className="py-40 bg-muted/20 border-y border-border/50 overflow-hidden relative">
+          <div className="absolute inset-0 mesh-bg opacity-10" />
+          <div className="flex animate-marquee whitespace-nowrap relative z-10">
+            {[...stats, ...stats, ...stats].map((stat, i) => (
+              <div key={i} className="flex items-center gap-12 px-24 group">
+                <stat.icon className="h-10 w-10 text-primary/40 group-hover:text-primary transition-colors duration-500" />
                 <div className="flex flex-col">
-                  <span className="text-4xl font-black subpixel-antialiased uppercase tracking-tighter">
+                  <span className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground group-hover:text-primary transition-colors duration-500">
                     {stat.value}
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/50">
+                  <span className="text-[11px] font-black uppercase tracking-[0.5em] text-muted-foreground/40 group-hover:text-muted-foreground transition-colors duration-500">
                     {stat.label}
                   </span>
                 </div>
@@ -116,41 +151,6 @@ const AboutPage = () => {
           </div>
         </section>
 
-        {/* Vision Blocks */}
-        <section className="py-40 container">
-          <div className="grid md:grid-cols-3 gap-12">
-            {[
-              {
-                title: "Liquid Discovery",
-                desc: "Our AI-driven pulse match ensures you're always tuned into the events that resonate with your vibe.",
-                icon: Zap,
-              },
-              {
-                title: "Fan-First Ethics",
-                desc: "Transparency in pricing and secondary markets, built on the foundation of human trust.",
-                icon: Heart,
-              },
-              {
-                title: "Creator Control",
-                desc: "Empowering organizers with the tools they need to host seamless, high-impact productions.",
-                icon: Trophy,
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className="p-12 border border-border/50 hover:bg-muted/50 transition-all duration-500 group rounded-2xl shadow-sm"
-              >
-                <item.icon className="h-10 w-10 text-primary mb-10 group-hover:scale-110 transition-transform" />
-                <h3 className="text-3xl font-bold uppercase italic tracking-tighter mb-6 text-foreground">
-                  {item.title}
-                </h3>
-                <p className="text-muted-foreground font-light leading-relaxed">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
 
       <Footer />
@@ -158,10 +158,14 @@ const AboutPage = () => {
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          100% { transform: translateX(-33.33%); }
         }
         .animate-marquee {
-          animation: marquee 40s linear infinite;
+          animation: marquee 60s linear infinite;
+        }
+        .mesh-bg {
+          background-image: radial-gradient(circle at 2px 2px, hsl(var(--border)) 1px, transparent 0);
+          background-size: 32px 32px;
         }
       `}</style>
     </div>

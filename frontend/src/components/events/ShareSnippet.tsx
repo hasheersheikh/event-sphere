@@ -47,7 +47,7 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative max-w-sm w-full bg-card rounded-3xl shadow-2xl overflow-hidden border border-primary/20"
+        className="relative max-w-md w-full bg-card rounded-3xl shadow-2xl overflow-hidden border border-primary/20"
       >
         <button
           onClick={onClose}

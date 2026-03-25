@@ -24,8 +24,8 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       if (!ticketType) {
         return res.status(400).json({ message: `Ticket type ${ticketItem.type} not found` });
       }
-      if (ticketType.capacity - ticketType.sold < ticketItem.quantity) {
-        return res.status(400).json({ message: `Not enough tickets for ${ticketItem.type}` });
+      if (ticketType.isSoldOut || (ticketType.capacity - ticketType.sold < ticketItem.quantity)) {
+        return res.status(400).json({ message: `Tickets for ${ticketItem.type} are sold out or unavailable` });
       }
       
       const price = ticketType.price;
