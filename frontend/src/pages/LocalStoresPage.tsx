@@ -94,8 +94,8 @@ const LocalStoresPage = () => {
         </header>
 
         {/* Search & Filter Bar */}
-        <div className="max-w-5xl mx-auto space-y-8">
-          <div className="flex flex-col md:flex-row gap-4 p-3 bg-card/50 border border-border/50 rounded-[2.2rem] backdrop-blur-xl shadow-2xl">
+        <div className="max-w-5xl mx-auto space-y-4">
+          <div className="flex items-center gap-4 p-3 bg-card/50 border border-border/50 rounded-[2.2rem] backdrop-blur-xl shadow-2xl">
             <div className="relative flex-1 group">
               <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-amber-500 transition-colors" />
               <Input
@@ -105,26 +105,29 @@ const LocalStoresPage = () => {
                 className="h-14 pl-14 bg-background/50 border-white/10 rounded-3xl font-bold text-base focus:ring-amber-500 focus:border-amber-500 transition-all shadow-inner"
               />
             </div>
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 md:pb-0 scrollbar-hide no-scrollbar max-md:px-2">
-              {CATEGORIES.slice(0, 5).map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={cn(
-                    "whitespace-nowrap px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                    selectedCategory === cat
-                      ? "bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20"
-                      : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
           </div>
 
-          {/* Results Grid - Reusing the section logic but expanded */}
-          <div className="space-y-12">
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={cn(
+                  "whitespace-nowrap px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300 flex-shrink-0",
+                  selectedCategory === cat
+                    ? "bg-amber-500 border-amber-500 text-black shadow-lg shadow-amber-500/20"
+                    : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Results Grid */}
+        <div className="max-w-5xl mx-auto mt-8 space-y-12">
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {Array(6).fill(0).map((_, i) => (
@@ -144,7 +147,7 @@ const LocalStoresPage = () => {
                   onClick={() => { setSearchQuery(""); setSelectedCategory("All"); }}
                   className="text-amber-500 font-black uppercase tracking-widest text-[10px] hover:underline"
                 >
-                  Reset Sensors
+                  Clear Filters
                 </button>
               </div>
             ) : (
@@ -165,7 +168,6 @@ const LocalStoresPage = () => {
                 </AnimatePresence>
               </div>
             )}
-          </div>
         </div>
       </main>
 

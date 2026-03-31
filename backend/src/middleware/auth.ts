@@ -38,8 +38,27 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
   }
 
   if (!token) {
+    if (res.headersSent) return;
     res.status(401).json({ message: 'Not authorized, no token' });
   }
+};
+
+export const optionalProtect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string, role: string };
+
+      const Model = getModelByRole(decoded.role) as any;
+      req.user = await Model.findById(decoded.id).select('-password');
+    } catch (error) {
+      console.error('Optional auth failed:', error);
+      // Don't fail the request, just don't set req.user
+    }
+  }
+  next();
 };
 
 export const authorize = (...roles: string[]) => {

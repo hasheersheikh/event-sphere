@@ -4,9 +4,19 @@ export interface ITicketType {
   name: string;
   description?: string;
   price: number;
+  dayWisePrices?: { dayIndex: number; price: number }[];
+  isFullPass?: boolean;
+  fullPassPrice?: number;
   capacity: number;
   sold: number;
   isSoldOut?: boolean;
+}
+
+export interface IEventDay {
+  date: Date;
+  startTime: string;
+  endTime?: string;
+  title?: string;
 }
 
 export interface IEvent extends Document {
@@ -15,9 +25,12 @@ export interface IEvent extends Document {
   date: Date;
   time: string;
   endTime?: string;
+  days?: IEventDay[];
+  isMultiDay?: boolean;
   location: {
     address: string;
     venueName?: string;
+    googleMapUrl?: string;
     coordinates?: {
       lat: number;
       lng: number;
@@ -48,9 +61,19 @@ const EventSchema: Schema = new Schema(
     date: { type: Date, required: true },
     time: { type: String, required: true },
     endTime: { type: String },
+    isMultiDay: { type: Boolean, default: false },
+    days: [
+      {
+        date: { type: Date, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String },
+        title: { type: String },
+      },
+    ],
     location: {
       address: { type: String, required: true },
       venueName: { type: String },
+      googleMapUrl: { type: String },
       coordinates: {
         lat: { type: Number },
         lng: { type: Number },
@@ -66,6 +89,14 @@ const EventSchema: Schema = new Schema(
         name: { type: String, required: true },
         description: { type: String },
         price: { type: Number, required: true },
+        dayWisePrices: [
+          {
+            dayIndex: { type: Number },
+            price: { type: Number },
+          },
+        ],
+        isFullPass: { type: Boolean, default: false },
+        fullPassPrice: { type: Number },
         capacity: { type: Number, required: true },
         sold: { type: Number, default: 0 },
         isSoldOut: { type: Boolean, default: false },

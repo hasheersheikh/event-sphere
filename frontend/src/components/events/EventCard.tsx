@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, ArrowRight, Zap } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Calendar, MapPin, ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Event, ITicketType } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
@@ -12,6 +12,8 @@ interface EventCardProps {
 }
 
 const EventCard = ({ event, index = 0 }: EventCardProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -34,8 +36,10 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
 
   const totalCapacity =
     event.ticketTypes?.reduce((acc, t) => acc + t.capacity, 0) || 0;
-  const totalSold = event.ticketTypes?.reduce((acc, t) => acc + t.sold, 0) || 0;
+  const totalSold =
+    event.ticketTypes?.reduce((acc, t) => acc + t.sold, 0) || 0;
   const availableTickets = totalCapacity - totalSold;
+
   const getCategoryImage = (category: string = "other") => {
     const cats: Record<string, string> = {
       music: "/images/categories/music.jpg",
@@ -46,7 +50,6 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
       sports: "/images/categories/sports.jpg",
       education: "/images/categories/education.jpg",
       other: "/images/categories/other.jpg",
-      // Map existing categories to closest local image
       art: "/images/categories/entertainment.jpg",
       meetup: "/images/categories/business.jpg",
       tech: "/images/categories/technology.jpg",
@@ -54,98 +57,128 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
     return cats[category.toLowerCase()] || cats.other;
   };
 
-  const isSoldOut = totalCapacity > 0 && (availableTickets <= 0 || event.ticketTypes?.every(t => t.isSoldOut));
+  const isSoldOut =
+    totalCapacity > 0 &&
+    (availableTickets <= 0 || event.ticketTypes?.every((t) => t.isSoldOut));
   const isAlmostSoldOut =
     availableTickets <= totalCapacity * 0.1 && availableTickets > 0;
-  const isPast = new Date(event.date) < new Date() || event.status === "past";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -8 }}
+      viewport={{ once: true, margin: "-30px" }}
+      whileHover={{ y: -5, transition: { duration: 0.22, ease: "easeOut" } }}
       transition={{
-        duration: 0.8,
+        duration: 0.5,
         ease: [0.23, 1, 0.32, 1],
-        delay: index * 0.05,
+        delay: index * 0.06,
       }}
-      className="group"
+      className="group h-full"
     >
       <Link to={`/events/${event._id}`} className="block h-full">
-        <article className="h-full bg-card/40 backdrop-blur-md border border-border/40 rounded-[2.5rem] overflow-hidden hover:border-primary/40 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-primary/5 flex flex-col">
-          {/* Image Container */}
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <SafeImage
-              src={event.image || getCategoryImage(event.category)}
-              alt={event.title}
-              className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent opacity-60" />
+        <article className="h-full bg-card border border-border/30 rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-350 flex flex-col">
 
-            {/* Status Badges */}
-            <div className="absolute top-6 right-6 flex flex-col gap-2">
-              <Badge className="bg-primary/90 text-primary-foreground backdrop-blur-md border-none px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] shadow-xl">
-                {event.category || "GENERAL"}
+          {/* ── image ── */}
+          <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "16/10" }}>
+
+            {/* shimmer while loading */}
+            <AnimatedShimmer visible={!imageLoaded} />
+
+            {/* image — fades in + un-zooms on load */}
+            <motion.div
+              className="absolute inset-0"
+              initial={{ opacity: 0, scale: 1.07 }}
+              animate={
+                imageLoaded
+                  ? { opacity: 1, scale: 1 }
+                  : { opacity: 0, scale: 1.07 }
+              }
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <SafeImage
+                src={event.image || getCategoryImage(event.category)}
+                alt={event.title}
+                className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-[1.04]"
+                onLoad={() => setImageLoaded(true)}
+              />
+            </motion.div>
+
+            {/* gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-400" />
+
+            {/* category badge */}
+            <div className="absolute top-3 left-3">
+              <Badge className="bg-background/85 dark:bg-background/70 text-foreground backdrop-blur-sm border-0 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px] shadow-sm">
+                {event.category || "General"}
               </Badge>
+            </div>
+
+            {/* sold-out / low-stock */}
+            <div className="absolute top-3 right-3 flex flex-col gap-1">
               {isSoldOut && (
-                <Badge className="bg-black/80 text-white backdrop-blur-md border-white/20 px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] shadow-xl">
-                  SOLD OUT
+                <Badge className="bg-black/75 text-white/90 backdrop-blur-sm border-0 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px]">
+                  Sold Out
                 </Badge>
               )}
               {isAlmostSoldOut && (
-                <Badge className="bg-red-500 text-white border-none px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] shadow-xl animate-pulse">
-                  LOW STOCK
+                <Badge className="bg-red-500/90 text-white border-0 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px] animate-pulse">
+                  Few Left
                 </Badge>
               )}
             </div>
 
-            {/* Price Tag */}
-            <div className="absolute bottom-6 left-6">
-              <div className="px-5 py-2.5 bg-background/80 backdrop-blur-xl border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-foreground shadow-2xl">
+            {/* price — bottom right */}
+            <div className="absolute bottom-3 right-3">
+              <span className="inline-block px-3 py-1.5 bg-background/90 dark:bg-background/80 backdrop-blur-sm rounded-md text-[10px] font-black tracking-wide text-foreground shadow-sm border border-white/10">
                 {formatPrice(event.ticketTypes || [])}
-              </div>
+              </span>
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-8 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-[0.3em] text-primary mb-4">
+          {/* ── content ── */}
+          <div className="p-4 flex-1 flex flex-col gap-2">
+
+            {/* date */}
+            <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[0.3em] text-primary">
               <Calendar className="h-3 w-3" />
               {formatDate(event.date)}
             </div>
 
-            <h3 className="text-2xl font-black tracking-tighter leading-none mb-4 text-foreground italic uppercase group-hover:text-primary transition-colors duration-300">
+            {/* title */}
+            <h3 className="text-sm font-black tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors duration-250 line-clamp-2 flex-1">
               {event.title}
             </h3>
 
-            <div className="flex items-start gap-2 text-muted-foreground mb-8">
-              <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-primary/60" />
-              <p className="text-[10px] font-bold leading-relaxed tracking-tight">
+            {/* location */}
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0 text-primary/50" />
+              <p className="text-[11px] font-medium line-clamp-1">
                 {typeof event.location === "string"
                   ? event.location
-                  : event.location?.venueName || event.location?.address?.split(",")[0]}
+                  : event.location?.venueName ||
+                    event.location?.address?.split(",")[0]}
               </p>
             </div>
 
-            <div className="mt-auto pt-6 border-t border-border/30 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/20 flex items-center justify-center font-black text-[10px] text-primary uppercase shadow-inner">
-                  {event.creator?.name?.charAt(0) || "P"}
+            {/* footer */}
+            <div className="pt-3 mt-1 border-t border-border/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-7 w-7 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border border-primary/15 flex items-center justify-center text-[10px] font-black text-primary uppercase shrink-0">
+                  {event.creator?.name?.charAt(0) || "E"}
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">
-                    Curated By
-                  </span>
-                  <span className="text-[10px] font-black text-foreground uppercase tracking-tight">
-                    {event.creator?.name || "Pulse Host"}
-                  </span>
-                </div>
+                <span className="text-xs font-semibold text-muted-foreground line-clamp-1 max-w-[90px]">
+                  {event.creator?.name || "Organizer"}
+                </span>
               </div>
 
-              <div className="h-12 w-12 rounded-2xl flex items-center justify-center bg-foreground text-background group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-lg group-hover:shadow-primary/20 group-hover:rotate-12">
-                <ArrowRight className="h-5 w-5" />
-              </div>
+              <motion.div
+                whileHover={{ rotate: 0, scale: 1.1 }}
+                initial={{ rotate: 0 }}
+                className="h-7 w-7 rounded-lg flex items-center justify-center bg-foreground/8 dark:bg-foreground/10 text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300"
+              >
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </motion.div>
             </div>
           </div>
         </article>
@@ -153,5 +186,21 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
     </motion.div>
   );
 };
+
+/* shimmer skeleton */
+const AnimatedShimmer = ({ visible }: { visible: boolean }) => (
+  <motion.div
+    className="absolute inset-0 overflow-hidden bg-muted"
+    animate={{ opacity: visible ? 1 : 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <motion.div
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/8 to-transparent -translate-x-full"
+      animate={{ x: ["−100%", "200%"] }}
+      transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+      style={{ transform: "translateX(-100%)" }}
+    />
+  </motion.div>
+);
 
 export default EventCard;

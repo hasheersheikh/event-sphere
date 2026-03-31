@@ -7,7 +7,7 @@ import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
 import Payout from '../models/Payout.js';
 import Volunteer from '../models/Volunteer.js';
-import Settlement from '../models/Payout.js'; // Assuming Payout and Settlement were used interchangeably or checking models
+import { createRazorpayContact, createRazorpayFundAccount, initiateRazorpayPayout } from '../utils/razorpayPayouts.js';
 
 export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
@@ -74,14 +74,20 @@ export const getManagerDetail: RequestHandler = async (req: AuthRequest, res: Re
     if (commissionType === 'percentage') {
       totalCommission = (totalRevenue * commissionValue) / 100;
     } else {
-      // Flat fee - this is tricky if we don't know per event or total
-      // User said "can be flat fee or percentage whise based on deal made"
-      // Assuming flat fee is per manager total for now, or we might need it per event.
-      // Usually flat fee per event is better, but let's stick to simple flat fee for the "deal" for now.
-      totalCommission = commissionValue;
+      totalCommission = commissionValue * totalTicketsSold; // Applied per ticket
     }
 
-    const netPayable = Math.max(0, totalRevenue - totalCommission - (manager.totalPaid || 0));
+    const totalSettled = payouts
+      .filter(p => p.status === 'completed' || p.status === 'processing')
+      .reduce((acc, p) => acc + p.amount, 0);
+
+    const netPayable = totalRevenue - totalCommission - totalSettled;
+
+    // Sync totalPaid with actual payouts
+    if (manager.totalPaid !== totalSettled) {
+      manager.totalPaid = totalSettled;
+      await manager.save();
+    }
 
     res.json({
       manager,
@@ -89,7 +95,7 @@ export const getManagerDetail: RequestHandler = async (req: AuthRequest, res: Re
         totalEvents: events.length,
         totalRevenue,
         totalTicketsSold,
-        totalPaid: manager.totalPaid || 0,
+        totalPaid: totalSettled,
         totalCommission,
         netDue: totalRevenue - totalCommission,
         pendingPayout: netPayable
@@ -167,31 +173,158 @@ export const declineEvent: RequestHandler = async (req: AuthRequest, res: Respon
   }
 };
 
-export const processPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
-  const { amount, notes, referenceId } = req.body;
+export const processEventPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { eventId } = req.params;
+  
   try {
-    const manager = await EventManager.findById(id);
+    const event = await Event.findById(eventId);
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+    
+    // Check if payout already exists
+    const existingPayout = await Payout.findOne({ event: eventId, status: { $in: ['pending', 'processing', 'completed'] } });
+    if (existingPayout) {
+      res.status(400).json({ message: 'Payout for this event has already been initiated or completed.' });
+      return;
+    }
+
+    const manager = await EventManager.findById(event.creator);
     if (!manager) {
       res.status(404).json({ message: 'Manager not found' });
       return;
     }
 
-    // Initialize settlement record
+    // Calculate revenue
+    const bookings = await Booking.find({ event: eventId, status: 'confirmed' });
+    const totalCollected = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+
+    if (totalCollected <= 0) {
+      res.status(400).json({ message: 'No collected revenue for this event.' });
+      return;
+    }
+
+    // platform_fee = 10%
+    const platformFee = totalCollected * 0.10;
+    const payoutAmount = totalCollected - platformFee;
+
+    // Razorpay Integration
+    const contact = await createRazorpayContact(manager, `contact_mgr_${manager._id}`);
+    const fundAccount = await createRazorpayFundAccount(contact.id, manager);
+    const payoutOrder = await initiateRazorpayPayout(
+      fundAccount.id, 
+      payoutAmount, 
+      `payout_evt_${eventId}_${Date.now()}`,
+      'payout'
+    );
+
     const payout = await Payout.create({
-      manager: id,
-      amount,
-      notes,
-      referenceId,
-      status: 'completed'
+      manager: manager._id,
+      event: eventId,
+      amount: payoutAmount,
+      status: 'processing',
+      fundAccountId: fundAccount.id,
+      razorpayPayoutId: payoutOrder.id,
+      notes: `Payout for event ${event.title}`,
     });
 
-    manager.totalPaid = (manager.totalPaid || 0) + amount;
+    manager.totalPaid = (manager.totalPaid || 0) + payoutAmount;
     await manager.save();
 
-    res.json({ message: 'Payout processed successfully', payout, totalPaid: manager.totalPaid });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.json({ message: 'Payout initiated successfully', payout, totalCollected, platformFee, payoutAmount });
+  } catch (error: any) {
+    res.status(500).json({ message: 'Payout processing failed', error: error.message || error });
+  }
+};
+
+export const processPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { amount, notes } = req.body;
+
+  if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+    res.status(400).json({ message: 'A valid positive amount is required.' });
+    return;
+  }
+
+  const payoutAmount = Number(amount);
+
+  try {
+    const manager = await EventManager.findById(id);
+    if (!manager) {
+      res.status(404).json({ message: 'Manager not found.' });
+      return;
+    }
+
+    // Require payment details before processing
+    const hasBankDetails = !!(manager.bankDetails?.accountNumber && manager.bankDetails?.ifscCode);
+    const hasUpiId = !!manager.upiId;
+    if (!hasBankDetails && !hasUpiId) {
+      res.status(400).json({ message: 'Manager has not set up bank account or UPI ID. Ask them to configure payout details first.' });
+      return;
+    }
+
+    // Calculate pending balance
+    const events = await Event.find({ creator: id });
+    const eventIds = events.map(e => e._id);
+    const bookings = await Booking.find({ event: { $in: eventIds }, status: 'confirmed' });
+
+    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const totalTicketsSold = bookings.reduce((acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0);
+
+    const commissionType = manager.commissionType || 'percentage';
+    let totalCommission = 0;
+    if (commissionType === 'percentage') {
+      totalCommission = (totalRevenue * (manager.commissionValue ?? 10)) / 100;
+    } else {
+      totalCommission = (manager.commissionValue ?? 10) * totalTicketsSold;
+    }
+
+    const existingPayouts = await Payout.find({ manager: id, status: { $in: ['completed', 'processing'] } });
+    const totalSettled = existingPayouts.reduce((acc, p) => acc + p.amount, 0);
+    const pendingBalance = totalRevenue - totalCommission - totalSettled;
+
+    if (payoutAmount > pendingBalance + 0.01) {
+      res.status(400).json({
+        message: `Amount ₹${payoutAmount} exceeds available balance of ₹${Math.floor(pendingBalance)}.`
+      });
+      return;
+    }
+
+    // Determine payout mode
+    const mode = (hasUpiId && !hasBankDetails) ? 'UPI' : 'IMPS';
+    const referenceId = `payout_mgr_${id}_${Date.now()}`;
+
+    // Create Razorpay Contact → Fund Account → Payout
+    const contact = await createRazorpayContact(manager, referenceId);
+    const fundAccount = await createRazorpayFundAccount(contact.id, manager);
+    const razorpayPayout = await initiateRazorpayPayout(
+      fundAccount.id,
+      payoutAmount,
+      referenceId,
+      'payout',
+      mode
+    );
+
+    // Store payout record (processing — webhook will update to completed/failed)
+    const payout = await Payout.create({
+      manager: id,
+      amount: payoutAmount,
+      notes: notes || 'Manual payout by admin',
+      referenceId,
+      fundAccountId: fundAccount.id,
+      razorpayPayoutId: razorpayPayout.id,
+      status: 'processing',
+    });
+
+    res.json({
+      message: 'Payout initiated via Razorpay. Funds will be transferred shortly.',
+      payout,
+      razorpayPayoutId: razorpayPayout.id,
+    });
+  } catch (error: any) {
+    console.error('processPayout error:', error);
+    res.status(500).json({ message: error.message || 'Payout failed. Please try again.' });
   }
 };
 
@@ -478,17 +611,16 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
 
     // Group sales by ticket type
     const ticketStats = event.ticketTypes.map(tt => {
-      const soldForType = passengers.reduce((acc, b) => {
-        return acc + b.tickets
-          .filter(t => t.type === tt.name)
-          .reduce((sum, t) => sum + t.quantity, 0);
-      }, 0);
+      const typeBookings = passengers.flatMap(b => b.tickets.filter(t => t.type === tt.name));
+      const soldForType = typeBookings.reduce((acc, t) => acc + t.quantity, 0);
+      const revenueForType = typeBookings.reduce((acc, t) => acc + (t.price * t.quantity), 0);
+      
       return {
         name: tt.name,
         price: tt.price,
         capacity: tt.capacity,
         sold: soldForType,
-        revenue: soldForType * tt.price
+        revenue: revenueForType
       };
     });
 

@@ -107,25 +107,32 @@ const PayoutsPage = () => {
   const cards = [
     {
       label: "Total Earned",
-      value: `₹${grossRevenue.toLocaleString()}`,
+      value: `₹${(stats?.netDue || 0).toLocaleString()}`,
       icon: TrendingUp,
       color: "text-emerald-500",
       bg: "bg-emerald-500/10",
     },
     {
-      label: "Total Withdrawn",
-      value: `₹${totalPaid.toLocaleString()}`,
+      label: "Withdrawn",
+      value: `₹${(stats?.totalSettled || 0).toLocaleString()}`,
       icon: Wallet,
       color: "text-blue-500",
       bg: "bg-blue-500/10",
     },
     {
-      label: "Settlement Method",
+      label: "Available",
+      value: `₹${(stats?.pendingPayout || 0).toLocaleString()}`,
+      icon: IndianRupee,
+      color: "text-amber-500",
+      bg: "bg-amber-500/10",
+    },
+    {
+      label: "Method",
       value: details?.upiId
-        ? "UPI Active"
+        ? "UPI"
         : details?.bankDetails?.accountNumber
-          ? "Bank Active"
-          : "Not Configured",
+        ? "Bank"
+        : "None",
       icon: CheckCircle2,
       color: "text-purple-500",
       bg: "bg-purple-500/10",
@@ -171,7 +178,7 @@ const PayoutsPage = () => {
         </section>
 
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {cards.map((card, index) => (
             <motion.div
               key={card.label}
@@ -389,9 +396,11 @@ const PayoutsPage = () => {
                           className={`rounded-full px-3 py-0.5 text-[7px] font-black uppercase tracking-widest ${
                             payout.status === "completed"
                               ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                              : payout.status === "pending"
-                                ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                                : "bg-rose-500/10 text-rose-500 border-rose-500/20"
+                              : payout.status === "processing"
+                                ? "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                                : payout.status === "pending"
+                                  ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                  : "bg-rose-500/10 text-rose-500 border-rose-500/20"
                           }`}
                         >
                           {payout.status}

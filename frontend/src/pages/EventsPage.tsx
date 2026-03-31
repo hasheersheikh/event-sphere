@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, MapPin, Calendar, Filter, X, Zap } from "lucide-react";
@@ -24,6 +24,12 @@ const EventsPage = () => {
     searchParams.get("location") || "",
   );
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    setSelectedCategory(searchParams.get("category") || "");
+    setSearchQuery(searchParams.get("q") || "");
+    setLocationFilter(searchParams.get("location") || "");
+  }, [searchParams]);
 
   const { data: events, isLoading } = useQuery({
     queryKey: ["events", searchQuery, selectedCategory, locationFilter],

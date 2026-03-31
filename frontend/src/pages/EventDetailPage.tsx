@@ -16,12 +16,25 @@ import {
   VolumeX,
   Sparkles,
   Info,
+  Mail,
+  Phone,
+  Plus,
+  Minus,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
@@ -43,6 +56,20 @@ const EventDetailPage = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [guestEmail, setGuestEmail] = useState(user?.email || "");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [selectedTicket, setSelectedTicket] = useState<{
+    type: string;
+    price: number;
+    quantity: number;
+    fullPassPrice?: number;
+    isFullPass?: boolean;
+    dayWisePrices?: any[]
+  } | null>(null);
+  const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+  const [selectedDays, setSelectedDays] = useState<number[]>([]);
+  const [isFullPassSelected, setIsFullPassSelected] = useState(false);
 
   const handleApplyVoucher = async () => {
     setIsLoadingVoucher(true);
@@ -75,10 +102,14 @@ const EventDetailPage = () => {
       type: string;
       quantity: number;
       price: number;
+      email: string;
+      phoneNumber: string;
     }) => {
       const { data } = await api.post("/bookings", {
         eventId: id,
-        tickets: [ticketData],
+        tickets: [{ type: ticketData.type, quantity: ticketData.quantity, price: ticketData.price }],
+        email: ticketData.email,
+        phoneNumber: ticketData.phoneNumber,
       });
       return data;
     },
@@ -137,93 +168,123 @@ const EventDetailPage = () => {
     return () => clearInterval(timer);
   }, [event?.date, event?.time]);
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
+  const handleBooking = async (ticket: any, unitPrice: number) => {
+    const qty = ticketQuantities[ticket.name] || 1;
+    const maxQty = ticket.capacity - ticket.sold;
+
+    if (qty > maxQty) {
+      toast.error(`Only ${maxQty} tickets available`);
+      return;
+    }
+    setSelectedTicket({
+      type: ticket.name,
+      price: ticket.price,
+      quantity: qty,
+      fullPassPrice: ticket.fullPassPrice,
+      isFullPass: ticket.isFullPass,
+      dayWisePrices: ticket.dayWisePrices
     });
+    setSelectedDays([]);
+    setIsFullPassSelected(false);
+    
+    // If user is logged in, use their details and start booking immediately
+    if (user) {
+      setGuestEmail(user.email || "");
+      setGuestPhone(user.phoneNumber || "");
+      
+      // If we have both details, skip modal
+      if (user.email && user.phoneNumber) {
+        // We use a small timeout to ensure state is updated or just pass them directly
+        // Better: just call startBookingProcess with the correct details
+        setTimeout(() => {
+          const btn = document.getElementById('initiate-booking-btn');
+          if (btn) btn.click();
+        }, 0);
+        // Actually, let's just make startBookingProcess accept args or use a more direct approach
+      } else {
+        setIsBookingModalOpen(true);
+      }
+    } else {
+      // Guest booking - open modal
+      setIsBookingModalOpen(true);
+    }
   };
 
-  const handleBooking = async (ticketType: string, price: number) => {
-    if (!user) {
-      toast.error("Please login to book tickets.");
-      navigate("/auth", { state: { from: window.location.pathname } });
+  const startBookingProcess = async () => {
+    // Determine contact info: state (guestEmail/Phone) or user (if logged in)
+    const emailToUse = guestEmail || user?.email;
+    const phoneToUse = guestPhone || user?.phoneNumber;
+
+    if (!selectedTicket || !emailToUse || !phoneToUse) {
+      toast.error("Please provide email and phone number.");
       return;
     }
 
-    if (price === 0) {
-      bookingMutation.mutate({ type: ticketType, quantity: 1, price });
+    const { type: ticketType, price: basePrice, quantity, fullPassPrice } = selectedTicket;
+
+    let unitPrice = basePrice;
+    if (event.isMultiDay) {
+      if (isFullPassSelected) {
+        unitPrice = fullPassPrice || basePrice;
+      } else if (selectedDays.length > 0) {
+        unitPrice = 0;
+        selectedDays.forEach(dayIdx => {
+          const dayPrice = selectedTicket.dayWisePrices?.find((dp: any) => dp.dayIndex === dayIdx)?.price || basePrice;
+          unitPrice += dayPrice;
+        });
+      }
+    }
+
+    if (unitPrice <= 0 && event.isMultiDay) {
+      toast.error("Please select at least one day or Full Pass.");
+      return;
+    }
+
+    const finalPrice = unitPrice * quantity;
+
+    if (finalPrice === 0 && !event.isMultiDay) {
+      bookingMutation.mutate({
+        type: ticketType,
+        quantity,
+        price: 0,
+        email: emailToUse,
+        phoneNumber: phoneToUse
+      });
+      setIsBookingModalOpen(false);
       return;
     }
 
     try {
-      const isScriptLoaded = await loadRazorpayScript();
-      if (!isScriptLoaded) {
-        toast.error("Razorpay SDK failed to load. Are you online?");
-        return;
-      }
-
       // 1. Create Pending Booking
       const { data: booking } = await api.post("/bookings", {
         eventId: id,
-        tickets: [{ type: ticketType, quantity: 1, price }],
+        tickets: [{
+          type: ticketType,
+          quantity,
+          price: unitPrice,
+          selectedDays: selectedDays,
+          isFullPass: isFullPassSelected
+        }],
+        email: emailToUse,
+        phoneNumber: phoneToUse,
         status: "pending",
       });
 
-      // 2. Create Razorpay Order
-      const { data: order } = await api.post("/payments/create-order", {
-        amount: price,
-        currency: "INR",
-        receipt: `receipt_${booking._id}`,
+      setIsBookingModalOpen(false);
+
+      // 2. Get hosted payment link from backend (no Razorpay SDK on frontend)
+      const { data } = await api.post("/payments/create-payment-link", {
         bookingId: booking._id,
+        amount: finalPrice,
+        currency: "INR",
+        customerName: user?.name || "Guest",
+        customerEmail: emailToUse,
+        customerPhone: phoneToUse,
+        eventTitle: event.title,
       });
 
-      // 3. Open Razorpay Checkout
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_placeholder",
-        amount: order.amount,
-        currency: order.currency,
-        name: "City Pulse",
-        description: `Booking for ${event.title}`,
-        image: "/placeholder.svg",
-        order_id: order.id,
-        handler: async (response: any) => {
-          try {
-            const { data: verifyData } = await api.post("/payments/verify", {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              bookingId: booking._id,
-            });
-
-            if (verifyData.success) {
-              confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ["#6366f1", "#ec4899", "#ffffff"],
-              });
-              toast.success("Payment successful! Tickets confirmed.");
-              setTimeout(() => navigate("/my-tickets"), 2000);
-            }
-          } catch (err) {
-            toast.error("Payment verification failed. Please contact support.");
-          }
-        },
-        prefill: {
-          name: user.name,
-          email: user.email,
-        },
-        theme: {
-          color: "#10B981",
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
+      // 3. Redirect to Razorpay hosted payment page
+      window.location.href = data.payment_url;
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Booking failed.");
     }
@@ -310,8 +371,12 @@ const EventDetailPage = () => {
 
 
   const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    // Handle YouTube Shorts: https://www.youtube.com/shorts/VIDEO_ID
+    const shortsMatch = url.match(/youtube\.com\/shorts\/([^#\&\?]{11})/);
+    if (shortsMatch) return shortsMatch[1];
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url?.match(regExp);
+    const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
   };
 
@@ -438,15 +503,19 @@ const EventDetailPage = () => {
                         <p className="font-black uppercase tracking-widest text-[10px] text-muted-foreground mb-1">
                           Event Venue
                         </p>
-                        <p className="text-xl font-bold">
+                        {event.location.venueName && (
+                          <p className="font-black text-base">{event.location.venueName}</p>
+                        )}
+                        <p className="text-base font-medium text-muted-foreground">
                           {event.location.address}
                         </p>
                       </div>
                     </div>
                     <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        event.location.address,
-                      )}`}
+                      href={
+                        event.location.googleMapUrl ||
+                        `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location.address)}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-3 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-black transition-all shadow-sm"
@@ -461,14 +530,27 @@ const EventDetailPage = () => {
                     <iframe
                       width="100%"
                       height="100%"
-                      frameBorder="0"
                       style={{ border: 0 }}
-                      src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                        event.location.address,
-                      )}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
+                      src={
+                        event.location.googleMapUrl
+                          ? event.location.googleMapUrl.includes("/embed")
+                            ? event.location.googleMapUrl
+                            : `https://maps.google.com/maps?q=${encodeURIComponent(event.location.address)}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+                          : `https://maps.google.com/maps?q=${encodeURIComponent(event.location.address)}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+                      }
                       allowFullScreen
-                    ></iframe>
+                    />
                   </div>
+                  {event.location.googleMapUrl && (
+                    <a
+                      href={event.location.googleMapUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:underline"
+                    >
+                      <MapPin className="h-3 w-3" /> View exact location on Google Maps
+                    </a>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -486,34 +568,23 @@ const EventDetailPage = () => {
                   <div className="mb-12">
                     <h2 className="text-2xl font-black uppercase tracking-tighter mb-8 flex items-center gap-3">
                       <Sparkles className="h-6 w-6 text-primary" />
-                      Event Highlights
+                      Event Shorts
                     </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                       {event.reels.map((url: string, idx: number) => {
-                        const isInstagram = url.includes("instagram.com");
-                        const ytId = !isInstagram ? getYouTubeId(url) : null;
-                        
+                        const ytId = getYouTubeId(url);
+                        if (!ytId) return null;
                         return (
-                          <div 
-                            key={idx} 
-                            className={`relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:border-primary/30 group ${isInstagram ? "aspect-[9/16]" : "aspect-video md:aspect-[9/16]"}`}
+                          <div
+                            key={idx}
+                            className="relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 shadow-2xl transition-all duration-500 hover:scale-[1.02] hover:border-primary/30 group aspect-[9/16]"
                           >
-                            {isInstagram ? (
-                              <iframe
-                                src={`https://www.instagram.com/reels/${url.split("/reels/")[1]?.split("/")[0]}/embed`}
-                                className="w-full h-full"
-                                frameBorder="0"
-                                scrolling="no"
-                                allowTransparency
-                              />
-                            ) : ytId ? (
-                              <iframe
-                                src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`}
-                                className="w-full h-full"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                              />
-                            ) : null}
+                            <iframe
+                              src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
                           </div>
                         );
                       })}
@@ -526,7 +597,7 @@ const EventDetailPage = () => {
                   <div className="mb-8">
                     <h2 className="text-xl font-semibold mb-4">Tags</h2>
                     <div className="flex flex-wrap gap-2">
-                      {event.tags.map((tag) => (
+                      {event.tags.map((tag: string) => (
                         <Badge
                           key={tag}
                           variant="secondary"
@@ -573,19 +644,22 @@ const EventDetailPage = () => {
                 <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-8 text-primary">
                     <Ticket className="h-5 w-5" />
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em]">Access Nodes</h2>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.3em]">Tickets</h2>
                   </div>
 
                 <div className="space-y-4 mb-6">
-                  {event.ticketTypes.map((ticket: any, index: number) => {
+                  {event.ticketTypes.map((ticket: any) => {
                     const basePrice = ticket.price;
-                    const discount = 
-                      appliedVoucher 
-                        ? (appliedVoucher.discountType === 'percentage' 
-                           ? (basePrice * appliedVoucher.discountAmount / 100) 
+                    const discount =
+                      appliedVoucher
+                        ? (appliedVoucher.discountType === 'percentage'
+                           ? (basePrice * appliedVoucher.discountAmount / 100)
                            : appliedVoucher.discountAmount)
                         : 0;
                     const finalPrice = Math.max(0, basePrice - discount);
+                    const maxQty = ticket.capacity - ticket.sold;
+                    const qty = ticketQuantities[ticket.name] || 1;
+                    const totalPrice = finalPrice * qty;
 
                     return (
                       <div
@@ -603,14 +677,60 @@ const EventDetailPage = () => {
                             <span className="font-black text-lg text-primary tracking-tighter">
                               {formatPrice(finalPrice)}
                             </span>
+                            <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">
+                              per ticket
+                            </span>
                           </div>
                         </div>
                         <div className="text-[10px] font-bold text-muted-foreground italic uppercase tracking-widest flex items-center gap-2">
                           <span className="h-1 w-1 rounded-full bg-primary" />
-                          {ticket.capacity - ticket.sold} Units Available
+                          {maxQty} spots left
                         </div>
+
+                        {!ticket.isSoldOut && ticket.sold < ticket.capacity && (
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 bg-background/50 rounded-xl border border-border/50 p-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTicketQuantities((prev: any) => ({
+                                    ...prev,
+                                    [ticket.name]: Math.max(1, (prev[ticket.name] || 1) - 1)
+                                  }));
+                                }}
+                                disabled={qty <= 1}
+                                className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                              >
+                                <Minus className="h-4 w-4" />
+                              </button>
+                              <span className="w-8 text-center font-black text-sm tracking-tight">
+                                {qty}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setTicketQuantities((prev: any) => ({
+                                    ...prev,
+                                    [ticket.name]: Math.min(maxQty, (prev[ticket.name] || 1) + 1)
+                                  }));
+                                }}
+                                disabled={qty >= maxQty}
+                                className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-primary/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                              >
+                                <Plus className="h-4 w-4" />
+                              </button>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total</p>
+                              <p className="text-lg font-black text-primary tracking-tighter">
+                                {formatPrice(totalPrice)}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
                         <Button
-                          onClick={() => handleBooking(ticket.name, finalPrice)}
+                          onClick={() => handleBooking(ticket, finalPrice)}
                           disabled={
                             ticket.isSoldOut ||
                             ticket.sold >= ticket.capacity ||
@@ -619,8 +739,8 @@ const EventDetailPage = () => {
                           className="w-full h-12 rounded-xl font-black uppercase tracking-widest transition-all duration-300 shadow-lg hover:shadow-primary/20 bg-primary text-primary-foreground hover:scale-[1.02]"
                         >
                           {ticket.isSoldOut || ticket.sold >= ticket.capacity
-                            ? "Depleted"
-                            : "Initialize Access"}
+                            ? "Sold Out"
+                            : `Book ${qty} Ticket${qty > 1 ? 's' : ''}`}
                         </Button>
                       </div>
                     );
@@ -713,7 +833,7 @@ const EventDetailPage = () => {
                     name={event.title}
                     options={["Google", "Apple", "Outlook.com"]}
                     location={event.location.address}
-                    startDate={event.date.split("T")[0]}
+                    startDate={new Date(event.date).toISOString().split("T")[0]}
                     startTime={event.time}
                     endTime={event.endTime || "23:59"}
                     description={event.description}
@@ -752,6 +872,127 @@ const EventDetailPage = () => {
       )}
 
       <Footer />
+
+      {/* Booking Contact Info Modal */}
+      <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl bg-card border-border/50 backdrop-blur-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tighter italic">
+              Your Contact Details
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
+              We'll send your tickets to these details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Mail className="h-3 w-3" /> Email Address
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                className="rounded-xl bg-muted/30 border-border h-12 font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Phone className="h-3 w-3" /> WhatsApp Number
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+91 00000 00000"
+                value={guestPhone}
+                onChange={(e) => setGuestPhone(e.target.value)}
+                className="rounded-xl bg-muted/30 border-border h-12 font-medium"
+              />
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest pl-1 italic">
+                * PDF ticket will be sent via Email & WhatsApp
+              </p>
+            </div>
+          </div>
+          
+          {event.isMultiDay && selectedTicket && (
+            <div className="px-6 pb-4 space-y-4">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Calendar className="h-3 w-3" /> Select Sessions / Days
+              </Label>
+              <div className="grid grid-cols-1 gap-2">
+                {selectedTicket.isFullPass && (
+                    <div 
+                      onClick={() => {
+                        setIsFullPassSelected(!isFullPassSelected);
+                        setSelectedDays([]);
+                      }}
+                      className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${isFullPassSelected ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-border/50'}`}
+                    >
+                      <span className="text-xs font-bold uppercase tracking-tight">Full Event Pass</span>
+                      <span className="text-xs font-black text-primary italic">₹{selectedTicket.fullPassPrice || selectedTicket.price}</span>
+                    </div>
+                )}
+                {!isFullPassSelected && event.days?.map((day: any, idx: number) => {
+                  const isSelected = selectedDays.includes(idx);
+                  const dayPrice = selectedTicket.dayWisePrices?.find((dp: any) => dp.dayIndex === idx)?.price || selectedTicket.price;
+                  
+                  return (
+                    <div 
+                      key={idx}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedDays(selectedDays.filter(d => d !== idx));
+                        } else {
+                          setSelectedDays([...selectedDays, idx]);
+                        }
+                      }}
+                      className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${isSelected ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-border/50'}`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold uppercase tracking-tight">{day.title || `Day ${idx + 1}`}</span>
+                        <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-widest">{formatDate(day.date)}</span>
+                      </div>
+                      <span className="text-xs font-black text-primary italic">₹{dayPrice}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <div className="pt-2 border-t border-border/50 flex justify-between items-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
+                <span className="text-xl font-black text-primary tracking-tighter italic">
+                  ₹{(() => {
+                    if (isFullPassSelected) return selectedTicket.fullPassPrice || selectedTicket.price;
+                    return selectedDays.reduce((acc, idx) => {
+                      const dp = selectedTicket.dayWisePrices?.find((p: any) => p.dayIndex === idx);
+                      return acc + (dp ? dp.price : selectedTicket.price);
+                    }, 0);
+                  })()}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              onClick={startBookingProcess}
+              disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
+              className="w-full h-14 rounded-2xl font-black uppercase tracking-widest shadow-lg hover:shadow-primary/20 bg-primary text-primary-foreground hover:scale-[1.02] transition-all"
+            >
+              {bookingMutation.isPending ? "Syncing..." : "Initiate Checkout"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hidden button for programmatic trigger */}
+      <button
+        id="initiate-booking-btn"
+        className="hidden"
+        onClick={() => startBookingProcess()}
+      />
     </div>
   );
 };

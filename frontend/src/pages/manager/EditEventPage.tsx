@@ -15,6 +15,8 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  LayoutGrid,
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -24,6 +26,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -46,6 +51,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
 
 const eventSchema = z.object({
@@ -58,6 +64,7 @@ const eventSchema = z.object({
   location: z.object({
     address: z.string().min(5, "Address must be at least 5 characters"),
     venueName: z.string().optional(),
+    googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   }),
   image: z.string().url("Please enter a valid image URL").or(z.literal("")),
   videoUrl: z
@@ -74,9 +81,22 @@ const eventSchema = z.object({
         price: z.coerce.number().min(0, "Price cannot be negative"),
         capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
         isSoldOut: z.boolean().optional().default(false),
+        isFullPass: z.boolean().optional().default(false),
+        fullPassPrice: z.coerce.number().min(0).optional(),
+        dayWisePrices: z.array(z.object({
+          dayIndex: z.number(),
+          price: z.coerce.number().min(0)
+        })).optional(),
       }),
     )
     .min(1, "At least one ticket type is required"),
+  isMultiDay: z.boolean().default(false),
+  days: z.array(z.object({
+    date: z.date({ required_error: "Date is required" }),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().optional(),
+    title: z.string().optional(),
+  })).optional(),
   vouchers: z
     .array(
       z.object({
@@ -122,9 +142,16 @@ const EditEventPage = () => {
       image: "",
       videoUrl: "",
       reels: [],
+      isMultiDay: false,
+      days: [],
       ticketTypes: [],
       vouchers: [],
     },
+  });
+
+  const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({
+    name: "days",
+    control: form.control,
   });
 
   useEffect(() => {
@@ -139,10 +166,16 @@ const EditEventPage = () => {
         location: {
           address: event.location?.address || "",
           venueName: event.location?.venueName || "",
+          googleMapUrl: event.location?.googleMapUrl || "",
         },
         image: event.image || "",
         videoUrl: event.videoUrl || "",
         reels: event.reels || [],
+        isMultiDay: event.isMultiDay || false,
+        days: event.days?.map((d: any) => ({
+          ...d,
+          date: d.date ? new Date(d.date) : undefined
+        })) || [],
         ticketTypes: event.ticketTypes || [],
         vouchers: event.vouchers || [],
       });
@@ -164,11 +197,20 @@ const EditEventPage = () => {
   });
 
   const mutation = useMutation({
-    mutationFn: async (values: EventFormValues) => {
+    mutationFn: async (values: any) => {
       const payload = {
         ...values,
-        date: values.date ? format(new Date(values.date), "yyyy-MM-dd") : "",
+        date: values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        days: values.isMultiDay ? values.days.map((d: any) => ({
+          ...d,
+          date: d.date ? format(new Date(d.date), "yyyy-MM-dd") : ""
+        })) : []
       };
+      
+      if (!values.isMultiDay) {
+        delete payload.days;
+      }
+
       const { data } = await api.put(`/events/${id}`, payload);
       return data;
     },
@@ -186,7 +228,11 @@ const EditEventPage = () => {
     if (currentStep === 1) {
       fieldsToValidate = ["title", "description", "category"];
     } else if (currentStep === 2) {
-      fieldsToValidate = ["date", "time", "location.address"];
+      if (form.watch("isMultiDay")) {
+        fieldsToValidate = ["days", "location.address"];
+      } else {
+        fieldsToValidate = ["date", "time", "location.address"];
+      }
     }
 
     const isValid = await form.trigger(fieldsToValidate);
@@ -461,14 +507,14 @@ const EditEventPage = () => {
 
                         <div className="space-y-4">
                           <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
-                            Promotional Reels (URLs)
+                            YouTube Shorts
                           </FormLabel>
                           <div className="space-y-3">
                             {form.watch("reels")?.map((_, index) => (
                               <div key={index} className="flex gap-2">
                                 <Input
                                   className="h-12 bg-background/40 border-white/5 rounded-xl font-black shadow-inner text-xs"
-                                  placeholder="Asset URL"
+                                  placeholder="https://youtube.com/shorts/..."
                                   value={form.watch(`reels.${index}`)}
                                   onChange={(e) => {
                                     const newReels = [
@@ -506,7 +552,7 @@ const EditEventPage = () => {
                               }
                               className="w-full h-12 rounded-xl border-dashed border-white/20 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5 hover:border-primary/50"
                             >
-                              <Plus className="h-3 w-3" /> Add Reel URL
+                              <Plus className="h-3 w-3" /> Add YouTube Short
                             </Button>
                           </div>
                         </div>
@@ -535,96 +581,210 @@ const EditEventPage = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-8 p-6">
-                      <div className="grid md:grid-cols-3 gap-6">
+                      <div className="space-y-6">
                         <FormField
                           control={form.control}
-                          name="date"
+                          name="isMultiDay"
                           render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Date
-                              </FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
+                            <FormItem className="flex flex-row items-center justify-between rounded-[2rem] border border-white/10 p-6 bg-muted/20 glass-card">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-base font-black tracking-tighter uppercase italic">Multi-Day Event</FormLabel>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+                                  Configure this event to span several dates with individual daily schedules.
+                                </p>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+
+                        {!form.watch("isMultiDay") ? (
+                          <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <FormField
+                              control={form.control}
+                              name="date"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button
+                                          type="button"
+                                          variant={"outline"}
+                                          className={cn(
+                                            "h-14 bg-background/50 border-white/10 rounded-xl font-black text-left px-4",
+                                            !field.value && "text-muted-foreground"
+                                          )}
+                                        >
+                                          {field.value instanceof Date ? format(field.value, "PPP") : <span>Select Date</span>}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 glass-card border-white/20" align="start">
+                                      <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                        initialFocus
+                                      />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="time"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
                                   <FormControl>
-                                    <Button
-                                      type="button"
-                                      variant={"outline"}
-                                      className={cn(
-                                        "h-14 bg-background/50 border-white/10 rounded-xl font-black text-left px-4",
-                                        !field.value && "text-muted-foreground",
-                                      )}
-                                    >
-                                      {field.value instanceof Date ? (
-                                        format(field.value, "PPP")
-                                      ) : (
-                                        <span>Select Date</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
+                                    <Input type="time" className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner" {...field} />
                                   </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0 glass-card border-white/20"
-                                  align="start"
-                                >
-                                  <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                      date <
-                                      new Date(new Date().setHours(0, 0, 0, 0))
-                                    }
-                                    initialFocus
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="endTime"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
+                                  <FormControl>
+                                    <Input type="time" className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        ) : (
+                          <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="flex justify-between items-center">
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Event Schedule</h3>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => appendDay({ date: undefined, startTime: "09:00", endTime: "17:00", title: "" })}
+                                className="h-10 rounded-xl border-dashed border-primary/30 text-[9px] font-black uppercase gap-2 hover:bg-primary/5 hover:border-primary"
+                              >
+                                <Plus className="h-3.5 w-3.5" /> Append Day
+                              </Button>
+                            </div>
+
+                            {dayFields.map((field, index) => (
+                              <div key={field.id} className="p-6 border border-white/5 rounded-2xl bg-muted/10 relative group glass-card">
+                                <div className="flex justify-between items-center mb-6">
+                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Day {index + 1}</span>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeDay(index)}
+                                    className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <div className="grid md:grid-cols-4 gap-4">
+                                  <div className="md:col-span-2">
+                                    <FormField
+                                      control={form.control}
+                                      name={`days.${index}.title`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Day Title (Optional)</FormLabel>
+                                          <FormControl>
+                                            <Input placeholder="e.g. Opening Keynote" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+                                  <FormField
+                                    control={form.control}
+                                    name={`days.${index}.date`}
+                                    render={({ field }) => (
+                                      <FormItem className="flex flex-col">
+                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <FormControl>
+                                              <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                  "h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold text-left px-3",
+                                                  !field.value && "text-muted-foreground"
+                                                )}
+                                              >
+                                                {field.value ? format(new Date(field.value), "MMM d, yyyy") : "Select"}
+                                                <CalendarIcon className="ml-auto h-3 w-3 opacity-50" />
+                                              </Button>
+                                            </FormControl>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0 glass-card" align="end">
+                                            <Calendar
+                                              mode="single"
+                                              selected={field.value as any}
+                                              onSelect={field.onChange}
+                                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
                                   />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="time"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Start Time
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="time"
-                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="endTime"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                End Time
-                              </FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="time"
-                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <FormField
+                                      control={form.control}
+                                      name={`days.${index}.startTime`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Start</FormLabel>
+                                          <FormControl>
+                                            <Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                    <FormField
+                                      control={form.control}
+                                      name={`days.${index}.endTime`}
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">End</FormLabel>
+                                          <FormControl>
+                                            <Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
+
+                      <Separator className="bg-white/5" />
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField
@@ -665,6 +825,27 @@ const EditEventPage = () => {
                           )}
                         />
                       </div>
+
+                      <FormField
+                        control={form.control}
+                        name="location.googleMapUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                              Google Maps Link (optional)
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
+                                className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
+                                {...field}
+                              />
+                            </FormControl>
+                            <p className="text-[10px] text-muted-foreground ml-1">Paste a Google Maps share link to show the exact pin on the event page.</p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -726,94 +907,162 @@ const EditEventPage = () => {
                               </button>
                             )}
                           </div>
-                          <div className="grid md:grid-cols-4 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`ticketTypes.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase">
-                                    Name
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      className="h-12 bg-background/40 border-white/5 rounded-lg font-black text-xs"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`ticketTypes.${index}.price`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase">
-                                    Cost (₹)
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      className="h-12 bg-background/40 border-white/5 rounded-lg font-black text-xs"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`ticketTypes.${index}.capacity`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase">
-                                    Capacity
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      className="h-12 bg-background/40 border-white/5 rounded-lg font-black text-xs"
-                                      {...field}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`ticketTypes.${index}.isSoldOut`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase">
-                                    Status
-                                  </FormLabel>
-                                  <Select
-                                    onValueChange={(v) =>
-                                      field.onChange(v === "true")
-                                    }
-                                    value={field.value ? "true" : "false"}
-                                  >
+                          <div className="space-y-6">
+                            <div className="grid md:grid-cols-4 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`ticketTypes.${index}.name`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tier Name</FormLabel>
                                     <FormControl>
-                                      <SelectTrigger className="h-12 bg-background/40 border-white/5 rounded-lg font-black text-xs">
-                                        <SelectValue />
-                                      </SelectTrigger>
+                                      <Input className="h-12 bg-background/40 border-white/5 rounded-xl font-bold text-xs" {...field} />
                                     </FormControl>
-                                    <SelectContent className="glass-card">
-                                      <SelectItem value="false">
-                                        Active
-                                      </SelectItem>
-                                      <SelectItem value="true">
-                                        Sold Out
-                                      </SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </FormItem>
-                              )}
-                            />
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`ticketTypes.${index}.price`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Base Cost (₹)</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" className="h-12 bg-background/40 border-white/5 rounded-xl font-black text-xs" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`ticketTypes.${index}.capacity`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Total Capacity</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" className="h-12 bg-background/40 border-white/5 rounded-xl font-black text-xs" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`ticketTypes.${index}.isSoldOut`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Status</FormLabel>
+                                    <Select
+                                      onValueChange={(v) => field.onChange(v === "true")}
+                                      value={field.value ? "true" : "false"}
+                                    >
+                                      <FormControl>
+                                        <SelectTrigger className="h-12 bg-background/40 border-white/5 rounded-xl font-bold text-xs">
+                                          <SelectValue />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent className="glass-card">
+                                        <SelectItem value="false" className="text-xs font-bold uppercase tracking-widest">Active</SelectItem>
+                                        <SelectItem value="true" className="text-xs font-bold uppercase tracking-widest text-destructive">Sold Out</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+
+                            {form.watch("isMultiDay") && (
+                              <div className="space-y-6 pt-6 border-t border-white/5 mt-4">
+                                <div className="flex flex-wrap items-center gap-8">
+                                  <FormField
+                                    control={form.control}
+                                    name={`ticketTypes.${index}.isFullPass`}
+                                    render={({ field }) => (
+                                      <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormControl>
+                                          <Checkbox
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                            className="h-5 w-5 rounded-md border-primary/30"
+                                          />
+                                        </FormControl>
+                                        <div className="space-y-1 leading-none">
+                                          <FormLabel className="text-[10px] font-black uppercase tracking-[0.2em] cursor-pointer text-primary">
+                                            Enable Full Pass
+                                          </FormLabel>
+                                        </div>
+                                      </FormItem>
+                                    )}
+                                  />
+
+                                  {form.watch(`ticketTypes.${index}.isFullPass`) && (
+                                    <FormField
+                                      control={form.control}
+                                      name={`ticketTypes.${index}.fullPassPrice`}
+                                      render={({ field }) => (
+                                        <FormItem className="flex-1 max-w-[200px] animate-in fade-in slide-in-from-left-2 duration-300">
+                                          <FormControl>
+                                            <div className="relative">
+                                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary">₹</span>
+                                              <Input 
+                                                type="number" 
+                                                placeholder="Full Pass Cost" 
+                                                className="h-10 pl-7 bg-primary/10 border-primary/20 rounded-xl font-black text-xs text-primary shadow-inner" 
+                                                {...field} 
+                                              />
+                                            </div>
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  )}
+                                </div>
+
+                                <div className="space-y-4">
+                                  <div className="flex items-center gap-3">
+                                    <LayoutGrid className="h-3 w-3 text-muted-foreground" />
+                                    <Label className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground">Daily Rates Configuration</Label>
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {dayFields.map((day, dayIndex) => (
+                                      <div key={day.id} className="p-4 bg-background/40 border border-white/5 rounded-2xl space-y-3 glass-card hover:border-primary/20 transition-colors">
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-[8px] font-black uppercase tracking-widest text-primary/70">
+                                            {day.date ? format(new Date(day.date), "MMM dd") : `Day ${dayIndex + 1}`}
+                                          </span>
+                                          <p className="text-[9px] font-bold truncate">
+                                            {day.title || "Standard Entry"}
+                                          </p>
+                                        </div>
+                                        <div className="relative">
+                                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-muted-foreground/50">₹</span>
+                                          <Input
+                                            type="number"
+                                            className="h-9 pl-6 bg-background/50 border-white/10 rounded-xl text-[10px] font-black shadow-inner"
+                                            placeholder="Price"
+                                            onChange={(e) => {
+                                              const currentPrices = form.getValues(`ticketTypes.${index}.dayWisePrices`) || [];
+                                              const existingIndex = currentPrices.findIndex(p => p.dayIndex === dayIndex);
+                                              
+                                              if (existingIndex > -1) {
+                                                currentPrices[existingIndex].price = Number(e.target.value);
+                                              } else {
+                                                currentPrices.push({ dayIndex, price: Number(e.target.value) });
+                                              }
+                                              form.setValue(`ticketTypes.${index}.dayWisePrices`, currentPrices);
+                                            }}
+                                            value={form.watch(`ticketTypes.${index}.dayWisePrices`)?.find(p => p.dayIndex === dayIndex)?.price || ""}
+                                          />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))}

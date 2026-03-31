@@ -16,7 +16,9 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       category, 
       image, 
       ticketTypes,
-      vouchers 
+      vouchers,
+      days,
+      isMultiDay
     } = req.body;
 
     if (req.user?.role === 'event_manager' && !req.user?.isApproved) {
@@ -36,6 +38,8 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       image,
       ticketTypes,
       vouchers,
+      days,
+      isMultiDay,
       creator: req.user?._id,
       status: 'under_review',
       isApproved: false

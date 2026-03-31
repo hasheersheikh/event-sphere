@@ -14,15 +14,64 @@ export const getManagerStats: RequestHandler = async (req: AuthRequest, res: Res
     const eventIds = myEvents.map(e => e._id);
 
     const totalEvents = myEvents.length;
-    const totalBookings = await Booking.countDocuments({ event: { $in: eventIds }, status: 'confirmed' });
-    
     const myBookings = await Booking.find({ event: { $in: eventIds }, status: 'confirmed' });
+    const totalBookings = myBookings.length;
+    const totalCapacity = myEvents.reduce((acc, e) => {
+      return acc + e.ticketTypes.reduce((sum, tt) => sum + tt.capacity, 0);
+    }, 0);
+
+    const totalTicketsSold = myBookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    }, 0);
+
+    const totalCheckedIn = myBookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + (t.checkedInCount || 0), 0);
+    }, 0);
+
     const totalRevenue = myBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const totalAttendees = new Set(myBookings.map(b => b.user.toString())).size;
+
+    const sellThroughRate = totalCapacity > 0 ? Math.round((totalTicketsSold / totalCapacity) * 100) : 0;
+    const attendanceRate = totalTicketsSold > 0 ? Math.round((totalCheckedIn / totalTicketsSold) * 100) : 0;
+
+    const recentActivity = await Booking.find({ event: { $in: eventIds }, status: 'confirmed' })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate('user', 'name')
+      .populate('event', 'title');
+
+    const manager = await EventManager.findById(userId);
+    const commissionType = manager?.commissionType || 'percentage';
+    let totalCommission = 0;
+
+    if (commissionType === 'percentage') {
+      totalCommission = (totalRevenue * (manager?.commissionValue ?? 10)) / 100;
+    } else {
+      totalCommission = (manager?.commissionValue ?? 10) * totalTicketsSold;
+    }
+
+    const payouts = await Payout.find({ manager: userId, status: { $in: ['completed', 'processing'] } });
+    const totalSettled = payouts.reduce((acc, p) => acc + p.amount, 0);
+
+    const netDue = totalRevenue - totalCommission;
+    const pendingPayout = netDue - totalSettled;
 
     res.json({
       totalEvents,
       totalBookings,
-      totalRevenue
+      totalRevenue,
+      netDue,
+      pendingPayout,
+      totalSettled,
+      totalAttendees,
+      sellThroughRate,
+      attendanceRate,
+      recentActivity: recentActivity.map(b => ({
+        user: (b.user as any)?.name || 'Guest',
+        action: `Booked ${b.tickets.reduce((sum, t) => sum + t.quantity, 0)} Tickets`,
+        event: (b.event as any)?.title || 'Event',
+        time: b.createdAt
+      }))
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -70,19 +119,18 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
 
     const netRevenue = Math.max(0, grossRevenue - platformCommission);
 
-    // Group sales by ticket type
+    // Group sales by ticket type with accurate revenue tracking
     const ticketStats = event.ticketTypes.map(tt => {
-      const soldForType = bookings.reduce((acc, b) => {
-        return acc + b.tickets
-          .filter(t => t.type === tt.name)
-          .reduce((sum, t) => sum + t.quantity, 0);
-      }, 0);
+      const typeBookings = bookings.flatMap(b => b.tickets.filter(t => t.type === tt.name));
+      const soldForType = typeBookings.reduce((sum, t) => sum + t.quantity, 0);
+      const revenueForType = typeBookings.reduce((sum, t) => sum + (t.price * t.quantity), 0);
+
       return {
         name: tt.name,
         price: tt.price,
         capacity: tt.capacity,
         sold: soldForType,
-        revenue: soldForType * tt.price
+        revenue: revenueForType
       };
     });
 
@@ -123,6 +171,63 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
         tickets: b.tickets,
         createdAt: b.createdAt
       }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getManagerAnalytics: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.user?._id;
+    const myEvents = await Event.find({ creator: userId });
+    const eventIds = myEvents.map(e => e._id);
+    
+    const bookings = await Booking.find({ event: { $in: eventIds }, status: 'confirmed' }).populate('event');
+    
+    // Aggregate Revenue
+    const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    
+    // Aggregate Tickets
+    const totalTickets = bookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+    }, 0);
+
+    // Unique Attendees
+    const activeUsers = new Set(bookings.map(b => b.user.toString())).size;
+
+    // Revenue history (last 7 days)
+    const last7Days = [...Array(7)].map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const day = d.toISOString().split('T')[0];
+      const amount = bookings
+        .filter(b => b.createdAt.toISOString().split('T')[0] === day)
+        .reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+      return { date: day.slice(5), amount };
+    }).reverse();
+
+    // Ticket distribution by category
+    const categoryMap: { [key: string]: number } = {};
+    bookings.forEach(b => {
+      const event: any = b.event;
+      if (event && event.category) {
+        const count = b.tickets.reduce((sum, t) => sum + t.quantity, 0);
+        categoryMap[event.category] = (categoryMap[event.category] || 0) + count;
+      }
+    });
+
+    const ticketDistribution = Object.keys(categoryMap).map(name => ({
+      name,
+      count: categoryMap[name]
+    }));
+
+    res.json({
+      totalRevenue,
+      totalTickets,
+      activeUsers,
+      revenueHistory: last7Days,
+      ticketDistribution
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });

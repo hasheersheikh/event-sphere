@@ -46,11 +46,23 @@
     --pulse-indigo: #4F46E5; /* Indigo-600 */
     --pulse-violet: #7C3AED; /* Violet-600 */
     --pulse-bg: #F8FAFC;
-    
+
+    /* Semantic Status Colors */
+    --status-success: 161 72% 35%;
+    --status-warning: 38 92% 50%;
+    --status-info: 217 91% 60%;
+    --status-neutral: 240 5% 64%;
+
+    /* Semantic Icon Colors (for stat cards & section icons) */
+    --icon-revenue: 161 72% 35%;   /* emerald — matches primary */
+    --icon-events: 217 91% 60%;    /* blue */
+    --icon-users: 270 91% 65%;     /* purple */
+    --icon-tickets: 38 92% 50%;    /* amber */
+
     --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
     --font-serif: "Plus Jakarta Sans", sans-serif;
 
-    --glass-bg: rgba(255, 255, 255, 0.85); /* More opaque for light mode */
+    --glass-bg: rgba(255, 255, 255, 0.85);
     --glass-border: rgba(0, 0, 0, 0.08);
 
     /* Premium Shadows */
@@ -59,6 +71,12 @@
     --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-primary: 0 10px 30px -10px hsl(var(--primary) / 0.35);
+
+    /* Standardized border opacities */
+    --border-subtle: hsl(var(--border) / 0.3);
+    --border-default: hsl(var(--border) / 0.5);
+    --border-strong: hsl(var(--border));
   }
 
   .dark {
@@ -159,16 +177,27 @@
   }
 
   .shadow-button {
-    box-shadow: 0 10px 30px -10px hsl(var(--primary) / 0.3);
+    box-shadow: var(--shadow-primary);
   }
 
-  /* Razorpay Overlay Fix */
-  .razorpay-backdrop {
-    background-color: rgba(0, 0, 0, 0.6) !important;
-    z-index: 999999999 !important;
+  /* Stat card icon containers — standardized */
+  .icon-revenue  { color: hsl(var(--icon-revenue));  background-color: hsl(var(--icon-revenue) / 0.1);  border-color: hsl(var(--icon-revenue) / 0.2); }
+  .icon-events   { color: hsl(var(--icon-events));   background-color: hsl(var(--icon-events) / 0.1);   border-color: hsl(var(--icon-events) / 0.2); }
+  .icon-users    { color: hsl(var(--icon-users));    background-color: hsl(var(--icon-users) / 0.1);    border-color: hsl(var(--icon-users) / 0.2); }
+  .icon-tickets  { color: hsl(var(--icon-tickets));  background-color: hsl(var(--icon-tickets) / 0.1);  border-color: hsl(var(--icon-tickets) / 0.2); }
+
+  /* Accessible focus rings */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
-  .razorpay-checkout-frame {
-    z-index: 999999999 !important;
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
+
 }

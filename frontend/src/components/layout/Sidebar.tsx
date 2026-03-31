@@ -28,7 +28,7 @@ const Sidebar = () => {
     { label: "Attendees", icon: Users, href: "/portal/admin/attendees" },
     { label: "Managers", icon: ShieldCheck, href: "/portal/admin/managers" },
     { label: "Event Moderation", icon: Calendar, href: "/portal/admin/events" },
-    { label: "Local Stores", icon: Store, href: "/portal/admin/local-stores" },
+    { label: "Stores", icon: Store, href: "/portal/admin/local-stores" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },
@@ -42,7 +42,7 @@ const Sidebar = () => {
       icon: TrendingUp,
       href: "/portal/manager/payouts",
     },
-    { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
+    { label: "Sales Analytics", icon: TrendingUp, href: "/portal/manager/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Profile Settings", icon: Settings, href: "/portal/settings" },
   ];
@@ -73,7 +73,7 @@ const Sidebar = () => {
             </p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div
-                className={`h-2 w-2 rounded-full ${user?.role === "admin" ? "bg-orange-500" : "bg-emerald-500"}`}
+                className={`h-2 w-2 rounded-full ${user?.role === "admin" ? "bg-primary" : "bg-primary/60"}`}
               />
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 {user?.role?.replace("_", " ")}

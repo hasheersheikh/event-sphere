@@ -139,12 +139,13 @@ export const mockEvents: Event[] = [
 ];
 
 export const categories: Category[] = [
-  { id: "1", name: "Technology", icon: "💻", count: 245 },
-  { id: "2", name: "Music", icon: "🎵", count: 189 },
-  { id: "3", name: "Business", icon: "💼", count: 156 },
-  { id: "4", name: "Health", icon: "🧘", count: 98 },
-  { id: "5", name: "Food & Drink", icon: "🍷", count: 134 },
-  { id: "6", name: "Arts", icon: "🎨", count: 87 },
-  { id: "7", name: "Sports", icon: "⚽", count: 112 },
-  { id: "8", name: "Science", icon: "🔬", count: 67 },
+  { id: "1", name: "Music", icon: "🎵", count: 189 },
+  { id: "2", name: "Arts", icon: "🎨", count: 87 },
+  { id: "3", name: "Technology", icon: "💻", count: 245 },
+  { id: "4", name: "Meetups", icon: "🤝", count: 134 },
+  { id: "5", name: "Sports", icon: "⚽", count: 112 },
+  { id: "6", name: "Business", icon: "💼", count: 156 },
+  { id: "7", name: "Health", icon: "🧘", count: 98 },
+  { id: "8", name: "Food & Drink", icon: "🍷", count: 134 },
+  { id: "9", name: "Science", icon: "🔬", count: 67 },
 ];

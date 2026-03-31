@@ -2,19 +2,33 @@ import { ReactNode, useState } from "react";
 import Sidebar from "./Sidebar";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate, useLocation, Link } from "react-router-dom";
-import { Menu, X, Bell, Search } from "lucide-react";
+import { Navigate, useLocation, Link, useNavigate } from "react-router-dom";
+import { Menu, X, Bell, Search, Settings, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface PortalLayoutProps {
   children: ReactNode;
 }
 
 const PortalLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
 
   if (!user || user.role === "user") {
     return <Navigate to="/dashboard" replace />;
@@ -109,19 +123,43 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
 
             <div className="h-8 w-[1px] bg-border mx-2" />
 
-            <Link to="/portal/settings" className="flex items-center gap-4 hover:opacity-80 transition-opacity">
-              <div className="text-right hidden sm:block">
-                <p className="text-[11px] font-black uppercase tracking-tighter text-foreground">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-4 hover:opacity-80 transition-opacity outline-none">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-[11px] font-black uppercase tracking-tighter text-foreground">
+                      {user?.name}
+                    </p>
+                    <p className="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">
+                      {user?.role?.replace("_", " ")}
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-black text-xs shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                    {user?.name?.charAt(0)}
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52 rounded-2xl border-border shadow-2xl">
+                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">
                   {user?.name}
-                </p>
-                <p className="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">
-                  {user?.role?.replace("_", " ")}
-                </p>
-              </div>
-              <div className="h-10 w-10 bg-emerald-500 rounded-xl flex items-center justify-center font-black text-black text-xs shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                {user?.name?.charAt(0)}
-              </div>
-            </Link>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/portal/settings" className="flex items-center gap-3 cursor-pointer rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-widest">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 cursor-pointer rounded-xl px-3 py-2.5 text-[11px] font-black uppercase tracking-widest text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 

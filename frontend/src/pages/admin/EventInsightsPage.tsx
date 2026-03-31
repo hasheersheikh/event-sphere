@@ -60,6 +60,7 @@ const EventInsightsPage = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<EventInsights | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReleasingPayout, setIsReleasingPayout] = useState(false);
 
   useEffect(() => {
     fetchInsights();
@@ -74,6 +75,19 @@ const EventInsightsPage = () => {
       navigate("/portal/admin/events");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleReleasePayout = async () => {
+    if (!data?.event?._id) return;
+    setIsReleasingPayout(true);
+    try {
+      const response = await api.post(`/admin/payout/events/${data.event._id}`);
+      toast.success(`Payout of ₹${response.data.payoutAmount?.toLocaleString() || '...'} initiated successfully!`);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to release payout.");
+    } finally {
+      setIsReleasingPayout(false);
     }
   };
 
@@ -126,7 +140,18 @@ const EventInsightsPage = () => {
             </h1>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            {stats.totalRevenue > 0 && (
+              <Button
+                onClick={handleReleasePayout}
+                disabled={isReleasingPayout}
+                type="button"
+                className="h-11 px-6 bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl text-[10px] font-black uppercase tracking-widest transition-all gap-2 shadow-sm"
+              >
+                <IndianRupee className="h-4 w-4" />
+                {isReleasingPayout ? "RELEASING..." : "RELEASE PAYOUT"}
+              </Button>
+            )}
             <Link to={`/events/${event._id}`} target="_blank">
               <Button
                 variant="outline"

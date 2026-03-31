@@ -14,6 +14,7 @@ interface User {
   role: "user" | "event_manager" | "admin" | "volunteer";
   isApproved: boolean;
   token: string;
+  phoneNumber?: string;
   eventId?: string;
   gate?: string;
 }

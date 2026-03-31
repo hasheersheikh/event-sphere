@@ -62,29 +62,31 @@ const ManagerDetailPage = () => {
       const response = await api.get(`/admin/managers/${id}`);
       setData(response.data);
     } catch (error) {
-      toast.error("Frequency synchronization failed for manager identity.");
+      toast.error("Failed to load manager details.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handlePayout = async () => {
-    if (!payoutAmount || isNaN(Number(payoutAmount))) {
-      toast.error("Invalid payout magnitude.");
+    const amt = Number(payoutAmount);
+    if (!payoutAmount || isNaN(amt) || amt <= 0) {
+      toast.error("Enter a valid payout amount.");
       return;
     }
     setIsProcessing(true);
     try {
-      await api.post(`/admin/managers/${id}/payout`, {
-        amount: Number(payoutAmount),
-        notes: "Administrative Settlement",
+      const res = await api.post(`/admin/managers/${id}/payout`, {
+        amount: amt,
+        notes: "Manual payout by admin",
       });
-      toast.success("Settlement protocol initialized successfully.");
+      toast.success(res.data.message || "Payout initiated via Razorpay.");
       setIsPayoutModalOpen(false);
       setPayoutAmount("");
       fetchManagerDetail();
-    } catch (error) {
-      toast.error("Payout transaction failure.");
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || "Payout failed. Please try again.";
+      toast.error(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -113,7 +115,7 @@ const ManagerDetailPage = () => {
         <div className="flex flex-col items-center gap-6">
           <div className="h-16 w-16 border-4 border-primary border-t-transparent rounded-full animate-spin" />
           <div className="text-[11px] font-black uppercase text-primary tracking-[0.5em] animate-pulse">
-            Decrypting Identity...
+            Loading...
           </div>
         </div>
       </div>
@@ -388,38 +390,65 @@ const ManagerDetailPage = () => {
                         className="flex-1 h-11 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all gap-2.5 border-none"
                       >
                         <DollarSign className="h-4 w-4" />
-                        Execute Payout
+                        Send Payout
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
-                      <DialogHeader className="mb-8">
+                      <DialogHeader className="mb-6">
                         <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
-                          Authorize <span className="text-emerald-500">Settlement</span>
+                          Send <span className="text-emerald-500">Payout</span>
                         </DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-8">
-                         <div className="grid grid-cols-2 gap-4">
-                            <div className="p-5 bg-muted/20 rounded-xl border border-border">
-                              <p className="text-[8px] font-black text-muted-foreground uppercase mb-0.5">Total Due</p>
-                              <p className="text-lg font-black text-foreground italic">₹{stats.pendingPayout.toLocaleString()}</p>
-                            </div>
-                            <div className="p-5 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
-                              <p className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Max Cap</p>
-                              <p className="text-lg font-black text-emerald-500 italic">₹{stats.pendingPayout.toLocaleString()}</p>
-                            </div>
-                         </div>
+                      <div className="space-y-6">
+                        {/* Payment method warning */}
+                        {!manager.bankDetails?.accountNumber && !manager.upiId && (
+                          <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                            <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                            <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                              This manager has not configured a bank account or UPI ID. Payout will fail until they add payment details.
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Via info */}
+                        <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border border-border rounded-xl">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Via</span>
+                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                            {manager.upiId && !manager.bankDetails?.accountNumber
+                              ? `UPI — ${manager.upiId}`
+                              : manager.bankDetails?.accountNumber
+                              ? `Bank — ••••${manager.bankDetails.accountNumber.slice(-4)}`
+                              : 'No payment method set'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="p-5 bg-muted/20 rounded-xl border border-border">
+                            <p className="text-[8px] font-black text-muted-foreground uppercase mb-0.5">Available</p>
+                            <p className="text-lg font-black text-foreground italic">₹{Math.floor(stats.pendingPayout).toLocaleString()}</p>
+                          </div>
+                          <div className="p-5 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+                            <p className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Already Paid</p>
+                            <p className="text-lg font-black text-emerald-500 italic">₹{(stats.totalPaid || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
 
                         <div className="space-y-3">
                           <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
-                            Settlement magnitude (INR)
+                            Amount (INR)
                           </label>
                           <input
-                             type="number"
-                             value={payoutAmount}
-                             onChange={(e) => setPayoutAmount(e.target.value)}
-                             placeholder="0.00"
-                             className="w-full h-15 bg-muted/20 border-2 border-border px-5 text-2xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
+                            type="number"
+                            value={payoutAmount}
+                            onChange={(e) => setPayoutAmount(e.target.value)}
+                            placeholder="0.00"
+                            max={Math.floor(stats.pendingPayout)}
+                            min={1}
+                            className="w-full h-14 bg-muted/20 border-2 border-border px-5 text-2xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
                           />
+                          <p className="text-[9px] text-muted-foreground font-medium ml-1">
+                            Payout will be sent via Razorpay. Status updates automatically.
+                          </p>
                         </div>
 
                         <div className="flex gap-3 pt-2">
@@ -428,14 +457,14 @@ const ManagerDetailPage = () => {
                             variant="ghost"
                             className="flex-1 h-12 rounded-lg text-[10px] font-black uppercase"
                           >
-                            Abort
+                            Cancel
                           </Button>
                           <Button
                             onClick={handlePayout}
-                            disabled={isProcessing}
-                            className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow-2xl border-none"
+                            disabled={isProcessing || (!manager.bankDetails?.accountNumber && !manager.upiId)}
+                            className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow-2xl border-none disabled:opacity-50"
                           >
-                            {isProcessing ? "PROCESSING..." : "PROCESS"}
+                            {isProcessing ? "Sending..." : "Send via Razorpay"}
                           </Button>
                         </div>
                       </div>
@@ -546,26 +575,40 @@ const ManagerDetailPage = () => {
                     {payouts.map((p: any) => (
                       <div
                         key={p._id}
-                        className="p-6 bg-muted/10 border border-border/50 rounded-2xl flex items-center justify-between group hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all shadow-sm"
+                        className="p-6 bg-muted/10 border border-border/50 rounded-2xl flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
                       >
                         <div className="flex items-center gap-4">
-                           <div className="h-11 w-11 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                           <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${
+                             p.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
+                             p.status === 'processing' ? 'bg-blue-500/10 text-blue-500' :
+                             p.status === 'failed' ? 'bg-rose-500/10 text-rose-500' :
+                             'bg-amber-500/10 text-amber-500'
+                           }`}>
                               <ShieldCheck className="h-5 w-5" />
                            </div>
                            <div>
-                            <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-0.5 shadow-sm px-2 bg-emerald-500/5 border border-emerald-500/10 inline-block rounded">
-                              Authorized Settlement
-                            </p>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <Badge className={`text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 ${
+                                p.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
+                                p.status === 'processing' ? 'bg-blue-500/10 text-blue-500' :
+                                p.status === 'failed' ? 'bg-rose-500/10 text-rose-500' :
+                                'bg-amber-500/10 text-amber-500'
+                              }`}>
+                                {p.status}
+                              </Badge>
+                              {p.razorpayPayoutId && (
+                                <span className="text-[8px] font-mono text-muted-foreground/50">{p.razorpayPayoutId}</span>
+                              )}
+                            </div>
                             <p className="text-[11px] font-bold text-muted-foreground uppercase opacity-80">
-                               {new Date(p.createdAt).toLocaleDateString()}
+                               {new Date(p.createdAt).toLocaleDateString()} · {p.notes || 'Payout'}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
                            <p className="text-xl font-black text-foreground tabular-nums tracking-tighter">
-                             +₹{p.amount.toLocaleString()}
+                             ₹{p.amount.toLocaleString()}
                            </p>
-                           <p className="text-[9px] font-black uppercase text-muted-foreground opacity-50">Transferred</p>
                         </div>
                       </div>
                     ))}
@@ -604,7 +647,7 @@ const ManagerDetailPage = () => {
                  </div>
 
                  <div className="p-6 bg-zinc-950 rounded-xl border border-white/5 space-y-3 dark:bg-muted/10">
-                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Settleable Capital</p>
+                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Lifetime Net Earnings</p>
                     <div className="flex items-baseline justify-between">
                        <h4 className="text-2xl font-black text-white tabular-nums">₹{stats.netDue.toLocaleString()}</h4>
                        <TrendIcon value={12} />

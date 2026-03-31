@@ -87,215 +87,252 @@ const ManagerEventAnalyticsPage = () => {
   const sellThroughRate = (stats.totalTicketsSold / stats.capacity) * 100;
 
   return (
-    <div className="space-y-10 pb-20 bg-background p-6 md:p-10 text-foreground min-h-screen">
-      {/* Header */}
-      <header className="flex flex-col gap-6 border-b border-border pb-8">
-        <Link
-          to="/portal/events"
-          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-3 w-3" />
-          Back to Roster
-        </Link>
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">
-                Event Analytics
-              </span>
-              <div
-                className={`h-1.5 w-1.5 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_10px_#10B981]" : "bg-orange-500 shadow-[0_0_10px_#F97316] animate-pulse"}`}
-              />
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black brand-font tracking-tighter uppercase leading-[0.8]">
-              {event.title}
-            </h1>
-          </div>
-          <div className="flex gap-4">
-            <Link to={`/events/${event._id}`} target="_blank">
-              <Button
-                variant="ghost"
-                className="h-12 px-6 rounded-none bg-muted text-[10px] font-black uppercase tracking-widest hover:bg-foreground hover:text-background transition-all"
-              >
-                Public Listing <ArrowUpRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </header>
+    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
+      {/* Background Decor */}
+      <div className="fixed inset-0 mesh-bg opacity-20 z-0" />
+      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-card border border-border p-6 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center justify-between">
-            Gross Revenue
-            <IndianRupee className="h-4 w-4 opacity-20" />
-          </div>
-          <div className="text-2xl font-black brand-font italic tracking-tighter">
-            ₹{stats.grossRevenue.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border p-6 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-rose-500/60 mb-4 flex items-center justify-between">
-            Platform Fee
-            <ShieldAlert className="h-4 w-4 opacity-20" />
-          </div>
-          <div className="text-2xl font-black brand-font italic tracking-tighter text-rose-500/80">
-            -₹{stats.platformCommission.toLocaleString()}
-          </div>
-          <div className="text-[8px] font-black uppercase mt-3 text-muted-foreground tracking-widest">
-            Model: {stats.commissionInfo.value}
-            {stats.commissionInfo.type === "percentage" ? "%" : " FLAT"} Deal
-          </div>
-        </div>
-
-        <div className="bg-card border-2 border-primary/20 p-6 relative overflow-hidden group shadow-[0_0_30px_rgba(16,185,129,0.05)]">
-          <div className="absolute top-0 right-0 p-4">
-            <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
-          </div>
-          <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-4 flex items-center justify-between">
-            Net Revenue
-            <TrendingUp className="h-4 w-4" />
-          </div>
-          <div className="text-3xl font-black brand-font italic tracking-tighter text-emerald-400">
-            ₹{stats.netRevenue.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border p-6 relative overflow-hidden group">
-          <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4 flex items-center justify-between">
-            Tickets Sold
-            <Ticket className="h-4 w-4 opacity-20" />
-          </div>
-          <div className="text-2xl font-black brand-font italic tracking-tighter">
-            {stats.totalTicketsSold}{" "}
-            <span className="text-sm font-light text-muted-foreground/30">
-              / {stats.capacity}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid lg:grid-cols-12 gap-12">
-        {/* Sales Chart Simulation & Ticket Types */}
-        <div className="lg:col-span-8 space-y-12">
-          <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
-              <BarChart3 className="h-3 w-3" />
-              Revenue Flow (Last 7 Days)
-            </h2>
-            <div className="bg-card border border-border p-6 flex items-end justify-between h-40 gap-2">
-              {salesHistory.map((s, i) => {
-                const max = Math.max(...salesHistory.map((d) => d.amount)) || 1;
-                const height = (s.amount / max) * 100;
-                return (
-                  <div
-                    key={i}
-                    className="flex-1 flex flex-col items-center gap-4 group"
-                  >
-                    <div className="w-full bg-muted h-32 relative flex items-end overflow-hidden group-hover:bg-muted/50 transition-colors">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${height}%` }}
-                        className="w-full bg-primary/40 group-hover:bg-primary transition-colors"
-                      />
-                    </div>
-                    <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground/40">
-                      {s.date}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
-              <Ticket className="h-3 w-3" />
-              Ticket Distribution
-            </h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {ticketStats.map((tt, i) => (
+      <div className="relative z-10 space-y-10 pb-20 p-6 md:p-10">
+        {/* Header */}
+        <header className="flex flex-col gap-8 border-b border-border/50 pb-10">
+          <Link
+            to="/portal/events"
+            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Back to Roster
+          </Link>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-10 bg-primary/20 rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
+                  Intelligence Portal
+                </span>
                 <div
-                  key={i}
-                  className="bg-card border border-border p-6 group hover:border-primary/20 transition-all shadow-sm"
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h4 className="font-black uppercase text-sm tracking-widest text-foreground">
-                        {tt.name}
-                      </h4>
-                      <p className="text-[10px] font-bold text-muted-foreground italic mt-1">
-                        ₹{tt.price.toLocaleString()} Unit Price
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-black text-foreground">{tt.sold}</div>
-                      <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/40">
-                        Admitted
-                      </p>
-                    </div>
-                  </div>
-                  <Progress
-                    value={(tt.sold / tt.capacity) * 100}
-                    className="h-1.5 bg-muted rounded-none overflow-hidden border border-border"
-                  />
-                  <div className="mt-6 flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">
-                      Revenue Impact
-                    </span>
-                    <span className="text-xs font-black italic text-primary">
-                      ₹{tt.revenue.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  className={`h-2 w-2 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_15px_#10B981]" : "bg-orange-500 shadow-[0_0_15px_#F97316] animate-pulse"}`}
+                />
+              </div>
+              <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter uppercase leading-[0.8]">
+                {event.title}
+              </h1>
             </div>
-          </section>
+            <div className="flex gap-4">
+              <Link to={`/events/${event._id}`} target="_blank">
+                <Button
+                  className="h-14 px-10 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:bg-primary transition-all active:scale-95 shadow-xl flex items-center gap-3"
+                >
+                  Public Listing <ArrowUpRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-primary/30 transition-all duration-500">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center justify-between italic">
+              Gross Revenue
+              <IndianRupee className="h-4 w-4 opacity-30" />
+            </div>
+            <div className="text-3xl font-black italic tracking-tighter tabular-nums">
+              ₹{stats.grossRevenue.toLocaleString()}
+            </div>
+            <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+          </div>
+
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-rose-500/30 transition-all duration-500">
+            <div className="text-[10px] font-black uppercase tracking-widest text-rose-500/60 mb-6 flex items-center justify-between italic">
+              Platform Fee
+              <ShieldAlert className="h-4 w-4 opacity-30" />
+            </div>
+            <div className="text-3xl font-black italic tracking-tighter text-rose-500/80 tabular-nums">
+              -₹{stats.platformCommission.toLocaleString()}
+            </div>
+            <div className="text-[9px] font-black uppercase mt-4 text-muted-foreground/40 tracking-[0.2em] italic">
+              {stats.commissionInfo.value}
+              {stats.commissionInfo.type === "percentage" ? "%" : " FLAT"} Deal
+            </div>
+          </div>
+
+          <div className="bg-primary/5 backdrop-blur-xl border-2 border-primary/20 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-[0_0_50px_rgba(var(--primary),0.05)] hover:border-primary/40 transition-all duration-500">
+            <div className="absolute top-6 right-6">
+              <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-6 flex items-center justify-between italic">
+              Net Revenue
+              <TrendingUp className="h-4 w-4" />
+            </div>
+            <div className="text-4xl font-black italic tracking-tighter text-emerald-400 tabular-nums">
+              ₹{stats.netRevenue.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-primary/30 transition-all duration-500">
+            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center justify-between italic">
+              Tickets Sold
+              <Ticket className="h-4 w-4 opacity-30" />
+            </div>
+            <div className="text-3xl font-black italic tracking-tighter tabular-nums">
+              {stats.totalTicketsSold}
+              <span className="text-sm font-light text-muted-foreground/20 ml-2">
+                / {stats.capacity}
+              </span>
+            </div>
+            <div className="mt-4">
+                <Progress value={sellThroughRate} className="h-1 bg-muted rounded-full" />
+            </div>
+          </div>
         </div>
 
-        {/* Recent Transactions */}
-        <div className="lg:col-span-4 space-y-12">
-          <section>
-            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] mb-8 text-muted-foreground flex items-center gap-3">
-              <Clock className="h-3 w-3" />
-              Recent Transactions
-            </h2>
-            <div className="bg-card border border-border divide-y divide-border shadow-sm">
-              {recentBookings.length > 0 ? (
-                recentBookings.map((b, i) => (
+        <div className="grid lg:grid-cols-12 gap-12 pt-10">
+          {/* Left Column */}
+          <div className="lg:col-span-8 space-y-16">
+            <section>
+              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+                  <BarChart3 className="h-3 w-3" />
+                  Revenue Velocity
+                </h2>
+                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Sync: Active</span>
+              </div>
+              <div className="bg-card/20 backdrop-blur-xl border border-border/50 p-10 rounded-[3rem] flex items-end justify-between h-56 gap-4 shadow-2xl overflow-hidden relative">
+                 <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
+                {salesHistory.map((s, i) => {
+                  const max = Math.max(...salesHistory.map((d) => d.amount)) || 1;
+                  const height = (s.amount / max) * 100;
+                  return (
+                    <div
+                      key={i}
+                      className="flex-1 flex flex-col items-center gap-6 group relative z-10"
+                    >
+                      <div className="w-full h-40 relative flex items-end">
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${height}%` }}
+                          transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+                          className="w-full bg-primary/20 group-hover:bg-primary/50 transition-all duration-500 rounded-xl relative"
+                        >
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                <span className="text-[10px] font-black italic bg-card px-2 py-1 rounded-lg border border-border shadow-2xl">₹{s.amount}</span>
+                            </div>
+                        </motion.div>
+                      </div>
+                      <span className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/60 transition-colors group-hover:text-primary">
+                        {s.date}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+                  <Ticket className="h-3 w-3" />
+                  Artifact Distribution
+                </h2>
+              </div>
+              <div className="grid md:grid-cols-2 gap-8">
+                {ticketStats.map((tt, i) => (
                   <div
                     key={i}
-                    className="p-6 hover:bg-muted/50 transition-all"
+                    className="bg-card/20 backdrop-blur-xl border border-border/50 p-10 rounded-[3rem] group hover:border-primary/30 transition-all duration-500 shadow-xl"
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-black uppercase text-[11px] tracking-tight truncate max-w-[150px] text-foreground">
-                        {b.userName}
+                    <div className="flex justify-between items-start mb-10">
+                      <div className="space-y-2">
+                        <h4 className="font-black italic uppercase text-xl leading-none tracking-tighter text-foreground">
+                          {tt.name}
+                        </h4>
+                        <div className="inline-block px-3 py-1 rounded-full bg-muted/50 border border-border/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">
+                          ₹{tt.price.toLocaleString()} Unit
+                        </div>
                       </div>
-                      <div className="font-black text-[11px] text-primary">
-                        ₹{b.totalAmount.toLocaleString()}
+                      <div className="text-right">
+                        <div className="text-3xl font-black italic tracking-tighter text-foreground tabular-nums leading-none mb-2">{tt.sold}</div>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 italic">
+                          Admitted
+                        </p>
                       </div>
                     </div>
-                    <div className="flex justify-between items-center text-[9px] font-bold text-muted-foreground italic">
-                      <span>{new Date(b.createdAt).toLocaleDateString()}</span>
-                      <span className="uppercase tracking-tighter">
-                        {b.tickets.reduce((sum, t) => sum + t.quantity, 0)}{" "}
-                        Tickets
+                    <div className="space-y-4">
+                        <div className="flex justify-between text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">
+                            <span>Capacity Usage</span>
+                            <span>{Math.round((tt.sold / tt.capacity) * 100)}%</span>
+                        </div>
+                        <Progress
+                            value={(tt.sold / tt.capacity) * 100}
+                            className="h-2 bg-muted/40 rounded-full overflow-hidden"
+                        />
+                    </div>
+                    <div className="mt-10 pt-8 border-t border-border/40 flex justify-between items-center group-hover:border-primary/20 transition-colors">
+                      <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-widest italic">
+                        Revenue Impact
+                      </span>
+                      <span className="text-lg font-black italic text-primary tabular-nums">
+                        ₹{tt.revenue.toLocaleString()}
                       </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="p-12 text-center italic text-muted-foreground/30 text-[10px] font-black uppercase tracking-[0.2em]">
-                  No transactions logged.
-                </div>
-              )}
-            </div>
-            <p className="mt-4 text-[8px] font-black uppercase tracking-widest text-muted-foreground/20 text-center italic">
-              Displaying last 5 syncs from database
-            </p>
-          </section>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          {/* Recent Transactions Column */}
+          <div className="lg:col-span-4 space-y-16">
+            <section>
+              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+                  <Clock className="h-3 w-3" />
+                  Live Sync
+                </h2>
+              </div>
+              <div className="space-y-4">
+                {recentBookings.length > 0 ? (
+                  recentBookings.map((b, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="p-8 rounded-[2.5rem] bg-card/20 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 shadow-lg group relative overflow-hidden"
+                    >
+                        <div className="absolute top-0 right-0 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+                      <div className="flex justify-between items-start mb-4 relative z-10">
+                        <div className="space-y-1">
+                            <div className="font-black italic uppercase text-sm tracking-tight truncate max-w-[180px] text-foreground">
+                            {b.userName}
+                            </div>
+                            <div className="text-[9px] font-medium text-muted-foreground italic truncate max-w-[180px]">{b.userEmail}</div>
+                        </div>
+                        <div className="font-black italic text-lg text-primary tabular-nums shrink-0">
+                          ₹{b.totalAmount.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic relative z-10">
+                        <span>{new Date(b.createdAt).toLocaleDateString()}</span>
+                        <span className="bg-muted/50 px-2 py-0.5 rounded-lg border border-border/50 text-foreground">
+                          {b.tickets.reduce((sum, t) => sum + t.quantity, 0)}{" "}
+                          PULSE
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="py-24 text-center italic text-muted-foreground/30 text-[10px] font-black uppercase tracking-[0.2em] bg-card/10 rounded-[3rem] border border-dashed border-border/50 leading-relaxed">
+                    Void detected. <br /> No transactions logged.
+                  </div>
+                )}
+              </div>
+              <p className="mt-8 text-[8px] font-black uppercase tracking-[0.4em] text-muted-foreground/20 text-center italic">
+                Telemetry source: Primary Cache
+              </p>
+            </section>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
   getManagerStats, 
+  getManagerAnalytics,
   getManagerEventAnalytics,
   updatePayoutDetails,
   getPayoutDetails,
@@ -17,6 +18,7 @@ router.use(protect);
 router.use(authorize('event_manager', 'admin'));
 
 router.get('/stats', getManagerStats);
+router.get('/analytics', getManagerAnalytics);
 router.get('/events/:id/analytics', getManagerEventAnalytics);
 
 // Payout Details

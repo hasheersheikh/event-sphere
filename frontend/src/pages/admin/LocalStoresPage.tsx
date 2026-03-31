@@ -4,8 +4,8 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Plus, Trash2, Store, MapPin, Package, Tag, X, ChevronDown, ChevronUp,
-  ToggleLeft, ToggleRight, Edit3, Image as ImageIcon
+  Plus, Trash2, Store, MapPin, Package, X, ChevronDown, ChevronUp,
+  ToggleLeft, ToggleRight, Edit3, Image as ImageIcon, Upload
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -80,6 +80,25 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
     control: form.control,
     name: "photos" as any,
   });
+
+  const handlePhotoUpload = () => {
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: true,
+        maxFiles: 5,
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          appendPhoto(result.info.secure_url as any);
+        }
+      },
+    );
+    widget.open();
+  };
 
   const mutation = useMutation({
     mutationFn: async (values: StoreFormValues) => {
@@ -156,24 +175,34 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
 
             {/* Photos */}
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Photos (URLs)</p>
-                <button type="button" onClick={() => appendPhoto("" as any)} className="text-[10px] font-black text-primary flex items-center gap-1">
-                  <Plus className="h-3 w-3" /> Add URL
-                </button>
-              </div>
-              {photoFields.map((f, i) => (
-                <div key={f.id} className="flex gap-2">
-                  <Input
-                    className="h-10 rounded-xl bg-muted/30 border-border text-xs"
-                    placeholder="https://..."
-                    {...form.register(`photos.${i}` as any)}
-                  />
-                  <button type="button" onClick={() => removePhoto(i)} className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center flex-shrink-0">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Store Photos</p>
+              {photoFields.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
+                  {photoFields.map((f, i) => (
+                    <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
+                      <img
+                        src={form.watch(`photos.${i}` as any)}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(i)}
+                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              <button
+                type="button"
+                onClick={handlePhotoUpload}
+                className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+              >
+                <Upload className="h-4 w-4" /> Upload Photos via Cloudinary
+              </button>
             </div>
 
             <Button
@@ -198,6 +227,26 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
     resolver: zodResolver(productSchema),
     defaultValues: { name: "", price: 0, discountPercent: 0, image: "", description: "", isAvailable: true },
   });
+
+  const handleProductImageUpload = () => {
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: false,
+        cropping: true,
+        croppingAspectRatio: 1,
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          form.setValue("image", result.info.secure_url);
+        }
+      },
+    );
+    widget.open();
+  };
 
   const mutation = useMutation({
     mutationFn: async (values: ProductFormValues) => {
@@ -252,13 +301,28 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
                 </FormItem>
               )} />
             </div>
-            <FormField control={form.control} name="image" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Image URL (optional)</FormLabel>
-                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="https://..." {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product Image (optional)</p>
+              {form.watch("image") && (
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-border">
+                  <img src={form.watch("image")} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("image", "")}
+                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-destructive/80 text-white flex items-center justify-center"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleProductImageUpload}
+                className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+              >
+                <Upload className="h-4 w-4" /> {form.watch("image") ? "Change Image" : "Upload Image"}
+              </button>
+            </div>
             <Button
               type="button"
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
@@ -462,9 +526,9 @@ const LocalStoresPage = () => {
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">Admin Panel</span>
           </div>
           <h1 className="text-3xl font-black tracking-tighter">
-            Local <span className="text-amber-400">Stores</span>
+            <span className="text-amber-400">Stores</span>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage local stores displayed on the homepage.</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage stores displayed on the homepage.</p>
         </div>
         <Button
           type="button"

@@ -43,6 +43,7 @@ import ManageEventPage from "./pages/manager/ManageEventPage";
 import ManagerEventAnalyticsPage from "./pages/manager/ManagerEventAnalyticsPage";
 import ManageVolunteersPage from "./pages/manager/ManageVolunteersPage";
 import PayoutsPage from "./pages/manager/PayoutsPage";
+import ManagerSalesAnalyticsPage from "./pages/manager/ManagerSalesAnalyticsPage";
 import VolunteerLoginPage from "./pages/VolunteerLoginPage";
 import ScannerDashboardPage from "./pages/ScannerDashboardPage";
 import PortalLayout from "./components/layout/PortalLayout";
@@ -53,6 +54,7 @@ import PwaInstallPrompt from "./components/layout/PwaInstallPrompt";
 import LocalStoresPage from "./pages/LocalStoresPage";
 import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
+import PaymentCallbackPage from "./pages/PaymentCallbackPage";
 
 const queryClient = new QueryClient();
 
@@ -179,6 +181,9 @@ const App = () => (
               />
             </Route>
 
+            {/* Payment Callback (No Site Navbar) */}
+            <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+
             {/* Auth Routes (No Site Navbar) */}
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/admin-auth" element={<AdminLoginPage />} />
@@ -209,6 +214,7 @@ const App = () => (
               <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="manager/payouts" element={<PayoutsPage />} />
+              <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="events" element={<MyEventsPage />} />
               <Route

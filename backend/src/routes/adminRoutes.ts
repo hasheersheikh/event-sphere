@@ -12,6 +12,7 @@ import {
   declineEvent,
   getAllAdminEvents,
   getEventInsights,
+  processEventPayout,
   processPayout,
   deleteManager,
   updateManagerCommission,
@@ -32,6 +33,7 @@ router.get('/attendees', getAttendees);
 router.get('/managers', getManagers);
 router.get('/managers/:id', getManagerDetail);
 router.post('/managers/:id/payout', processPayout);
+router.post('/payout/events/:eventId', processEventPayout);
 router.patch('/managers/:id/commission', updateManagerCommission);
 router.delete('/managers/:id', deleteManager);
 router.get('/events/all', getAllAdminEvents);

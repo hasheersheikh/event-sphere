@@ -171,13 +171,6 @@ export const login = async (req: Request, res: Response) => {
     }
 
     if (user && (await bcrypt.compare(password, user.password || ''))) {
-      if (user.role === 'event_manager' && !user.isApproved) {
-        return res.status(403).json({ 
-          message: 'Your account is pending administrative approval.',
-          isApproved: false 
-        });
-      }
-
       res.json({
         _id: user._id,
         name: user.name,

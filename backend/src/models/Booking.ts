@@ -7,9 +7,13 @@ export interface IBooking extends Document {
     type: string;
     quantity: number;
     price: number;
+    selectedDays?: number[];
+    isFullPass?: boolean;
     checkedInCount?: number;
   }[];
   totalAmount: number;
+  email: string;
+  phoneNumber: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'refunded' | 'expired';
   paymentId?: string;
   reminderSent: boolean;
@@ -27,10 +31,14 @@ const BookingSchema: Schema = new Schema(
         type: { type: String, required: true },
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
+        selectedDays: [{ type: Number }],
+        isFullPass: { type: Boolean, default: false },
         checkedInCount: { type: Number, default: 0 },
       },
     ],
     totalAmount: { type: Number, required: true },
+    email: { type: String, required: true },
+    phoneNumber: { type: String, required: true },
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'cancelled', 'refunded', 'expired'],

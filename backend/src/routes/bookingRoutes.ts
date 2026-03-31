@@ -5,11 +5,11 @@ import {
   getEventBookings,
   checkInBooking,
 } from '../controllers/bookingController.js';
-import { protect, authorize } from '../middleware/auth.js';
+import { protect, authorize, optionalProtect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.route('/').post(protect, createBooking).get(protect, getMyBookings);
+router.route('/').post(optionalProtect, createBooking).get(protect, getMyBookings);
 
 router.route('/:id/check-in').patch(protect, authorize('event_manager', 'admin'), checkInBooking);
 

@@ -8,7 +8,7 @@ import User from '../models/User.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
-    const { eventId, tickets } = req.body;
+    const { eventId, tickets, email, phoneNumber } = req.body;
 
     const event = await Event.findById(eventId);
     if (!event) {
@@ -28,37 +28,89 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: `Tickets for ${ticketItem.type} are sold out or unavailable` });
       }
       
-      const price = ticketType.price;
+      let price = ticketType.price;
+      
+      if (ticketItem.isFullPass && ticketType.isFullPass) {
+        price = ticketType.fullPassPrice || ticketType.price;
+      } else if (ticketItem.selectedDays && ticketItem.selectedDays.length > 0) {
+        price = 0;
+        for (const dayIdx of ticketItem.selectedDays) {
+          const dayPrice = ticketType.dayWisePrices?.find(dp => dp.dayIndex === dayIdx)?.price || ticketType.price;
+          price += dayPrice;
+        }
+      }
+
       totalAmount += price * ticketItem.quantity;
       ticketType.sold += ticketItem.quantity;
       
       enrichedTickets.push({
         type: ticketItem.type,
         quantity: ticketItem.quantity,
-        price: price
+        price: price,
+        selectedDays: ticketItem.selectedDays || [],
+        isFullPass: !!ticketItem.isFullPass,
       });
+    }
+    
+    // Find or create user if not logged in
+    let userId = req.user?._id;
+    let userName = req.user?.name || 'Guest';
+
+    if (!userId && email) {
+      let existingUser = await User.findOne({ email });
+      if (existingUser) {
+        userId = existingUser._id;
+        userName = existingUser.name;
+        // Update phone if missing
+        if (!existingUser.phoneNumber && phoneNumber) {
+          existingUser.phoneNumber = phoneNumber;
+          await existingUser.save();
+        }
+      } else {
+        // Create new user with random password
+        const randomPassword = Math.random().toString(36).slice(-12);
+        const newUser = await User.create({
+          name: email.split('@')[0],
+          email,
+          phoneNumber,
+          password: randomPassword, // In a real app, send a reset password link or welcome email
+        });
+        userId = newUser._id;
+        userName = newUser.name;
+      }
     }
 
     const booking = await Booking.create({
-      user: req.user?._id,
+      user: userId,
       event: eventId,
       tickets: enrichedTickets,
       totalAmount,
+      email,
+      phoneNumber,
       status: req.body.status || (totalAmount === 0 ? 'confirmed' : 'pending'),
     });
 
     await event.save();
 
-    // Trigger Email Journey (Non-blocking)
+    // Trigger Email & WhatsApp Journey (Non-blocking)
     (async () => {
       try {
-        const user = await User.findById(req.user?._id);
-        if (user) {
-          const pdfBuffer = await generateTicketPDF(booking, event as any);
-          await sendTicketEmail(user.email, user.name, event, pdfBuffer);
+        const pdfBuffer = await generateTicketPDF(booking, event as any);
+        // Use guest details first, fallback to user details
+        const recipientEmail = booking.email || (req.user as any)?.email;
+        const recipientName = (req.user as any)?.name || 'Guest';
+        const recipientPhone = booking.phoneNumber || (req.user as any)?.phoneNumber;
+
+        if (recipientEmail) {
+          await sendTicketEmail(recipientEmail, recipientName, event, pdfBuffer);
+        }
+        
+        if (recipientPhone) {
+          const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
+          await sendTicketWhatsApp(recipientPhone, recipientName, event, pdfBuffer);
         }
       } catch (err) {
-        console.error('Failed to send confirmation email journey:', err);
+        console.error('Failed to send confirmation journey:', err);
       }
     })();
 
