@@ -50,7 +50,6 @@ import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import PwaInstallPrompt from "./components/layout/PwaInstallPrompt";
 import LocalStoresPage from "./pages/LocalStoresPage";
 import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
@@ -72,7 +71,6 @@ const App = () => (
                 <>
                   <Navbar />
                   <Outlet />
-                  <PwaInstallPrompt />
                 </>
               }
             >
