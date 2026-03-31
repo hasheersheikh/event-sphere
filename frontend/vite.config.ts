@@ -87,7 +87,6 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('framer-motion')) return 'framer-motion';
             if (id.includes('@radix-ui')) return 'radix-ui';
             if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf-vendor';
-            if (id.match(/\/node_modules\/(react|react-dom|react-router-dom)\//)) return 'react-vendor';
             return 'vendor';
           }
         }
