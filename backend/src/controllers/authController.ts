@@ -239,6 +239,48 @@ export const changePassword = async (req: Request, res: Response) => {
   }
 };
 
+export const googleAuth = async (req: Request, res: Response) => {
+  const { accessToken } = req.body;
+  try {
+    // Fetch user info from Google using the access token
+    const googleRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!googleRes.ok) {
+      return res.status(401).json({ message: 'Invalid Google access token' });
+    }
+    const payload = await googleRes.json() as { email?: string; name?: string; sub?: string; picture?: string };
+    if (!payload.email) {
+      return res.status(400).json({ message: 'Google did not return an email' });
+    }
+
+    const { email, name, sub: googleId, picture: avatar } = payload;
+
+    let user: any = await User.findOne({ $or: [{ googleId }, { email }] });
+
+    if (user) {
+      if (!user.googleId) { user.googleId = googleId; }
+      if (!user.avatar && avatar) { user.avatar = avatar; }
+      await user.save();
+    } else {
+      user = await User.create({ name, email: email.toLowerCase(), googleId, avatar, role: 'user' });
+      sendWelcomeEmail(user.email, user.name).catch(() => {});
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      isApproved: true,
+      token: generateToken(user._id.toString(), user.role),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Google authentication failed', error });
+  }
+};
+
 export const getMe = async (req: any, res: Response) => {
   const userRole = req.user?.role || 'user';
   const Model = getModelByRole(userRole);

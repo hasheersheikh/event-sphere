@@ -304,6 +304,39 @@ export const sendEventApprovalEmail = async (email: string, userName: string, ev
   }
 };
 
+export const sendAccountSetupEmail = async (email: string, userName: string, setupUrl: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <welcome@eventsphere.dev>',
+      to: [email],
+      subject: 'Your tickets are confirmed — set up your account 🎟️',
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #10B981; padding: 40px; text-align: center; color: black;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">City Pulse</h1>
+            <p style="margin: 5px 0 0; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px;">Tickets Confirmed</p>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Welcome, ${userName}!</h2>
+            <p>Your ticket purchase was successful and we've created an account for you so you can manage your tickets anytime.</p>
+            <p>Set a password to activate your account and view all your bookings:</p>
+            <div style="margin: 30px 0;">
+              <a href="${setupUrl}" style="background-color: #10B981; color: black; padding: 18px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px;">Set My Password</a>
+            </div>
+            <p style="color: #94a3b8; font-size: 13px;">This link expires in 1 hour. If you don't want an account, you can ignore this email — your tickets have already been sent.</p>
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;" />
+            <p style="color: #64748b; font-size: 12px; font-style: italic;">City Pulse Collective</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Account setup email sent to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send account setup email', err);
+  }
+};
+
 export const sendEventDeclineEmail = async (email: string, userName: string, eventTitle: string, reason: string) => {
   if (!process.env.RESEND_API_KEY) return;
 

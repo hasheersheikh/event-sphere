@@ -1,9 +1,10 @@
 import { Response } from 'express';
+import crypto from 'crypto';
 import Booking from '../models/Booking.js';
 import Event from '../models/Event.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail } from '../utils/emailService.js';
+import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailService.js';
 import User from '../models/User.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
@@ -67,16 +68,21 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
           await existingUser.save();
         }
       } else {
-        // Create new user with random password
-        const randomPassword = Math.random().toString(36).slice(-12);
+        // Create new user (no password — they'll set it via the email link)
         const newUser = await User.create({
           name: email.split('@')[0],
           email,
           phoneNumber,
-          password: randomPassword, // In a real app, send a reset password link or welcome email
         });
         userId = newUser._id;
         userName = newUser.name;
+        // Generate a password-reset token so the user can set their password
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        newUser.resetPasswordToken = resetToken;
+        newUser.resetPasswordExpires = new Date(Date.now() + 3600000);
+        await newUser.save();
+        const setupUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/reset-password?token=${resetToken}`;
+        sendAccountSetupEmail(email, userName, setupUrl).catch(() => {});
       }
     }
 

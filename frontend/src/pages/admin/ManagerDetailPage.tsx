@@ -85,7 +85,8 @@ const ManagerDetailPage = () => {
       setPayoutAmount("");
       fetchManagerDetail();
     } catch (error: any) {
-      const msg = error?.response?.data?.message || "Payout failed. Please try again.";
+      const msg =
+        error?.response?.data?.message || "Payout failed. Please try again.";
       toast.error(msg);
     } finally {
       setIsProcessing(false);
@@ -153,9 +154,6 @@ const ManagerDetailPage = () => {
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
                 ID: {manager._id.toUpperCase()}
               </p>
-              <Badge variant="outline" className="rounded-lg px-3 py-1 border-primary/20 text-primary bg-primary/5 font-black uppercase text-[9px] tracking-widest">
-                Professional Tier
-              </Badge>
             </div>
           </div>
         </div>
@@ -163,19 +161,31 @@ const ManagerDetailPage = () => {
 
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="bg-muted/30 p-1 rounded-xl border border-border/50 mb-8 w-full md:w-auto h-auto flex-wrap">
-          <TabsTrigger value="dashboard" className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5">
+          <TabsTrigger
+            value="dashboard"
+            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+          >
             <LayoutDashboard className="h-3.5 w-3.5" />
             Dashboard
           </TabsTrigger>
-          <TabsTrigger value="events" className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5">
+          <TabsTrigger
+            value="events"
+            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+          >
             <Calendar className="h-3.5 w-3.5" />
             Event Matrix
           </TabsTrigger>
-          <TabsTrigger value="revenue" className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5">
+          <TabsTrigger
+            value="revenue"
+            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+          >
             <Receipt className="h-3.5 w-3.5" />
             Capital & Settlements
           </TabsTrigger>
-          <TabsTrigger value="volunteers" className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5">
+          <TabsTrigger
+            value="volunteers"
+            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+          >
             <Users className="h-3.5 w-3.5" />
             Operational Units
           </TabsTrigger>
@@ -207,7 +217,9 @@ const ManagerDetailPage = () => {
               </div>
               <h2 className="text-3xl font-black tabular-nums text-foreground">
                 {stats.totalTicketsSold.toLocaleString()}
-                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">Tickets</span>
+                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">
+                  Tickets
+                </span>
               </h2>
             </div>
 
@@ -234,7 +246,9 @@ const ManagerDetailPage = () => {
               </div>
               <h2 className="text-3xl font-black tabular-nums text-foreground">
                 {stats.totalEvents}
-                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">Events</span>
+                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">
+                  Events
+                </span>
               </h2>
             </div>
           </div>
@@ -257,20 +271,36 @@ const ManagerDetailPage = () => {
                 {manager.bankDetails ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">Beneficiary Name</p>
-                       <p className="text-sm font-black text-foreground">{manager.bankDetails.accountHolder}</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                        Beneficiary Name
+                      </p>
+                      <p className="text-sm font-black text-foreground">
+                        {manager.bankDetails.accountHolder}
+                      </p>
                     </div>
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">Channel Identifier</p>
-                       <p className="text-sm font-black text-foreground font-mono">{manager.bankDetails.accountNumber}</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                        Channel Identifier
+                      </p>
+                      <p className="text-sm font-black text-foreground font-mono">
+                        {manager.bankDetails.accountNumber}
+                      </p>
                     </div>
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">Financial Institution</p>
-                       <p className="text-sm font-black text-foreground">{manager.bankDetails.bankName}</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                        Financial Institution
+                      </p>
+                      <p className="text-sm font-black text-foreground">
+                        {manager.bankDetails.bankName}
+                      </p>
                     </div>
                     <div className="space-y-1.5">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">Protocol Code (IFSC)</p>
-                       <p className="text-sm font-black text-foreground uppercase font-mono">{manager.bankDetails.ifscCode}</p>
+                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                        Protocol Code (IFSC)
+                      </p>
+                      <p className="text-sm font-black text-foreground uppercase font-mono">
+                        {manager.bankDetails.ifscCode}
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -303,174 +333,207 @@ const ManagerDetailPage = () => {
             </section>
 
             <section className="bg-card border border-border p-8 rounded-[1.5rem] shadow-xl flex flex-col justify-center gap-6 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-[3] rotate-12 pointer-events-none text-primary">
-                  <ShieldCheck className="w-20 h-20" />
-               </div>
-               <div className="space-y-3">
-                  <h3 className="text-2xl font-black uppercase brand-font tracking-tighter italic">
-                    Administrative <span className="text-primary">Control.</span>
-                  </h3>
-                  <p className="text-muted-foreground font-semibold text-[13px] max-w-sm">
-                    Execute settlements or modify the revenue sharing deal for this operation unit.
-                  </p>
-               </div>
-               <div className="flex flex-col sm:flex-row gap-4">
-                  <Dialog open={isCommissionModalOpen} onOpenChange={setIsCommissionModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="flex-1 h-11 border-border bg-muted/20 text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-muted/40 transition-all gap-2.5"
-                      >
-                        <Settings2 className="h-4 w-4" />
-                        Configure Deal
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
-                      <DialogHeader className="mb-8">
-                        <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
-                          Platform <span className="text-primary">Deal.</span>
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-8">
-                        <div className="space-y-3">
-                          <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
-                            Transaction Model
-                          </label>
-                          <div className="grid grid-cols-2 gap-2.5 p-1 bg-muted/30 rounded-xl border border-border">
-                            <button
-                              onClick={() => setCommData({ ...commData, type: "percentage" })}
-                              className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${commData.type === "percentage" ? "bg-background shadow-lg text-primary border-none" : "text-muted-foreground hover:text-foreground"}`}
-                            >
-                              Percentage
-                            </button>
-                            <button
-                              onClick={() => setCommData({ ...commData, type: "flat" })}
-                              className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${commData.type === "flat" ? "bg-background shadow-lg text-primary border-none" : "text-muted-foreground hover:text-foreground"}`}
-                            >
-                              Flat Fee
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
-                            Magnitude ({commData.type === "percentage" ? "%" : "INR"})
-                          </label>
-                          <input
-                            type="number"
-                            value={commData.value}
-                            onChange={(e) => setCommData({ ...commData, value: Number(e.target.value) })}
-                            className="w-full h-11 bg-muted/20 border-2 border-border px-5 text-xl font-black text-foreground focus:outline-none focus:border-primary/50 rounded-xl transition-all shadow-inner"
-                          />
-                        </div>
-
-                        <div className="flex gap-3 pt-2">
-                          <Button
-                            onClick={() => setIsCommissionModalOpen(false)}
-                            variant="ghost"
-                            className="flex-1 h-12 rounded-lg text-[10px] font-black uppercase"
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-[3] rotate-12 pointer-events-none text-primary">
+                <ShieldCheck className="w-20 h-20" />
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-2xl font-black uppercase brand-font tracking-tighter italic">
+                  Administrative <span className="text-primary">Control.</span>
+                </h3>
+                <p className="text-muted-foreground font-semibold text-[13px] max-w-sm">
+                  Execute settlements or modify the revenue sharing deal for
+                  this operation unit.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Dialog
+                  open={isCommissionModalOpen}
+                  onOpenChange={setIsCommissionModalOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1 h-11 border-border bg-muted/20 text-foreground text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-muted/40 transition-all gap-2.5"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                      Configure Deal
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
+                    <DialogHeader className="mb-8">
+                      <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
+                        Platform <span className="text-primary">Deal.</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-8">
+                      <div className="space-y-3">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
+                          Transaction Model
+                        </label>
+                        <div className="grid grid-cols-2 gap-2.5 p-1 bg-muted/30 rounded-xl border border-border">
+                          <button
+                            onClick={() =>
+                              setCommData({ ...commData, type: "percentage" })
+                            }
+                            className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${commData.type === "percentage" ? "bg-background shadow-lg text-primary border-none" : "text-muted-foreground hover:text-foreground"}`}
                           >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handleUpdateCommission}
-                            disabled={isProcessing}
-                            className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-[10px] font-black uppercase shadow-2xl border-none"
+                            Percentage
+                          </button>
+                          <button
+                            onClick={() =>
+                              setCommData({ ...commData, type: "flat" })
+                            }
+                            className={`py-3 px-5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${commData.type === "flat" ? "bg-background shadow-lg text-primary border-none" : "text-muted-foreground hover:text-foreground"}`}
                           >
-                            {isProcessing ? "SYNCING..." : "SAVE DEAL"}
-                          </Button>
+                            Flat Fee
+                          </button>
                         </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
 
-                  <Dialog open={isPayoutModalOpen} onOpenChange={setIsPayoutModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        className="flex-1 h-11 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all gap-2.5 border-none"
-                      >
-                        <DollarSign className="h-4 w-4" />
-                        Send Payout
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
-                      <DialogHeader className="mb-6">
-                        <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
-                          Send <span className="text-emerald-500">Payout</span>
-                        </DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-6">
-                        {/* Payment method warning */}
-                        {!manager.bankDetails?.accountNumber && !manager.upiId && (
+                      <div className="space-y-3">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
+                          Magnitude (
+                          {commData.type === "percentage" ? "%" : "INR"})
+                        </label>
+                        <input
+                          type="number"
+                          value={commData.value}
+                          onChange={(e) =>
+                            setCommData({
+                              ...commData,
+                              value: Number(e.target.value),
+                            })
+                          }
+                          className="w-full h-11 bg-muted/20 border-2 border-border px-5 text-xl font-black text-foreground focus:outline-none focus:border-primary/50 rounded-xl transition-all shadow-inner"
+                        />
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={() => setIsCommissionModalOpen(false)}
+                          variant="ghost"
+                          className="flex-1 h-12 rounded-lg text-[10px] font-black uppercase"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleUpdateCommission}
+                          disabled={isProcessing}
+                          className="flex-1 h-12 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg text-[10px] font-black uppercase shadow-2xl border-none"
+                        >
+                          {isProcessing ? "SYNCING..." : "SAVE DEAL"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog
+                  open={isPayoutModalOpen}
+                  onOpenChange={setIsPayoutModalOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button className="flex-1 h-11 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all gap-2.5 border-none">
+                      <DollarSign className="h-4 w-4" />
+                      Send Payout
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
+                    <DialogHeader className="mb-6">
+                      <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
+                        Send <span className="text-emerald-500">Payout</span>
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-6">
+                      {/* Payment method warning */}
+                      {!manager.bankDetails?.accountNumber &&
+                        !manager.upiId && (
                           <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
                             <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                             <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
-                              This manager has not configured a bank account or UPI ID. Payout will fail until they add payment details.
+                              This manager has not configured a bank account or
+                              UPI ID. Payout will fail until they add payment
+                              details.
                             </p>
                           </div>
                         )}
 
-                        {/* Via info */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border border-border rounded-xl">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Via</span>
-                          <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
-                            {manager.upiId && !manager.bankDetails?.accountNumber
-                              ? `UPI — ${manager.upiId}`
-                              : manager.bankDetails?.accountNumber
+                      {/* Via info */}
+                      <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border border-border rounded-xl">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                          Via
+                        </span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                          {manager.upiId && !manager.bankDetails?.accountNumber
+                            ? `UPI — ${manager.upiId}`
+                            : manager.bankDetails?.accountNumber
                               ? `Bank — ••••${manager.bankDetails.accountNumber.slice(-4)}`
-                              : 'No payment method set'}
-                          </span>
-                        </div>
+                              : "No payment method set"}
+                        </span>
+                      </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="p-5 bg-muted/20 rounded-xl border border-border">
-                            <p className="text-[8px] font-black text-muted-foreground uppercase mb-0.5">Available</p>
-                            <p className="text-lg font-black text-foreground italic">₹{Math.floor(stats.pendingPayout).toLocaleString()}</p>
-                          </div>
-                          <div className="p-5 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
-                            <p className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Already Paid</p>
-                            <p className="text-lg font-black text-emerald-500 italic">₹{(stats.totalPaid || 0).toLocaleString()}</p>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
-                            Amount (INR)
-                          </label>
-                          <input
-                            type="number"
-                            value={payoutAmount}
-                            onChange={(e) => setPayoutAmount(e.target.value)}
-                            placeholder="0.00"
-                            max={Math.floor(stats.pendingPayout)}
-                            min={1}
-                            className="w-full h-14 bg-muted/20 border-2 border-border px-5 text-2xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
-                          />
-                          <p className="text-[9px] text-muted-foreground font-medium ml-1">
-                            Payout will be sent via Razorpay. Status updates automatically.
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 bg-muted/20 rounded-xl border border-border">
+                          <p className="text-[8px] font-black text-muted-foreground uppercase mb-0.5">
+                            Available
+                          </p>
+                          <p className="text-lg font-black text-foreground italic">
+                            ₹{Math.floor(stats.pendingPayout).toLocaleString()}
                           </p>
                         </div>
-
-                        <div className="flex gap-3 pt-2">
-                          <Button
-                            onClick={() => setIsPayoutModalOpen(false)}
-                            variant="ghost"
-                            className="flex-1 h-12 rounded-lg text-[10px] font-black uppercase"
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={handlePayout}
-                            disabled={isProcessing || (!manager.bankDetails?.accountNumber && !manager.upiId)}
-                            className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow-2xl border-none disabled:opacity-50"
-                          >
-                            {isProcessing ? "Sending..." : "Send via Razorpay"}
-                          </Button>
+                        <div className="p-5 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+                          <p className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">
+                            Already Paid
+                          </p>
+                          <p className="text-lg font-black text-emerald-500 italic">
+                            ₹{(stats.totalPaid || 0).toLocaleString()}
+                          </p>
                         </div>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-               </div>
+
+                      <div className="space-y-3">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground tracking-[0.2em] ml-1">
+                          Amount (INR)
+                        </label>
+                        <input
+                          type="number"
+                          value={payoutAmount}
+                          onChange={(e) => setPayoutAmount(e.target.value)}
+                          placeholder="0.00"
+                          max={Math.floor(stats.pendingPayout)}
+                          min={1}
+                          className="w-full h-14 bg-muted/20 border-2 border-border px-5 text-2xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
+                        />
+                        <p className="text-[9px] text-muted-foreground font-medium ml-1">
+                          Payout will be sent via Razorpay. Status updates
+                          automatically.
+                        </p>
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <Button
+                          onClick={() => setIsPayoutModalOpen(false)}
+                          variant="ghost"
+                          className="flex-1 h-12 rounded-lg text-[10px] font-black uppercase"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handlePayout}
+                          disabled={
+                            isProcessing ||
+                            (!manager.bankDetails?.accountNumber &&
+                              !manager.upiId)
+                          }
+                          className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow-2xl border-none disabled:opacity-50"
+                        >
+                          {isProcessing ? "Sending..." : "Send via Razorpay"}
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </section>
           </div>
         </TabsContent>
@@ -527,18 +590,28 @@ const ManagerDetailPage = () => {
                           {new Date(e.date).toLocaleDateString()}
                         </td>
                         <td className="px-8 py-6">
-                           <div className="flex flex-col gap-1">
-                              <span className="text-[10px] font-black text-foreground">{e.ticketsSold.toLocaleString()} SOLD</span>
-                              <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">
-                                 <div className="h-full bg-primary" style={{ width: '65%' }} />
-                              </div>
-                           </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-black text-foreground">
+                              {e.ticketsSold.toLocaleString()} SOLD
+                            </span>
+                            <div className="w-20 h-1 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary"
+                                style={{ width: "65%" }}
+                              />
+                            </div>
+                          </div>
                         </td>
                         <td className="px-8 py-6">
-                          <Badge className={`rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border-none ${
-                            e.status === 'published' ? 'bg-emerald-500/10 text-emerald-500' : 
-                            e.status === 'sold_out' ? 'bg-rose-500/10 text-rose-500' : 'bg-muted text-muted-foreground'
-                          }`}>
+                          <Badge
+                            className={`rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border-none ${
+                              e.status === "published"
+                                ? "bg-emerald-500/10 text-emerald-500"
+                                : e.status === "sold_out"
+                                  ? "bg-rose-500/10 text-rose-500"
+                                  : "bg-muted text-muted-foreground"
+                            }`}
+                          >
                             {e.status}
                           </Badge>
                         </td>
@@ -568,7 +641,9 @@ const ManagerDetailPage = () => {
                 {!payouts || payouts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-4 opacity-30 italic">
                     <Receipt className="h-12 w-12" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">No settlements detected.</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+                      No settlements detected.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -578,37 +653,50 @@ const ManagerDetailPage = () => {
                         className="p-6 bg-muted/10 border border-border/50 rounded-2xl flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
                       >
                         <div className="flex items-center gap-4">
-                           <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${
-                             p.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
-                             p.status === 'processing' ? 'bg-blue-500/10 text-blue-500' :
-                             p.status === 'failed' ? 'bg-rose-500/10 text-rose-500' :
-                             'bg-amber-500/10 text-amber-500'
-                           }`}>
-                              <ShieldCheck className="h-5 w-5" />
-                           </div>
-                           <div>
+                          <div
+                            className={`h-11 w-11 rounded-xl flex items-center justify-center ${
+                              p.status === "completed"
+                                ? "bg-emerald-500/10 text-emerald-500"
+                                : p.status === "processing"
+                                  ? "bg-blue-500/10 text-blue-500"
+                                  : p.status === "failed"
+                                    ? "bg-rose-500/10 text-rose-500"
+                                    : "bg-amber-500/10 text-amber-500"
+                            }`}
+                          >
+                            <ShieldCheck className="h-5 w-5" />
+                          </div>
+                          <div>
                             <div className="flex items-center gap-2 mb-0.5">
-                              <Badge className={`text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 ${
-                                p.status === 'completed' ? 'bg-emerald-500/10 text-emerald-500' :
-                                p.status === 'processing' ? 'bg-blue-500/10 text-blue-500' :
-                                p.status === 'failed' ? 'bg-rose-500/10 text-rose-500' :
-                                'bg-amber-500/10 text-amber-500'
-                              }`}>
+                              <Badge
+                                className={`text-[8px] font-black uppercase tracking-widest border-none px-2 py-0.5 ${
+                                  p.status === "completed"
+                                    ? "bg-emerald-500/10 text-emerald-500"
+                                    : p.status === "processing"
+                                      ? "bg-blue-500/10 text-blue-500"
+                                      : p.status === "failed"
+                                        ? "bg-rose-500/10 text-rose-500"
+                                        : "bg-amber-500/10 text-amber-500"
+                                }`}
+                              >
                                 {p.status}
                               </Badge>
                               {p.razorpayPayoutId && (
-                                <span className="text-[8px] font-mono text-muted-foreground/50">{p.razorpayPayoutId}</span>
+                                <span className="text-[8px] font-mono text-muted-foreground/50">
+                                  {p.razorpayPayoutId}
+                                </span>
                               )}
                             </div>
                             <p className="text-[11px] font-bold text-muted-foreground uppercase opacity-80">
-                               {new Date(p.createdAt).toLocaleDateString()} · {p.notes || 'Payout'}
+                              {new Date(p.createdAt).toLocaleDateString()} ·{" "}
+                              {p.notes || "Payout"}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                           <p className="text-xl font-black text-foreground tabular-nums tracking-tighter">
-                             ₹{p.amount.toLocaleString()}
-                           </p>
+                          <p className="text-xl font-black text-foreground tabular-nums tracking-tighter">
+                            ₹{p.amount.toLocaleString()}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -619,40 +707,52 @@ const ManagerDetailPage = () => {
 
             {/* Deal Architecture */}
             <section className="bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl h-auto">
-               <div className="p-6 border-b border-border bg-primary/5">
+              <div className="p-6 border-b border-border bg-primary/5">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-4 text-primary">
                   <ShieldCheck className="h-4 w-4" />
                   Core Deal Architecture
                 </h3>
               </div>
               <div className="p-8 space-y-8">
-                 <div className="space-y-4">
-                    <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest border-l-3 border-primary pl-3">Platform Entitlement</p>
-                    <div className="space-y-3 bg-muted/20 p-6 rounded-2xl border border-border">
-                       <div className="flex justify-between items-center text-primary">
-                          <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Status</span>
-                          <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
-                             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                             Synchronized
-                          </span>
-                       </div>
-                       <div className="text-3xl font-black italic tracking-tighter text-foreground">
-                          {manager.commissionValue}
-                          <span className="text-lg ml-1 opacity-40">{manager.commissionType === "percentage" ? "%" : " FLAT"}</span>
-                       </div>
-                       <p className="text-[10px] font-semibold text-muted-foreground italic leading-relaxed">
-                          Platform share deduction applied to ticket sales.
-                       </p>
+                <div className="space-y-4">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest border-l-3 border-primary pl-3">
+                    Platform Entitlement
+                  </p>
+                  <div className="space-y-3 bg-muted/20 p-6 rounded-2xl border border-border">
+                    <div className="flex justify-between items-center text-primary">
+                      <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
+                        Status
+                      </span>
+                      <span className="text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Synchronized
+                      </span>
                     </div>
-                 </div>
+                    <div className="text-3xl font-black italic tracking-tighter text-foreground">
+                      {manager.commissionValue}
+                      <span className="text-lg ml-1 opacity-40">
+                        {manager.commissionType === "percentage"
+                          ? "%"
+                          : " FLAT"}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-semibold text-muted-foreground italic leading-relaxed">
+                      Platform share deduction applied to ticket sales.
+                    </p>
+                  </div>
+                </div>
 
-                 <div className="p-6 bg-zinc-950 rounded-xl border border-white/5 space-y-3 dark:bg-muted/10">
-                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">Lifetime Net Earnings</p>
-                    <div className="flex items-baseline justify-between">
-                       <h4 className="text-2xl font-black text-white tabular-nums">₹{stats.netDue.toLocaleString()}</h4>
-                       <TrendIcon value={12} />
-                    </div>
-                 </div>
+                <div className="p-6 bg-zinc-950 rounded-xl border border-white/5 space-y-3 dark:bg-muted/10">
+                  <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest">
+                    Lifetime Net Earnings
+                  </p>
+                  <div className="flex items-baseline justify-between">
+                    <h4 className="text-2xl font-black text-white tabular-nums">
+                      ₹{stats.netDue.toLocaleString()}
+                    </h4>
+                    <TrendIcon value={12} />
+                  </div>
+                </div>
               </div>
             </section>
           </div>
@@ -700,26 +800,33 @@ const ManagerDetailPage = () => {
                         className="hover:bg-muted/10 transition-all group"
                       >
                         <td className="px-8 py-6">
-                           <div className="flex items-center gap-4">
-                              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center font-black text-primary text-xs">
-                                 {v.name.charAt(0)}
-                              </div>
-                              <div>
-                                 <p className="font-black text-sm uppercase tracking-tight text-foreground">{v.name}</p>
-                                 <p className="text-[10px] text-muted-foreground font-bold italic opacity-70">{v.email}</p>
-                              </div>
-                           </div>
+                          <div className="flex items-center gap-4">
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center font-black text-primary text-xs">
+                              {v.name.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-black text-sm uppercase tracking-tight text-foreground">
+                                {v.name}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground font-bold italic opacity-70">
+                                {v.email}
+                              </p>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-8 py-6 text-[10px] font-black text-muted-foreground uppercase">
-                           {v.event?.title || "UNASSIGNED"}
+                          {v.event?.title || "UNASSIGNED"}
                         </td>
                         <td className="px-8 py-6">
-                           <Badge variant="outline" className="rounded-lg border-primary/20 text-primary bg-primary/5 font-black uppercase text-[9px]">
-                              {v.gate || "DEFAULT"}
-                           </Badge>
+                          <Badge
+                            variant="outline"
+                            className="rounded-lg border-primary/20 text-primary bg-primary/5 font-black uppercase text-[9px]"
+                          >
+                            {v.gate || "DEFAULT"}
+                          </Badge>
                         </td>
                         <td className="px-8 py-6 text-right text-[10px] font-black text-muted-foreground tabular-nums">
-                           {new Date(v.createdAt).toLocaleDateString()}
+                          {new Date(v.createdAt).toLocaleDateString()}
                         </td>
                       </motion.tr>
                     ))
