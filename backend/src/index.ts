@@ -57,16 +57,31 @@ app.get('/health', (req, res) => {
 const startServer = async () => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/event-sphere';
+    
+    if (!process.env.MONGODB_URI) {
+      console.warn('⚠️ WARNING: MONGODB_URI is not set in environment variables. Defaulting to localhost.');
+    } else {
+      console.log('✅ Found MONGODB_URI in environment variables.');
+    }
+
     await mongoose.connect(mongoUri);
     logger.info('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB successfully.');
 
     // Initialize Cron Jobs
     initCronJobs();
 
     app.listen(PORT, () => {
       logger.info(`Server is running on port ${PORT}`);
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
   } catch (error) {
+    console.error('❌ CRITICAL ERROR: Failed to start server');
+    console.error(error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Stack trace:', error.stack);
+    }
     logger.error('Failed to connect to MongoDB', error);
     process.exit(1);
   }
