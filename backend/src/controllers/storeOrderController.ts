@@ -83,10 +83,34 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const order = await StoreOrder.findByIdAndUpdate(id, { status }, { new: true });
+    const order = await StoreOrder.findById(id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
+    // Store owners can only update orders for their own store
+    if (req.user?.role === 'store_owner') {
+      if (String(order.storeId) !== String(req.user.storeId)) {
+        return res.status(403).json({ message: 'Not authorized to update this order' });
+      }
+    }
+
+    order.status = status;
+    await order.save();
+
     res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getStoreOwnerOrders = async (req: AuthRequest, res: Response) => {
+  try {
+    const storeId = req.user?.storeId;
+    const { status } = req.query;
+    const filter: any = { storeId };
+    if (status) filter.status = status;
+
+    const orders = await StoreOrder.find(filter).sort({ createdAt: -1 });
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
