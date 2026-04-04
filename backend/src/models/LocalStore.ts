@@ -18,6 +18,25 @@ export interface ILocalStore extends Document {
   category: string;
   products: IProduct[];
   isActive: boolean;
+  // Contact & Info
+  contactEmail?: string;
+  contactPhone?: string;
+  whatsapp?: string;
+  openingHours?: string;
+  googleMapUrl?: string;
+  // Payment
+  paymentMethods: string[];
+  upiId?: string;
+  bankDetails?: {
+    accountHolder?: string;
+    accountNumber?: string;
+    bankName?: string;
+    ifscCode?: string;
+  };
+  // Social
+  instagram?: string;
+  facebook?: string;
+  website?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +59,22 @@ const LocalStoreSchema = new Schema(
     category: { type: String, default: 'General' },
     products: [ProductSchema],
     isActive: { type: Boolean, default: true },
+    contactEmail: { type: String },
+    contactPhone: { type: String },
+    whatsapp: { type: String },
+    openingHours: { type: String },
+    googleMapUrl: { type: String },
+    paymentMethods: [{ type: String }],
+    upiId: { type: String },
+    bankDetails: {
+      accountHolder: { type: String },
+      accountNumber: { type: String },
+      bankName: { type: String },
+      ifscCode: { type: String },
+    },
+    instagram: { type: String },
+    facebook: { type: String },
+    website: { type: String },
   },
   { timestamps: true }
 );

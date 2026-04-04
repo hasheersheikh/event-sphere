@@ -53,16 +53,22 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LocalStoresPage from "./pages/LocalStoresPage";
 import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
+import MyOrdersPage from "./pages/MyOrdersPage";
+import StoreOrdersPage from "./pages/admin/StoreOrdersPage";
 import PaymentCallbackPage from "./pages/PaymentCallbackPage";
+import { LocalStoreCartProvider } from "./contexts/LocalStoreCartContext";
+import LocalStoreCartDrawer from "./components/home/LocalStoreCartDrawer";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <LocalStoreCartProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <LocalStoreCartDrawer />
         <Router>
           <Routes>
             {/* Pages with Navbar */}
@@ -140,6 +146,14 @@ const App = () => (
                         }
                       />
                       <Route
+                        path="my-orders"
+                        element={
+                          <ProtectedRoute>
+                            <MyOrdersPage />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
                         path="scanner"
                         element={
                           <ProtectedRoute
@@ -210,6 +224,7 @@ const App = () => (
               <Route path="admin/events" element={<EventModerationPage />} />
               <Route path="admin/events/:id" element={<EventInsightsPage />} />
               <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
+              <Route path="admin/store-orders" element={<StoreOrdersPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="manager/payouts" element={<PayoutsPage />} />
               <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
@@ -245,6 +260,7 @@ const App = () => (
           </Routes>
         </Router>
       </TooltipProvider>
+      </LocalStoreCartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

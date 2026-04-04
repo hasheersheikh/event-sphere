@@ -10,6 +10,7 @@ import adminRoutes from './routes/adminRoutes.js';
 import managerRoutes from './routes/managerRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import localStoreRoutes from './routes/localStoreRoutes.js';
+import storeOrderRoutes from './routes/storeOrderRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/manager', managerRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/local-stores', localStoreRoutes);
+app.use('/api/store-orders', storeOrderRoutes);
 console.log('Registered /api/local-stores route');
 
 // Basic Route

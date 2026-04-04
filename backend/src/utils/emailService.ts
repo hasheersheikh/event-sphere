@@ -304,6 +304,95 @@ export const sendEventApprovalEmail = async (email: string, userName: string, ev
   }
 };
 
+export const sendStoreOrderEmail = async (storeEmail: string, storeName: string, order: any) => {
+  if (!process.env.RESEND_API_KEY) return;
+  const itemRows = order.items.map((i: any) => {
+    const finalPrice = i.price * (1 - (i.discountPercent || 0) / 100);
+    return `<tr><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;">${i.name}</td><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;text-align:center;">${i.quantity}</td><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;text-align:right;">₹${(finalPrice * i.quantity).toFixed(0)}</td></tr>`;
+  }).join('');
+  const paymentLabel: Record<string, string> = { cash: 'Cash on Delivery', upi: 'UPI', card: 'Card', bank_transfer: 'Bank Transfer' };
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <orders@eventsphere.dev>',
+      to: [storeEmail],
+      subject: `New Order #${order._id.toString().slice(-6).toUpperCase()} — ${storeName}`,
+      html: `
+        <div style="font-family:sans-serif;color:#1e293b;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+          <div style="background:#f59e0b;padding:30px;text-align:center;color:#000;">
+            <h1 style="margin:0;font-weight:900;text-transform:uppercase;letter-spacing:-0.05em;">New Order!</h1>
+            <p style="margin:5px 0 0;font-size:12px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;">Order #${order._id.toString().slice(-6).toUpperCase()}</p>
+          </div>
+          <div style="padding:30px;">
+            <h3 style="margin-top:0;">Customer Details</h3>
+            <p style="margin:4px 0;"><strong>Name:</strong> ${order.customer.name}</p>
+            <p style="margin:4px 0;"><strong>Email:</strong> ${order.customer.email}</p>
+            <p style="margin:4px 0;"><strong>Phone:</strong> ${order.customer.phone}</p>
+            <p style="margin:4px 0;"><strong>Delivery Address:</strong> ${order.customer.address}</p>
+            <p style="margin:4px 0;"><strong>Payment:</strong> ${paymentLabel[order.paymentMethod] || order.paymentMethod}</p>
+            ${order.notes ? `<p style="margin:4px 0;"><strong>Notes:</strong> ${order.notes}</p>` : ''}
+            <h3 style="margin-top:24px;">Order Items</h3>
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="font-size:11px;text-transform:uppercase;color:#64748b;">
+                <th style="text-align:left;padding-bottom:8px;">Item</th>
+                <th style="text-align:center;padding-bottom:8px;">Qty</th>
+                <th style="text-align:right;padding-bottom:8px;">Amount</th>
+              </tr></thead>
+              <tbody>${itemRows}</tbody>
+              <tfoot><tr>
+                <td colspan="2" style="padding-top:12px;font-weight:900;font-size:16px;">Total</td>
+                <td style="padding-top:12px;font-weight:900;font-size:16px;text-align:right;color:#f59e0b;">₹${order.totalAmount.toFixed(0)}</td>
+              </tr></tfoot>
+            </table>
+          </div>
+        </div>`,
+    });
+  } catch (err) {
+    logger.error('Failed to send store order email', err);
+  }
+};
+
+export const sendCustomerOrderEmail = async (email: string, customerName: string, storeName: string, order: any) => {
+  if (!process.env.RESEND_API_KEY) return;
+  const itemRows = order.items.map((i: any) => {
+    const finalPrice = i.price * (1 - (i.discountPercent || 0) / 100);
+    return `<tr><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;">${i.name}</td><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;text-align:center;">${i.quantity}</td><td style="padding:8px 0;border-bottom:1px solid #f1f5f9;text-align:right;">₹${(finalPrice * i.quantity).toFixed(0)}</td></tr>`;
+  }).join('');
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere <orders@eventsphere.dev>',
+      to: [email],
+      subject: `Order Confirmed — ${storeName} 🛍️`,
+      html: `
+        <div style="font-family:sans-serif;color:#1e293b;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
+          <div style="background:#10B981;padding:30px;text-align:center;color:#000;">
+            <h1 style="margin:0;font-weight:900;text-transform:uppercase;letter-spacing:-0.05em;">Order Confirmed!</h1>
+            <p style="margin:5px 0 0;font-size:12px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase;">Ref #${order._id.toString().slice(-6).toUpperCase()}</p>
+          </div>
+          <div style="padding:30px;">
+            <h2>Hi ${customerName},</h2>
+            <p>Your order from <strong>${storeName}</strong> has been received. The store will confirm and contact you shortly.</p>
+            <h3>Your Order</h3>
+            <table style="width:100%;border-collapse:collapse;">
+              <thead><tr style="font-size:11px;text-transform:uppercase;color:#64748b;">
+                <th style="text-align:left;padding-bottom:8px;">Item</th>
+                <th style="text-align:center;padding-bottom:8px;">Qty</th>
+                <th style="text-align:right;padding-bottom:8px;">Amount</th>
+              </tr></thead>
+              <tbody>${itemRows}</tbody>
+              <tfoot><tr>
+                <td colspan="2" style="padding-top:12px;font-weight:900;font-size:16px;">Total</td>
+                <td style="padding-top:12px;font-weight:900;font-size:16px;text-align:right;color:#10B981;">₹${order.totalAmount.toFixed(0)}</td>
+              </tr></tfoot>
+            </table>
+            <p style="margin-top:24px;color:#64748b;font-size:13px;">Delivery to: ${order.customer.address}</p>
+          </div>
+        </div>`,
+    });
+  } catch (err) {
+    logger.error('Failed to send customer order email', err);
+  }
+};
+
 export const sendAccountSetupEmail = async (email: string, userName: string, setupUrl: string) => {
   if (!process.env.RESEND_API_KEY) return;
   try {

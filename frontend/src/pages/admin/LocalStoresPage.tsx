@@ -5,7 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   Plus, Trash2, Store, MapPin, Package, X, ChevronDown, ChevronUp,
-  ToggleLeft, ToggleRight, Edit3, Image as ImageIcon, Upload
+  ToggleLeft, ToggleRight, Edit3, Image as ImageIcon, Upload,
+  Phone, Mail, MessageCircle, Clock, Link2, CreditCard, Building2,
+  Instagram, Facebook, Globe,
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -14,6 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+
+interface BankDetails {
+  accountHolder?: string;
+  accountNumber?: string;
+  bankName?: string;
+  ifscCode?: string;
+}
 
 interface Product {
   _id: string;
@@ -35,6 +44,20 @@ interface LocalStore {
   products: Product[];
   isActive: boolean;
   createdAt: string;
+  // Contact
+  contactEmail?: string;
+  contactPhone?: string;
+  whatsapp?: string;
+  openingHours?: string;
+  googleMapUrl?: string;
+  // Payment
+  paymentMethods?: string[];
+  upiId?: string;
+  bankDetails?: BankDetails;
+  // Social
+  instagram?: string;
+  facebook?: string;
+  website?: string;
 }
 
 const storeSchema = z.object({
@@ -43,6 +66,25 @@ const storeSchema = z.object({
   description: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   photos: z.array(z.string().url("Must be a valid URL").or(z.literal(""))).optional(),
+  // Contact
+  contactEmail: z.string().email("Invalid email").or(z.literal("")).optional(),
+  contactPhone: z.string().optional(),
+  whatsapp: z.string().optional(),
+  openingHours: z.string().optional(),
+  googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  // Payment
+  paymentMethods: z.array(z.string()).optional(),
+  upiId: z.string().optional(),
+  bankDetails: z.object({
+    accountHolder: z.string().optional(),
+    accountNumber: z.string().optional(),
+    bankName: z.string().optional(),
+    ifscCode: z.string().optional(),
+  }).optional(),
+  // Social
+  instagram: z.string().optional(),
+  facebook: z.string().optional(),
+  website: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
 });
 
 const productSchema = z.object({
@@ -58,10 +100,16 @@ type StoreFormValues = z.infer<typeof storeSchema>;
 type ProductFormValues = z.infer<typeof productSchema>;
 
 const CATEGORIES = ["Food & Beverage", "Grocery", "Bakery", "Crafts & Art", "Fashion", "Electronics", "Books", "Health & Beauty", "General"];
+const PAYMENT_OPTIONS = ["cod", "upi", "card", "bank_transfer", "online"];
+
+// ── Tab helper ───────────────────────────────────────────────────────────────
+const TABS = ["Basic", "Contact", "Payment", "Social"] as const;
+type Tab = typeof TABS[number];
 
 // ── Add/Edit Store Form ──────────────────────────────────────────────────────
 const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: LocalStore }) => {
   const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<Tab>("Basic");
 
   const form = useForm<StoreFormValues>({
     resolver: zodResolver(storeSchema),
@@ -72,14 +120,47 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
           description: editStore.description || "",
           category: editStore.category,
           photos: editStore.photos,
+          contactEmail: editStore.contactEmail || "",
+          contactPhone: editStore.contactPhone || "",
+          whatsapp: editStore.whatsapp || "",
+          openingHours: editStore.openingHours || "",
+          googleMapUrl: editStore.googleMapUrl || "",
+          paymentMethods: editStore.paymentMethods || [],
+          upiId: editStore.upiId || "",
+          bankDetails: {
+            accountHolder: editStore.bankDetails?.accountHolder || "",
+            accountNumber: editStore.bankDetails?.accountNumber || "",
+            bankName: editStore.bankDetails?.bankName || "",
+            ifscCode: editStore.bankDetails?.ifscCode || "",
+          },
+          instagram: editStore.instagram || "",
+          facebook: editStore.facebook || "",
+          website: editStore.website || "",
         }
-      : { name: "", address: "", description: "", category: "", photos: [] },
+      : {
+          name: "", address: "", description: "", category: "", photos: [],
+          contactEmail: "", contactPhone: "", whatsapp: "", openingHours: "", googleMapUrl: "",
+          paymentMethods: [], upiId: "",
+          bankDetails: { accountHolder: "", accountNumber: "", bankName: "", ifscCode: "" },
+          instagram: "", facebook: "", website: "",
+        },
   });
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
     control: form.control,
     name: "photos" as any,
   });
+
+  const watchedPaymentMethods = form.watch("paymentMethods") || [];
+
+  const togglePaymentMethod = (method: string) => {
+    const current = form.getValues("paymentMethods") || [];
+    if (current.includes(method)) {
+      form.setValue("paymentMethods", current.filter((m) => m !== method));
+    } else {
+      form.setValue("paymentMethods", [...current, method]);
+    }
+  };
 
   const handlePhotoUpload = () => {
     // @ts-ignore
@@ -102,7 +183,11 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
 
   const mutation = useMutation({
     mutationFn: async (values: StoreFormValues) => {
-      const payload = { ...values, photos: values.photos?.filter(Boolean) };
+      const payload = {
+        ...values,
+        photos: values.photos?.filter(Boolean),
+        paymentMethods: values.paymentMethods?.filter(Boolean),
+      };
       if (editStore) {
         const { data } = await api.put(`/local-stores/${editStore._id}`, payload);
         return data;
@@ -119,10 +204,14 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
     onError: (e: any) => toast.error(e.response?.data?.message || "Failed"),
   });
 
+  const labelClass = "text-[10px] font-black uppercase tracking-widest text-muted-foreground";
+  const inputClass = "h-12 rounded-xl bg-muted/30 border-border";
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-background border border-border rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
-        <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="bg-background border border-border rounded-3xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
           <h2 className="font-black text-lg uppercase tracking-tight">
             {editStore ? "Edit Store" : "Add New Store"}
           </h2>
@@ -131,79 +220,283 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex border-b border-border px-6 sticky top-[73px] bg-background z-10">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={cn(
+                "px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-colors",
+                activeTab === tab
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
         <Form {...form}>
           <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-5">
-            <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Store Name</FormLabel>
-                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="e.g. The Spice House" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
+            {/* ── BASIC TAB ── */}
+            {activeTab === "Basic" && (
+              <>
+                <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Store Name</FormLabel>
+                    <FormControl><Input className={inputClass} placeholder="e.g. The Spice House" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
-            <FormField control={form.control} name="category" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Category</FormLabel>
-                <FormControl>
-                  <select
-                    {...field}
-                    className="w-full h-12 rounded-xl bg-muted/30 border border-border px-4 text-sm font-bold focus:outline-none focus:border-primary"
-                  >
-                    <option value="">Select category...</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="address" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Address</FormLabel>
-                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="Full address" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            <FormField control={form.control} name="description" render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description (optional)</FormLabel>
-                <FormControl><Textarea className="rounded-xl bg-muted/30 border-border resize-none min-h-[80px]" placeholder="Describe the store..." {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-
-            {/* Photos */}
-            <div className="space-y-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Store Photos</p>
-              {photoFields.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {photoFields.map((f, i) => (
-                    <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
-                      <img
-                        src={form.watch(`photos.${i}` as any)}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                <FormField control={form.control} name="category" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Category</FormLabel>
+                    <FormControl>
+                      <select
+                        {...field}
+                        className="w-full h-12 rounded-xl bg-muted/30 border border-border px-4 text-sm font-bold focus:outline-none focus:border-primary"
                       >
-                        <X className="h-3 w-3" />
-                      </button>
+                        <option value="">Select category...</option>
+                        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="address" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Address</FormLabel>
+                    <FormControl><Input className={inputClass} placeholder="Full address" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="description" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Description (optional)</FormLabel>
+                    <FormControl><Textarea className="rounded-xl bg-muted/30 border-border resize-none min-h-[80px]" placeholder="Describe the store..." {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                {/* Photos */}
+                <div className="space-y-3">
+                  <p className={labelClass}>Store Photos</p>
+                  {photoFields.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {photoFields.map((f, i) => (
+                        <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
+                          <img src={form.watch(`photos.${i}` as any)} alt="" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(i)}
+                            className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  <button
+                    type="button"
+                    onClick={handlePhotoUpload}
+                    className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Upload className="h-4 w-4" /> Upload Photos via Cloudinary
+                  </button>
                 </div>
-              )}
-              <button
-                type="button"
-                onClick={handlePhotoUpload}
-                className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
-              >
-                <Upload className="h-4 w-4" /> Upload Photos via Cloudinary
-              </button>
-            </div>
+              </>
+            )}
+
+            {/* ── CONTACT TAB ── */}
+            {activeTab === "Contact" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="contactPhone" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={labelClass}>Phone</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input className={cn(inputClass, "pl-10")} placeholder="+91 98765 43210" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+
+                  <FormField control={form.control} name="whatsapp" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className={labelClass}>WhatsApp</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <MessageCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input className={cn(inputClass, "pl-10")} placeholder="+91 98765 43210" {...field} />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )} />
+                </div>
+
+                <FormField control={form.control} name="contactEmail" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Contact Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="store@example.com" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="openingHours" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Opening Hours</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="Mon–Sat: 9 AM – 9 PM" {...field} />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="googleMapUrl" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Google Maps URL</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="https://maps.google.com/..." {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </>
+            )}
+
+            {/* ── PAYMENT TAB ── */}
+            {activeTab === "Payment" && (
+              <>
+                <div className="space-y-3">
+                  <p className={labelClass}>Accepted Payment Methods</p>
+                  <div className="flex flex-wrap gap-2">
+                    {PAYMENT_OPTIONS.map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => togglePaymentMethod(method)}
+                        className={cn(
+                          "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-colors",
+                          watchedPaymentMethods.includes(method)
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/30 border-border text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        {method === "cod" ? "Cash on Delivery" : method === "upi" ? "UPI" : method === "card" ? "Card" : method === "bank_transfer" ? "Bank Transfer" : "Online"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <FormField control={form.control} name="upiId" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>UPI ID</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="storename@upi" {...field} />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )} />
+
+                <div className="rounded-xl border border-border/60 bg-muted/10 p-4 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <p className={labelClass}>Bank Account Details</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField control={form.control} name="bankDetails.accountHolder" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={labelClass}>Account Holder</FormLabel>
+                        <FormControl><Input className={inputClass} placeholder="Full name" {...field} /></FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bankDetails.bankName" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={labelClass}>Bank Name</FormLabel>
+                        <FormControl><Input className={inputClass} placeholder="e.g. HDFC Bank" {...field} /></FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bankDetails.accountNumber" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={labelClass}>Account Number</FormLabel>
+                        <FormControl><Input className={inputClass} placeholder="XXXXXXXXXXXX" {...field} /></FormControl>
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bankDetails.ifscCode" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className={labelClass}>IFSC Code</FormLabel>
+                        <FormControl><Input className={inputClass} placeholder="HDFC0001234" {...field} /></FormControl>
+                      </FormItem>
+                    )} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* ── SOCIAL TAB ── */}
+            {activeTab === "Social" && (
+              <>
+                <FormField control={form.control} name="website" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Website</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="https://yourstore.com" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="instagram" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Instagram Username</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="@yourstore" {...field} />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )} />
+
+                <FormField control={form.control} name="facebook" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Facebook Page</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input className={cn(inputClass, "pl-10")} placeholder="facebook.com/yourstore" {...field} />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )} />
+              </>
+            )}
 
             <Button
               type="button"
@@ -338,12 +631,231 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
   );
 };
 
-// ── Store Card ───────────────────────────────────────────────────────────────
+// ── Store Details Modal ──────────────────────────────────────────────────────
+const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () => void }) => {
+  const [tab, setTab] = useState<"info" | "products">("info");
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-background border border-border rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+              {store.photos[0]
+                ? <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center"><Store className="h-5 w-5 text-muted-foreground/40" /></div>
+              }
+            </div>
+            <div>
+              <h2 className="font-black text-base">{store.name}</h2>
+              <span className="text-[9px] font-black uppercase tracking-widest text-primary">{store.category}</span>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="flex border-b border-border px-6">
+          {(["info", "products"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={cn(
+                "px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-colors capitalize",
+                tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              {t === "info" ? "Store Info" : `Products (${store.products.length})`}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-6 space-y-6">
+          {tab === "info" && (
+            <>
+              {store.description && (
+                <p className="text-sm text-muted-foreground">{store.description}</p>
+              )}
+
+              {/* Contact */}
+              <section className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contact</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {store.address && (
+                    <div className="flex items-start gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <span>{store.address}</span>
+                    </div>
+                  )}
+                  {store.contactPhone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a href={`tel:${store.contactPhone}`} className="hover:text-primary transition-colors">{store.contactPhone}</a>
+                    </div>
+                  )}
+                  {store.whatsapp && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <MessageCircle className="h-4 w-4 text-emerald-500 shrink-0" />
+                      <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                        {store.whatsapp}
+                      </a>
+                    </div>
+                  )}
+                  {store.contactEmail && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a href={`mailto:${store.contactEmail}`} className="hover:text-primary transition-colors">{store.contactEmail}</a>
+                    </div>
+                  )}
+                  {store.openingHours && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span>{store.openingHours}</span>
+                    </div>
+                  )}
+                  {store.googleMapUrl && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Link2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <a href={store.googleMapUrl} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors truncate">View on Google Maps</a>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Payment */}
+              {(store.paymentMethods?.length || store.upiId || store.bankDetails?.accountNumber) && (
+                <section className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment</p>
+                  {store.paymentMethods && store.paymentMethods.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {store.paymentMethods.map((m) => (
+                        <span key={m} className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-primary/10 text-primary">
+                          {m === "cod" ? "Cash on Delivery" : m === "upi" ? "UPI" : m === "card" ? "Card" : m === "bank_transfer" ? "Bank Transfer" : "Online"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {store.upiId && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <CreditCard className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-mono text-xs bg-muted/50 px-3 py-1 rounded-lg">{store.upiId}</span>
+                    </div>
+                  )}
+                  {store.bankDetails?.accountNumber && (
+                    <div className="bg-muted/20 border border-border rounded-xl p-4 space-y-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bank Details</p>
+                      </div>
+                      {[
+                        ["Account Holder", store.bankDetails.accountHolder],
+                        ["Bank Name", store.bankDetails.bankName],
+                        ["Account Number", store.bankDetails.accountNumber],
+                        ["IFSC Code", store.bankDetails.ifscCode],
+                      ].map(([label, value]) => value ? (
+                        <div key={label} className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">{label}</span>
+                          <span className="font-bold font-mono">{value}</span>
+                        </div>
+                      ) : null)}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* Social */}
+              {(store.website || store.instagram || store.facebook) && (
+                <section className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Social & Web</p>
+                  <div className="flex flex-wrap gap-3">
+                    {store.website && (
+                      <a href={store.website} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-bold hover:text-primary transition-colors">
+                        <Globe className="h-4 w-4" /> Website
+                      </a>
+                    )}
+                    {store.instagram && (
+                      <a href={`https://instagram.com/${store.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-bold hover:text-pink-500 transition-colors">
+                        <Instagram className="h-4 w-4" /> {store.instagram}
+                      </a>
+                    )}
+                    {store.facebook && (
+                      <a href={store.facebook.startsWith("http") ? store.facebook : `https://facebook.com/${store.facebook}`} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs font-bold hover:text-blue-500 transition-colors">
+                        <Facebook className="h-4 w-4" /> Facebook
+                      </a>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Photos */}
+              {store.photos.length > 0 && (
+                <section className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Photos</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {store.photos.map((photo, i) => (
+                      <div key={i} className="aspect-square rounded-xl overflow-hidden bg-muted">
+                        <img src={photo} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          )}
+
+          {tab === "products" && (
+            store.products.length === 0 ? (
+              <div className="py-12 text-center">
+                <Package className="h-8 w-8 text-muted-foreground/20 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No products yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {store.products.map((product) => (
+                  <div key={product._id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/40">
+                    <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                      {product.image
+                        ? <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="h-4 w-4 text-muted-foreground/30" /></div>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold truncate">{product.name}</p>
+                      {product.description && <p className="text-xs text-muted-foreground truncate">{product.description}</p>}
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-sm font-black text-primary">₹{product.price}</p>
+                      {product.discountPercent ? (
+                        <p className="text-[10px] text-rose-500 font-bold">{product.discountPercent}% off</p>
+                      ) : null}
+                      <p className={cn("text-[9px] font-black", product.isAvailable ? "text-emerald-500" : "text-muted-foreground")}>
+                        {product.isAvailable ? "Available" : "Unavailable"}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Store Row ────────────────────────────────────────────────────────────────
 const StoreRow = ({ store }: { store: LocalStore }) => {
   const qc = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/local-stores/${store._id}`),
@@ -396,11 +908,23 @@ const StoreRow = ({ store }: { store: LocalStore }) => {
               <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
               <p className="text-[11px] text-muted-foreground truncate">{store.address}</p>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-0.5">{store.products.length} products</p>
+            <div className="flex items-center gap-3 mt-0.5">
+              <p className="text-[10px] text-muted-foreground">{store.products.length} products</p>
+              {store.paymentMethods && store.paymentMethods.length > 0 && (
+                <p className="text-[10px] text-muted-foreground">{store.paymentMethods.join(", ")}</p>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowDetails(true)}
+              className="h-8 px-3 rounded-xl bg-muted hover:bg-muted/80 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-colors"
+            >
+              Details
+            </button>
             <button
               type="button"
               onClick={() => toggleMutation.mutate()}
@@ -500,6 +1024,7 @@ const StoreRow = ({ store }: { store: LocalStore }) => {
 
       {showAddProduct && <AddProductForm storeId={store._id} onClose={() => setShowAddProduct(false)} />}
       {showEdit && <StoreForm editStore={store} onClose={() => setShowEdit(false)} />}
+      {showDetails && <StoreDetailsModal store={store} onClose={() => setShowDetails(false)} />}
     </>
   );
 };

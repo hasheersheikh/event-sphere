@@ -13,32 +13,53 @@ const PaymentCallbackPage = () => {
   useEffect(() => {
     const verify = async () => {
       const bookingId = searchParams.get("bookingId");
+      const orderId = searchParams.get("orderId");
       const razorpay_payment_id = searchParams.get("razorpay_payment_id");
       const razorpay_payment_link_id = searchParams.get("razorpay_payment_link_id");
       const razorpay_payment_link_reference_id = searchParams.get("razorpay_payment_link_reference_id");
       const razorpay_payment_link_status = searchParams.get("razorpay_payment_link_status");
       const razorpay_signature = searchParams.get("razorpay_signature");
 
-      if (!bookingId || !razorpay_payment_id || !razorpay_signature) {
+      if (!razorpay_payment_id || !razorpay_signature) {
         setStatus("failed");
         setMessage("Missing payment details. Please contact support.");
         return;
       }
 
       try {
-        const { data } = await api.post("/payments/verify-link", {
-          bookingId,
+        const payload = {
           razorpay_payment_id,
           razorpay_payment_link_id,
           razorpay_payment_link_reference_id,
           razorpay_payment_link_status,
           razorpay_signature,
-        });
+        };
+
+        let data: any;
+
+        if (orderId) {
+          // Store order payment
+          const res = await api.post("/payments/verify-store-order", { ...payload, orderId });
+          data = res.data;
+        } else if (bookingId) {
+          // Event booking payment
+          const res = await api.post("/payments/verify-link", { ...payload, bookingId });
+          data = res.data;
+        } else {
+          setStatus("failed");
+          setMessage("Missing order reference. Please contact support.");
+          return;
+        }
 
         if (data.success) {
           setStatus("success");
-          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#6366f1", "#ec4899", "#ffffff"] });
-          setTimeout(() => navigate("/my-tickets"), 3000);
+          confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ["#f59e0b", "#10b981", "#ffffff"],
+          });
+          setTimeout(() => navigate(orderId ? "/my-orders" : "/my-tickets"), 3000);
         } else {
           setStatus("failed");
           setMessage(data.message || "Payment verification failed.");
@@ -66,7 +87,9 @@ const PaymentCallbackPage = () => {
           <>
             <CheckCircle className="h-16 w-16 text-emerald-500 mx-auto mb-6" />
             <h1 className="text-2xl font-black uppercase tracking-tighter mb-2">Payment Successful!</h1>
-            <p className="text-muted-foreground text-sm">Your tickets have been confirmed. Redirecting to your tickets...</p>
+            <p className="text-muted-foreground text-sm">
+              Your order has been confirmed. Redirecting...
+            </p>
           </>
         )}
         {status === "failed" && (

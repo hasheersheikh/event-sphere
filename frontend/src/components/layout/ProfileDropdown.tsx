@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Sparkles,
   Zap,
+  ShoppingBag,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,12 @@ const ProfileDropdown = () => {
       label: "Tickets",
       icon: Ticket,
       href: "/my-tickets",
+      show: true,
+    },
+    {
+      label: "My Orders",
+      icon: ShoppingBag,
+      href: "/my-orders",
       show: true,
     },
     {

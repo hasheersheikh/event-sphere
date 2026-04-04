@@ -2,17 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ShoppingBag,
-  MapPin,
-  ChevronLeft,
-  Sparkles,
-  Store,
+  ShoppingBag, MapPin, ChevronLeft, Sparkles, Store,
+  Phone, Mail, MessageCircle, Globe, Instagram, Facebook,
+  Clock, CreditCard, ShoppingCart, Plus,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useLocalStoreCart } from "@/contexts/LocalStoreCartContext";
+import { toast } from "sonner";
+
+const PAYMENT_LABELS: Record<string, string> = {
+  cash: "Cash on Delivery",
+  upi: "UPI",
+  card: "Card",
+  bank_transfer: "Bank Transfer",
+};
 
 const StoreDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -59,6 +66,10 @@ const StoreDetailPage = () => {
     );
   }
 
+  const hasContact = store.contactEmail || store.contactPhone || store.whatsapp || store.openingHours;
+  const hasSocial = store.instagram || store.facebook || store.website;
+  const hasPayment = store.paymentMethods?.length > 0 || store.upiId || store.bankDetails?.accountNumber;
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
@@ -102,6 +113,12 @@ const StoreDetailPage = () => {
                   <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
                   <p>{store.address}</p>
                 </div>
+                {store.openingHours && (
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Clock className="h-4 w-4 shrink-0 text-amber-500" />
+                    <span className="font-medium italic">{store.openingHours}</span>
+                  </div>
+                )}
               </div>
               <div className="hidden md:flex items-center gap-3 text-amber-500 bg-amber-500/5 px-6 py-4 rounded-3xl border border-amber-500/20">
                 <Sparkles className="h-5 w-5" />
@@ -116,7 +133,7 @@ const StoreDetailPage = () => {
         </section>
 
         {/* Products Grid */}
-        <section className="space-y-12 pb-32">
+        <section className="space-y-12 mb-20">
           <div className="flex items-center justify-between border-b border-border/50 pb-8">
             <h2 className="text-3xl font-black tracking-tighter uppercase italic">
               The <span className="text-amber-500">Collection.</span>
@@ -128,7 +145,12 @@ const StoreDetailPage = () => {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {store.products?.map((product: any) => (
-              <ProductCard key={product._id} product={product} />
+              <ProductCard
+                key={product._id}
+                product={product}
+                storeId={store._id}
+                storeName={store.name}
+              />
             ))}
           </div>
 
@@ -140,6 +162,131 @@ const StoreDetailPage = () => {
             </div>
           )}
         </section>
+
+        {/* Contact & Info Section */}
+        {(hasContact || hasSocial || hasPayment) && (
+          <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+            {/* Contact */}
+            {hasContact && (
+              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
+                <h3 className="text-lg font-black tracking-tighter uppercase italic">
+                  <span className="text-amber-500">Contact</span> Us
+                </h3>
+                <div className="space-y-4">
+                  {store.contactPhone && (
+                    <a href={`tel:${store.contactPhone}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                        <Phone className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <span className="font-medium">{store.contactPhone}</span>
+                    </a>
+                  )}
+                  {store.contactEmail && (
+                    <a href={`mailto:${store.contactEmail}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
+                        <Mail className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <span className="font-medium">{store.contactEmail}</span>
+                    </a>
+                  )}
+                  {store.whatsapp && (
+                    <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+                        <MessageCircle className="h-4 w-4 text-emerald-500" />
+                      </div>
+                      <span className="font-medium">WhatsApp</span>
+                    </a>
+                  )}
+                  {store.openingHours && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                        <Clock className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <span className="font-medium">{store.openingHours}</span>
+                    </div>
+                  )}
+                  {store.googleMapUrl && (
+                    <a href={store.googleMapUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                        <MapPin className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <span className="font-medium">View on Map</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Payment Methods */}
+            {hasPayment && (
+              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
+                <h3 className="text-lg font-black tracking-tighter uppercase italic">
+                  <span className="text-amber-500">Payment</span> Methods
+                </h3>
+                <div className="space-y-3">
+                  {store.paymentMethods?.map((m: string) => (
+                    <div key={m} className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                        <CreditCard className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <span className="text-sm font-bold">{PAYMENT_LABELS[m] || m}</span>
+                    </div>
+                  ))}
+                  {store.upiId && (
+                    <div className="mt-4 p-3 bg-muted/40 rounded-xl">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">UPI ID</p>
+                      <p className="text-sm font-black text-amber-500">{store.upiId}</p>
+                    </div>
+                  )}
+                  {store.bankDetails?.accountNumber && (
+                    <div className="mt-2 p-3 bg-muted/40 rounded-xl space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Bank Details</p>
+                      {store.bankDetails.accountHolder && <p className="text-xs font-bold">{store.bankDetails.accountHolder}</p>}
+                      {store.bankDetails.bankName && <p className="text-xs text-muted-foreground">{store.bankDetails.bankName}</p>}
+                      <p className="text-xs font-black text-amber-500">{store.bankDetails.accountNumber}</p>
+                      {store.bankDetails.ifscCode && <p className="text-xs text-muted-foreground">IFSC: {store.bankDetails.ifscCode}</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Social Links */}
+            {hasSocial && (
+              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
+                <h3 className="text-lg font-black tracking-tighter uppercase italic">
+                  <span className="text-amber-500">Find</span> Us Online
+                </h3>
+                <div className="space-y-4">
+                  {store.website && (
+                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                        <Globe className="h-4 w-4 text-blue-500" />
+                      </div>
+                      <span className="font-medium truncate">{store.website.replace(/^https?:\/\//, "")}</span>
+                    </a>
+                  )}
+                  {store.instagram && (
+                    <a href={`https://instagram.com/${store.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                        <Instagram className="h-4 w-4 text-pink-500" />
+                      </div>
+                      <span className="font-medium">@{store.instagram.replace("@", "")}</span>
+                    </a>
+                  )}
+                  {store.facebook && (
+                    <a href={store.facebook.startsWith("http") ? store.facebook : `https://facebook.com/${store.facebook}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
+                      <div className="h-9 w-9 rounded-xl bg-blue-600/10 flex items-center justify-center group-hover:bg-blue-600/20 transition-colors">
+                        <Facebook className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="font-medium">Facebook</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
       </main>
 
       <Footer />
@@ -147,15 +294,30 @@ const StoreDetailPage = () => {
   );
 };
 
-const ProductCard = ({ product }: { product: any }) => {
+const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: string; storeName: string }) => {
+  const { addItem } = useLocalStoreCart();
   const finalPrice = product.price * (1 - (product.discountPercent || 0) / 100);
+
+  const handleAdd = () => {
+    if (!product.isAvailable) return;
+    addItem({
+      storeId,
+      storeName,
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+      discountPercent: product.discountPercent,
+      image: product.image,
+    });
+    toast.success(`${product.name} added to cart`);
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group relative bg-card/40 border border-border/50 rounded-[2.5rem] overflow-hidden hover:border-amber-500/30 transition-all duration-500 shadow-xl hover:shadow-2xl"
+      className="group relative bg-card/40 border border-border/50 rounded-[2.5rem] overflow-hidden hover:border-amber-500/30 transition-all duration-500 shadow-xl hover:shadow-2xl flex flex-col"
     >
       <div className="h-56 relative overflow-hidden">
         {product.image ? (
@@ -180,18 +342,28 @@ const ProductCard = ({ product }: { product: any }) => {
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
       </div>
 
-      <div className="p-6 space-y-3">
+      <div className="p-6 space-y-3 flex flex-col flex-1">
         <h3 className="text-lg font-black tracking-tighter uppercase italic leading-none truncate">
           {product.name}
         </h3>
-        <p className="text-xs text-muted-foreground font-medium italic line-clamp-2 leading-relaxed">
+        <p className="text-xs text-muted-foreground font-medium italic line-clamp-2 leading-relaxed flex-1">
           {product.description || "Crafted with local passion."}
         </p>
-        <div className="flex items-center gap-2 pt-2 border-t border-border/40">
-          <span className="text-xl font-black text-amber-500 italic">₹{finalPrice.toFixed(0)}</span>
-          {product.discountPercent > 0 && (
-            <span className="text-xs text-muted-foreground line-through font-bold">₹{product.price}</span>
-          )}
+        <div className="flex items-center justify-between pt-2 border-t border-border/40">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black text-amber-500 italic">₹{finalPrice.toFixed(0)}</span>
+            {product.discountPercent > 0 && (
+              <span className="text-xs text-muted-foreground line-through font-bold">₹{product.price}</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={!product.isAvailable}
+            className="h-9 w-9 rounded-xl bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </motion.div>

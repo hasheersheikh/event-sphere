@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 
 export interface CartProduct {
   storeId: string;
@@ -23,11 +23,24 @@ interface LocalStoreCartContextType {
   totalPrice: number;
 }
 
+const STORAGE_KEY = "local-store-cart";
+
 const LocalStoreCartContext = createContext<LocalStoreCartContextType | undefined>(undefined);
 
 export const LocalStoreCartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartProduct[]>([]);
+  const [items, setItems] = useState<CartProduct[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }, [items]);
 
   const addItem = useCallback((item: Omit<CartProduct, "quantity">) => {
     setItems((prev) => {

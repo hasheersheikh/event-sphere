@@ -29,6 +29,7 @@ const Sidebar = () => {
     { label: "Managers", icon: ShieldCheck, href: "/portal/admin/managers" },
     { label: "Event Moderation", icon: Calendar, href: "/portal/admin/events" },
     { label: "Stores", icon: Store, href: "/portal/admin/local-stores" },
+    { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },
@@ -42,7 +43,11 @@ const Sidebar = () => {
       icon: TrendingUp,
       href: "/portal/manager/payouts",
     },
-    { label: "Sales Analytics", icon: TrendingUp, href: "/portal/manager/analytics" },
+    {
+      label: "Sales Analytics",
+      icon: TrendingUp,
+      href: "/portal/manager/analytics",
+    },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Profile Settings", icon: Settings, href: "/portal/settings" },
   ];
@@ -135,15 +140,15 @@ const Sidebar = () => {
           <div className="flex items-center gap-2">
             <CheckCircle className="h-3 w-3 text-emerald-500" />
             <span className="text-[10px] font-bold text-muted-foreground/60">
-              Endpoints Verified
+              Secure Endpoints Verified
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Clock className="h-3 w-3 text-orange-400" />
             <span className="text-[10px] font-bold text-muted-foreground/60">
               Session: 2h remaining
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     </aside>

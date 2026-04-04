@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, ShoppingCart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocalStoreCart } from "@/contexts/LocalStoreCartContext";
 import ProfileDropdown from "./ProfileDropdown";
 import PulseLogo from "./PulseLogo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -13,6 +14,7 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { totalItems, setIsOpen: openCart } = useLocalStoreCart();
 
   const isHome = location.pathname === "/";
 
@@ -83,6 +85,18 @@ const Navbar = () => {
         {/* Desktop Actions - Flexible Width */}
         <div className="hidden md:flex items-center justify-end gap-5 min-w-[12rem] flex-shrink-0">
           <ThemeToggle />
+          <button
+            type="button"
+            onClick={() => openCart(true)}
+            className="relative h-10 w-10 rounded-xl bg-muted/40 border border-border/30 flex items-center justify-center hover:border-amber-500/50 hover:bg-amber-500/10 transition-all"
+          >
+            <ShoppingCart className="h-4 w-4 text-foreground/70" />
+            {totalItems > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-amber-500 text-black text-[9px] font-black flex items-center justify-center">
+                {totalItems > 9 ? "9+" : totalItems}
+              </span>
+            )}
+          </button>
 
           {isAuthenticated ? (
             <ProfileDropdown />
