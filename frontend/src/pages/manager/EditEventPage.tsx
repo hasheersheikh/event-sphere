@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -252,7 +253,13 @@ const EditEventPage = () => {
     }
   };
 
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
   const handleUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      bannerInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -271,6 +278,19 @@ const EditEventPage = () => {
       },
     );
     widget.open();
+  };
+
+  const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToBackend(file);
+      form.setValue("image", url);
+      toast.success("New asset captured.");
+    } catch {
+      toast.error("Upload failed.");
+    }
+    e.target.value = "";
   };
 
   if (isFetching) {
@@ -450,6 +470,7 @@ const EditEventPage = () => {
                           <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
                             Event Banner
                           </FormLabel>
+                          <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
                           <button
                             type="button"
                             onClick={handleUpload}

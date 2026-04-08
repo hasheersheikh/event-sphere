@@ -188,7 +188,6 @@ const GoLocalStoreCard = ({ store }: { store: any }) => {
             <ShoppingBag className="h-16 w-16 text-amber-500/20" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
         <div className="absolute top-6 left-6">
           <Badge className="bg-amber-500 text-black px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-xl">
             {store.category}

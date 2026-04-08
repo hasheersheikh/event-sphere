@@ -9,6 +9,7 @@ const Footer = () => {
   const footerLinks = {
     Explore: [
       { label: "Live Events", href: "/events" },
+      { label: "Blog", href: "/blog" },
       { label: "Our Story", href: "/about" },
     ],
     Support: [

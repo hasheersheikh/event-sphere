@@ -426,6 +426,43 @@ export const sendAccountSetupEmail = async (email: string, userName: string, set
   }
 };
 
+export const sendStoreOwnerWelcomeEmail = async (email: string, ownerName: string, storeName: string, loginUrl: string, tempPassword: string) => {
+  if (!process.env.RESEND_API_KEY) return;
+  try {
+    await resend.emails.send({
+      from: 'City Pulse <noreply@eventsphere.dev>',
+      to: [email],
+      subject: `Your Store Owner Account — ${storeName}`,
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #f59e0b; padding: 40px; text-align: center; color: black;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">City Pulse</h1>
+            <p style="margin: 5px 0 0; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px;">Store Owner Portal</p>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Welcome, ${ownerName}!</h2>
+            <p>Your store owner account for <strong>${storeName}</strong> has been created. You can now log in to manage orders and update their status.</p>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 8px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #64748b;">Your Login Credentials</p>
+              <p style="margin: 4px 0;"><strong>Email:</strong> ${email}</p>
+              <p style="margin: 4px 0;"><strong>Temporary Password:</strong> <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">${tempPassword}</code></p>
+            </div>
+            <div style="margin: 30px 0;">
+              <a href="${loginUrl}" style="background-color: #f59e0b; color: black; padding: 18px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px;">Log in to Portal</a>
+            </div>
+            <p style="color: #94a3b8; font-size: 13px;">Please change your password after first login. Keep this email safe.</p>
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;" />
+            <p style="color: #64748b; font-size: 12px; font-style: italic;">City Pulse Collective</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Store owner welcome email sent to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send store owner welcome email', err);
+  }
+};
+
 export const sendEventDeclineEmail = async (email: string, userName: string, eventTitle: string, reason: string) => {
   if (!process.env.RESEND_API_KEY) return;
 

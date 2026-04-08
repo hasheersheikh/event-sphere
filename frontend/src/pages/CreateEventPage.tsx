@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -219,7 +220,13 @@ const CreateEventPage = () => {
 
   const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Other"];
 
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+
   const handleUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      bannerInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -238,6 +245,19 @@ const CreateEventPage = () => {
       },
     );
     widget.open();
+  };
+
+  const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToBackend(file);
+      form.setValue("image", url);
+      toast.success("Visual asset captured.");
+    } catch {
+      toast.error("Upload failed.");
+    }
+    e.target.value = "";
   };
 
   const steps = [
@@ -373,6 +393,7 @@ const CreateEventPage = () => {
 
                         <div className="space-y-4">
                           <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">Event Banner</FormLabel>
+                          <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
                           <button
                             type="button"
                             onClick={handleUpload}

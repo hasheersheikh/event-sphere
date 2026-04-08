@@ -52,7 +52,15 @@ import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LocalStoresPage from "./pages/LocalStoresPage";
 import AdminLocalStoresPage from "./pages/admin/LocalStoresPage";
+import CreateStorePage from "./pages/admin/CreateStorePage";
+import AdminStoreDetailPage from "./pages/admin/AdminStoreDetailPage";
 import StoreDetailPage from "./pages/StoreDetailPage";
+import StoreOwnerLoginPage from "./pages/StoreOwnerLoginPage";
+import StoreOwnerPortal from "./pages/StoreOwnerPortal";
+import BlogPage from "./pages/BlogPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import BlogManagementPage from "./pages/admin/BlogManagementPage";
+import CreateBlogPostPage from "./pages/admin/CreateBlogPostPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import StoreOrdersPage from "./pages/admin/StoreOrdersPage";
 import PaymentCallbackPage from "./pages/PaymentCallbackPage";
@@ -181,6 +189,8 @@ const App = () => (
                           </ProtectedRoute>
                         }
                       />
+                      <Route path="blog" element={<BlogPage />} />
+                      <Route path="blog/:slug" element={<BlogPostPage />} />
                       <Route path="about" element={<AboutPage />} />
                       <Route path="terms" element={<TermsOfService />} />
                       <Route path="privacy" element={<PrivacyPolicy />} />
@@ -195,6 +205,28 @@ const App = () => (
 
             {/* Payment Callback (No Site Navbar) */}
             <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+
+            {/* Store Owner Portal (standalone, no shared Navbar) */}
+            <Route path="/store-owner/login" element={<StoreOwnerLoginPage />} />
+            <Route path="/store-owner/portal" element={<StoreOwnerPortal />} />
+
+            {/* Blog editor (fullscreen, no portal padding) */}
+            <Route
+              path="/portal/admin/blog/new"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CreateBlogPostPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/portal/admin/blog/:id/edit"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <CreateBlogPostPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Auth Routes (No Site Navbar) */}
             <Route path="/auth" element={<AuthPage />} />
@@ -223,7 +255,11 @@ const App = () => (
               />
               <Route path="admin/events" element={<EventModerationPage />} />
               <Route path="admin/events/:id" element={<EventInsightsPage />} />
+              <Route path="admin/blog" element={<BlogManagementPage />} />
               <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
+              <Route path="admin/local-stores/new" element={<CreateStorePage />} />
+              <Route path="admin/local-stores/:id" element={<AdminStoreDetailPage />} />
+              <Route path="admin/local-stores/:id/edit" element={<CreateStorePage />} />
               <Route path="admin/store-orders" element={<StoreOrdersPage />} />
               <Route path="manager" element={<ManagerDashboard />} />
               <Route path="manager/payouts" element={<PayoutsPage />} />

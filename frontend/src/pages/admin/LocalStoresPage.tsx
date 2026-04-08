@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
-  Plus, Trash2, Store, MapPin, Package, X, ChevronDown, ChevronUp,
-  ToggleLeft, ToggleRight, Edit3, Image as ImageIcon, Upload,
-  Phone, Mail, MessageCircle, Clock, Link2, CreditCard, Building2,
-  Instagram, Facebook, Globe,
+  Plus, Trash2, Store, MapPin, Package, ChevronRight,
+  ToggleLeft, ToggleRight, Edit3, X, Upload,
+  Phone, MessageCircle, Mail, Clock, Link2, CreditCard, Building2,
+  Globe, Instagram, Facebook, Image as ImageIcon,
 } from "lucide-react";
 import api from "@/lib/api";
+import { USE_LOCAL_STORAGE, uploadImageToBackend, uploadImagesToBackend } from "@/lib/localUpload";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,25 +41,21 @@ interface LocalStore {
   name: string;
   address: string;
   description?: string;
-  photos: string[];
   category: string;
+  photos: string[];
   products: Product[];
   isActive: boolean;
-  createdAt: string;
-  // Contact
-  contactEmail?: string;
+  paymentMethods?: string[];
   contactPhone?: string;
+  contactEmail?: string;
   whatsapp?: string;
   openingHours?: string;
   googleMapUrl?: string;
-  // Payment
-  paymentMethods?: string[];
   upiId?: string;
   bankDetails?: BankDetails;
-  // Social
+  website?: string;
   instagram?: string;
   facebook?: string;
-  website?: string;
 }
 
 const storeSchema = z.object({
@@ -66,13 +64,11 @@ const storeSchema = z.object({
   description: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   photos: z.array(z.string().url("Must be a valid URL").or(z.literal(""))).optional(),
-  // Contact
   contactEmail: z.string().email("Invalid email").or(z.literal("")).optional(),
   contactPhone: z.string().optional(),
   whatsapp: z.string().optional(),
   openingHours: z.string().optional(),
   googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-  // Payment
   paymentMethods: z.array(z.string()).optional(),
   upiId: z.string().optional(),
   bankDetails: z.object({
@@ -81,7 +77,6 @@ const storeSchema = z.object({
     bankName: z.string().optional(),
     ifscCode: z.string().optional(),
   }).optional(),
-  // Social
   instagram: z.string().optional(),
   facebook: z.string().optional(),
   website: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
@@ -102,7 +97,6 @@ type ProductFormValues = z.infer<typeof productSchema>;
 const CATEGORIES = ["Food & Beverage", "Grocery", "Bakery", "Crafts & Art", "Fashion", "Electronics", "Books", "Health & Beauty", "General"];
 const PAYMENT_OPTIONS = ["cod", "upi", "card", "bank_transfer", "online"];
 
-// ── Tab helper ───────────────────────────────────────────────────────────────
 const TABS = ["Basic", "Contact", "Payment", "Social"] as const;
 type Tab = typeof TABS[number];
 
@@ -162,7 +156,13 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
     }
   };
 
+  const photosInputRef = useRef<HTMLInputElement>(null);
+
   const handlePhotoUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      photosInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -179,6 +179,19 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
       },
     );
     widget.open();
+  };
+
+  const handleLocalPhotosUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    try {
+      const urls = await uploadImagesToBackend(files.slice(0, 5));
+      urls.forEach(url => appendPhoto(url as any));
+      toast.success("Photos uploaded.");
+    } catch {
+      toast.error("Upload failed.");
+    }
+    e.target.value = "";
   };
 
   const mutation = useMutation({
@@ -303,12 +316,13 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
                       ))}
                     </div>
                   )}
+                  <input ref={photosInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleLocalPhotosUpload} />
                   <button
                     type="button"
                     onClick={handlePhotoUpload}
                     className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
                   >
-                    <Upload className="h-4 w-4" /> Upload Photos via Cloudinary
+                    <Upload className="h-4 w-4" /> Upload Photos
                   </button>
                 </div>
               </>
@@ -425,7 +439,6 @@ const StoreForm = ({ onClose, editStore }: { onClose: () => void; editStore?: Lo
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <p className={labelClass}>Bank Account Details</p>
                   </div>
-
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="bankDetails.accountHolder" render={({ field }) => (
                       <FormItem>
@@ -521,7 +534,13 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
     defaultValues: { name: "", price: 0, discountPercent: 0, image: "", description: "", isAvailable: true },
   });
 
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+
   const handleProductImageUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      productImageInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -539,6 +558,19 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
       },
     );
     widget.open();
+  };
+
+  const handleLocalProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToBackend(file);
+      form.setValue("image", url);
+      toast.success("Image uploaded.");
+    } catch {
+      toast.error("Upload failed.");
+    }
+    e.target.value = "";
   };
 
   const mutation = useMutation({
@@ -608,6 +640,7 @@ const AddProductForm = ({ storeId, onClose }: { storeId: string; onClose: () => 
                   </button>
                 </div>
               )}
+              <input ref={productImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalProductImageUpload} />
               <button
                 type="button"
                 onClick={handleProductImageUpload}
@@ -638,7 +671,6 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-background border border-border rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl overflow-hidden bg-muted flex-shrink-0">
@@ -680,7 +712,6 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
                 <p className="text-sm text-muted-foreground">{store.description}</p>
               )}
 
-              {/* Contact */}
               <section className="space-y-3">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Contact</p>
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -725,7 +756,6 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
                 </div>
               </section>
 
-              {/* Payment */}
               {(store.paymentMethods?.length || store.upiId || store.bankDetails?.accountNumber) && (
                 <section className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payment</p>
@@ -750,12 +780,12 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Bank Details</p>
                       </div>
-                      {[
+                      {([
                         ["Account Holder", store.bankDetails.accountHolder],
                         ["Bank Name", store.bankDetails.bankName],
                         ["Account Number", store.bankDetails.accountNumber],
                         ["IFSC Code", store.bankDetails.ifscCode],
-                      ].map(([label, value]) => value ? (
+                      ] as [string, string | undefined][]).map(([label, value]) => value ? (
                         <div key={label} className="flex justify-between text-xs">
                           <span className="text-muted-foreground">{label}</span>
                           <span className="font-bold font-mono">{value}</span>
@@ -766,7 +796,6 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
                 </section>
               )}
 
-              {/* Social */}
               {(store.website || store.instagram || store.facebook) && (
                 <section className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Social & Web</p>
@@ -793,7 +822,6 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
                 </section>
               )}
 
-              {/* Photos */}
               {store.photos.length > 0 && (
                 <section className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Photos</p>
@@ -850,188 +878,122 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
 };
 
 // ── Store Row ────────────────────────────────────────────────────────────────
-const StoreRow = ({ store }: { store: LocalStore }) => {
+const StoreRow = ({ store, onEdit, onAddProduct }: {
+  store: LocalStore;
+  onEdit: (store: LocalStore) => void;
+  onAddProduct: (storeId: string) => void;
+}) => {
+  const navigate = useNavigate();
   const qc = useQueryClient();
-  const [expanded, setExpanded] = useState(false);
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: () => api.delete(`/local-stores/${store._id}`),
     onSuccess: () => {
       toast.success("Store deleted.");
       qc.invalidateQueries({ queryKey: ["adminLocalStores"] });
-      qc.invalidateQueries({ queryKey: ["localStores"] });
     },
   });
 
   const toggleMutation = useMutation({
     mutationFn: () => api.patch(`/local-stores/${store._id}/toggle`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["adminLocalStores"] });
-      qc.invalidateQueries({ queryKey: ["localStores"] });
-    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["adminLocalStores"] }),
   });
 
-  const removeProductMutation = useMutation({
-    mutationFn: (productId: string) => api.delete(`/local-stores/${store._id}/products/${productId}`),
-    onSuccess: () => {
-      toast.success("Product removed.");
-      qc.invalidateQueries({ queryKey: ["adminLocalStores"] });
-    },
-  });
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
 
   return (
-    <>
-      <div className="border border-border/60 rounded-2xl overflow-hidden bg-card hover:border-primary/20 transition-colors">
-        <div className="flex items-center gap-4 p-5">
-          {/* Cover photo */}
-          <div className="h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
-            {store.photos[0] ? (
-              <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Store className="h-6 w-6 text-muted-foreground/40" />
-              </div>
-            )}
-          </div>
+    <div
+      onClick={() => navigate(`/portal/admin/local-stores/${store._id}`)}
+      className="border border-border/60 rounded-2xl overflow-hidden bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
+    >
+      <div className="flex items-center gap-4 p-5">
+        <div className="h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+          {store.photos[0] ? (
+            <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Store className="h-6 w-6 text-muted-foreground/40" />
+            </div>
+          )}
+        </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-black truncate">{store.name}</p>
-              <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
-                {store.category}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="font-black truncate group-hover:text-primary transition-colors">{store.name}</p>
+            <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
+              {store.category}
+            </span>
+            <span className={cn(
+              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex-shrink-0",
+              store.isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+            )}>
+              {store.isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
+          <div className="flex items-center gap-1 mt-0.5">
+            <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <p className="text-[11px] text-muted-foreground truncate">{store.address}</p>
+          </div>
+          <div className="flex items-center gap-3 mt-0.5">
+            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Package className="h-3 w-3" /> {store.products.length} products
+            </span>
+            {store.paymentMethods && store.paymentMethods.length > 0 && (
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                {store.paymentMethods.join(" · ")}
               </span>
-            </div>
-            <div className="flex items-center gap-1 mt-0.5">
-              <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-              <p className="text-[11px] text-muted-foreground truncate">{store.address}</p>
-            </div>
-            <div className="flex items-center gap-3 mt-0.5">
-              <p className="text-[10px] text-muted-foreground">{store.products.length} products</p>
-              {store.paymentMethods && store.paymentMethods.length > 0 && (
-                <p className="text-[10px] text-muted-foreground">{store.paymentMethods.join(", ")}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              type="button"
-              onClick={() => setShowDetails(true)}
-              className="h-8 px-3 rounded-xl bg-muted hover:bg-muted/80 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest transition-colors"
-            >
-              Details
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleMutation.mutate()}
-              className={cn("h-8 w-8 rounded-xl flex items-center justify-center transition-colors",
-                store.isActive ? "text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20" : "text-muted-foreground bg-muted hover:bg-muted/80"
-              )}
-              title={store.isActive ? "Deactivate" : "Activate"}
-            >
-              {store.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowEdit(true)}
-              className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
-            >
-              <Edit3 className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => { if (confirm("Delete this store?")) deleteMutation.mutate(); }}
-              className="h-8 w-8 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
-            >
-              {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </button>
+            )}
           </div>
         </div>
 
-        {/* Products panel */}
-        {expanded && (
-          <div className="border-t border-border/40 p-5 bg-muted/10 space-y-3">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <Package className="h-3 w-3" /> Products ({store.products.length})
-              </p>
-              <button
-                type="button"
-                onClick={() => setShowAddProduct(true)}
-                className="flex items-center gap-1 text-[10px] font-black text-primary uppercase tracking-widest hover:text-primary/80 transition-colors"
-              >
-                <Plus className="h-3 w-3" /> Add Product
-              </button>
-            </div>
-
-            {store.products.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">No products yet. Add your first product.</p>
-            ) : (
-              <div className="space-y-2">
-                {store.products.map((product) => (
-                  <div
-                    key={product._id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-background border border-border/40"
-                  >
-                    <div className="h-10 w-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="h-4 w-4 text-muted-foreground/30" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black truncate">{product.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-primary font-black">₹{product.price}</span>
-                        {product.discountPercent ? (
-                          <span className="text-[9px] bg-rose-500/10 text-rose-500 font-black px-1.5 py-0.5 rounded-full">
-                            {product.discountPercent}% off
-                          </span>
-                        ) : null}
-                        <span className={cn("text-[9px] font-black", product.isAvailable ? "text-emerald-500" : "text-muted-foreground")}>
-                          {product.isAvailable ? "Available" : "Unavailable"}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => { if (confirm("Remove this product?")) removeProductMutation.mutate(product._id); }}
-                      className="h-8 w-8 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors flex-shrink-0"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+        <div className="flex items-center gap-2 flex-shrink-0" onClick={stop}>
+          <button
+            type="button"
+            onClick={() => toggleMutation.mutate()}
+            className={cn("h-8 w-8 rounded-xl flex items-center justify-center transition-colors",
+              store.isActive
+                ? "text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20"
+                : "text-muted-foreground bg-muted hover:bg-muted/80"
             )}
-          </div>
-        )}
+            title={store.isActive ? "Deactivate" : "Activate"}
+          >
+            {store.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => onAddProduct(store._id)}
+            className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            title="Add product"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onEdit(store)}
+            className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            title="Edit store"
+          >
+            <Edit3 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => { if (confirm("Delete this store?")) deleteMutation.mutate(); }}
+            className="h-8 w-8 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+        </div>
       </div>
-
-      {showAddProduct && <AddProductForm storeId={store._id} onClose={() => setShowAddProduct(false)} />}
-      {showEdit && <StoreForm editStore={store} onClose={() => setShowEdit(false)} />}
-      {showDetails && <StoreDetailsModal store={store} onClose={() => setShowDetails(false)} />}
-    </>
+    </div>
   );
 };
 
 // ── Main Page ────────────────────────────────────────────────────────────────
 const LocalStoresPage = () => {
   const [showCreate, setShowCreate] = useState(false);
+  const [editStore, setEditStore] = useState<LocalStore | null>(null);
+  const [addProductStoreId, setAddProductStoreId] = useState<string | null>(null);
 
   const { data: stores, isLoading } = useQuery({
     queryKey: ["adminLocalStores"],
@@ -1043,6 +1005,17 @@ const LocalStoresPage = () => {
 
   return (
     <div className="p-8 space-y-8">
+      {/* Modals */}
+      {(showCreate || editStore) && (
+        <StoreForm
+          editStore={editStore ?? undefined}
+          onClose={() => { setShowCreate(false); setEditStore(null); }}
+        />
+      )}
+      {addProductStoreId && (
+        <AddProductForm storeId={addProductStoreId} onClose={() => setAddProductStoreId(null)} />
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -1094,12 +1067,15 @@ const LocalStoresPage = () => {
       ) : (
         <div className="space-y-4">
           {stores.map((store) => (
-            <StoreRow key={store._id} store={store} />
+            <StoreRow
+              key={store._id}
+              store={store}
+              onEdit={setEditStore}
+              onAddProduct={setAddProductStoreId}
+            />
           ))}
         </div>
       )}
-
-      {showCreate && <StoreForm onClose={() => setShowCreate(false)} />}
     </div>
   );
 };

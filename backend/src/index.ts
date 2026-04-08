@@ -3,6 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import winston from 'winston';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import authRoutes from './routes/authRoutes.js';
 import eventRoutes from './routes/eventRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
@@ -11,7 +13,13 @@ import managerRoutes from './routes/managerRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import localStoreRoutes from './routes/localStoreRoutes.js';
 import storeOrderRoutes from './routes/storeOrderRoutes.js';
+import storeOwnerRoutes from './routes/storeOwnerRoutes.js';
+import uploadRoutes from './routes/uploadRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import storePayoutRoutes from './routes/storePayoutRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 dotenv.config();
 
@@ -33,6 +41,12 @@ const logger = winston.createLogger({
 app.use(cors());
 app.use(express.json());
 
+// Serve uploaded files when local storage is enabled
+if (process.env.USE_LOCAL_STORAGE === 'true') {
+  const uploadsDir = path.resolve(__dirname, '../uploads');
+  app.use('/uploads', express.static(uploadsDir));
+}
+
 // Debug Logger
 app.use((req, res, next) => {
   logger.info(`Incoming request: ${req.method} ${req.url}`);
@@ -48,10 +62,14 @@ app.use('/api/manager', managerRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/local-stores', localStoreRoutes);
 app.use('/api/store-orders', storeOrderRoutes);
+app.use('/api/store-owner', storeOwnerRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/store-payouts', storePayoutRoutes);
 console.log('Registered /api/local-stores route');
 
 // Basic Route
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -59,7 +77,7 @@ app.get('/health', (req, res) => {
 const startServer = async () => {
   try {
     const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/event-sphere';
-    
+
     if (!process.env.MONGODB_URI) {
       console.warn('⚠️ WARNING: MONGODB_URI is not set in environment variables. Defaulting to localhost.');
     } else {

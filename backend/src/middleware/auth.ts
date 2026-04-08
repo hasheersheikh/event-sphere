@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import Admin from '../models/Admin.js';
 import EventManager from '../models/EventManager.js';
 import Volunteer from '../models/Volunteer.js';
+import StoreOwner from '../models/StoreOwner.js';
 
 export interface AuthRequest extends Request {
   user?: any;
@@ -13,6 +14,7 @@ const getModelByRole = (role: string) => {
   if (role === 'admin') return Admin;
   if (role === 'event_manager') return EventManager;
   if (role === 'volunteer') return Volunteer;
+  if (role === 'store_owner') return StoreOwner;
   return User;
 };
 

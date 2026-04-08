@@ -4,12 +4,11 @@ import { motion } from "framer-motion";
 import {
   ShoppingBag, MapPin, ChevronLeft, Sparkles, Store,
   Phone, Mail, MessageCircle, Globe, Instagram, Facebook,
-  Clock, CreditCard, ShoppingCart, Plus,
+  Clock, CreditCard, Plus, ExternalLink, Tag,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import api from "@/lib/api";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLocalStoreCart } from "@/contexts/LocalStoreCartContext";
 import { toast } from "sonner";
@@ -37,15 +36,13 @@ const StoreDetailPage = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
-        <main className="flex-1 container py-24">
-          <div className="h-64 w-full bg-muted animate-pulse rounded-[3rem]" />
-          <div className="mt-12 space-y-8">
-            <div className="h-12 w-1/3 bg-muted animate-pulse rounded-full" />
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array(6).fill(0).map((_, i) => (
-                <div key={i} className="h-64 rounded-[2.5rem] bg-muted animate-pulse" />
-              ))}
-            </div>
+        <main className="flex-1 container py-24 space-y-8">
+          <div className="h-72 w-full bg-muted animate-pulse rounded-[2rem]" />
+          <div className="h-8 w-48 bg-muted animate-pulse rounded-full" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array(6).fill(0).map((_, i) => (
+              <div key={i} className="h-64 rounded-[1.5rem] bg-muted animate-pulse" />
+            ))}
           </div>
         </main>
       </div>
@@ -58,17 +55,18 @@ const StoreDetailPage = () => {
         <Navbar />
         <main className="flex-1 container py-24 text-center">
           <h2 className="text-4xl font-black uppercase italic">Store not found</h2>
-          <Link to="/local-stores">
-            <Button className="mt-8">Back to Stores</Button>
+          <Link to="/local-stores" className="mt-8 inline-block text-amber-500 font-black uppercase tracking-widest text-xs hover:underline">
+            Back to Stores
           </Link>
         </main>
       </div>
     );
   }
 
-  const hasContact = store.contactEmail || store.contactPhone || store.whatsapp || store.openingHours;
+  const hasContact = store.contactEmail || store.contactPhone || store.whatsapp || store.openingHours || store.googleMapUrl;
   const hasSocial = store.instagram || store.facebook || store.website;
   const hasPayment = store.paymentMethods?.length > 0 || store.upiId || store.bankDetails?.accountNumber;
+  const hasSidebar = hasContact || hasSocial || hasPayment;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
@@ -78,221 +76,278 @@ const StoreDetailPage = () => {
 
       <Navbar />
 
-      <main className="flex-1 container py-12 md:py-24 relative z-10">
-        <Link
-          to="/local-stores"
-          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-amber-500 transition-colors mb-12"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back to Local Gems
-        </Link>
-
-        {/* Store Header */}
-        <section className="relative rounded-[3rem] overflow-hidden border border-border/50 bg-card/30 backdrop-blur-xl mb-16">
-          <div className="h-64 md:h-80 w-full relative">
-            {store.photos?.[0] ? (
-              <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-amber-500/10 to-background flex items-center justify-center">
-                <Store className="h-24 w-24 text-amber-500/10" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
-          </div>
-
-          <div className="p-8 md:p-12 -mt-20 relative z-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-              <div className="space-y-4">
-                <Badge className="bg-amber-500 text-black px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-xl">
-                  {store.category}
-                </Badge>
-                <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none italic uppercase">
-                  {store.name}
-                </h1>
-                <div className="flex items-start gap-2 text-muted-foreground font-medium italic">
-                  <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
-                  <p>{store.address}</p>
-                </div>
-                {store.openingHours && (
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                    <Clock className="h-4 w-4 shrink-0 text-amber-500" />
-                    <span className="font-medium italic">{store.openingHours}</span>
-                  </div>
-                )}
-              </div>
-              <div className="hidden md:flex items-center gap-3 text-amber-500 bg-amber-500/5 px-6 py-4 rounded-3xl border border-amber-500/20">
-                <Sparkles className="h-5 w-5" />
-                <span className="text-xs font-black uppercase tracking-widest">Premium Partner</span>
-              </div>
-            </div>
-
-            <p className="mt-10 text-lg text-muted-foreground max-w-3xl leading-relaxed italic font-medium">
-              {store.description || "A local neighbourhood favourite, bringing you the best in quality and tradition."}
-            </p>
-          </div>
-        </section>
-
-        {/* Products Grid */}
-        <section className="space-y-12 mb-20">
-          <div className="flex items-center justify-between border-b border-border/50 pb-8">
-            <h2 className="text-3xl font-black tracking-tighter uppercase italic">
-              The <span className="text-amber-500">Collection.</span>
-            </h2>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-              {store.products?.length || 0} items
-            </span>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {store.products?.map((product: any) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                storeId={store._id}
-                storeName={store.name}
-              />
-            ))}
-          </div>
-
-          {!store.products?.length && (
-            <div className="py-24 text-center bg-card/20 rounded-[3rem] border border-dashed border-border/50">
-              <ShoppingBag className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
-              <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">No products yet.</p>
-              <p className="text-xs text-muted-foreground/60 italic mt-2">New items coming soon.</p>
+      <main className="flex-1 relative z-10">
+        {/* Hero Banner */}
+        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+          {store.photos?.[0] ? (
+            <img
+              src={store.photos[0]}
+              alt={store.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-amber-500/10 via-muted/30 to-background flex items-center justify-center">
+              <Store className="h-24 w-24 text-amber-500/10" />
             </div>
           )}
-        </section>
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
 
-        {/* Contact & Info Section */}
-        {(hasContact || hasSocial || hasPayment) && (
-          <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-            {/* Contact */}
-            {hasContact && (
-              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
-                <h3 className="text-lg font-black tracking-tighter uppercase italic">
-                  <span className="text-amber-500">Contact</span> Us
-                </h3>
-                <div className="space-y-4">
-                  {store.contactPhone && (
-                    <a href={`tel:${store.contactPhone}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-                        <Phone className="h-4 w-4 text-amber-500" />
-                      </div>
-                      <span className="font-medium">{store.contactPhone}</span>
-                    </a>
-                  )}
-                  {store.contactEmail && (
-                    <a href={`mailto:${store.contactEmail}`} className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500/20 transition-colors">
-                        <Mail className="h-4 w-4 text-amber-500" />
-                      </div>
-                      <span className="font-medium">{store.contactEmail}</span>
-                    </a>
-                  )}
-                  {store.whatsapp && (
-                    <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-                        <MessageCircle className="h-4 w-4 text-emerald-500" />
-                      </div>
-                      <span className="font-medium">WhatsApp</span>
-                    </a>
-                  )}
-                  {store.openingHours && (
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                        <Clock className="h-4 w-4 text-amber-500" />
-                      </div>
-                      <span className="font-medium">{store.openingHours}</span>
-                    </div>
-                  )}
-                  {store.googleMapUrl && (
-                    <a href={store.googleMapUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                        <MapPin className="h-4 w-4 text-blue-500" />
-                      </div>
-                      <span className="font-medium">View on Map</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+          {/* Back button overlaid on hero */}
+          <div className="absolute top-6 left-0 right-0 container">
+            <Link
+              to="/local-stores"
+              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-background/60 backdrop-blur-md border border-border/50 text-foreground hover:text-amber-500 px-4 py-2 rounded-xl transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+              Back to Local Gems
+            </Link>
+          </div>
+        </div>
 
-            {/* Payment Methods */}
-            {hasPayment && (
-              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
-                <h3 className="text-lg font-black tracking-tighter uppercase italic">
-                  <span className="text-amber-500">Payment</span> Methods
-                </h3>
-                <div className="space-y-3">
-                  {store.paymentMethods?.map((m: string) => (
-                    <div key={m} className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                        <CreditCard className="h-4 w-4 text-amber-500" />
-                      </div>
-                      <span className="text-sm font-bold">{PAYMENT_LABELS[m] || m}</span>
-                    </div>
-                  ))}
-                  {store.upiId && (
-                    <div className="mt-4 p-3 bg-muted/40 rounded-xl">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">UPI ID</p>
-                      <p className="text-sm font-black text-amber-500">{store.upiId}</p>
-                    </div>
-                  )}
-                  {store.bankDetails?.accountNumber && (
-                    <div className="mt-2 p-3 bg-muted/40 rounded-xl space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Bank Details</p>
-                      {store.bankDetails.accountHolder && <p className="text-xs font-bold">{store.bankDetails.accountHolder}</p>}
-                      {store.bankDetails.bankName && <p className="text-xs text-muted-foreground">{store.bankDetails.bankName}</p>}
-                      <p className="text-xs font-black text-amber-500">{store.bankDetails.accountNumber}</p>
-                      {store.bankDetails.ifscCode && <p className="text-xs text-muted-foreground">IFSC: {store.bankDetails.ifscCode}</p>}
-                    </div>
-                  )}
-                </div>
+        {/* Store Identity — sits below hero, overlapping slightly */}
+        <div className="container -mt-16 relative z-10 mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="space-y-3">
+              <Badge className="bg-amber-500 text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg">
+                {store.category}
+              </Badge>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic uppercase">
+                {store.name}
+              </h1>
+              <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
+                <span className="flex items-center gap-1.5 italic">
+                  <MapPin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  {store.address}
+                </span>
+                {store.openingHours && (
+                  <span className="flex items-center gap-1.5 italic">
+                    <Clock className="h-3.5 w-3.5 text-amber-500" />
+                    {store.openingHours}
+                  </span>
+                )}
               </div>
-            )}
+            </div>
+            <div className="flex items-center gap-2 text-amber-500 bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20 shrink-0 self-start md:self-auto">
+              <Sparkles className="h-4 w-4" />
+              <span className="text-[9px] font-black uppercase tracking-widest">Premium Partner</span>
+            </div>
+          </div>
 
-            {/* Social Links */}
-            {hasSocial && (
-              <div className="bg-card/40 border border-border/50 rounded-[2rem] p-8 space-y-5">
-                <h3 className="text-lg font-black tracking-tighter uppercase italic">
-                  <span className="text-amber-500">Find</span> Us Online
-                </h3>
-                <div className="space-y-4">
-                  {store.website && (
-                    <a href={store.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-                        <Globe className="h-4 w-4 text-blue-500" />
-                      </div>
-                      <span className="font-medium truncate">{store.website.replace(/^https?:\/\//, "")}</span>
-                    </a>
-                  )}
-                  {store.instagram && (
-                    <a href={`https://instagram.com/${store.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
-                        <Instagram className="h-4 w-4 text-pink-500" />
-                      </div>
-                      <span className="font-medium">@{store.instagram.replace("@", "")}</span>
-                    </a>
-                  )}
-                  {store.facebook && (
-                    <a href={store.facebook.startsWith("http") ? store.facebook : `https://facebook.com/${store.facebook}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group">
-                      <div className="h-9 w-9 rounded-xl bg-blue-600/10 flex items-center justify-center group-hover:bg-blue-600/20 transition-colors">
-                        <Facebook className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <span className="font-medium">Facebook</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-          </section>
+          {store.description && (
+            <p className="mt-5 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed italic font-medium opacity-90">
+              {store.description}
+            </p>
+          )}
+        </div>
+
+        {/* Photo Strip (if multiple photos) */}
+        {store.photos?.length > 1 && (
+          <div className="container mb-10">
+            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+              {store.photos.slice(1).map((photo: string, i: number) => (
+                <img
+                  key={i}
+                  src={photo}
+                  alt={`${store.name} photo ${i + 2}`}
+                  className="h-28 w-44 object-cover rounded-2xl border border-border/50 shrink-0"
+                />
+              ))}
+            </div>
+          </div>
         )}
+
+        {/* Main Content */}
+        <div className="container pb-24">
+          <div className={`flex flex-col ${hasSidebar ? "lg:flex-row" : ""} gap-10`}>
+            {/* Products Section */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between border-b border-border/50 pb-5 mb-8">
+                <h2 className="text-2xl font-black tracking-tighter uppercase italic">
+                  The <span className="text-amber-500">Collection</span>
+                </h2>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                  {store.products?.length || 0} items
+                </span>
+              </div>
+
+              {store.products?.length ? (
+                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                  {store.products.map((product: any) => (
+                    <ProductCard
+                      key={product._id}
+                      product={product}
+                      storeId={store._id}
+                      storeName={store.name}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-20 text-center bg-card/20 rounded-[2rem] border border-dashed border-border/50">
+                  <ShoppingBag className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
+                  <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">No products yet.</p>
+                  <p className="text-xs text-muted-foreground/60 italic mt-1">New items coming soon.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            {hasSidebar && (
+              <aside className="lg:w-80 xl:w-96 space-y-5 shrink-0">
+                {/* Contact */}
+                {hasContact && (
+                  <InfoCard title="Contact" accent="Us">
+                    <div className="space-y-3">
+                      {store.contactPhone && (
+                        <ContactRow
+                          href={`tel:${store.contactPhone}`}
+                          icon={<Phone className="h-4 w-4 text-amber-500" />}
+                          bg="bg-amber-500/10 hover:bg-amber-500/20"
+                          label={store.contactPhone}
+                        />
+                      )}
+                      {store.contactEmail && (
+                        <ContactRow
+                          href={`mailto:${store.contactEmail}`}
+                          icon={<Mail className="h-4 w-4 text-amber-500" />}
+                          bg="bg-amber-500/10 hover:bg-amber-500/20"
+                          label={store.contactEmail}
+                        />
+                      )}
+                      {store.whatsapp && (
+                        <ContactRow
+                          href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`}
+                          external
+                          icon={<MessageCircle className="h-4 w-4 text-emerald-500" />}
+                          bg="bg-emerald-500/10 hover:bg-emerald-500/20"
+                          label="Chat on WhatsApp"
+                        />
+                      )}
+                      {store.openingHours && (
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                            <Clock className="h-4 w-4 text-amber-500" />
+                          </div>
+                          <span className="font-medium text-xs">{store.openingHours}</span>
+                        </div>
+                      )}
+                      {store.googleMapUrl && (
+                        <ContactRow
+                          href={store.googleMapUrl}
+                          external
+                          icon={<MapPin className="h-4 w-4 text-blue-500" />}
+                          bg="bg-blue-500/10 hover:bg-blue-500/20"
+                          label="View on Map"
+                        />
+                      )}
+                    </div>
+                  </InfoCard>
+                )}
+
+                {/* Social */}
+                {hasSocial && (
+                  <InfoCard title="Find Us" accent="Online">
+                    <div className="space-y-3">
+                      {store.website && (
+                        <ContactRow
+                          href={store.website}
+                          external
+                          icon={<Globe className="h-4 w-4 text-blue-500" />}
+                          bg="bg-blue-500/10 hover:bg-blue-500/20"
+                          label={store.website.replace(/^https?:\/\//, "")}
+                        />
+                      )}
+                      {store.instagram && (
+                        <ContactRow
+                          href={`https://instagram.com/${store.instagram.replace("@", "")}`}
+                          external
+                          icon={<Instagram className="h-4 w-4 text-pink-500" />}
+                          bg="bg-pink-500/10 hover:bg-pink-500/20"
+                          label={`@${store.instagram.replace("@", "")}`}
+                        />
+                      )}
+                      {store.facebook && (
+                        <ContactRow
+                          href={store.facebook.startsWith("http") ? store.facebook : `https://facebook.com/${store.facebook}`}
+                          external
+                          icon={<Facebook className="h-4 w-4 text-blue-600" />}
+                          bg="bg-blue-600/10 hover:bg-blue-600/20"
+                          label="Facebook"
+                        />
+                      )}
+                    </div>
+                  </InfoCard>
+                )}
+
+                {/* Payment */}
+                {hasPayment && (
+                  <InfoCard title="Payment" accent="Methods">
+                    <div className="space-y-3">
+                      {store.paymentMethods?.map((m: string) => (
+                        <div key={m} className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                            <CreditCard className="h-4 w-4 text-amber-500" />
+                          </div>
+                          <span className="text-sm font-bold">{PAYMENT_LABELS[m] || m}</span>
+                        </div>
+                      ))}
+                      {store.upiId && (
+                        <div className="mt-2 p-3 bg-muted/40 rounded-xl">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">UPI ID</p>
+                          <p className="text-sm font-black text-amber-500">{store.upiId}</p>
+                        </div>
+                      )}
+                      {store.bankDetails?.accountNumber && (
+                        <div className="mt-2 p-3 bg-muted/40 rounded-xl space-y-1">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Bank Details</p>
+                          {store.bankDetails.accountHolder && <p className="text-xs font-bold">{store.bankDetails.accountHolder}</p>}
+                          {store.bankDetails.bankName && <p className="text-xs text-muted-foreground">{store.bankDetails.bankName}</p>}
+                          <p className="text-xs font-black text-amber-500">{store.bankDetails.accountNumber}</p>
+                          {store.bankDetails.ifscCode && <p className="text-xs text-muted-foreground">IFSC: {store.bankDetails.ifscCode}</p>}
+                        </div>
+                      )}
+                    </div>
+                  </InfoCard>
+                )}
+              </aside>
+            )}
+          </div>
+        </div>
       </main>
 
       <Footer />
     </div>
   );
 };
+
+/* ─── Small reusable pieces ──────────────────────────────────────── */
+
+const InfoCard = ({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) => (
+  <div className="bg-card/40 border border-border/50 rounded-2xl p-6 space-y-4">
+    <h3 className="text-sm font-black tracking-tighter uppercase italic">
+      {title} <span className="text-amber-500">{accent}</span>
+    </h3>
+    {children}
+  </div>
+);
+
+const ContactRow = ({
+  href, external = false, icon, bg, label,
+}: {
+  href: string; external?: boolean; icon: React.ReactNode; bg: string; label: string;
+}) => (
+  <a
+    href={href}
+    target={external ? "_blank" : undefined}
+    rel={external ? "noopener noreferrer" : undefined}
+    className="flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+  >
+    <div className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${bg}`}>
+      {icon}
+    </div>
+    <span className="font-medium text-xs truncate">{label}</span>
+    {external && <ExternalLink className="h-3 w-3 ml-auto shrink-0 opacity-0 group-hover:opacity-60 transition-opacity" />}
+  </a>
+);
 
 const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: string; storeName: string }) => {
   const { addItem } = useLocalStoreCart();
@@ -314,55 +369,66 @@ const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: s
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group relative bg-card/40 border border-border/50 rounded-[2.5rem] overflow-hidden hover:border-amber-500/30 transition-all duration-500 shadow-xl hover:shadow-2xl flex flex-col"
+      className="group relative bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300 flex flex-col"
     >
-      <div className="h-56 relative overflow-hidden">
+      {/* Image */}
+      <div className="h-48 relative overflow-hidden bg-muted">
         {product.image ? (
-          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
-            <ShoppingBag className="h-12 w-12 text-muted-foreground/20" />
+          <div className="w-full h-full flex items-center justify-center">
+            <ShoppingBag className="h-10 w-10 text-muted-foreground/20" />
           </div>
         )}
+
         {product.discountPercent > 0 && (
-          <div className="absolute top-6 left-6">
-            <Badge className="bg-rose-500 text-white px-3 py-1 rounded-xl font-black uppercase tracking-widest text-[8px] border-none shadow-lg">
-              {product.discountPercent}% OFF
-            </Badge>
-          </div>
+          <Badge className="absolute top-3 left-3 bg-rose-500 text-white px-2.5 py-0.5 rounded-lg font-black uppercase tracking-wider text-[8px] border-none shadow">
+            <Tag className="h-2.5 w-2.5 mr-1 inline" />
+            {product.discountPercent}% OFF
+          </Badge>
         )}
+
         {!product.isAvailable && (
           <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Unavailable</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-background/80 px-3 py-1.5 rounded-full">
+              Unavailable
+            </span>
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card/80 to-transparent pointer-events-none" />
       </div>
 
-      <div className="p-6 space-y-3 flex flex-col flex-1">
-        <h3 className="text-lg font-black tracking-tighter uppercase italic leading-none truncate">
+      {/* Info */}
+      <div className="p-4 flex flex-col flex-1 gap-2">
+        <h3 className="text-sm font-black tracking-tight uppercase leading-tight line-clamp-1">
           {product.name}
         </h3>
-        <p className="text-xs text-muted-foreground font-medium italic line-clamp-2 leading-relaxed flex-1">
-          {product.description || "Crafted with local passion."}
-        </p>
-        <div className="flex items-center justify-between pt-2 border-t border-border/40">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-black text-amber-500 italic">₹{finalPrice.toFixed(0)}</span>
+        {product.description && (
+          <p className="text-xs text-muted-foreground font-medium line-clamp-2 leading-relaxed flex-1">
+            {product.description}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between pt-2 mt-auto border-t border-border/40">
+          <div className="flex items-baseline gap-2">
+            <span className="text-base font-black text-amber-500">₹{finalPrice.toFixed(0)}</span>
             {product.discountPercent > 0 && (
-              <span className="text-xs text-muted-foreground line-through font-bold">₹{product.price}</span>
+              <span className="text-xs text-muted-foreground line-through">₹{product.price}</span>
             )}
           </div>
           <button
             type="button"
             onClick={handleAdd}
             disabled={!product.isAvailable}
-            className="h-9 w-9 rounded-xl bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+            className="h-8 w-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>

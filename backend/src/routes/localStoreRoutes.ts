@@ -9,10 +9,16 @@ import {
   removeProduct,
   getAllLocalStores,
   toggleStoreStatus,
+  getMyStore,
+  updateMyStore,
 } from '../controllers/localStoreController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Store owner routes (must be before /:id)
+router.get('/owner/my-store', protect, authorize('store_owner'), getMyStore);
+router.put('/owner/my-store', protect, authorize('store_owner'), updateMyStore);
 
 // Public routes
 router.get('/', getLocalStores);
