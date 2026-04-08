@@ -15,6 +15,8 @@ import localStoreRoutes from './routes/localStoreRoutes.js';
 import storeOrderRoutes from './routes/storeOrderRoutes.js';
 import storeOwnerRoutes from './routes/storeOwnerRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import storePayoutRoutes from './routes/storePayoutRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -62,10 +64,12 @@ app.use('/api/local-stores', localStoreRoutes);
 app.use('/api/store-orders', storeOrderRoutes);
 app.use('/api/store-owner', storeOwnerRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/store-payouts', storePayoutRoutes);
 console.log('Registered /api/local-stores route');
 
 // Basic Route
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 

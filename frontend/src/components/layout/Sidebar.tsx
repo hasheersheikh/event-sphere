@@ -11,6 +11,7 @@ import {
   Clock,
   Scan,
   Store,
+  BookOpen,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PulseLogo from "./PulseLogo";
@@ -30,6 +31,7 @@ const Sidebar = () => {
     { label: "Event Moderation", icon: Calendar, href: "/portal/admin/events" },
     { label: "Stores", icon: Store, href: "/portal/admin/local-stores" },
     { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
+    { label: "Blog", icon: BookOpen, href: "/portal/admin/blog" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },

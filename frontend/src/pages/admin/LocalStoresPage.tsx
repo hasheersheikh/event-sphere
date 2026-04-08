@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -877,12 +878,12 @@ const StoreDetailsModal = ({ store, onClose }: { store: LocalStore; onClose: () 
 };
 
 // ── Store Row ────────────────────────────────────────────────────────────────
-const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
+const StoreRow = ({ store, onEdit, onAddProduct }: {
   store: LocalStore;
-  onView: (store: LocalStore) => void;
   onEdit: (store: LocalStore) => void;
   onAddProduct: (storeId: string) => void;
 }) => {
+  const navigate = useNavigate();
   const qc = useQueryClient();
 
   const deleteMutation = useMutation({
@@ -898,12 +899,17 @@ const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["adminLocalStores"] }),
   });
 
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+
   return (
-    <div className="border border-border/60 rounded-2xl overflow-hidden bg-card hover:border-primary/20 transition-colors">
+    <div
+      onClick={() => navigate(`/portal/admin/local-stores/${store._id}`)}
+      className="border border-border/60 rounded-2xl overflow-hidden bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
+    >
       <div className="flex items-center gap-4 p-5">
         <div className="h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
           {store.photos[0] ? (
-            <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover" />
+            <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Store className="h-6 w-6 text-muted-foreground/40" />
@@ -913,9 +919,15 @@ const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-black truncate">{store.name}</p>
+            <p className="font-black truncate group-hover:text-primary transition-colors">{store.name}</p>
             <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
               {store.category}
+            </span>
+            <span className={cn(
+              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex-shrink-0",
+              store.isActive ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+            )}>
+              {store.isActive ? "Active" : "Inactive"}
             </span>
           </div>
           <div className="flex items-center gap-1 mt-0.5">
@@ -934,7 +946,7 @@ const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 flex-shrink-0" onClick={stop}>
           <button
             type="button"
             onClick={() => toggleMutation.mutate()}
@@ -970,13 +982,7 @@ const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
           >
             <Trash2 className="h-4 w-4" />
           </button>
-          <button
-            type="button"
-            onClick={() => onView(store)}
-            className="h-8 px-3 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest transition-colors"
-          >
-            View <ChevronRight className="h-3.5 w-3.5" />
-          </button>
+          <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
         </div>
       </div>
     </div>
@@ -987,7 +993,6 @@ const StoreRow = ({ store, onView, onEdit, onAddProduct }: {
 const LocalStoresPage = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [editStore, setEditStore] = useState<LocalStore | null>(null);
-  const [viewStore, setViewStore] = useState<LocalStore | null>(null);
   const [addProductStoreId, setAddProductStoreId] = useState<string | null>(null);
 
   const { data: stores, isLoading } = useQuery({
@@ -1006,9 +1011,6 @@ const LocalStoresPage = () => {
           editStore={editStore ?? undefined}
           onClose={() => { setShowCreate(false); setEditStore(null); }}
         />
-      )}
-      {viewStore && (
-        <StoreDetailsModal store={viewStore} onClose={() => setViewStore(null)} />
       )}
       {addProductStoreId && (
         <AddProductForm storeId={addProductStoreId} onClose={() => setAddProductStoreId(null)} />
@@ -1068,7 +1070,6 @@ const LocalStoresPage = () => {
             <StoreRow
               key={store._id}
               store={store}
-              onView={setViewStore}
               onEdit={setEditStore}
               onAddProduct={setAddProductStoreId}
             />

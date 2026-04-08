@@ -7,6 +7,8 @@ import {
   CreditCard, Building2, Instagram, Facebook, Globe,
   Package, Plus, Trash2, Edit3, ChevronLeft, ToggleLeft, ToggleRight,
   Image as ImageIcon, X, Upload, ShoppingBag, UserPlus, KeyRound,
+  Wallet, TrendingUp, IndianRupee, CheckCircle2, AlertCircle,
+  Check, Ban, Loader2, Smartphone,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -143,7 +145,9 @@ const AdminStoreDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState<"info" | "products" | "orders" | "owners">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "products" | "orders" | "owners" | "payouts">("info");
+  const [payoutActionId, setPayoutActionId] = useState<string | null>(null);
+  const [payoutNote, setPayoutNote] = useState("");
   const [showCreateOwner, setShowCreateOwner] = useState(false);
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -174,6 +178,27 @@ const AdminStoreDetailPage = () => {
       return data;
     },
     enabled: Boolean(id),
+  });
+
+  const { data: earningsData, isLoading: earningsLoading } = useQuery({
+    queryKey: ["storeEarnings", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/store-payouts/admin/store/${id}`);
+      return data;
+    },
+    enabled: Boolean(id) && activeTab === "payouts",
+  });
+
+  const updatePayoutMutation = useMutation({
+    mutationFn: ({ payoutId, status, note }: { payoutId: string; status: string; note: string }) =>
+      api.patch(`/store-payouts/${payoutId}/status`, { status, adminNote: note }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["storeEarnings", id] });
+      setPayoutActionId(null);
+      setPayoutNote("");
+      toast.success("Payout status updated");
+    },
+    onError: () => toast.error("Failed to update payout status"),
   });
 
   const toggleMutation = useMutation({
@@ -225,10 +250,11 @@ const AdminStoreDetailPage = () => {
   if (!store) return <div className="p-8 text-muted-foreground">Store not found.</div>;
 
   const TABS = [
-    { key: "info", label: "Store Info" },
+    { key: "info",     label: "Store Info" },
     { key: "products", label: `Products (${store.products?.length ?? 0})` },
-    { key: "orders", label: `Orders (${orders?.length ?? 0})` },
-    { key: "owners", label: `Owners (${storeOwners?.length ?? 0})` },
+    { key: "orders",   label: `Orders (${orders?.length ?? 0})` },
+    { key: "owners",   label: `Owners (${storeOwners?.length ?? 0})` },
+    { key: "payouts",  label: "Payouts" },
   ] as const;
 
   const infoRow = (Icon: any, label: string, value: string, href?: string) => (
@@ -603,6 +629,168 @@ const AdminStoreDetailPage = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Payouts Tab ── */}
+      {activeTab === "payouts" && (
+        <div className="space-y-6">
+          {/* Earnings summary */}
+          {earningsLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {Array(4).fill(0).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-muted animate-pulse" />)}
+            </div>
+          ) : earningsData?.summary && (
+            <>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {[
+                  { label: "Gross Revenue",     value: `₹${earningsData.summary.grossRevenue.toFixed(0)}`,        icon: TrendingUp,    color: "text-foreground",   bg: "bg-card" },
+                  { label: "Platform Earned",   value: `₹${earningsData.summary.totalPlatformEarned.toFixed(0)}`, icon: IndianRupee,   color: "text-primary",      bg: "bg-primary/5 border-primary/20" },
+                  { label: "Pending Payout",    value: `₹${earningsData.summary.availableNet.toFixed(0)}`,        icon: AlertCircle,   color: "text-amber-500",    bg: "bg-amber-500/5 border-amber-500/20" },
+                  { label: "Total Paid Out",    value: `₹${earningsData.summary.paidOut.toFixed(0)}`,             icon: CheckCircle2,  color: "text-emerald-500",  bg: "bg-card" },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                  <div key={label} className={`rounded-2xl p-5 border space-y-3 ${bg}`}>
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
+                      <Icon className={`h-4 w-4 opacity-70 ${color}`} />
+                    </div>
+                    <p className={`text-2xl font-black ${color}`}>{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Fee breakdown */}
+              <div className="bg-muted/30 border border-border rounded-2xl p-5 flex flex-wrap gap-6 text-sm">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Delivered Orders</p>
+                  <p className="font-black">{earningsData.summary.deliveredOrders} / {earningsData.summary.totalOrders}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Platform Fee Rate</p>
+                  <p className="font-black">{earningsData.summary.platformFeePercent}%</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Available (Gross)</p>
+                  <p className="font-black">₹{earningsData.summary.availableGross.toFixed(0)}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Pending Fee Deduction</p>
+                  <p className="font-black text-rose-500">- ₹{earningsData.summary.platformFee.toFixed(0)}</p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Payout requests */}
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Payout Requests</p>
+
+            {!earningsData?.payouts?.length ? (
+              <div className="py-16 text-center border border-dashed border-border rounded-3xl bg-card">
+                <Wallet className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No payout requests yet</p>
+              </div>
+            ) : (
+              earningsData.payouts.map((payout: any) => {
+                const isActing = payoutActionId === payout._id;
+                const statusStyles: Record<string, string> = {
+                  pending:    "bg-amber-500/10 text-amber-500 border-amber-500/20",
+                  processing: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+                  paid:       "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+                  rejected:   "bg-rose-500/10 text-rose-500 border-rose-500/20",
+                };
+                return (
+                  <div key={payout._id} className="bg-card border border-border rounded-2xl overflow-hidden">
+                    {/* Row */}
+                    <div className="flex items-center gap-4 p-5 flex-wrap">
+                      <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+                        {payout.payoutMethod === "upi"
+                          ? <Smartphone className="h-5 w-5 text-amber-500" />
+                          : <Building2 className="h-5 w-5 text-amber-500" />
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-bold text-sm">₹{payout.netAmount.toFixed(0)} net</p>
+                          <span className="text-xs text-muted-foreground">(₹{payout.requestedAmount.toFixed(0)} gross · ₹{payout.platformFee.toFixed(0)} fee)</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {payout.payoutMethod === "upi"
+                            ? `UPI · ${payout.upiId}`
+                            : `Bank · ${payout.bankDetails?.bankName || ""} ••••${payout.bankDetails?.accountNumber?.slice(-4) || ""}`
+                          }
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          Requested {new Date(payout.createdAt).toLocaleDateString()}
+                          {payout.processedAt && ` · Processed ${new Date(payout.processedAt).toLocaleDateString()}`}
+                        </p>
+                        {payout.adminNote && (
+                          <p className="text-[10px] italic text-muted-foreground mt-1">Note: {payout.adminNote}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border ${statusStyles[payout.status] || ""}`}>
+                          {payout.status}
+                        </span>
+                        {payout.status === "pending" && (
+                          <button
+                            onClick={() => { setPayoutActionId(isActing ? null : payout._id); setPayoutNote(""); }}
+                            className="h-8 px-3 rounded-xl bg-muted text-xs font-bold hover:bg-muted/80 transition-colors"
+                          >
+                            {isActing ? "Cancel" : "Review"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Inline action panel */}
+                    {isActing && (
+                      <div className="border-t border-border bg-muted/20 p-5 space-y-4">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Admin Action</p>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Note (optional)</label>
+                          <Input
+                            value={payoutNote}
+                            onChange={(e) => setPayoutNote(e.target.value)}
+                            placeholder="Add a note for the store owner..."
+                            className="h-10 rounded-xl text-sm"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            size="sm"
+                            onClick={() => updatePayoutMutation.mutate({ payoutId: payout._id, status: "processing", note: payoutNote })}
+                            disabled={updatePayoutMutation.isPending}
+                            className="rounded-xl bg-blue-500 hover:bg-blue-400 text-white gap-1.5 text-xs"
+                          >
+                            <Loader2 className={`h-3.5 w-3.5 ${updatePayoutMutation.isPending ? "animate-spin" : "hidden"}`} />
+                            Mark Processing
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => updatePayoutMutation.mutate({ payoutId: payout._id, status: "paid", note: payoutNote })}
+                            disabled={updatePayoutMutation.isPending}
+                            className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white gap-1.5 text-xs"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Mark Paid
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updatePayoutMutation.mutate({ payoutId: payout._id, status: "rejected", note: payoutNote })}
+                            disabled={updatePayoutMutation.isPending}
+                            className="rounded-xl border-rose-500/30 text-rose-500 hover:bg-rose-500/10 gap-1.5 text-xs"
+                          >
+                            <Ban className="h-3.5 w-3.5" /> Reject
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
         </div>
       )}
 
