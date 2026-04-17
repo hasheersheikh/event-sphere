@@ -3,6 +3,7 @@ import { Request, Response, RequestHandler } from 'express';
 import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
+import { deleteEventAssets } from '../utils/cloudinaryService.js';
 
 export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
@@ -150,6 +151,9 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
         bookingCount 
       });
     }
+
+    // Delete associated assets from Cloudinary / local storage (non-blocking)
+    deleteEventAssets(event.image, event.reels).catch(() => {});
 
     await event.deleteOne();
     res.json({ message: 'Event removed' });

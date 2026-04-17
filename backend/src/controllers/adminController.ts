@@ -5,6 +5,7 @@ import EventManager from '../models/EventManager.js';
 import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
+import { deleteEventAssets } from '../utils/cloudinaryService.js';
 import Payout from '../models/Payout.js';
 import Volunteer from '../models/Volunteer.js';
 import { createRazorpayContact, createRazorpayFundAccount, initiateRazorpayPayout } from '../utils/razorpayPayouts.js';
@@ -477,7 +478,10 @@ export const deleteEvent: RequestHandler = async (req: AuthRequest, res: Respons
 
     // Delete all associated bookings
     await Booking.deleteMany({ event: id });
-    
+
+    // Delete associated assets from Cloudinary / local storage (non-blocking)
+    deleteEventAssets(event.image, event.reels).catch(() => {});
+
     // Delete the event
     await event.deleteOne();
 

@@ -16,7 +16,7 @@ export const createPaymentLink: RequestHandler = async (req: AuthRequest, res: R
   const { bookingId, amount, currency = 'INR', customerName, customerEmail, customerPhone, eventTitle } = req.body;
 
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
     const callbackUrl = `${frontendUrl}/payment/callback?bookingId=${bookingId}`;
 
     const paymentLink = await (razorpay as any).paymentLink.create({
@@ -138,7 +138,7 @@ export const handleRazorpayWebhook: RequestHandler = async (req: express.Request
 export const createStoreOrderPaymentLink: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { orderId, amount, currency = 'INR', customerName, customerEmail, customerPhone, storeName } = req.body;
   try {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
     const callbackUrl = `${frontendUrl}/payment/callback?orderId=${orderId}`;
 
     const paymentLink = await (razorpay as any).paymentLink.create({
