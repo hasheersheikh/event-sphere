@@ -41,6 +41,14 @@ const ScannerPage = () => {
 
   const startScanner = async () => {
     try {
+      await stopScanner();
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      const readerElement = document.getElementById("reader");
+      if (readerElement) {
+        readerElement.innerHTML = "";
+      }
+
       const html5QrCode = new Html5Qrcode("reader");
       html5QrCodeRef.current = html5QrCode;
 

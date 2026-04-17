@@ -178,8 +178,12 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
+    if (booking.status !== 'confirmed') {
+      return res.status(403).json({ message: `Cannot check in. Booking status is ${booking.status}. Only confirmed bookings can be checked in.` });
+    }
+
     const event: any = booking.event;
-    
+
     // Check if the user is authorized: Creator, Admin, or Assigned Volunteer
     const isCreator = event.creator.toString() === req.user?._id.toString();
     const isAdmin = req.user?.role === 'admin';
