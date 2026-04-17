@@ -6,15 +6,17 @@ import { AuthRequest } from '../middleware/auth.js';
 
 export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
-    const { 
-      title, 
-      description, 
-      date, 
+    const {
+      title,
+      description,
+      date,
       time,
       endTime,
-      location, 
-      category, 
-      image, 
+      location,
+      category,
+      image,
+      videoUrl,
+      reels,
       ticketTypes,
       vouchers,
       days,
@@ -22,8 +24,8 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
     } = req.body;
 
     if (req.user?.role === 'event_manager' && !req.user?.isApproved) {
-      return res.status(403).json({ 
-        message: 'Your manager account is currently under review. You cannot broadcast events until authorized by the Pulse Council.' 
+      return res.status(403).json({
+        message: 'Your manager account is currently under review. You cannot broadcast events until authorized by the Pulse Council.'
       });
     }
 
@@ -36,6 +38,8 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       location,
       category,
       image,
+      videoUrl: videoUrl || undefined,
+      reels: Array.isArray(reels) ? reels.filter((r: string) => r && r.trim()) : [],
       ticketTypes,
       vouchers,
       days,
@@ -114,7 +118,12 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
-    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updateData = { ...req.body };
+    if (Array.isArray(updateData.reels)) {
+      updateData.reels = updateData.reels.filter((r: string) => r && r.trim());
+    }
+
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(updatedEvent);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -168,7 +177,9 @@ export const applyVoucher = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    const voucher = event.vouchers?.find((v: any) => v.code === code && v.isActive);
+    const voucher = event.vouchers?.find(
+      (v: any) => v.code.toUpperCase() === code.toUpperCase() && v.isActive
+    );
     if (!voucher) {
       return res.status(400).json({ message: 'Invalid or inactive voucher code' });
     }

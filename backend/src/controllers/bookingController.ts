@@ -55,7 +55,9 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     // Apply voucher discount if provided
     if (voucherCode && totalAmount > 0) {
-      const voucher = event.vouchers?.find((v: any) => v.code === voucherCode && v.isActive);
+      const voucher = event.vouchers?.find(
+        (v: any) => v.code.toUpperCase() === voucherCode.toUpperCase() && v.isActive
+      );
       if (voucher) {
         if (voucher.discountType === 'percentage') {
           totalAmount = Math.round(totalAmount * (1 - voucher.discountAmount / 100));
