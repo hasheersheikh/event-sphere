@@ -86,43 +86,46 @@ const CreateStorePage = () => {
   });
 
   // Load existing store data if editing
-  useQuery({
+  const { data: storeData } = useQuery({
     queryKey: ["adminStore", id],
     queryFn: async () => {
       const { data } = await api.get(`/local-stores/${id}`);
       return data;
     },
     enabled: isEdit,
-    onSuccess: (data: any) => {
+  });
+
+  useEffect(() => {
+    if (storeData) {
       form.reset({
-        name: data.name || "",
-        address: data.address || "",
-        description: data.description || "",
-        category: data.category || "",
-        photos: data.photos || [],
-        contactEmail: data.contactEmail || "",
-        contactPhone: data.contactPhone || "",
-        whatsapp: data.whatsapp || "",
-        openingHours: data.openingHours || "",
-        googleMapUrl: data.googleMapUrl || "",
-        paymentMethods: data.paymentMethods || [],
-        upiId: data.upiId || "",
+        name: storeData.name || "",
+        address: storeData.address || "",
+        description: storeData.description || "",
+        category: storeData.category || "",
+        photos: storeData.photos || [],
+        contactEmail: storeData.contactEmail || "",
+        contactPhone: storeData.contactPhone || "",
+        whatsapp: storeData.whatsapp || "",
+        openingHours: storeData.openingHours || "",
+        googleMapUrl: storeData.googleMapUrl || "",
+        paymentMethods: storeData.paymentMethods || [],
+        upiId: storeData.upiId || "",
         bankDetails: {
-          accountHolder: data.bankDetails?.accountHolder || "",
-          accountNumber: data.bankDetails?.accountNumber || "",
-          bankName: data.bankDetails?.bankName || "",
-          ifscCode: data.bankDetails?.ifscCode || "",
+          accountHolder: storeData.bankDetails?.accountHolder || "",
+          accountNumber: storeData.bankDetails?.accountNumber || "",
+          bankName: storeData.bankDetails?.bankName || "",
+          ifscCode: storeData.bankDetails?.ifscCode || "",
         },
-        instagram: data.instagram || "",
-        facebook: data.facebook || "",
-        website: data.website || "",
+        instagram: storeData.instagram || "",
+        facebook: storeData.facebook || "",
+        website: storeData.website || "",
       });
-    },
-  } as any);
+    }
+  }, [storeData, form]);
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
     control: form.control,
-    name: "photos" as any,
+    name: "photos" as never,
   });
 
   const watchedPaymentMethods = form.watch("paymentMethods") || [];

@@ -11,6 +11,9 @@ import {
   toggleStoreStatus,
   getMyStore,
   updateMyStore,
+  addMyProduct,
+  updateMyProduct,
+  removeMyProduct,
 } from '../controllers/localStoreController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -19,6 +22,9 @@ const router = express.Router();
 // Store owner routes (must be before /:id)
 router.get('/owner/my-store', protect, authorize('store_owner'), getMyStore);
 router.put('/owner/my-store', protect, authorize('store_owner'), updateMyStore);
+router.post('/owner/my-store/products', protect, authorize('store_owner'), addMyProduct);
+router.put('/owner/my-store/products/:productId', protect, authorize('store_owner'), updateMyProduct);
+router.delete('/owner/my-store/products/:productId', protect, authorize('store_owner'), removeMyProduct);
 
 // Public routes
 router.get('/', getLocalStores);

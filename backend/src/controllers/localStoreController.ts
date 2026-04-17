@@ -130,3 +130,49 @@ export const updateMyStore = async (req: AuthRequest, res: Response) => {
     res.status(400).json({ message: err.message || 'Server error' });
   }
 };
+
+// Store owner: add product
+export const addMyProduct = async (req: AuthRequest, res: Response) => {
+  try {
+    const store = await LocalStore.findById(req.user?.storeId);
+    if (!store) return res.status(404).json({ message: 'Store not found' });
+    store.products.push(req.body);
+    await store.save();
+    res.json(store);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message || 'Server error' });
+  }
+};
+
+// Store owner: update product
+export const updateMyProduct = async (req: AuthRequest, res: Response) => {
+  try {
+    const store = await LocalStore.findById(req.user?.storeId);
+    if (!store) return res.status(404).json({ message: 'Store not found' });
+    
+    const product = store.products.find((p: any) => p._id?.toString() === req.params.productId);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+
+    Object.assign(product, req.body);
+    await store.save();
+    res.json(store);
+  } catch (err: any) {
+    res.status(400).json({ message: err.message || 'Server error' });
+  }
+};
+
+// Store owner: remove product
+export const removeMyProduct = async (req: AuthRequest, res: Response) => {
+  try {
+    const store = await LocalStore.findById(req.user?.storeId);
+    if (!store) return res.status(404).json({ message: 'Store not found' });
+    
+    store.products = store.products.filter(
+      (p: any) => p._id?.toString() !== req.params.productId
+    );
+    await store.save();
+    res.json(store);
+  } catch (err: any) {
+    res.status(500).json({ message: err.message || 'Server error' });
+  }
+};

@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -7,7 +10,7 @@ import {
   ChevronDown, ChevronUp, Filter, LayoutDashboard, Wallet,
   Edit2, Check, X, Globe, Instagram, Facebook, Clock,
   CreditCard, MessageCircle, TrendingUp, IndianRupee, AlertCircle,
-  CheckCircle2, Loader2, ArrowUpRight, Building2, Smartphone,
+  CheckCircle2, Loader2, ArrowUpRight, Building2, Smartphone, Plus, Trash2, Upload, Image as ImageIcon
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
@@ -18,6 +21,8 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -40,6 +45,7 @@ const PAYOUT_STATUS: Record<string, { label: string; cls: string }> = {
 const ALL_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 const TABS = [
   { id: "orders",  label: "Orders",       icon: Package },
+  { id: "products",label: "Products",     icon: Package },
   { id: "store",   label: "Store Details", icon: Store },
   { id: "payouts", label: "Payouts",       icon: Wallet },
 ] as const;
@@ -137,6 +143,7 @@ const StoreOwnerPortal = () => {
       <main className="flex-1 container max-w-6xl px-4 py-8">
         <AnimatePresence mode="wait">
           {activeTab === "orders" && <OrdersTab key="orders" owner={owner} qc={qc} />}
+          {activeTab === "products" && <ProductsTab key="products" owner={owner} qc={qc} />}
           {activeTab === "store"  && <StoreDetailsTab key="store" owner={owner} />}
           {activeTab === "payouts" && <PayoutsTab key="payouts" owner={owner} qc={qc} />}
         </AnimatePresence>
@@ -302,6 +309,284 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
                   </div>
                 </div>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+// ─── PRODUCTS TAB ─────────────────────────────────────────────────────────────
+
+const productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "Price must be positive"),
+  discountPercent: z.coerce.number().min(0).max(100).optional(),
+  image: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  isAvailable: z.boolean().default(true),
+});
+type ProductFormValues = z.infer<typeof productSchema>;
+
+const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void }) => {
+  const qc = useQueryClient();
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: { name: "", price: 0, discountPercent: 0, image: "", description: "", isAvailable: true },
+  });
+
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProductImageUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      productImageInputRef.current?.click();
+      return;
+    }
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: false,
+        cropping: true,
+        croppingAspectRatio: 1,
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          form.setValue("image", result.info.secure_url);
+        }
+      },
+    );
+    widget.open();
+  };
+
+  const handleLocalProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const url = await uploadImageToBackend(file);
+      form.setValue("image", url);
+      toast.success("Image uploaded.");
+    } catch {
+      toast.error("Upload failed.");
+    }
+    e.target.value = "";
+  };
+
+  const mutation = useMutation({
+    mutationFn: async (values: ProductFormValues) => {
+      const { data } = await api.post(`/local-stores/owner/my-store/products`, values, { headers: authHeader(owner.token) });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Product added.");
+      qc.invalidateQueries({ queryKey: ["owner-store"] });
+      onClose();
+    },
+    onError: (e: any) => toast.error(e.response?.data?.message || "Failed"),
+  });
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-background border border-border rounded-3xl w-full max-w-md shadow-2xl overflow-y-auto max-h-[95vh]">
+        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
+          <h2 className="font-black text-base uppercase tracking-tight">Add Product</h2>
+          <button type="button" onClick={onClose} className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <Form {...form}>
+          <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-4">
+            <FormField control={form.control} name="name" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product Name *</FormLabel>
+                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="e.g. Masala Chai" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="description" render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</FormLabel>
+                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="Short description" {...field} /></FormControl>
+              </FormItem>
+            )} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="price" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Price (₹) *</FormLabel>
+                  <FormControl><Input type="number" className="h-12 rounded-xl bg-muted/30 border-border" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="discountPercent" render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Discount %</FormLabel>
+                  <FormControl><Input type="number" className="h-12 rounded-xl bg-muted/30 border-border" {...field} /></FormControl>
+                </FormItem>
+              )} />
+            </div>
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product Image</p>
+              {form.watch("image") && (
+                <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-border">
+                  <img src={form.watch("image")} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => form.setValue("image", "")}
+                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/80 text-white flex items-center justify-center"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <input ref={productImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalProductImageUpload} />
+              <button
+                type="button"
+                onClick={handleProductImageUpload}
+                className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+              >
+                <Upload className="h-4 w-4" /> {form.watch("image") ? "Change Image" : "Upload Image"}
+              </button>
+            </div>
+            <Button
+              type="button"
+              onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
+              disabled={mutation.isPending}
+              className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary mt-4"
+            >
+              {mutation.isPending ? "Adding..." : "Add Product"}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </div>
+  );
+};
+
+const ProductsTab = ({ owner, qc }: { owner: any; qc: any }) => {
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const { data: store, isLoading } = useQuery({
+    queryKey: ["owner-store"],
+    queryFn: async () => {
+      const { data } = await api.get("/local-stores/owner/my-store", { headers: authHeader(owner.token) });
+      return data;
+    },
+    enabled: Boolean(owner?.token),
+  });
+
+  const toggleProductMutation = useMutation({
+    mutationFn: async ({ productId, isAvailable }: { productId: string; isAvailable: boolean }) => {
+      const { data } = await api.put(`/local-stores/owner/my-store/products/${productId}`, { isAvailable }, { headers: authHeader(owner.token) });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Product status updated");
+      qc.invalidateQueries({ queryKey: ["owner-store"] });
+    },
+    onError: () => toast.error("Failed to update product"),
+  });
+
+  const removeProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      await api.delete(`/local-stores/owner/my-store/products/${productId}`, { headers: authHeader(owner.token) });
+    },
+    onSuccess: () => {
+      toast.success("Product removed");
+      qc.invalidateQueries({ queryKey: ["owner-store"] });
+    },
+    onError: () => toast.error("Failed to remove product"),
+  });
+
+  if (isLoading) return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      <div className="h-16 rounded-2xl bg-muted animate-pulse" />
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array(3).fill(0).map((_, i) => <div key={i} className="h-64 rounded-2xl bg-muted animate-pulse" />)}
+      </div>
+    </motion.div>
+  );
+
+  const products = store?.products || [];
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
+      {showAddForm && <AddProductForm owner={owner} onClose={() => setShowAddForm(false)} />}
+      
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-black tracking-tight">Products</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Manage your store's inventory</p>
+        </div>
+        <Button size="sm" onClick={() => setShowAddForm(true)} className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black gap-1.5 h-10 px-4">
+          <Plus className="h-4 w-4" /> Add Product
+        </Button>
+      </div>
+
+      {products.length === 0 ? (
+        <div className="py-20 text-center border border-dashed border-border rounded-3xl bg-card/50">
+          <Package className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No products yet</p>
+          <p className="text-xs text-muted-foreground mt-2">Add products to your store to start selling.</p>
+        </div>
+      ) : (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products.map((product: any) => (
+            <div key={product._id} className="bg-card rounded-2xl border border-border overflow-hidden flex flex-col group">
+              <div className="relative h-48 bg-muted shrink-0">
+                {product.image ? (
+                  <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                     <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                  </div>
+                )}
+                {!product.isAvailable && (
+                  <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
+                    <Badge variant="destructive" className="font-black uppercase tracking-widest text-[10px]">Unavailable</Badge>
+                  </div>
+                )}
+                {product.discountPercent > 0 && (
+                  <div className="absolute top-2 left-2 bg-rose-500 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">
+                    {product.discountPercent}% OFF
+                  </div>
+                )}
+              </div>
+              <div className="p-4 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-sm leading-tight group-hover:text-amber-500 transition-colors">{product.name}</h3>
+                  <div className="text-right shrink-0 ml-3">
+                    <p className="font-black text-sm">₹{product.price}</p>
+                  </div>
+                </div>
+                {product.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2 flex-1 mb-4">{product.description}</p>
+                )}
+                <div className="flex items-center gap-2 pt-4 border-t mt-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 rounded-lg text-[10px] uppercase font-black tracking-wider"
+                    onClick={() => toggleProductMutation.mutate({ productId: product._id, isAvailable: !product.isAvailable })}
+                  >
+                    {product.isAvailable ? "Mark Unavailable" : "Mark Available"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
+                    onClick={() => {
+                      if (window.confirm("Are you sure you want to remove this product?")) {
+                        removeProductMutation.mutate(product._id);
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
           ))}
         </div>
