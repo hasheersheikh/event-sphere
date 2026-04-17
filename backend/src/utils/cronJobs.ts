@@ -3,6 +3,7 @@ import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import winston from 'winston';
 import { sendReminderEmail, sendReviewEmail } from './emailService.js';
+import axios from 'axios';
 
 const logger = winston.createLogger({
   level: 'info',
@@ -107,7 +108,17 @@ export const checkAndSendReviewRequests = async () => {
   }
 };
 
-// Initialize cron jobs: 
+export const pingExternalService = async () => {
+  const serviceUrl = 'https://mnkhan.onrender.com/api/services';
+  try {
+    const response = await axios.get(serviceUrl, { timeout: 10000 });
+    logger.info(`Ping successful: ${response.status} - ${new Date().toISOString()}`);
+  } catch (error: any) {
+    logger.error(`Ping failed: ${error.message} - ${new Date().toISOString()}`);
+  }
+};
+
+// Initialize cron jobs:
 export const initCronJobs = () => {
   // Weekly cleanup on Sundays
   cron.schedule('0 0 * * 0', () => {
@@ -119,6 +130,12 @@ export const initCronJobs = () => {
     logger.info('Running hourly email journey cron...');
     checkAndSendReminders();
     checkAndSendReviewRequests();
+  });
+
+  // Ping external service every 5 minutes
+  cron.schedule('*/5 * * * *', () => {
+    logger.info('Running external service ping...');
+    pingExternalService();
   });
 
   logger.info('Cron jobs initialized');
