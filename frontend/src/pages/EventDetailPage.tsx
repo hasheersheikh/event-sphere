@@ -20,6 +20,8 @@ import {
   Phone,
   Plus,
   Minus,
+  Eye,
+  Building2,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -59,6 +61,7 @@ const EventDetailPage = () => {
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [guestEmail, setGuestEmail] = useState(user?.email || "");
   const [guestPhone, setGuestPhone] = useState("");
+  const [guestContactName, setGuestContactName] = useState(user?.name || "");
   const [selectedTicket, setSelectedTicket] = useState<{
     type: string;
     price: number;
@@ -176,51 +179,55 @@ const EventDetailPage = () => {
       toast.error(`Only ${maxQty} tickets available`);
       return;
     }
-    setSelectedTicket({
+
+    const ticketData = {
       type: ticket.name,
-      price: ticket.price,
+      price: unitPrice,
       quantity: qty,
       fullPassPrice: ticket.fullPassPrice,
       isFullPass: ticket.isFullPass,
       dayWisePrices: ticket.dayWisePrices
-    });
+    };
+
+    setSelectedTicket(ticketData);
     setSelectedDays([]);
     setIsFullPassSelected(false);
-    
-    // If user is logged in, use their details and start booking immediately
-    if (user) {
-      setGuestEmail(user.email || "");
-      setGuestPhone(user.phoneNumber || "");
-      
-      // If we have both details, skip modal
-      if (user.email && user.phoneNumber) {
-        // We use a small timeout to ensure state is updated or just pass them directly
-        // Better: just call startBookingProcess with the correct details
-        setTimeout(() => {
-          const btn = document.getElementById('initiate-booking-btn');
-          if (btn) btn.click();
-        }, 0);
-        // Actually, let's just make startBookingProcess accept args or use a more direct approach
-      } else {
-        setIsBookingModalOpen(true);
-      }
+
+    // For logged-in users with saved contact info on non-multiday events, skip the modal
+    if (user?.email && user?.phoneNumber && !event?.isMultiDay) {
+      startBookingProcess({
+        email: user.email,
+        phone: user.phoneNumber,
+        contactName: user.name,
+        ticket: ticketData,
+      });
     } else {
-      // Guest booking - open modal
+      if (user) {
+        setGuestEmail(user.email || "");
+        setGuestPhone(user.phoneNumber || "");
+        setGuestContactName(user.name || "");
+      }
       setIsBookingModalOpen(true);
     }
   };
 
-  const startBookingProcess = async () => {
-    // Determine contact info: state (guestEmail/Phone) or user (if logged in)
-    const emailToUse = guestEmail || user?.email;
-    const phoneToUse = guestPhone || user?.phoneNumber;
+  const startBookingProcess = async (overrides?: {
+    email?: string;
+    phone?: string;
+    contactName?: string;
+    ticket?: typeof selectedTicket;
+  }) => {
+    const emailToUse = overrides?.email || guestEmail || user?.email;
+    const phoneToUse = overrides?.phone || guestPhone || user?.phoneNumber;
+    const contactNameToUse = overrides?.contactName || guestContactName || user?.name;
+    const ticketToUse = overrides?.ticket || selectedTicket;
 
-    if (!selectedTicket || !emailToUse || !phoneToUse) {
+    if (!ticketToUse || !emailToUse || !phoneToUse) {
       toast.error("Please provide email and phone number.");
       return;
     }
 
-    const { type: ticketType, price: basePrice, quantity, fullPassPrice } = selectedTicket;
+    const { type: ticketType, price: basePrice, quantity, fullPassPrice } = ticketToUse;
 
     let unitPrice = basePrice;
     if (event.isMultiDay) {
@@ -229,7 +236,7 @@ const EventDetailPage = () => {
       } else if (selectedDays.length > 0) {
         unitPrice = 0;
         selectedDays.forEach(dayIdx => {
-          const dayPrice = selectedTicket.dayWisePrices?.find((dp: any) => dp.dayIndex === dayIdx)?.price || basePrice;
+          const dayPrice = ticketToUse.dayWisePrices?.find((dp: any) => dp.dayIndex === dayIdx)?.price || basePrice;
           unitPrice += dayPrice;
         });
       }
@@ -255,7 +262,7 @@ const EventDetailPage = () => {
     }
 
     try {
-      // 1. Create Pending Booking
+      // 1. Create Pending Booking — backend applies voucher discount server-side
       const { data: booking } = await api.post("/bookings", {
         eventId: id,
         tickets: [{
@@ -267,17 +274,19 @@ const EventDetailPage = () => {
         }],
         email: emailToUse,
         phoneNumber: phoneToUse,
+        contactName: contactNameToUse || undefined,
+        voucherCode: appliedVoucher?.code || undefined,
         status: "pending",
       });
 
       setIsBookingModalOpen(false);
 
-      // 2. Get hosted payment link from backend (no Razorpay SDK on frontend)
+      // 2. Get hosted payment link — use backend-verified totalAmount
       const { data } = await api.post("/payments/create-payment-link", {
         bookingId: booking._id,
-        amount: finalPrice,
+        amount: booking.totalAmount,
         currency: "INR",
-        customerName: user?.name || "Guest",
+        customerName: contactNameToUse || user?.name || "Guest",
         customerEmail: emailToUse,
         customerPhone: phoneToUse,
         eventTitle: event.title,
@@ -372,12 +381,13 @@ const EventDetailPage = () => {
 
   const getYouTubeId = (url: string) => {
     if (!url) return null;
-    // Handle YouTube Shorts: https://www.youtube.com/shorts/VIDEO_ID
-    const shortsMatch = url.match(/youtube\.com\/shorts\/([^#\&\?]{11})/);
+    // YouTube Shorts: youtube.com/shorts/VIDEO_ID
+    const shortsMatch = url.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/);
     if (shortsMatch) return shortsMatch[1];
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    // Standard watch/embed/short URLs
+    const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([a-zA-Z0-9_-]{11}).*/;
     const match = url.match(regExp);
-    return match && match[2].length === 11 ? match[2] : null;
+    return match ? match[2] : null;
   };
 
   const videoId = getYouTubeId(event.videoUrl);
@@ -845,18 +855,21 @@ const EventDetailPage = () => {
                   />
                 </div>
 
-                {/* Attendees */}
-                {event.soldTickets > 0 && (
-                  <div className="mt-6 pt-6 border-t border-border">
+                {/* Attendees & Views */}
+                <div className="mt-6 pt-6 border-t border-border flex flex-wrap gap-4">
+                  {event.soldTickets > 0 && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Users className="h-4 w-4" />
-                      <span>
-                        {event.soldTickets.toLocaleString()} people
-                        attending
-                      </span>
+                      <span>{event.soldTickets.toLocaleString()} attending</span>
                     </div>
-                  </div>
-                )}
+                  )}
+                  {event.viewCount > 0 && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Eye className="h-4 w-4" />
+                      <span>{event.viewCount.toLocaleString()} views</span>
+                    </div>
+                  )}
+                </div>
                 </div>
               </div>
             </motion.div>
@@ -885,6 +898,19 @@ const EventDetailPage = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactName" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Building2 className="h-3 w-3" /> Name / Company
+              </Label>
+              <Input
+                id="contactName"
+                type="text"
+                placeholder="Your name or company"
+                value={guestContactName}
+                onChange={(e) => setGuestContactName(e.target.value)}
+                className="rounded-xl bg-muted/30 border-border h-12 font-medium"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-2">
                 <Mail className="h-3 w-3" /> Email Address
@@ -987,12 +1013,6 @@ const EventDetailPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Hidden button for programmatic trigger */}
-      <button
-        id="initiate-booking-btn"
-        className="hidden"
-        onClick={() => startBookingProcess()}
-      />
     </div>
   );
 };

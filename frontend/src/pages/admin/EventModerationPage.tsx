@@ -242,6 +242,16 @@ const EventModerationPage = () => {
 
                     <td className="px-8 py-6 text-right">
                       <div className="flex justify-end gap-2.5 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                        <Link to={`/events/${event._id}`} target="_blank" rel="noopener noreferrer">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            title="Preview event"
+                            className="h-9 w-9 rounded-lg border-2 border-border hover:bg-sky-500 hover:text-white hover:border-sky-500 transition-all shadow-sm"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Link to={`/portal/admin/events/${event._id}`}>
                           <Button
                             size="icon"

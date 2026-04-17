@@ -88,7 +88,11 @@ export const getEventById = async (req: Request, res: Response) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
-    const event = await Event.findById(req.params.id as string).populate('creator', 'name email');
+    const event = await Event.findByIdAndUpdate(
+      req.params.id as string,
+      { $inc: { viewCount: 1 } },
+      { new: true }
+    ).populate('creator', 'name email');
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }

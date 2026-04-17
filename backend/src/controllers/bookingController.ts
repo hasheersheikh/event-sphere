@@ -9,7 +9,7 @@ import User from '../models/User.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
-    const { eventId, tickets, email, phoneNumber } = req.body;
+    const { eventId, tickets, email, phoneNumber, voucherCode, contactName } = req.body;
 
     const event = await Event.findById(eventId);
     if (!event) {
@@ -28,9 +28,9 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       if (ticketType.isSoldOut || (ticketType.capacity - ticketType.sold < ticketItem.quantity)) {
         return res.status(400).json({ message: `Tickets for ${ticketItem.type} are sold out or unavailable` });
       }
-      
+
       let price = ticketType.price;
-      
+
       if (ticketItem.isFullPass && ticketType.isFullPass) {
         price = ticketType.fullPassPrice || ticketType.price;
       } else if (ticketItem.selectedDays && ticketItem.selectedDays.length > 0) {
@@ -43,7 +43,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
       totalAmount += price * ticketItem.quantity;
       ticketType.sold += ticketItem.quantity;
-      
+
       enrichedTickets.push({
         type: ticketItem.type,
         quantity: ticketItem.quantity,
@@ -52,10 +52,22 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
         isFullPass: !!ticketItem.isFullPass,
       });
     }
-    
+
+    // Apply voucher discount if provided
+    if (voucherCode && totalAmount > 0) {
+      const voucher = event.vouchers?.find((v: any) => v.code === voucherCode && v.isActive);
+      if (voucher) {
+        if (voucher.discountType === 'percentage') {
+          totalAmount = Math.round(totalAmount * (1 - voucher.discountAmount / 100));
+        } else {
+          totalAmount = Math.max(0, totalAmount - voucher.discountAmount);
+        }
+      }
+    }
+
     // Find or create user if not logged in
     let userId = req.user?._id;
-    let userName = req.user?.name || 'Guest';
+    let userName = req.user?.name || contactName || 'Guest';
 
     if (!userId && email) {
       let existingUser = await User.findOne({ email });
@@ -70,7 +82,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       } else {
         // Create new user (no password — they'll set it via the email link)
         const newUser = await User.create({
-          name: email.split('@')[0],
+          name: contactName || email.split('@')[0],
           email,
           phoneNumber,
         });
@@ -93,6 +105,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       totalAmount,
       email,
       phoneNumber,
+      contactName: contactName || undefined,
       status: req.body.status || (totalAmount === 0 ? 'confirmed' : 'pending'),
     });
 

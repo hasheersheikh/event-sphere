@@ -50,6 +50,7 @@ export interface IEvent extends Document {
   }[];
   status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
+  viewCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -108,6 +109,7 @@ const EventSchema: Schema = new Schema(
       default: 'under_review',
     },
     isApproved: { type: Boolean, default: false },
+    viewCount: { type: Number, default: 0 },
     vouchers: [
       {
         code: { type: String, required: true },

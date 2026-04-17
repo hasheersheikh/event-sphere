@@ -14,6 +14,7 @@ export interface IBooking extends Document {
   totalAmount: number;
   email: string;
   phoneNumber: string;
+  contactName?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'refunded' | 'expired';
   paymentId?: string;
   reminderSent: boolean;
@@ -39,6 +40,7 @@ const BookingSchema: Schema = new Schema(
     totalAmount: { type: Number, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: true },
+    contactName: { type: String },
     status: {
       type: String,
       enum: ['pending', 'confirmed', 'cancelled', 'refunded', 'expired'],
