@@ -503,11 +503,44 @@ export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Respo
     const bookings = await Booking.find({ status: 'confirmed' });
     const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
 
-    // Get Top 5 Managers by Revenue
-    const topManagers = await EventManager.find({})
-      .select('name email totalRevenue')
-      .sort({ totalRevenue: -1 })
-      .limit(5);
+    // Get Top 5 Managers by Revenue (Aggregated from Bookings)
+    const topManagers = await Booking.aggregate([
+      { $match: { status: 'confirmed' } },
+      {
+        $lookup: {
+          from: 'events',
+          localField: 'event',
+          foreignField: '_id',
+          as: 'event'
+        }
+      },
+      { $unwind: '$event' },
+      {
+        $group: {
+          _id: '$event.creator',
+          totalRevenue: { $sum: '$totalAmount' }
+        }
+      },
+      { $sort: { totalRevenue: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'eventmanagers',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'manager'
+        }
+      },
+      { $unwind: '$manager' },
+      {
+        $project: {
+          _id: 1,
+          name: '$manager.name',
+          email: '$manager.email',
+          totalRevenue: 1
+        }
+      }
+    ]);
 
     // Get Recent Events
     const recentEvents = await Event.find({})
