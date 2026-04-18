@@ -135,11 +135,11 @@ const EventsPage = () => {
         </section>
 
         {/* Main Content */}
-        <section className="container py-16">
-          <div className="flex flex-col lg:flex-row gap-16">
+        <section className="max-w-[90rem] mx-auto px-6 py-12">
+          <div className="flex flex-col xl:flex-row gap-8">
             {/* Sidebar Filters */}
             <aside
-              className={`lg:w-72 shrink-0 ${showFilters ? "block" : "hidden lg:block"}`}
+              className={`xl:w-64 shrink-0 ${showFilters ? "block" : "hidden xl:block"}`}
             >
               <div className="sticky top-32 space-y-12">
                 <div className="space-y-6">
@@ -268,8 +268,8 @@ const EventsPage = () => {
 
               {/* Results Grid */}
               {isLoading ? (
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
-                  {Array.from({ length: 6 }).map((_, i) => (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {Array.from({ length: 8 }).map((_, i) => (
                     <div key={i} className="space-y-6">
                       <Skeleton className="h-64 w-full rounded-[2.5rem]" />
                       <div className="space-y-3 px-4">
@@ -280,7 +280,7 @@ const EventsPage = () => {
                   ))}
                 </div>
               ) : events?.length > 0 ? (
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8 pb-32">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-32">
                   {events.map((event: any, index: number) => (
                     <EventCard key={event._id} event={event} index={index} />
                   ))}

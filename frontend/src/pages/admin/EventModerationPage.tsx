@@ -60,10 +60,10 @@ const EventModerationPage = () => {
     setIsProcessing(true);
     try {
       await api.patch(`/admin/events/${id}/approve`);
-      toast.success("Event approved and broadcasted.");
+      toast.success("Event approved.");
       fetchAllEvents(page);
     } catch (error) {
-      toast.error("Approval protocol failed.");
+      toast.error("Approval failed.");
     } finally {
       setIsProcessing(false);
     }
@@ -95,11 +95,11 @@ const EventModerationPage = () => {
     setIsProcessing(true);
     try {
       await api.delete(`/admin/events/${deleteEventId}`);
-      toast.success("Event and all associated data purged.");
+      toast.success("Event deleted.");
       setDeleteEventId(null);
       fetchAllEvents(page);
     } catch (error) {
-      toast.error("Purge protocol failed.");
+      toast.error("Delete failed.");
     } finally {
       setIsProcessing(false);
     }
@@ -114,7 +114,7 @@ const EventModerationPage = () => {
 
   const columns = [
     {
-      header: "Event Identity",
+      header: "Event",
       accessor: (event: any) => (
         <div className="flex items-center gap-4">
           <div className="h-9 w-9 bg-primary/10 text-primary border border-primary/20 rounded-lg flex items-center justify-center font-black text-sm italic shadow-sm">
@@ -132,7 +132,7 @@ const EventModerationPage = () => {
       ),
     },
     {
-      header: "Unit Commander",
+      header: "Created By",
       accessor: (event: any) => (
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 bg-muted/30 text-muted-foreground/50 border border-border/50 rounded-lg flex items-center justify-center font-bold text-[10px] italic">
@@ -140,17 +140,17 @@ const EventModerationPage = () => {
           </div>
           <div className="min-w-0">
             <p className="font-black text-[10px] uppercase truncate text-foreground/80 leading-none mb-0.5 italic">
-              {event.creator?.name || "Unknown Unit"}
+              {event.creator?.name || "Unknown"}
             </p>
             <p className="text-[8px] text-muted-foreground/40 font-bold italic truncate">
-              {event.creator?.email || "No Signal"}
+              {event.creator?.email || "No email"}
             </p>
           </div>
         </div>
       ),
     },
     {
-      header: "Chronology",
+      header: "Date & Time",
       accessor: (event: any) => (
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-foreground/70 italic">
@@ -165,7 +165,7 @@ const EventModerationPage = () => {
       ),
     },
     {
-      header: "Validation",
+      header: "Approval",
       accessor: (event: any) => (
         <div className="flex items-center gap-1.5">
           <div
@@ -230,10 +230,10 @@ const EventModerationPage = () => {
       <PortalPageHeader
         title="Event Moderation"
         icon={ShieldAlert}
-        subtitle="Critical administrative queue for event authorization and verification."
+        subtitle="Review and approve or reject pending events."
         badge={
           <Badge className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md italic">
-            {pagination?.total ?? 0} TOTAL UNITS
+            {pagination?.total ?? 0} EVENTS
           </Badge>
         }
       />
@@ -246,7 +246,7 @@ const EventModerationPage = () => {
         onPageChange={setPage}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="SEARCH BY EVENT OR COMMANDER..."
+        searchPlaceholder="Search by event or creator..."
         rowKey="_id"
       />
 
@@ -258,23 +258,23 @@ const EventModerationPage = () => {
         <AlertDialogContent className="bg-background border border-border rounded-2xl text-foreground max-w-sm p-5 shadow-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-black brand-font uppercase tracking-tighter italic">
-              DECLINE <span className="text-rose-500">PROTOCOL.</span>
+              DECLINE <span className="text-rose-500">EVENT.</span>
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-bold italic pt-4 leading-relaxed text-[11px]">
-              Specify the frequency deviation or policy violation to notify the unit commander.
+              Explain why you're rejecting this event. The creator will be notified.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <textarea
               value={declineReason}
               onChange={(e) => setDeclineReason(e.target.value)}
-              placeholder="ENTER REASON..."
+              placeholder="Enter reason..."
               className="w-full bg-muted/20 border border-border rounded-xl p-3 text-[10px] font-black uppercase tracking-widest text-foreground focus:outline-none focus:border-primary/50 h-24 resize-none transition-all italic shadow-inner"
             />
           </div>
           <AlertDialogFooter className="pt-2 gap-2">
             <AlertDialogCancel className="bg-muted border-border text-foreground rounded-lg hover:bg-muted/80 text-[10px] font-black uppercase tracking-widest px-4 h-9 transition-all">
-              ABORT
+              CANCEL
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDecline}
@@ -294,26 +294,26 @@ const EventModerationPage = () => {
         <AlertDialogContent className="bg-background border border-border rounded-2xl text-foreground max-w-sm p-5 shadow-3xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-xl font-black brand-font uppercase tracking-tighter italic">
-              PURGE <span className="text-rose-500">REQUEST.</span>
+              DELETE <span className="text-rose-500">EVENT.</span>
             </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground font-bold italic pt-4 leading-relaxed">
               <div className="bg-rose-500/10 border-l-4 border-rose-500 p-3 mb-4">
                 <p className="text-rose-500 text-[10px] font-black uppercase tracking-widest leading-relaxed">
-                  CRITICAL: Permanent wipe of this event and all associated registries.
+                  Warning: This will permanently delete the event and all its bookings.
                 </p>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-2 gap-2">
             <AlertDialogCancel className="bg-muted border-border text-foreground rounded-lg hover:bg-muted/80 text-[10px] font-black uppercase tracking-widest px-4 h-9 transition-all">
-              ABORT
+              CANCEL
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isProcessing}
               className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10px] font-black uppercase tracking-widest px-4 h-9 shadow-xl transition-all border-none"
             >
-              {isProcessing ? "PURGING..." : "CONFIRM PURGE"}
+              {isProcessing ? "DELETING..." : "CONFIRM DELETE"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

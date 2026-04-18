@@ -78,7 +78,7 @@ const AdminVolunteersPage = () => {
       return data;
     },
     onSuccess: () => {
-      toast.success("Personnel initialized on the grid.");
+      toast.success("Volunteer added.");
       queryClient.invalidateQueries({ queryKey: ["admin-volunteers"] });
       setIsAdding(false);
       setFormData({
@@ -91,7 +91,7 @@ const AdminVolunteersPage = () => {
       });
     },
     onError: () => {
-      toast.error("Failed to initialize personnel.");
+      toast.error("Failed to add volunteer.");
     },
   });
 
@@ -100,7 +100,7 @@ const AdminVolunteersPage = () => {
       await api.delete(`/admin/volunteers/${id}`);
     },
     onSuccess: () => {
-      toast.success("Personnel removed from session.");
+      toast.success("Volunteer removed.");
       queryClient.invalidateQueries({ queryKey: ["admin-volunteers"] });
     },
   });
@@ -115,12 +115,12 @@ const AdminVolunteersPage = () => {
   return (
     <div className="p-3 md:p-4 space-y-4 bg-background min-h-screen">
       <PortalPageHeader 
-        title="Personnel Registry"
+        title="Volunteers"
         icon={ShieldCheck}
-        subtitle="Operational station and guard access protocols."
+        subtitle="Manage event volunteers and gate staff."
         badge={
           <Badge className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md italic">
-            {pagination?.total ?? 0} SPECIALISTS
+            {pagination?.total ?? 0} VOLUNTEERS
           </Badge>
         }
         actions={
@@ -128,7 +128,7 @@ const AdminVolunteersPage = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
-                placeholder="FILTER ENTITIES..."
+                placeholder="Search volunteers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-9 h-10 w-full md:w-48 rounded-xl bg-muted/30 border-border font-black text-[9px] uppercase tracking-widest"
@@ -139,13 +139,13 @@ const AdminVolunteersPage = () => {
               <DialogTrigger asChild>
                 <Button className="rounded-xl h-10 px-6 bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all border-none italic">
                   <Plus className="h-4 w-4" />
-                  Initialize Node
+                  Add Volunteer
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md bg-background border-border rounded-2xl p-6 shadow-2xl">
                 <DialogHeader className="mb-4">
                   <DialogTitle className="text-xl font-black brand-font uppercase italic tracking-tight">
-                    Initialize Specialist
+                    Add Volunteer
                   </DialogTitle>
                 </DialogHeader>
                 <form
@@ -157,7 +157,7 @@ const AdminVolunteersPage = () => {
                 >
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Identity
+                      Full Name
                     </label>
                     <Input
                       required
@@ -187,7 +187,7 @@ const AdminVolunteersPage = () => {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                        Access Key
+                        Password
                       </label>
                       <Input
                         required
@@ -203,7 +203,7 @@ const AdminVolunteersPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Assignment
+                      Assigned Event
                     </label>
                     <select
                       required
@@ -230,7 +230,7 @@ const AdminVolunteersPage = () => {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                      Designation
+                      Gate / Station
                     </label>
                     <Input
                       required
@@ -248,8 +248,8 @@ const AdminVolunteersPage = () => {
                     className="w-full h-10 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest text-[9px] mt-2 shadow-lg shadow-amber-500/10 italic"
                   >
                     {addMutation.isPending
-                      ? "INITIALIZING..."
-                      : "Finalize Initialization"}
+                      ? "ADDING..."
+                      : "Add Volunteer"}
                   </Button>
                 </form>
               </DialogContent>
@@ -292,10 +292,10 @@ const AdminVolunteersPage = () => {
                 <Calendar className="h-4 w-4 text-primary opacity-60" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground opacity-50 leading-none mb-1">
-                    ASSIGNMENT
+                    EVENT
                   </span>
                   <span className="text-[10px] font-black line-clamp-1 italic uppercase tracking-tighter text-foreground">
-                    {volunteer.event?.title || "PURGED NODE"}
+                    {volunteer.event?.title || "No Event"}
                   </span>
                 </div>
               </div>
@@ -303,7 +303,7 @@ const AdminVolunteersPage = () => {
                 <Users className="h-4 w-4 text-primary opacity-60" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-[7px] font-black uppercase tracking-widest text-muted-foreground opacity-50 leading-none mb-1">
-                    COMMANDER
+                    MANAGER
                   </span>
                   <span className="text-[10px] font-black line-clamp-1 italic uppercase tracking-tighter text-foreground">
                     {volunteer.manager?.name || "PULSE COUNCIL"}
@@ -330,7 +330,7 @@ const AdminVolunteersPage = () => {
             </div>
           </div>
         )}
-        emptyMessage="No Specialists Initialized on the Grid."
+        emptyMessage="No volunteers yet."
       />
     </div>
   );

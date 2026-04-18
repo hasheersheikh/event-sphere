@@ -65,8 +65,8 @@ const ScannerPage = () => {
         onScanFailure,
       );
     } catch (err) {
-      setError("Failed to initialize optics. Camera access required.");
-      toast.error("Optics initialization failed");
+      setError("Camera access required to scan tickets.");
+      toast.error("Could not start camera");
     }
   };
 
@@ -86,14 +86,14 @@ const ScannerPage = () => {
         });
         setIsTorchOn(newState);
       } catch (e) {
-        toast.info("Torch control not supported on this unit.");
+        toast.info("Torch not supported on this device.");
       }
     }
   };
 
   const onScanSuccess = async (decodedText: string) => {
     if (!decodedText.startsWith("citypulse://ticket/")) {
-      toast.error("Invalid frequency detected.");
+      toast.error("Invalid QR code.");
       return;
     }
 
@@ -113,10 +113,10 @@ const ScannerPage = () => {
         { ticketType: "General Admission" }, // Fallback, ideally should handle selection if multiple
       );
       setScanResult(result);
-      toast.success("Identity Verified.");
+      toast.success("Check-in successful.");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Security clearance denied.");
-      toast.error("Clearance Denied");
+      setError(err.response?.data?.message || "Access denied.");
+      toast.error("Access Denied");
     } finally {
       setIsLoading(false);
     }
@@ -155,10 +155,10 @@ const ScannerPage = () => {
                 </button>
                 <div>
                   <h1 className="text-sm font-black uppercase tracking-widest text-white leading-none">
-                    Scanner <span className="text-emerald-500">Hub.</span>
+                    Ticket <span className="text-emerald-500">Scanner.</span>
                   </h1>
                   <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                    Secure Entry Node
+                    Check-in System
                   </p>
                 </div>
               </div>
@@ -199,12 +199,12 @@ const ScannerPage = () => {
 
               <div className="mt-12 text-center space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">
-                  Align Ticket QR Protocol
+                  Align ticket QR code within frame
                 </p>
                 <div className="flex items-center gap-3 justify-center bg-emerald-500/10 border border-emerald-500/20 px-6 py-2 rounded-full">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                    Optics Online / Scanning
+                    Ready to Scan
                   </span>
                 </div>
               </div>
@@ -217,12 +217,12 @@ const ScannerPage = () => {
               </div>
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-white/90">
-                  {user?.role === "volunteer" ? "Gate Access Control" : "Event Entry Node"}
+                  {user?.role === "volunteer" ? "Gate Scanner" : "Event Check-in"}
                 </h3>
                 <p className="text-zinc-600 text-[9px] font-bold italic mt-0.5">
                   {user?.role === "volunteer"
-                    ? `Authorized Station: ${user.gate || "Primary ALPHA"}`
-                    : "Synchronizing participant IDs in real-time."}
+                    ? `Station: ${user.gate || "Main Entrance"}`
+                    : "Checking attendees in real-time."}
                 </p>
               </div>
             </div>
@@ -238,7 +238,7 @@ const ScannerPage = () => {
               <div className="space-y-6">
                 <div className="h-20 w-20 border-t-4 border-emerald-500 rounded-full animate-spin mx-auto" />
                 <p className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500">
-                  Decrypting Frequency...
+                  Processing ticket...
                 </p>
               </div>
             ) : scanResult ? (
@@ -253,10 +253,10 @@ const ScannerPage = () => {
                   </motion.div>
                   <div className="space-y-2">
                     <h2 className="text-4xl font-black brand-font tracking-tighter uppercase text-emerald-400 italic">
-                      Clearance Granted.
+                      Check-in Complete.
                     </h2>
                     <p className="text-zinc-500 text-xs font-black uppercase tracking-widest">
-                      Identity Protocol Verified
+                      Ticket Verified
                     </p>
                   </div>
                 </div>
@@ -265,7 +265,7 @@ const ScannerPage = () => {
                   <div className="bg-white/5 border border-white/10 p-8 text-left space-y-6">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-1 italic">
-                        Authorized Participant
+                        Attendee
                       </p>
                       <h3 className="text-2xl font-black uppercase italic tracking-tighter">
                         {scanResult.booking.userName}
@@ -274,7 +274,7 @@ const ScannerPage = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">
-                          Access Tier
+                          Ticket Type
                         </p>
                         <p className="text-xs font-black uppercase text-emerald-500">
                           {scanResult.booking.ticketType}
@@ -282,7 +282,7 @@ const ScannerPage = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-[8px] font-black uppercase tracking-widest text-zinc-600 mb-1">
-                          Scan Index
+                          Check-ins
                         </p>
                         <p className="text-xs font-black uppercase tabular-nums">
                           {scanResult.booking.checkedInCount} /{" "}
@@ -305,7 +305,7 @@ const ScannerPage = () => {
                   onClick={resetScanner}
                   className="w-full h-16 rounded-none bg-emerald-500 text-black hover:bg-emerald-400 font-black uppercase tracking-[0.3em] text-xs shadow-[0_0_30px_rgba(16,185,129,0.2)]"
                 >
-                  Scan Next Unit
+                  Scan Next Ticket
                 </Button>
               </>
             ) : (
@@ -316,10 +316,10 @@ const ScannerPage = () => {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-4xl font-black brand-font tracking-tighter uppercase text-rose-500 italic">
-                      Access Revoked.
+                      Access Denied.
                     </h2>
                     <p className="text-zinc-500 text-xs font-black uppercase tracking-widest italic">
-                      {error || "Security Clearance Denied"}
+                      {error || "Ticket not valid"}
                     </p>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ const ScannerPage = () => {
               onClick={() => navigate(-1)}
               className="text-[10px] font-black uppercase tracking-widest text-zinc-600 hover:text-white transition-colors"
             >
-              Abandon Post
+              Exit Scanner
             </button>
           </motion.div>
         )}

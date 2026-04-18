@@ -240,7 +240,7 @@ const CreateEventPage = () => {
       (error: any, result: any) => {
         if (!error && result && result.event === "success") {
           form.setValue("image", result.info.secure_url);
-          toast.success("Visual asset captured.");
+          toast.success("Image uploaded.");
         }
       },
     );
@@ -262,8 +262,8 @@ const CreateEventPage = () => {
 
   const steps = [
     { title: "Basics", icon: Info },
-    { title: "Logistics", icon: CalendarIcon },
-    { title: "Inventory", icon: Ticket },
+    { title: "When & Where", icon: CalendarIcon },
+    { title: "Tickets", icon: Ticket },
   ];
 
   return (

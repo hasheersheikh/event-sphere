@@ -78,7 +78,7 @@ const ManageEventPage = () => {
       <div className="py-20 text-center">
         <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-muted-foreground font-black uppercase tracking-widest text-[10px]">
-          Syncing Event Data...
+          Loading event...
         </p>
       </div>
     );
@@ -97,7 +97,7 @@ const ManageEventPage = () => {
           className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors italic"
         >
           <ArrowLeft className="h-3 w-3" />
-          Back to Roster
+          Back to Events
         </Link>
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
@@ -109,7 +109,7 @@ const ManageEventPage = () => {
                 className={`h-1.5 w-1.5 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_10px_#10B981]" : "bg-orange-500 animate-pulse"}`}
               />
               <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
-                {event.isApproved ? "Verified Event" : "Authorization Pending"}
+                {event.isApproved ? "Verified Event" : "Under Review"}
               </span>
             </div>
             <h1 className="text-lg md:text-xl font-black tracking-tight uppercase italic leading-none text-foreground drop-shadow-sm">
@@ -202,10 +202,10 @@ const ManageEventPage = () => {
                 <div className="flex items-center justify-between">
                    <div className="flex items-center gap-2.5 text-muted-foreground">
                      <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-                     <h2 className="text-[9px] font-black uppercase tracking-[0.3em] italic">Revenue Flux</h2>
+                     <h2 className="text-[9px] font-black uppercase tracking-[0.3em] italic">Revenue Trend</h2>
                    </div>
                    <Badge variant="outline" className="rounded-md border-emerald-500/20 text-emerald-500 bg-emerald-500/5 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 italic">
-                      Last 7 Units
+                      Last 7 Days
                    </Badge>
                 </div>
                 <div className="h-[160px] w-full">
@@ -271,7 +271,7 @@ const ManageEventPage = () => {
                     </div>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground opacity-50">Location Node</p>
+                    <p className="text-[7px] font-black uppercase tracking-widest text-muted-foreground opacity-50">Location</p>
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="text-lg font-black brand-font uppercase text-foreground italic tracking-tight">
@@ -301,7 +301,7 @@ const ManageEventPage = () => {
             {/* Sidebar Actions */}
             <div className="lg:col-span-4 space-y-4">
                <section className="p-4 bg-muted/30 border border-border rounded-lg space-y-3 shadow-black/5">
-                <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center mb-4 italic opacity-60">Protocol Hub</h3>
+                <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center mb-4 italic opacity-60">Quick Actions</h3>
                   <Link to={`/portal/manager/events/${event._id}/edit`} className="block">
                     <Button className="w-full h-10 rounded-lg bg-primary text-black hover:bg-primary/90 text-[9px] font-black uppercase tracking-widest shadow-lg border-none italic">
                       Edit Event
@@ -314,7 +314,7 @@ const ManageEventPage = () => {
                   </Link>
                   <Link to={`/portal/manager/events/${id}/volunteers`} className="block">
                     <Button className="w-full h-10 rounded-lg bg-card border border-border hover:bg-muted text-foreground text-[9px] font-black uppercase tracking-widest shadow-sm italic">
-                      Manage Units
+                      Manage Volunteers
                     </Button>
                   </Link>
               </section>
@@ -322,10 +322,10 @@ const ManageEventPage = () => {
               <section className="p-6 bg-primary/5 border border-primary/10 rounded-[1.5rem] space-y-4">
                  <div className="flex items-center gap-2 text-primary">
                     <ShieldCheck className="h-4 w-4" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Platform Integrity</span>
+                    <span className="text-[9px] font-black uppercase tracking-widest">Platform Sync</span>
                  </div>
                  <p className="text-[10px] font-medium italic text-muted-foreground leading-relaxed">
-                   This event is fully synchronized with the City Pulse asset relay.
+                   This event is synced with the platform.
                  </p>
               </section>
             </div>
@@ -375,17 +375,17 @@ const ManageEventPage = () => {
              <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
                   <Users className="h-4 w-4 text-primary" />
-                  Recent Registry Transmissions
+                  Recent Bookings
                 </h3>
              </div>
              <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse">
                  <thead>
                    <tr className="bg-muted/10 text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] border-b border-border italic">
-                     <th className="px-4 py-3">Asset Holder</th>
-                     <th className="px-4 py-3">Classification</th>
-                     <th className="px-4 py-3">Volume</th>
-                     <th className="px-4 py-3 text-right">Yield</th>
+                     <th className="px-4 py-3">Attendee</th>
+                     <th className="px-4 py-3">Ticket Type</th>
+                     <th className="px-4 py-3">Qty</th>
+                     <th className="px-4 py-3 text-right">Amount</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-border/30">
@@ -407,7 +407,7 @@ const ManageEventPage = () => {
                             {booking.tickets.map((t: any) => `${t.quantity}X ${t.type}`).join(', ')}
                          </td>
                          <td className="px-4 py-3 font-black text-[11px] italic">
-                            {booking.tickets.reduce((sum: number, t: any) => sum + t.quantity, 0)} UNITS
+                            {booking.tickets.reduce((sum: number, t: any) => sum + t.quantity, 0)} tickets
                          </td>
                          <td className="px-4 py-3 text-right font-black text-emerald-500 tabular-nums italic text-xs">
                             ₹{booking.totalAmount?.toLocaleString()}
@@ -417,7 +417,7 @@ const ManageEventPage = () => {
                    ) : (
                      <tr>
                         <td colSpan={4} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground italic">
-                           No registry entries detected.
+                           No bookings yet.
                         </td>
                      </tr>
                    )}
@@ -432,11 +432,11 @@ const ManageEventPage = () => {
              <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
                   <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                  Ground Personnel & Deployment
+                  Event Volunteers
                 </h3>
                 <Link to={`/portal/manager/events/${id}/volunteers`}>
                    <Button size="sm" className="bg-foreground text-background hover:bg-emerald-500 hover:text-white text-[8px] font-black uppercase h-8 px-4 rounded-lg border-none shadow-sm transition-all">
-                      Manage Units
+                      Manage Volunteers
                    </Button>
                 </Link>
              </div>
@@ -444,10 +444,10 @@ const ManageEventPage = () => {
                <table className="w-full text-left border-collapse">
                  <thead>
                    <tr className="bg-muted/10 text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] border-b border-border">
-                     <th className="px-6 py-4">Personnel Identity</th>
-                     <th className="px-6 py-4">Logistical Node</th>
-                     <th className="px-6 py-4">Relay Status</th>
-                     <th className="px-6 py-4 text-right">Deployment Date</th>
+                     <th className="px-6 py-4">Volunteer</th>
+                     <th className="px-6 py-4">Gate / Station</th>
+                     <th className="px-6 py-4">Status</th>
+                     <th className="px-6 py-4 text-right">Added On</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-border/30">
@@ -468,13 +468,13 @@ const ManageEventPage = () => {
                          <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <MapPin className="h-3 w-3 text-orange-500" />
-                              <span className="text-[10px] font-black uppercase tracking-widest">{v.gate || "GRID DEFAULT"}</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest">{v.gate || "Not Assigned"}</span>
                             </div>
                          </td>
                          <td className="px-6 py-4">
                             <span className="flex items-center gap-1.5 text-[9px] font-black uppercase text-emerald-500">
                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10B981]" />
-                               Active Relay
+                               Active
                             </span>
                          </td>
                          <td className="px-6 py-4 text-right font-black text-[10px] text-muted-foreground tabular-nums uppercase">
@@ -485,7 +485,7 @@ const ManageEventPage = () => {
                    ) : (
                      <tr>
                         <td colSpan={4} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground italic">
-                           No personnel deployed to this sector.
+                           No volunteers assigned yet.
                         </td>
                      </tr>
                    )}

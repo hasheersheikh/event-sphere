@@ -40,7 +40,7 @@ const UsersManagement = () => {
 
   const columns = [
     {
-      header: "Member Identity",
+      header: "User",
       accessor: (u: any) => (
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 bg-primary/10 text-primary border border-primary/20 rounded-lg flex items-center justify-center font-black text-[10px] shadow-sm italic">
@@ -58,7 +58,7 @@ const UsersManagement = () => {
       ),
     },
     {
-      header: "Operational Role",
+      header: "Role",
       accessor: (u: any) => (
         <Badge className="bg-muted text-foreground border border-border rounded-md text-[8px] font-black uppercase tracking-widest px-2 py-0.5 italic">
           {u.role?.replace("_", " ")}
@@ -66,7 +66,7 @@ const UsersManagement = () => {
       ),
     },
     {
-      header: "Current Status",
+      header: "Status",
       accessor: (u: any) => (
         <div className="flex items-center gap-2">
           <div
@@ -83,7 +83,7 @@ const UsersManagement = () => {
       ),
     },
     {
-      header: "Registration",
+      header: "Joined",
       accessor: (u: any) => (
         <span className="text-[9px] font-black text-muted-foreground tabular-nums italic">
           {new Date(u.createdAt).toLocaleDateString()}
@@ -142,7 +142,7 @@ const UsersManagement = () => {
         onPageChange={setPage}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        searchPlaceholder="SEARCH BY IDENTITY..."
+        searchPlaceholder="Search by name or email..."
         rowKey="_id"
       />
 
@@ -154,10 +154,10 @@ const UsersManagement = () => {
             </div>
             <div>
               <h3 className="text-lg font-black text-foreground brand-font uppercase tracking-tight italic">
-                Access Escalation
+                Pending Approvals
               </h3>
               <p className="text-muted-foreground text-[10px] font-black uppercase tracking-wider mt-0.5 italic">
-                {users.filter((u: any) => !u.isApproved).length} pending manager overrides detected
+                {users.filter((u: any) => !u.isApproved).length} managers awaiting approval
               </p>
             </div>
           </div>
@@ -171,15 +171,15 @@ const UsersManagement = () => {
               </div>
               <div>
                 <h3 className="text-lg font-black text-foreground brand-font uppercase tracking-tight italic">
-                  System Logs
+                  System Health
                 </h3>
                 <p className="text-muted-foreground text-[9px] font-black uppercase tracking-widest mt-0.5 italic">
-                  Operational heartbeat: OK
+                  Status: All systems running
                 </p>
               </div>
             </div>
             <Button variant="outline" className="h-8 px-4 border-primary/20 text-primary hover:bg-primary/10 text-[9px] font-black uppercase tracking-widest rounded-lg">
-              SYNC
+              Refresh
             </Button>
           </div>
         </PortalCard>

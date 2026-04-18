@@ -136,7 +136,7 @@ const AddProductModal = ({ storeId, onClose }: { storeId: string; onClose: () =>
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
               disabled={mutation.isPending}
               className="w-full h-9 rounded-lg font-black uppercase tracking-widest text-[9px] bg-primary italic shadow-lg shadow-primary/10">
-              {mutation.isPending ? "ENROLLING..." : "Finalize Listing"}
+              {mutation.isPending ? "SAVING..." : "Add Product"}
             </Button>
           </form>
         </Form>
@@ -272,7 +272,7 @@ const AdminStoreDetailPage = () => {
         <p className="text-sm text-muted-foreground">The store you are looking for does not exist or was removed.</p>
       </div>
       <Button variant="outline" onClick={() => navigate("/portal/admin/local-stores")} className="rounded-lg h-10 px-5 font-black uppercase tracking-widest text-[9px]">
-        Return to Directory
+        Back to Stores
       </Button>
     </div>
   );
@@ -335,7 +335,7 @@ const AdminStoreDetailPage = () => {
 
   const payoutColumns = [
     {
-      header: "TRANS_ID",
+      header: "Transaction",
       accessor: (p: any) => (
         <span className="text-[9px] font-black italic tracking-widest opacity-60">
           #{p._id.slice(-6).toUpperCase()}
@@ -343,7 +343,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "METHOD",
+      header: "Method",
       accessor: (p: any) => (
         <div className="flex items-center gap-2">
           {p.payoutMethod === "upi"
@@ -355,7 +355,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "DESTINATION",
+      header: "Destination",
       accessor: (p: any) => (
         <span className="text-[10px] font-bold text-muted-foreground italic truncate max-w-[150px]">
           {p.payoutMethod === "upi" ? p.upiId : `${p.bankDetails?.bankName} ••••${p.bankDetails?.accountNumber?.slice(-4)}`}
@@ -379,7 +379,7 @@ const AdminStoreDetailPage = () => {
       },
     },
     {
-      header: "ACTL_AMT",
+      header: "Amount",
       accessor: (p: any) => (
         <span className="text-xs font-black italic tabular-nums text-foreground">
           ₹{p.netAmount?.toLocaleString()}
@@ -387,7 +387,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "STAMP",
+      header: "Date",
       accessor: (p: any) => (
         <span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">
           {new Date(p.createdAt).toLocaleDateString()}
@@ -395,14 +395,14 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "COMMAND",
+      header: "Action",
       accessor: (p: any) => (
         p.status === "pending" && (
           <button
             onClick={() => { setPayoutActionId(payoutActionId === p._id ? null : p._id); setPayoutNote(""); }}
             className="h-8 px-4 rounded-lg bg-primary text-black text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 italic hover:scale-105 transition-all"
           >
-            {payoutActionId === p._id ? "Abort" : "Engage"}
+            {payoutActionId === p._id ? "Cancel" : "Review"}
           </button>
         )
       ),
@@ -411,7 +411,7 @@ const AdminStoreDetailPage = () => {
 
   const orderColumns = [
     {
-      header: "TRANS_ID",
+      header: "Order ID",
       accessor: (o: any) => (
         <span className="text-[9px] font-black italic tracking-widest opacity-60">
           #{o._id.slice(-6).toUpperCase()}
@@ -419,7 +419,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "IDENTITY",
+      header: "Customer",
       accessor: (o: any) => (
         <div className="flex flex-col">
           <span className="text-xs font-black uppercase italic tracking-tight">{o.customer?.name ?? "Anonymous"}</span>
@@ -428,7 +428,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "ALLOCATION",
+      header: "Address",
       accessor: (o: any) => (
         <div className="flex items-center gap-1.5 p-1 px-2 rounded-lg bg-muted/20 border border-border/40 w-fit">
           <MapPin className="h-3 w-3 text-primary opacity-60" />
@@ -439,7 +439,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "TRANSMISSION",
+      header: "Status",
       accessor: (o: any) => (
         <Badge className={cn(
           "rounded-lg text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 italic shadow-sm",
@@ -452,7 +452,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "T_AMOUNT",
+      header: "Total",
       accessor: (o: any) => (
         <span className="text-xs font-black italic tabular-nums text-foreground">
           ₹{o.totalAmount?.toLocaleString()}
@@ -460,7 +460,7 @@ const AdminStoreDetailPage = () => {
       ),
     },
     {
-      header: "STAMP",
+      header: "Date",
       accessor: (o: any) => (
         <span className="text-[9px] font-black text-muted-foreground uppercase opacity-60">
           {new Date(o.createdAt).toLocaleDateString()}
@@ -476,17 +476,17 @@ const AdminStoreDetailPage = () => {
           onClick={() => navigate("/portal/admin/local-stores")}
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-muted/30 hover:bg-muted/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-all border border-border/40 backdrop-blur-sm"
         >
-          <ChevronLeft className="h-3 w-3" /> Back to Dispatch
+          <ChevronLeft className="h-3 w-3" /> Back to Stores
         </button>
         <Badge variant="outline" className="h-7 px-4 border-primary/20 bg-primary/10 text-primary font-black uppercase tracking-widest italic text-[8px] rounded-xl shadow-lg shadow-primary/5 capitalize">
-          Operational Node: {id?.slice(-4).toUpperCase()}
+          Store ID: {id?.slice(-4).toUpperCase()}
         </Badge>
       </nav>
 
       <PortalPageHeader 
         title={store.name}
         icon={Store}
-        subtitle={store.description || "No description provided for this operational node."}
+        subtitle={store.description || "No description provided."}
         badge={
           <Badge variant={store.isActive ? "secondary" : "destructive"} className="h-5 font-black uppercase text-[8px] px-3 rounded-lg shadow-sm italic tracking-widest">
             {store.isActive ? "OPERATIONAL" : "SUSPENDED"}
@@ -504,13 +504,13 @@ const AdminStoreDetailPage = () => {
                 )}
               >
                 {store.isActive ? <Ban className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
-                {store.isActive ? "Deactivate" : "Initialize"}
+                {store.isActive ? "Deactivate" : "Activate"}
               </button>
               <Button
                 onClick={() => navigate(`/portal/admin/local-stores/${id}/edit`)}
                 className="h-10 px-5 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 italic hover:scale-105 transition-all"
               >
-                <Edit3 className="h-3.5 w-3.5 mr-1.5" /> Configure
+                <Edit3 className="h-3.5 w-3.5 mr-1.5" /> Edit Store
               </Button>
           </div>
         }
@@ -526,7 +526,7 @@ const AdminStoreDetailPage = () => {
             index={i}
             color={stat.color}
             bg={stat.bg}
-            subtext="Operational Metrics"
+            subtext="Store Stats"
           />
         ))}
       </section>
@@ -562,7 +562,7 @@ const AdminStoreDetailPage = () => {
                     </div>
                     <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter mb-4 flex items-center gap-2">
                       <div className="h-1.5 w-4 bg-primary rounded-full" />
-                      Operational <span className="text-primary">Intelligence.</span>
+                      Store <span className="text-primary">Details.</span>
                     </h3>
                     <div className="grid sm:grid-cols-2 gap-3">
                       {store.address && infoRow(MapPin, "Location", store.address)}
@@ -570,7 +570,7 @@ const AdminStoreDetailPage = () => {
                       {store.whatsapp && infoRow(MessageCircle, "WhatsApp", store.whatsapp, `https://wa.me/${store.whatsapp.replace(/\D/g, "")}`)}
                       {store.contactEmail && infoRow(Mail, "Email", store.contactEmail, `mailto:${store.contactEmail}`)}
                       {store.openingHours && infoRow(Clock, "Hours", store.openingHours)}
-                      {store.googleMapUrl && infoRow(Link2, "Digital Coordinates", "Live Map", store.googleMapUrl)}
+                      {store.googleMapUrl && infoRow(Link2, "Map Link", "Open Map", store.googleMapUrl)}
                     </div>
                   </section>
 
@@ -603,7 +603,7 @@ const AdminStoreDetailPage = () => {
                 <div className="space-y-6">
                   <section className="bg-card border border-border rounded-xl p-4 shadow-2xl">
                     <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter mb-4">
-                      Payment <span className="text-primary">Layer.</span>
+                      Payment <span className="text-primary">Info.</span>
                     </h3>
                     <div className="space-y-4">
                       {store.paymentMethods?.length > 0 && (
@@ -630,7 +630,7 @@ const AdminStoreDetailPage = () => {
                             <div className="h-7 w-7 rounded-lg bg-background border border-border flex items-center justify-center">
                               <Building2 className="h-3.5 w-3.5 text-primary" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Settlement Node</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Bank Account</p>
                           </div>
                           <div className="space-y-3 pt-2 border-t border-border/50">
                             {[
@@ -654,14 +654,14 @@ const AdminStoreDetailPage = () => {
                   <section className="bg-card border border-border rounded-xl p-4 shadow-2xl overflow-hidden relative group/social">
                     <div className="absolute inset-0 bg-primary/[0.02] translate-y-full group-hover/social:translate-y-0 transition-transform duration-700" />
                     <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter mb-4 relative">
-                      Social <span className="text-primary">Nodes.</span>
+                      Social <span className="text-primary">Links.</span>
                     </h3>
                     <div className="grid gap-2 relative">
                       {store.website && (
                         <a href={store.website} target="_blank" rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all group/link">
                           <Globe className="h-3.5 w-3.5 text-muted-foreground group-hover/link:text-primary" />
-                          <span className="text-xs font-black uppercase tracking-tight">Main Portal</span>
+                          <span className="text-xs font-black uppercase tracking-tight">Website</span>
                           <ArrowUpRight className="h-2.5 w-2.5 ml-auto opacity-40" />
                         </a>
                       )}
@@ -701,7 +701,7 @@ const AdminStoreDetailPage = () => {
                       <div className="h-32 w-full rounded-xl overflow-hidden bg-muted border border-border relative mb-4">
                         {product.image
                           ? <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                          : <div className="w-full h-full flex items-center justify-center bg-muted/40 text-muted-foreground/20 italic font-black uppercase text-[10px]">VAULT_EMPTY</div>
+                          : <div className="w-full h-full flex items-center justify-center bg-muted/40 text-muted-foreground/20 italic font-black uppercase text-[10px]">No image</div>
                         }
                         <div className="absolute top-3 right-3 h-7 px-3 rounded-xl bg-background/90 backdrop-blur-md border border-white/10 flex items-center justify-center font-black text-xs text-primary shadow-lg tabular-nums italic">
                           ₹{product.price}
@@ -728,7 +728,7 @@ const AdminStoreDetailPage = () => {
                           </div>
                         ) : <div />}
                         <button
-                          onClick={() => { if (confirm("Decommission product from registry?")) removeProductMutation.mutate(product._id); }}
+                          onClick={() => { if (confirm("Remove this product?")) removeProductMutation.mutate(product._id); }}
                           className="h-9 w-9 rounded-xl bg-muted/40 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500 flex items-center justify-center transition-all border border-border/40 hover:border-rose-500/20"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -736,19 +736,19 @@ const AdminStoreDetailPage = () => {
                       </div>
                     </div>
                   )}
-                  emptyMessage="No products discovered in the inventory vault."
+                  emptyMessage="No products yet."
                   header={
                     <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-muted/20 border border-border/40 p-4 rounded-2xl">
                       <div>
                         <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter">
-                          Inventory <span className="text-primary">Vault.</span>
+                          Product <span className="text-primary">Catalog.</span>
                         </h3>
                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5 opacity-60">
-                          {store.products?.length ?? 0} ASSETS REGISTERED
+                          {store.products?.length ?? 0} products
                         </p>
                       </div>
                       <Button onClick={() => setShowAddProduct(true)} className="h-9 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:scale-105 transition-all">
-                        <Plus className="h-4 w-4" /> Initialize Item
+                        <Plus className="h-4 w-4" /> Add Product
                       </Button>
                     </header>
                   }
@@ -764,7 +764,7 @@ const AdminStoreDetailPage = () => {
                   isLoading={isLoading || ordersFetching}
                   pagination={ordersPagination}
                   onPageChange={setOrdersPage}
-                  emptyMessage="Awaiting node transactions..."
+                  emptyMessage="No orders yet."
                   rowKey="_id"
                 />
               </motion.div>
@@ -788,26 +788,26 @@ const AdminStoreDetailPage = () => {
                         </div>
                       </div>
                       <button
-                        onClick={() => { if (confirm("Revoke access protocols for this account?")) deleteOwnerMutation.mutate(owner._id); }}
+                        onClick={() => { if (confirm("Remove this owner's access?")) deleteOwnerMutation.mutate(owner._id); }}
                         className="h-9 w-9 rounded-xl bg-muted/30 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500 flex items-center justify-center transition-all border border-border/40 shrink-0 ml-3 hover:border-rose-500/20 shadow-sm"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   )}
-                  emptyMessage="No administrative nodes provisioned for this terminal."
+                  emptyMessage="No owners added yet."
                   header={
                     <header className="p-4 bg-muted/20 border border-border/40 rounded-2xl shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div>
                         <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter">
-                          Access <span className="text-primary">Protocols.</span>
+                          Store <span className="text-primary">Owners.</span>
                         </h3>
                         <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mt-0.5 opacity-60">
-                          Administrative permissions and node management.
+                          Manage who can access this store.
                         </p>
                       </div>
                       <Button onClick={() => setShowCreateOwner(true)} className="h-9 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:scale-105 transition-all">
-                        <UserPlus className="h-4 w-4" /> Provision Account
+                        <UserPlus className="h-4 w-4" /> Add Owner
                       </Button>
                     </header>
                   }
@@ -817,8 +817,8 @@ const AdminStoreDetailPage = () => {
                     <Smartphone className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Mobile Endpoint</p>
-                    <p className="text-[9px] font-bold text-muted-foreground italic opacity-60">Manage via /store-owner/login</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Mobile Login</p>
+                    <p className="text-[9px] font-bold text-muted-foreground italic opacity-60">Access via /store-owner/login</p>
                   </div>
                   <Button variant="link" onClick={() => window.open("/store-owner/login")} className="ml-auto text-[9px] font-black uppercase tracking-widest h-auto p-0">Launch <ExternalLink className="h-2.5 w-2.5 inline ml-1" /></Button>
                 </div>
@@ -835,9 +835,9 @@ const AdminStoreDetailPage = () => {
                 ) : earningsData?.summary && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {[
-                      { label: "Gross Vol",     value: `₹${earningsData.summary.grossRevenue.toLocaleString()}`, icon: TrendingUp,    color: "text-foreground",   bg: "bg-card border-border/60" },
+                      { label: "Total Sales",     value: `₹${earningsData.summary.grossRevenue.toLocaleString()}`, icon: TrendingUp,    color: "text-foreground",   bg: "bg-card border-border/60" },
                       { label: "Commission", value: `₹${earningsData.summary.totalPlatformEarned.toLocaleString()}`, icon: IndianRupee,   color: "text-primary",      bg: "bg-primary/5 border-primary/20" },
-                      { label: "Net Liquid",    value: `₹${earningsData.summary.availableNet.toLocaleString()}`,        icon: AlertCircle,   color: "text-amber-500",    bg: "bg-amber-500/5 border-amber-500/20" },
+                      { label: "Available",    value: `₹${earningsData.summary.availableNet.toLocaleString()}`,        icon: AlertCircle,   color: "text-amber-500",    bg: "bg-amber-500/5 border-amber-500/20" },
                       { label: "Settled",   value: `₹${earningsData.summary.paidOut.toLocaleString()}`,             icon: CheckCircle2,  color: "text-emerald-500",  bg: "bg-emerald-500/5 border-emerald-500/20" },
                     ].map(({ label, value, icon: Icon, color, bg }) => (
                       <div key={label} className={cn("p-3 rounded-xl border shadow-xl flex flex-col justify-between gap-2.5 group hover:border-primary/20 transition-all", bg)}>
@@ -858,10 +858,10 @@ const AdminStoreDetailPage = () => {
                     </div>
                     <div>
                       <h3 className="text-sm font-black uppercase brand-font italic tracking-tighter">
-                        Settlement <span className="text-primary">Journal.</span>
+                        Payment <span className="text-primary">History.</span>
                       </h3>
                       <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mt-0.5 opacity-60">
-                        History of node liquidation and profit distribution.
+                        Record of all payout transactions.
                       </p>
                     </div>
                   </header>
@@ -871,7 +871,7 @@ const AdminStoreDetailPage = () => {
                     data={earningsData?.payouts || []}
                     isLoading={earningsLoading}
                     rowKey="_id"
-                    emptyMessage="No settlement payloads detected."
+                    emptyMessage="No payouts yet."
                   />
 
                   <AnimatePresence>
@@ -884,17 +884,17 @@ const AdminStoreDetailPage = () => {
                       >
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-primary italic">Critical Action: Node Liquidation</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-widest text-primary italic">Process Payout</h4>
                             <button onClick={() => setPayoutActionId(null)} className="h-6 w-6 rounded-lg bg-background border border-border flex items-center justify-center hover:bg-rose-500/10 hover:text-rose-500 transition-all">
                               <X className="h-3.5 w-3.5" />
                             </button>
                           </div>
                           <div className="space-y-1.5">
-                            <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Narrative Note</label>
+                            <label className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Note</label>
                             <Input
                               value={payoutNote}
                               onChange={(e) => setPayoutNote(e.target.value)}
-                              placeholder="LOG ENTRY..."
+                              placeholder="Add a note..."
                               className="h-10 rounded-xl bg-background border-border text-[10px] font-black uppercase tracking-widest"
                             />
                           </div>
@@ -904,14 +904,14 @@ const AdminStoreDetailPage = () => {
                               disabled={updatePayoutMutation.isPending}
                               className="flex-1 h-10 rounded-xl bg-emerald-500 text-black font-black uppercase tracking-widest text-[9px] italic shadow-lg shadow-emerald-500/20"
                             >
-                              Finalize Settlement (Paid)
+                              Mark as Paid
                             </Button>
                             <Button
                               onClick={() => updatePayoutMutation.mutate({ payoutId: payoutActionId, status: "rejected", note: payoutNote })}
                               disabled={updatePayoutMutation.isPending}
                               className="flex-1 h-10 rounded-xl bg-rose-500 text-white font-black uppercase tracking-widest text-[9px] italic shadow-lg shadow-rose-500/20"
                             >
-                              Revoke Settlement (Reject)
+                              Reject Payout
                             </Button>
                           </div>
                         </div>
@@ -934,8 +934,8 @@ const AdminStoreDetailPage = () => {
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
               className="bg-card border border-border rounded-xl w-full max-w-sm shadow-2xl p-5 space-y-4">
               <div>
-                <h3 className="text-lg font-black uppercase brand-font italic tracking-tighter">Provision <span className="text-primary">Identity.</span></h3>
-                <p className="text-[9px] font-bold text-muted-foreground italic mt-1 leading-relaxed opacity-60">System will dispatch notification automatically.</p>
+                <h3 className="text-lg font-black uppercase brand-font italic tracking-tighter">Add Store <span className="text-primary">Owner.</span></h3>
+                <p className="text-[9px] font-bold text-muted-foreground italic mt-1 leading-relaxed opacity-60">A login email will be sent automatically.</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
@@ -959,9 +959,9 @@ const AdminStoreDetailPage = () => {
                   disabled={createOwnerMutation.isPending || !ownerName || !ownerEmail}
                   className="h-9 rounded-lg bg-primary text-primary-foreground font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/20 italic"
                 >
-                  {createOwnerMutation.isPending ? "GENERATING..." : "Grant Access"}
+                  {createOwnerMutation.isPending ? "CREATING..." : "Create Account"}
                 </Button>
-                <Button variant="ghost" onClick={() => setShowCreateOwner(false)} className="font-black uppercase tracking-widest text-[8px] h-8 opacity-60 hover:opacity-100">Abort</Button>
+                <Button variant="ghost" onClick={() => setShowCreateOwner(false)} className="font-black uppercase tracking-widest text-[8px] h-8 opacity-60 hover:opacity-100">Cancel</Button>
               </div>
             </motion.div>
           </div>
