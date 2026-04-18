@@ -68,9 +68,30 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/store-payouts', storePayoutRoutes);
 console.log('Registered /api/local-stores route');
 
-// Basic Route
+// Health Check API
+const getHealthStatus = () => ({
+  status: mongoose.connection.readyState === 1 ? 'healthy' : 'degraded',
+  service: 'Event Sphere API',
+  version: '1.0.0',
+  uptime: `${Math.floor(process.uptime())}s`,
+  timestamp: new Date().toISOString(),
+  database: {
+    status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  },
+  system: {
+    memory: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)}MB`,
+    platform: process.platform
+  }
+});
+
+app.get('/', (_req, res) => {
+  const health = getHealthStatus();
+  res.status(health.status === 'healthy' ? 200 : 503).json(health);
+});
+
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  const health = getHealthStatus();
+  res.status(health.status === 'healthy' ? 200 : 503).json(health);
 });
 
 // Start Server

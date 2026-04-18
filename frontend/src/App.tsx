@@ -68,242 +68,252 @@ import { LocalStoreCartProvider } from "./contexts/LocalStoreCartContext";
 import LocalStoreCartDrawer from "./components/home/LocalStoreCartDrawer";
 import { CityProvider } from "./contexts/CityContext";
 import CitySelectModal from "./components/layout/CitySelectModal";
+import MaintenancePage from "./pages/MaintenancePage";
+import { useMaintenanceMode } from "./hooks/useMaintenanceMode";
+
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
+const AppContent = () => {
+  const { data: isMaintenance } = useMaintenanceMode();
+
+  if (isMaintenance) {
+    return <MaintenancePage />;
+  }
+
+  return (
     <AuthProvider>
       <CityProvider>
-      <LocalStoreCartProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <CitySelectModal />
-        <LocalStoreCartDrawer />
-        <Router>
-          <Routes>
-            {/* Pages with Navbar */}
-            <Route
-              element={
-                <>
-                  <Navbar />
-                  <Outlet />
-                </>
-              }
-            >
-              <Route
-                path="/"
-                element={
-                  <main className="main-content min-h-screen">
-                    <Index />
-                  </main>
-                }
-              />
-              <Route
-                path="*"
-                element={
-                  <main className="main-content pt-16 md:pt-20 min-h-screen">
-                    <Routes>
-                      <Route path="events" element={<EventsPage />} />
-                      <Route
-                        path="local-stores"
-                        element={<LocalStoresPage />}
-                      />
-                      <Route
-                        path="local-stores/:id"
-                        element={<StoreDetailPage />}
-                      />
-                      <Route
-                        path="events/create"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={["event_manager", "admin"]}
-                          >
-                            <CreateEventPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="events/:id" element={<EventDetailPage />} />
-                      <Route
-                        path="events/:id/success"
-                        element={<EventPendingPage />}
-                      />
-                      <Route
-                        path="reset-password"
-                        element={<ResetPasswordPage />}
-                      />
-                      <Route
-                        path="dashboard"
-                        element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="settings"
-                        element={
-                          <ProtectedRoute>
-                            <AccountSettingsPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="my-tickets"
-                        element={
-                          <ProtectedRoute>
-                            <MyTickets />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="my-orders"
-                        element={
-                          <ProtectedRoute>
-                            <MyOrdersPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="scanner"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={[
-                              "event_manager",
-                              "admin",
-                              "volunteer",
-                            ]}
-                          >
-                            <ScannerPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="scanner/dashboard"
-                        element={
-                          <ProtectedRoute
-                            allowedRoles={[
-                              "event_manager",
-                              "admin",
-                              "volunteer",
-                            ]}
-                          >
-                            <ScannerDashboardPage />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="blog" element={<BlogPage />} />
-                      <Route path="blog/:slug" element={<BlogPostPage />} />
-                      <Route path="about" element={<AboutPage />} />
-                      <Route path="terms" element={<TermsOfService />} />
-                      <Route path="privacy" element={<PrivacyPolicy />} />
-                      <Route path="help" element={<HelpCenter />} />
-                      <Route path="contact" element={<ContactPage />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </main>
-                }
-              />
-            </Route>
+        <LocalStoreCartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <CitySelectModal />
+            <LocalStoreCartDrawer />
+            <Router>
+              <Routes>
+                {/* [Existing Routes...] */}
+                <Route
+                  element={
+                    <>
+                      <Navbar />
+                      <Outlet />
+                    </>
+                  }
+                >
+                  <Route
+                    path="/"
+                    element={
+                      <main className="main-content min-h-screen">
+                        <Index />
+                      </main>
+                    }
+                  />
+                  <Route
+                    path="*"
+                    element={
+                      <main className="main-content pt-16 md:pt-20 min-h-screen">
+                        <Routes>
+                          <Route path="events" element={<EventsPage />} />
+                          <Route
+                            path="local-stores"
+                            element={<LocalStoresPage />}
+                          />
+                          <Route
+                            path="local-stores/:id"
+                            element={<StoreDetailPage />}
+                          />
+                          <Route
+                            path="events/create"
+                            element={
+                              <ProtectedRoute
+                                allowedRoles={["event_manager", "admin"]}
+                              >
+                                <CreateEventPage />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route path="events/:id" element={<EventDetailPage />} />
+                          <Route
+                            path="events/:id/success"
+                            element={<EventPendingPage />}
+                          />
+                          <Route
+                            path="reset-password"
+                            element={<ResetPasswordPage />}
+                          />
+                          <Route
+                            path="dashboard"
+                            element={
+                              <ProtectedRoute>
+                                <Dashboard />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="settings"
+                            element={
+                              <ProtectedRoute>
+                                <AccountSettingsPage />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="my-tickets"
+                            element={
+                              <ProtectedRoute>
+                                <MyTickets />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="my-orders"
+                            element={
+                              <ProtectedRoute>
+                                <MyOrdersPage />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="scanner"
+                            element={
+                              <ProtectedRoute
+                                allowedRoles={[
+                                  "event_manager",
+                                  "admin",
+                                  "volunteer",
+                                ]}
+                              >
+                                <ScannerPage />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route
+                            path="scanner/dashboard"
+                            element={
+                              <ProtectedRoute
+                                allowedRoles={[
+                                  "event_manager",
+                                  "admin",
+                                  "volunteer",
+                                ]}
+                              >
+                                <ScannerDashboardPage />
+                              </ProtectedRoute>
+                            }
+                          />
+                          <Route path="blog" element={<BlogPage />} />
+                          <Route path="blog/:slug" element={<BlogPostPage />} />
+                          <Route path="about" element={<AboutPage />} />
+                          <Route path="terms" element={<TermsOfService />} />
+                          <Route path="privacy" element={<PrivacyPolicy />} />
+                          <Route path="help" element={<HelpCenter />} />
+                          <Route path="contact" element={<ContactPage />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </main>
+                    }
+                  />
+                </Route>
 
-            {/* Payment Callback (No Site Navbar) */}
-            <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+                <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+                <Route path="/store-owner/login" element={<StoreOwnerLoginPage />} />
+                <Route path="/store-owner/portal" element={<StoreOwnerPortal />} />
 
-            {/* Store Owner Portal (standalone, no shared Navbar) */}
-            <Route path="/store-owner/login" element={<StoreOwnerLoginPage />} />
-            <Route path="/store-owner/portal" element={<StoreOwnerPortal />} />
+                <Route
+                  path="/portal/admin/blog/new"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <CreateBlogPostPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/portal/admin/blog/:id/edit"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <CreateBlogPostPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-            {/* Blog editor (fullscreen, no portal padding) */}
-            <Route
-              path="/portal/admin/blog/new"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <CreateBlogPostPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/portal/admin/blog/:id/edit"
-              element={
-                <ProtectedRoute allowedRoles={["admin"]}>
-                  <CreateBlogPostPage />
-                </ProtectedRoute>
-              }
-            />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/admin-auth" element={<AdminLoginPage />} />
+                <Route path="/manager/login" element={<ManagerLoginPage />} />
+                <Route path="/staff/login" element={<StaffLoginPage />} />
+                <Route path="/volunteer-login" element={<VolunteerLoginPage />} />
 
-            {/* Auth Routes (No Site Navbar) */}
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/admin-auth" element={<AdminLoginPage />} />
-            <Route path="/manager/login" element={<ManagerLoginPage />} />
-            <Route path="/staff/login" element={<StaffLoginPage />} />
-            <Route path="/volunteer-login" element={<VolunteerLoginPage />} />
+                <Route
+                  path="/portal"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "event_manager"]}>
+                      <PortalLayout>
+                        <Outlet />
+                      </PortalLayout>
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path="admin" element={<AdminDashboard />} />
+                  <Route path="admin/attendees" element={<AttendeesPage />} />
+                  <Route path="admin/managers" element={<ManagersPage />} />
+                  <Route
+                    path="admin/managers/:id"
+                    element={<ManagerDetailPage />}
+                  />
+                  <Route path="admin/events" element={<EventModerationPage />} />
+                  <Route path="admin/events/:id" element={<EventInsightsPage />} />
+                  <Route path="admin/blog" element={<BlogManagementPage />} />
+                  <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
+                  <Route path="admin/local-stores/new" element={<CreateStorePage />} />
+                  <Route path="admin/local-stores/:id" element={<AdminStoreDetailPage />} />
+                  <Route path="admin/local-stores/:id/edit" element={<CreateStorePage />} />
+                  <Route path="admin/store-orders" element={<StoreOrdersPage />} />
+                  <Route path="manager" element={<ManagerDashboard />} />
+                  <Route path="manager/payouts" element={<PayoutsPage />} />
+                  <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
+                  <Route path="analytics" element={<AnalyticsPage />} />
+                  <Route path="events" element={<MyEventsPage />} />
+                  <Route
+                    path="manager/events/:id/details"
+                    element={<ManageEventPage />}
+                  />
+                  <Route
+                    path="manager/events/:id/edit"
+                    element={<EditEventPage />}
+                  />
+                  <Route
+                    path="manager/events/:id/analytics"
+                    element={<ManagerEventAnalyticsPage />}
+                  />
+                  <Route
+                    path="manager/events/:eventId/volunteers"
+                    element={<ManageVolunteersPage />}
+                  />
+                  <Route path="settings" element={<AccountSettingsPage />} />
+                </Route>
 
-            {/* Portal Routes (No Global Navbar) */}
-            <Route
-              path="/portal"
-              element={
-                <ProtectedRoute allowedRoles={["admin", "event_manager"]}>
-                  <PortalLayout>
-                    <Outlet />
-                  </PortalLayout>
-                </ProtectedRoute>
-              }
-            >
-              <Route path="admin" element={<AdminDashboard />} />
-              <Route path="admin/attendees" element={<AttendeesPage />} />
-              <Route path="admin/managers" element={<ManagersPage />} />
-              <Route
-                path="admin/managers/:id"
-                element={<ManagerDetailPage />}
-              />
-              <Route path="admin/events" element={<EventModerationPage />} />
-              <Route path="admin/events/:id" element={<EventInsightsPage />} />
-              <Route path="admin/blog" element={<BlogManagementPage />} />
-              <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
-              <Route path="admin/local-stores/new" element={<CreateStorePage />} />
-              <Route path="admin/local-stores/:id" element={<AdminStoreDetailPage />} />
-              <Route path="admin/local-stores/:id/edit" element={<CreateStorePage />} />
-              <Route path="admin/store-orders" element={<StoreOrdersPage />} />
-              <Route path="manager" element={<ManagerDashboard />} />
-              <Route path="manager/payouts" element={<PayoutsPage />} />
-              <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
-              <Route path="analytics" element={<AnalyticsPage />} />
-              <Route path="events" element={<MyEventsPage />} />
-              <Route
-                path="manager/events/:id/details"
-                element={<ManageEventPage />}
-              />
-              <Route
-                path="manager/events/:id/edit"
-                element={<EditEventPage />}
-              />
-              <Route
-                path="manager/events/:id/analytics"
-                element={<ManagerEventAnalyticsPage />}
-              />
-              <Route
-                path="manager/events/:eventId/volunteers"
-                element={<ManageVolunteersPage />}
-              />
-              <Route path="settings" element={<AccountSettingsPage />} />
-            </Route>
-
-            <Route
-              path="/admin/dashboard"
-              element={<Navigate to="/portal/admin" replace />}
-            />
-            <Route
-              path="/manager/dashboard"
-              element={<Navigate to="/portal/manager" replace />}
-            />
-          </Routes>
-        </Router>
-      </TooltipProvider>
-      </LocalStoreCartProvider>
+                <Route
+                  path="/admin/dashboard"
+                  element={<Navigate to="/portal/admin" replace />}
+                />
+                <Route
+                  path="/manager/dashboard"
+                  element={<Navigate to="/portal/manager" replace />}
+                />
+              </Routes>
+            </Router>
+          </TooltipProvider>
+        </LocalStoreCartProvider>
       </CityProvider>
     </AuthProvider>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AppContent />
   </QueryClientProvider>
 );
+
 
 export default App;
