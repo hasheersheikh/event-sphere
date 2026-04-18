@@ -33,7 +33,7 @@ const migrate = async () => {
   await mongoose.connect(mongoUri);
   console.log('Connected to MongoDB');
 
-  const events = await Event.find({ city: { $in: [null, '', undefined] } });
+  const events = await Event.find({ $or: [{ city: { $exists: false } }, { city: null }, { city: '' }] } as any);
   console.log(`Found ${events.length} events without a city.`);
 
   let updated = 0;
