@@ -31,6 +31,7 @@ import { useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import GoLocalSection from "@/components/home/GoLocalSection";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import { useCity } from "@/contexts/CityContext";
 
 /* ─── animation variants ─── */
 const fadeUp = (delay = 0) => ({
@@ -110,11 +111,14 @@ const Index = () => {
     once: true,
     margin: "-80px",
   });
+  const { selectedCity } = useCity();
 
   const { data: upcomingEvents, isLoading } = useQuery({
-    queryKey: ["upcomingEvents"],
+    queryKey: ["upcomingEvents", selectedCity],
     queryFn: async () => {
-      const { data } = await api.get("/events?limit=8&sort=-createdAt");
+      const params = new URLSearchParams({ limit: "8", sort: "-isSponsored,-createdAt" });
+      if (selectedCity) params.set("city", selectedCity);
+      const { data } = await api.get(`/events?${params.toString()}`);
       return data;
     },
   });
@@ -348,7 +352,7 @@ const Index = () => {
                     .map((_, i) => (
                       <motion.div
                         key={i}
-                        className="h-full w-52 rounded-xl shrink-0 overflow-hidden"
+                        className="h-full w-64 rounded-xl shrink-0 overflow-hidden"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0.3, 0.6, 0.3] }}
                         transition={{
@@ -364,7 +368,7 @@ const Index = () => {
                   upcomingEvents.map((event: Event, i: number) => (
                     <motion.div
                       key={event._id}
-                      className="w-52 shrink-0 h-full"
+                      className="w-64 shrink-0 h-full"
                       initial={{ opacity: 0, x: 32 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
@@ -373,7 +377,7 @@ const Index = () => {
                         ease: [0.23, 1, 0.32, 1],
                       }}
                     >
-                      <EventCard event={event} index={i} />
+                      <EventCard event={event} index={i} imageRatio="4/3" />
                     </motion.div>
                   ))
                 ) : (

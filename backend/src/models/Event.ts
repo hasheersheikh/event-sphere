@@ -27,6 +27,7 @@ export interface IEvent extends Document {
   endTime?: string;
   days?: IEventDay[];
   isMultiDay?: boolean;
+  city?: string;
   location: {
     address: string;
     venueName?: string;
@@ -50,6 +51,7 @@ export interface IEvent extends Document {
   }[];
   status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
+  isSponsored: boolean;
   viewCount?: number;
   createdAt: Date;
   updatedAt: Date;
@@ -71,6 +73,7 @@ const EventSchema: Schema = new Schema(
         title: { type: String },
       },
     ],
+    city: { type: String, index: true },
     location: {
       address: { type: String, required: true },
       venueName: { type: String },
@@ -109,6 +112,7 @@ const EventSchema: Schema = new Schema(
       default: 'under_review',
     },
     isApproved: { type: Boolean, default: false },
+    isSponsored: { type: Boolean, default: false },
     viewCount: { type: Number, default: 0 },
     vouchers: [
       {

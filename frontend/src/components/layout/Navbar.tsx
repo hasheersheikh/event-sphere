@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Menu, X, ShoppingCart, MapPin, ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocalStoreCart } from "@/contexts/LocalStoreCartContext";
+import { useCity } from "@/contexts/CityContext";
 import ProfileDropdown from "./ProfileDropdown";
 import PulseLogo from "./PulseLogo";
 import { ThemeToggle } from "./ThemeToggle";
@@ -15,6 +16,7 @@ const Navbar = () => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { totalItems, setIsOpen: openCart } = useLocalStoreCart();
+  const { selectedCity, setShowCityModal } = useCity();
 
   const isHome = location.pathname === "/";
 
@@ -85,6 +87,16 @@ const Navbar = () => {
 
         {/* Desktop Actions - Flexible Width */}
         <div className="hidden md:flex items-center justify-end gap-5 min-w-[12rem] flex-shrink-0">
+          <button
+            onClick={() => setShowCityModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/40 border border-border/30 hover:border-primary/30 hover:bg-primary/5 transition-all"
+          >
+            <MapPin className="h-3.5 w-3.5 text-primary/70" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70">
+              {selectedCity || "City"}
+            </span>
+            <ChevronDown className="h-3 w-3 text-muted-foreground" />
+          </button>
           <ThemeToggle />
           <button
             type="button"
@@ -141,6 +153,16 @@ const Navbar = () => {
                 </span>
                 <ThemeToggle />
               </div>
+              <button
+                onClick={() => { setShowCityModal(true); setIsOpen(false); }}
+                className="mx-8 flex items-center gap-2 px-4 py-3 rounded-xl bg-muted/30 border border-border/50 hover:border-primary/30 transition-all"
+              >
+                <MapPin className="h-4 w-4 text-primary" />
+                <span className="text-sm font-black uppercase tracking-widest text-foreground/80">
+                  {selectedCity ? selectedCity : "Select City"}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+              </button>
               <div className="space-y-4">
                 {navLinks.map((link) => (
                   <Link

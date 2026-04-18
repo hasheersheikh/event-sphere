@@ -575,6 +575,22 @@ export const deleteEvent: RequestHandler = async (req: AuthRequest, res: Respons
   }
 };
 
+export const toggleSponsoredEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const event = await Event.findById(id);
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+    event.isSponsored = !event.isSponsored;
+    await event.save();
+    res.json({ isSponsored: event.isSponsored });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
     const customerCount = await User.countDocuments({});

@@ -17,6 +17,7 @@ import {
   deleteManager,
   updateManagerCommission,
   deleteEvent,
+  toggleSponsoredEvent,
   getAllVolunteers,
   adminAddVolunteer,
   adminRemoveVolunteer
@@ -41,6 +42,7 @@ router.get('/events/pending', getPendingEvents);
 router.get('/events/:id/insights', getEventInsights);
 router.patch('/events/:id/approve', approveEvent);
 router.patch('/events/:id/decline', declineEvent);
+router.patch('/events/:id/toggle-sponsored', toggleSponsoredEvent);
 router.delete('/events/:id', deleteEvent);
 router.patch('/users/:id/approve', approveManager);
 router.get('/stats', getAdminStats);

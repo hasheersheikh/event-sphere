@@ -66,16 +66,20 @@ import StoreOrdersPage from "./pages/admin/StoreOrdersPage";
 import PaymentCallbackPage from "./pages/PaymentCallbackPage";
 import { LocalStoreCartProvider } from "./contexts/LocalStoreCartContext";
 import LocalStoreCartDrawer from "./components/home/LocalStoreCartDrawer";
+import { CityProvider } from "./contexts/CityContext";
+import CitySelectModal from "./components/layout/CitySelectModal";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+      <CityProvider>
       <LocalStoreCartProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <CitySelectModal />
         <LocalStoreCartDrawer />
         <Router>
           <Routes>
@@ -297,6 +301,7 @@ const App = () => (
         </Router>
       </TooltipProvider>
       </LocalStoreCartProvider>
+      </CityProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

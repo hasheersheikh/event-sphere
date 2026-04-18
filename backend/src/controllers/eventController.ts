@@ -14,6 +14,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       time,
       endTime,
       location,
+      city,
       category,
       image,
       videoUrl,
@@ -37,6 +38,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       time,
       endTime,
       location,
+      city,
       category,
       image,
       videoUrl: videoUrl || undefined,
@@ -58,8 +60,8 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const { q, category, location, date, sort, limit } = req.query;
-    let query: any = { 
+    const { q, category, location, city, date, sort, limit } = req.query;
+    let query: any = {
       status: 'published',
       isApproved: true
     };
@@ -72,9 +74,20 @@ export const getEvents = async (req: Request, res: Response) => {
     }
     if (category) query.category = category;
     if (location) query['location.address'] = { $regex: location as string, $options: 'i' };
+    if (city) query.city = { $regex: city as string, $options: 'i' };
     if (date) query.date = { $gte: new Date(date as string) };
 
-    const sortOption: any = sort ? (sort as string).split(',').join(' ') : { date: 1 };
+    // Sponsored events always appear first, then sort by the requested field
+    const secondarySort = sort ? (sort as string).split(',').join(' ') : { date: 1 };
+    const sortOption: any = { isSponsored: -1, ...( typeof secondarySort === 'string' ? {} : secondarySort) };
+    if (typeof secondarySort === 'string') {
+      secondarySort.split(' ').forEach((s: string) => {
+        const dir = s.startsWith('-') ? -1 : 1;
+        const key = s.replace('-', '');
+        sortOption[key] = dir;
+      });
+    }
+
     const limitOption = limit ? parseInt(limit as string) : 0;
 
     const events = await Event.find(query)

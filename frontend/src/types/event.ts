@@ -14,6 +14,7 @@ export interface Event {
   date: string;
   time: string;
   endTime?: string;
+  city?: string;
   location: {
     address: string;
     venueName?: string;
@@ -34,6 +35,7 @@ export interface Event {
   ticketTypes: ITicketType[];
   status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
+  isSponsored?: boolean;
   createdAt: string;
   updatedAt: string;
 }

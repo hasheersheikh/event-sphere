@@ -9,6 +9,7 @@ import {
   Clock,
   Trash2,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,18 @@ const EventModerationPage = () => {
       toast.error("Decline action failed.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleToggleSponsored = async (id: string) => {
+    try {
+      const { data } = await api.patch(`/admin/events/${id}/toggle-sponsored`);
+      setEvents((prev) =>
+        prev.map((e) => (e._id === id ? { ...e, isSponsored: data.isSponsored } : e))
+      );
+      toast.success(data.isSponsored ? "Event marked as sponsored." : "Sponsored status removed.");
+    } catch (error) {
+      toast.error("Failed to update sponsored status.");
     }
   };
 
@@ -182,6 +195,15 @@ const EventModerationPage = () => {
       headerClassName: "text-right",
       accessor: (event: any) => (
         <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => handleToggleSponsored(event._id)}
+            title={event.isSponsored ? "Remove sponsored" : "Mark as sponsored"}
+            className={`h-7 w-7 rounded-lg border ${event.isSponsored ? "border-amber-500/50 bg-amber-500/10 text-amber-500" : "border-border hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/50"}`}
+          >
+            <Star className="h-3.5 w-3.5" />
+          </Button>
           <Link to={`/events/${event._id}`} target="_blank" rel="noopener noreferrer">
             <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg border border-border hover:bg-sky-500 hover:text-white">
               <Eye className="h-3.5 w-3.5" />

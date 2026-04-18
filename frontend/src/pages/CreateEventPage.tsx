@@ -50,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CITIES } from "@/contexts/CityContext";
 import {
   Card,
   CardContent,
@@ -72,6 +73,7 @@ const eventSchema = z.object({
   date: z.any().refine((val) => val instanceof Date, "Please select a date"),
   time: z.string().min(1, "Please select a time"),
   endTime: z.string().optional(),
+  city: z.string().optional(),
   location: z.object({
     address: z.string().min(5, "Address must be at least 5 characters"),
     venueName: z.string().optional(),
@@ -133,6 +135,7 @@ const CreateEventPage = () => {
       category: "",
       date: undefined as any,
       time: "",
+      city: "",
       location: {
         address: "",
         venueName: "",
@@ -717,6 +720,29 @@ const CreateEventPage = () => {
                       </div>
 
                       <Separator className="bg-white/5" />
+
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner">
+                                  <SelectValue placeholder="Select city" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {CITIES.map((city) => (
+                                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField

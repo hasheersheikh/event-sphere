@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Calendar, MapPin, ArrowUpRight } from "lucide-react";
+import { Calendar, MapPin, ArrowUpRight, ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Event, ITicketType } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
@@ -9,9 +9,10 @@ import SafeImage from "@/components/ui/SafeImage";
 interface EventCardProps {
   event: Event;
   index?: number;
+  imageRatio?: string;
 }
 
-const EventCard = ({ event, index = 0 }: EventCardProps) => {
+const EventCard = ({ event, index = 0, imageRatio = "16/10" }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -80,7 +81,7 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
         <article className="h-full bg-card border border-border/30 rounded-xl overflow-hidden hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-350 flex flex-col">
 
           {/* ── image ── */}
-          <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: "16/10" }}>
+          <div className="relative overflow-hidden bg-muted" style={{ aspectRatio: imageRatio }}>
 
             {/* shimmer while loading */}
             <AnimatedShimmer visible={!imageLoaded} />
@@ -107,9 +108,14 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
             {/* gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-400" />
 
-            {/* category badge */}
-            <div className="absolute top-3 left-3">
-              <Badge className="bg-background/85 dark:bg-background/70 text-foreground backdrop-blur-sm border-0 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px] shadow-sm">
+            {/* category + sponsored badges */}
+            <div className="absolute top-3 left-3 flex flex-col gap-1">
+              {event.isSponsored && (
+                <Badge className="bg-amber-500 text-black border-0 px-2.5 py-1 rounded-md font-black uppercase tracking-wider text-[9px] shadow-lg w-fit">
+                  Sponsored
+                </Badge>
+              )}
+              <Badge className="bg-background/85 dark:bg-background/70 text-foreground backdrop-blur-sm border-0 px-2.5 py-1 rounded-md font-bold uppercase tracking-wider text-[9px] shadow-sm w-fit">
                 {event.category || "General"}
               </Badge>
             </div>
@@ -190,10 +196,11 @@ const EventCard = ({ event, index = 0 }: EventCardProps) => {
 /* shimmer skeleton */
 const AnimatedShimmer = ({ visible }: { visible: boolean }) => (
   <motion.div
-    className="absolute inset-0 overflow-hidden bg-muted"
+    className="absolute inset-0 overflow-hidden bg-muted flex items-center justify-center"
     animate={{ opacity: visible ? 1 : 0 }}
     transition={{ duration: 0.3 }}
   >
+    <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
     <motion.div
       className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/8 to-transparent -translate-x-full"
       animate={{ x: ["−100%", "200%"] }}

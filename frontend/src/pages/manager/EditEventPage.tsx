@@ -15,7 +15,6 @@ import {
   Tag,
   ChevronLeft,
   ChevronRight,
-  Clock,
   LayoutGrid,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -54,6 +53,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
+import { CITIES } from "@/contexts/CityContext";
 
 const eventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -62,6 +62,7 @@ const eventSchema = z.object({
   date: z.any().refine((val) => val instanceof Date, "Please select a date"),
   time: z.string().min(1, "Please select a time"),
   endTime: z.string().optional(),
+  city: z.string().optional(),
   location: z.object({
     address: z.string().min(5, "Address must be at least 5 characters"),
     venueName: z.string().optional(),
@@ -136,6 +137,7 @@ const EditEventPage = () => {
       category: "",
       date: undefined as any,
       time: "",
+      city: "",
       location: {
         address: "",
         venueName: "",
@@ -164,6 +166,7 @@ const EditEventPage = () => {
         date: event.date,
         time: event.time,
         endTime: event.endTime || "",
+        city: event.city || "",
         location: {
           address: event.location?.address || "",
           venueName: event.location?.venueName || "",
@@ -806,6 +809,29 @@ const EditEventPage = () => {
                       </div>
 
                       <Separator className="bg-white/5" />
+
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner">
+                                  <SelectValue placeholder="Select city" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {CITIES.map((city) => (
+                                  <SelectItem key={city} value={city}>{city}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField

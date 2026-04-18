@@ -1,7 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, Calendar, Filter, X, Zap } from "lucide-react";
+import { Search, MapPin, Filter, X, Zap } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EventCard from "@/components/events/EventCard";
@@ -14,6 +14,7 @@ import { categories } from "@/data/mockEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import { useCity } from "@/contexts/CityContext";
 
 const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -25,6 +26,7 @@ const EventsPage = () => {
     searchParams.get("location") || "",
   );
   const [showFilters, setShowFilters] = useState(false);
+  const { selectedCity } = useCity();
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category") || "");
@@ -33,13 +35,14 @@ const EventsPage = () => {
   }, [searchParams]);
 
   const { data: events, isLoading } = useQuery({
-    queryKey: ["events", searchQuery, selectedCategory, locationFilter],
+    queryKey: ["events", searchQuery, selectedCategory, locationFilter, selectedCity],
     queryFn: async () => {
       const { data } = await api.get("/events", {
         params: {
           q: searchQuery,
           category: selectedCategory,
           location: locationFilter,
+          city: selectedCity || undefined,
         },
       });
       return data;
