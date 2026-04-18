@@ -87,35 +87,35 @@ const ManagerSalesAnalyticsPage = () => {
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
-      <div className="relative z-10 p-8 space-y-12">
-        <header className="space-y-4">
-          <div className="flex items-center gap-3">
-             <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                <BarChart3 className="h-5 w-5 text-primary" />
+      <div className="relative z-10 p-4 md:p-6 space-y-6">
+        <header className="space-y-2">
+          <div className="flex items-center gap-2.5">
+             <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+                <BarChart3 className="h-4 w-4 text-primary" />
              </div>
-             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Manager Intelligence</span>
+             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary italic">Manager Intelligence</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase leading-[0.8] mb-2">
+          <h1 className="text-2xl md:text-3xl font-black italic tracking-tight uppercase leading-none mb-1 drop-shadow-sm">
             Sales <span className="text-primary">Analytics.</span>
           </h1>
-          <p className="text-muted-foreground text-xs font-black uppercase tracking-[0.2em] max-w-2xl leading-relaxed">
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest max-w-xl leading-relaxed opacity-70">
             Personalized performance tracking for your hosted events. Monitoring revenue velocity and audience engagement across your roster.
           </p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statCards.map((card) => (
             <div
               key={card.label}
-              className="p-8 bg-card/30 backdrop-blur-xl border border-border/50 rounded-[2.5rem] hover:border-primary/30 transition-all duration-500 group shadow-xl"
+              className="p-5 bg-card/30 backdrop-blur-xl border border-border/50 rounded-2xl hover:border-primary/30 transition-all duration-500 group shadow-lg shadow-black/5"
             >
-              <div className="flex justify-between items-start mb-6">
-                <div className={`p-4 rounded-2xl bg-primary/5 border border-primary/10`}>
-                  <card.icon className={`h-6 w-6 text-primary`} />
+              <div className="flex justify-between items-start mb-4">
+                <div className={`p-3 rounded-xl bg-primary/5 border border-primary/10`}>
+                  <card.icon className={`h-4 w-4 text-primary`} />
                 </div>
                 <div
                   className={cn(
-                    "flex items-center gap-1 px-3 py-1 rounded-full bg-background/50 border border-border/50 text-[9px] font-black uppercase tracking-widest transition-colors",
+                    "flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-background/50 border border-border/50 text-[8px] font-black uppercase tracking-widest transition-colors",
                     card.trendUp ? "text-emerald-400 border-emerald-500/20" : "text-rose-400 border-rose-500/20"
                   )}
                 >
@@ -128,23 +128,23 @@ const ManagerSalesAnalyticsPage = () => {
                 </div>
               </div>
               <div>
-                <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2 italic">
+                <p className="text-muted-foreground text-[9px] font-black uppercase tracking-widest mb-1 italic opacity-50">
                   {card.label}
                 </p>
-                <h3 className="text-3xl font-black tabular-nums tracking-tighter italic">{card.value}</h3>
+                <h3 className="text-xl font-black tabular-nums tracking-tight italic text-foreground">{card.value}</h3>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 pb-12">
-          <div className="p-10 bg-card/20 backdrop-blur-xl border border-border/50 rounded-[3rem] space-y-10 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-border/50 pb-6">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] italic text-muted-foreground">
+        <div className="grid lg:grid-cols-2 gap-6 pb-8">
+          <div className="p-6 bg-card/20 backdrop-blur-xl border border-border/50 rounded-2xl space-y-6 shadow-2xl shadow-black/5">
+            <div className="flex justify-between items-center border-b border-border/50 pb-4">
+              <h3 className="text-[9px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">
                 My Revenue Velocity
               </h3>
             </div>
-            <div className="h-80 w-full translate-x-[-10px]">
+            <div className="h-60 w-full translate-x-[-5px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats?.revenueHistory || []}>
                   <defs>
@@ -195,13 +195,13 @@ const ManagerSalesAnalyticsPage = () => {
             </div>
           </div>
 
-          <div className="p-10 bg-card/20 backdrop-blur-xl border border-border/50 rounded-[3rem] space-y-10 shadow-2xl">
-            <div className="flex justify-between items-center border-b border-border/50 pb-6">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] italic text-muted-foreground">
+          <div className="p-6 bg-card/20 backdrop-blur-xl border border-border/50 rounded-2xl space-y-6 shadow-2xl shadow-black/5">
+            <div className="flex justify-between items-center border-b border-border/50 pb-4">
+              <h3 className="text-[9px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">
                 Ticket Genre Distribution
               </h3>
             </div>
-            <div className="h-80 w-full translate-x-[-10px]">
+            <div className="h-60 w-full translate-x-[-5px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats?.ticketDistribution || []}>
                   <CartesianGrid

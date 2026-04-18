@@ -128,8 +128,8 @@ const ManagerDetailPage = () => {
   const { manager, stats, events, payouts } = data;
 
   return (
-    <div className="space-y-10 min-h-screen bg-background p-6 md:p-8">
-      <header className="flex flex-col gap-8">
+    <div className="space-y-4 min-h-screen bg-background p-3 md:p-4">
+      <header className="flex flex-col gap-4">
         <Link
           to="/portal/admin/managers"
           className="inline-flex items-center gap-2.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors group"
@@ -137,21 +137,21 @@ const ManagerDetailPage = () => {
           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Return to Registry
         </Link>
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
-            <div className="flex items-center gap-3 mb-5 text-primary uppercase tracking-[0.4em] font-black text-[10px]">
-              <Briefcase className="h-4 w-4" />
+            <div className="flex items-center gap-2.5 mb-2 text-primary uppercase tracking-[0.3em] font-black text-[9px]">
+              <Briefcase className="h-3.5 w-3.5" />
               Operational Commander Detail
             </div>
-            <h1 className="text-3xl md:text-5xl font-black brand-font tracking-tighter uppercase leading-none text-foreground">
+            <h1 className="text-xl md:text-2xl font-black brand-font tracking-tight uppercase leading-none text-foreground italic shadow-sm">
               {manager.name}
             </h1>
-            <div className="flex flex-wrap items-center gap-5 mt-6">
-              <p className="text-muted-foreground font-bold italic text-[13px]">
+            <div className="flex flex-wrap items-center gap-4 mt-2.5">
+              <p className="text-muted-foreground font-bold italic text-xs">
                 {manager.email}
               </p>
               <div className="h-1 w-1 rounded-full bg-border" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                 ID: {manager._id.toUpperCase()}
               </p>
             </div>
@@ -160,93 +160,93 @@ const ManagerDetailPage = () => {
       </header>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="bg-muted/30 p-1 rounded-xl border border-border/50 mb-8 w-full md:w-auto h-auto flex-wrap">
+        <TabsList className="bg-muted/30 p-1 rounded-lg border border-border/50 mb-4 w-full md:w-auto h-auto flex-wrap">
           <TabsTrigger
             value="dashboard"
-            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+            className="rounded-md px-4 py-1.5 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2"
           >
-            <LayoutDashboard className="h-3.5 w-3.5" />
+            <LayoutDashboard className="h-3 w-3" />
             Dashboard
           </TabsTrigger>
           <TabsTrigger
             value="events"
-            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+            className="rounded-md px-4 py-1.5 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2"
           >
-            <Calendar className="h-3.5 w-3.5" />
+            <Calendar className="h-3 w-3" />
             Event Matrix
           </TabsTrigger>
           <TabsTrigger
             value="revenue"
-            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+            className="rounded-md px-4 py-1.5 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2"
           >
-            <Receipt className="h-3.5 w-3.5" />
+            <Receipt className="h-3 w-3" />
             Capital & Settlements
           </TabsTrigger>
           <TabsTrigger
             value="volunteers"
-            className="rounded-lg px-6 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2.5"
+            className="rounded-md px-4 py-1.5 text-[9px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg gap-2"
           >
-            <Users className="h-3.5 w-3.5" />
+            <Users className="h-3 w-3" />
             Operational Units
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-12">
+        <TabsContent value="dashboard" className="space-y-4">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-card border border-border p-8 rounded-[1.5rem] relative overflow-hidden group shadow-lg">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500 shadow-lg shadow-emerald-500/20" />
-              <div className="flex justify-between items-start mb-5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-card border border-border p-3.5 rounded-lg relative overflow-hidden group shadow-lg shadow-black/5">
+              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 shadow-lg shadow-emerald-500/20" />
+              <div className="flex justify-between items-start mb-2.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                   Gross Revenue
                 </p>
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
               </div>
-              <h2 className="text-3xl font-black tabular-nums text-foreground">
+              <h2 className="text-xl font-black tabular-nums text-foreground italic">
                 ₹{stats.totalRevenue.toLocaleString()}
               </h2>
             </div>
 
-            <div className="bg-card border border-border p-8 rounded-[1.5rem] relative overflow-hidden group shadow-lg">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 shadow-lg shadow-blue-500/20" />
-              <div className="flex justify-between items-start mb-5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+            <div className="bg-card border border-border p-3.5 rounded-lg relative overflow-hidden group shadow-lg shadow-black/5">
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 shadow-lg shadow-blue-500/20" />
+              <div className="flex justify-between items-start mb-2.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                   Total Reach
                 </p>
-                <Ticket className="h-4 w-4 text-blue-500" />
+                <Ticket className="h-3.5 w-3.5 text-blue-500" />
               </div>
-              <h2 className="text-3xl font-black tabular-nums text-foreground">
+              <h2 className="text-xl font-black tabular-nums text-foreground italic">
                 {stats.totalTicketsSold.toLocaleString()}
-                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">
+                <span className="text-[9px] ml-1.5 text-muted-foreground uppercase tracking-widest opacity-60">
                   Tickets
                 </span>
               </h2>
             </div>
 
-            <div className="bg-card border border-border p-8 rounded-[1.5rem] relative overflow-hidden group shadow-lg border-primary/20 bg-primary/5">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-primary shadow-lg shadow-primary/20" />
-              <div className="flex justify-between items-start mb-5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-primary/60">
+            <div className="bg-card border border-border p-3.5 rounded-lg relative overflow-hidden group shadow-lg border-primary/20 bg-primary/5 shadow-black/5">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary shadow-lg shadow-primary/20" />
+              <div className="flex justify-between items-start mb-2.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-primary/60">
                   Net Liability
                 </p>
-                <DollarSign className="h-4 w-4 text-primary" />
+                <DollarSign className="h-3.5 w-3.5 text-primary" />
               </div>
-              <h2 className="text-3xl font-black tabular-nums text-primary underline decoration-primary/20 underline-offset-4">
+              <h2 className="text-xl font-black tabular-nums text-primary underline decoration-primary/20 underline-offset-4 italic">
                 ₹{stats.pendingPayout.toLocaleString()}
               </h2>
             </div>
 
-            <div className="bg-card border border-border p-8 rounded-[1.5rem] relative overflow-hidden group shadow-lg">
-              <div className="absolute top-0 left-0 w-1.5 h-full bg-zinc-500 shadow-lg" />
-              <div className="flex justify-between items-start mb-5">
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+            <div className="bg-card border border-border p-3.5 rounded-lg relative overflow-hidden group shadow-lg shadow-black/5">
+              <div className="absolute top-0 left-0 w-1 h-full bg-zinc-500 shadow-lg" />
+              <div className="flex justify-between items-start mb-2.5">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50">
                   Active Units
                 </p>
-                <Calendar className="h-4 w-4 text-zinc-500" />
+                <Calendar className="h-3.5 w-3.5 text-zinc-500" />
               </div>
-              <h2 className="text-3xl font-black tabular-nums text-foreground">
+              <h2 className="text-xl font-black tabular-nums text-foreground italic">
                 {stats.totalEvents}
-                <span className="text-[10px] ml-2 text-muted-foreground uppercase tracking-widest">
+                <span className="text-[9px] ml-1.5 text-muted-foreground uppercase tracking-widest opacity-60">
                   Events
                 </span>
               </h2>
@@ -255,50 +255,50 @@ const ManagerDetailPage = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Settlement Destination */}
-            <section className="bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl">
-              <div className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-4 text-foreground">
-                  <Landmark className="h-4 w-4 text-primary" />
+            <section className="bg-card border border-border overflow-hidden rounded-lg shadow-xl shadow-black/5">
+              <div className="p-3 border-b border-border bg-muted/20 flex items-center justify-between">
+                <h3 className="text-[8px] font-black uppercase tracking-widest flex items-center gap-2.5 text-foreground italic">
+                  <Landmark className="h-3.5 w-3.5 text-primary" />
                   Primary Settlement Channel
                 </h3>
                 {manager.bankDetails && (
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none rounded-lg text-[9px] font-black uppercase tracking-widest">
+                  <Badge className="bg-emerald-500/10 text-emerald-500 border-none rounded-md text-[8px] font-black uppercase tracking-widest italic px-1.5 py-0.5">
                     Verified
                   </Badge>
                 )}
               </div>
-              <div className="p-8 space-y-8">
+              <div className="p-4 space-y-4">
                 {manager.bankDetails ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">
                         Beneficiary Name
                       </p>
-                      <p className="text-sm font-black text-foreground">
+                      <p className="text-[11px] font-black text-foreground italic">
                         {manager.bankDetails.accountHolder}
                       </p>
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">
                         Channel Identifier
                       </p>
-                      <p className="text-sm font-black text-foreground font-mono">
+                      <p className="text-[11px] font-black text-foreground font-mono">
                         {manager.bankDetails.accountNumber}
                       </p>
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">
                         Financial Institution
                       </p>
-                      <p className="text-sm font-black text-foreground">
+                      <p className="text-[11px] font-black text-foreground italic">
                         {manager.bankDetails.bankName}
                       </p>
                     </div>
-                    <div className="space-y-1.5">
-                      <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest">
+                    <div className="space-y-1">
+                      <p className="text-[8px] font-black uppercase text-muted-foreground/50 tracking-widest">
                         Protocol Code (IFSC)
                       </p>
-                      <p className="text-sm font-black text-foreground uppercase font-mono">
+                      <p className="text-[11px] font-black text-foreground uppercase font-mono">
                         {manager.bankDetails.ifscCode}
                       </p>
                     </div>
@@ -314,17 +314,17 @@ const ManagerDetailPage = () => {
 
                 <div className="h-px bg-border/50" />
 
-                <div className="bg-muted/20 p-8 rounded-xl border border-border/50 group hover:border-primary/30 transition-all">
-                  <p className="text-[10px] font-black uppercase text-primary mb-4 flex items-center gap-3">
-                    <QrCode className="h-4 w-4" />
+                <div className="bg-muted/20 p-4 rounded-lg border border-border/50 group hover:border-primary/30 transition-all">
+                  <p className="text-[8px] font-black uppercase text-primary mb-2.5 flex items-center gap-2.5 italic">
+                    <QrCode className="h-3.5 w-3.5" />
                     Direct Frequency (UPI)
                   </p>
                   {manager.upiId ? (
-                    <p className="text-2xl font-black text-foreground italic tracking-tight uppercase group-hover:text-primary transition-colors">
+                    <p className="text-lg font-black text-foreground italic tracking-tight uppercase group-hover:text-primary transition-colors">
                       {manager.upiId}
                     </p>
                   ) : (
-                    <p className="text-[11px] font-medium text-muted-foreground italic">
+                    <p className="text-[10px] font-medium text-muted-foreground italic">
                       No UPI ID registered.
                     </p>
                   )}
@@ -332,15 +332,15 @@ const ManagerDetailPage = () => {
               </div>
             </section>
 
-            <section className="bg-card border border-border p-8 rounded-[1.5rem] shadow-xl flex flex-col justify-center gap-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-[3] rotate-12 pointer-events-none text-primary">
-                <ShieldCheck className="w-20 h-20" />
+            <section className="bg-card border border-border p-4 rounded-lg shadow-xl shadow-black/5 flex flex-col justify-center gap-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-6 opacity-[0.03] scale-[2.5] rotate-12 pointer-events-none text-primary">
+                <ShieldCheck className="w-16 h-16" />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-2xl font-black uppercase brand-font tracking-tighter italic">
+              <div className="space-y-2">
+                <h3 className="text-lg font-black uppercase brand-font tracking-tight italic">
                   Administrative <span className="text-primary">Control.</span>
                 </h3>
-                <p className="text-muted-foreground font-semibold text-[13px] max-w-sm">
+                <p className="text-muted-foreground font-semibold text-xs max-w-sm opacity-70">
                   Execute settlements or modify the revenue sharing deal for
                   this operation unit.
                 </p>
@@ -359,7 +359,7 @@ const ManagerDetailPage = () => {
                       Configure Deal
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
+                  <DialogContent className="bg-background border-border rounded-xl p-6 sm:max-w-md shadow-3xl">
                     <DialogHeader className="mb-8">
                       <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
                         Platform <span className="text-primary">Deal.</span>
@@ -438,7 +438,7 @@ const ManagerDetailPage = () => {
                       Send Payout
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-background border-border rounded-[1.5rem] p-8 sm:max-w-md shadow-3xl">
+                  <DialogContent className="bg-background border-border rounded-xl p-6 sm:max-w-md shadow-3xl">
                     <DialogHeader className="mb-6">
                       <DialogTitle className="text-2xl font-black brand-font uppercase tracking-tighter italic">
                         Send <span className="text-emerald-500">Payout</span>
@@ -502,7 +502,7 @@ const ManagerDetailPage = () => {
                           placeholder="0.00"
                           max={Math.floor(stats.pendingPayout)}
                           min={1}
-                          className="w-full h-14 bg-muted/20 border-2 border-border px-5 text-2xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
+                          className="w-full h-10 bg-muted/20 border-2 border-border px-5 text-xl font-black text-emerald-500 focus:outline-none focus:border-emerald-500/50 rounded-xl transition-all shadow-inner"
                         />
                         <p className="text-[9px] text-muted-foreground font-medium ml-1">
                           Payout will be sent via Razorpay. Status updates
@@ -539,7 +539,7 @@ const ManagerDetailPage = () => {
         </TabsContent>
 
         <TabsContent value="events" className="space-y-10">
-          <section className="bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl">
+          <section className="bg-card border border-border overflow-hidden rounded-xl shadow-xl">
             <div className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
               <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
                 <Calendar className="h-4 w-4 text-primary" />
@@ -554,11 +554,11 @@ const ManagerDetailPage = () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-muted/10 text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] border-b border-border">
-                    <th className="px-8 py-6">Event Signature</th>
-                    <th className="px-8 py-6">Timeline</th>
-                    <th className="px-8 py-6">Scale</th>
-                    <th className="px-8 py-6">Status</th>
-                    <th className="px-8 py-6 text-right">Revenue Yield</th>
+                    <th className="px-6 py-4">Event Signature</th>
+                    <th className="px-6 py-4">Timeline</th>
+                    <th className="px-6 py-4">Scale</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Revenue Yield</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
@@ -581,15 +581,15 @@ const ManagerDetailPage = () => {
                         onClick={() => navigate(`/events/${e._id}`)}
                         className="hover:bg-muted/20 transition-all group cursor-pointer"
                       >
-                        <td className="px-8 py-6">
+                        <td className="px-6 py-4">
                           <p className="font-black text-sm uppercase tracking-tight text-foreground group-hover:text-primary transition-colors">
                             {e.title}
                           </p>
                         </td>
-                        <td className="px-8 py-6 text-[10px] font-black text-muted-foreground tabular-nums uppercase">
+                        <td className="px-6 py-4 text-[10px] font-black text-muted-foreground tabular-nums uppercase">
                           {new Date(e.date).toLocaleDateString()}
                         </td>
-                        <td className="px-8 py-6">
+                        <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-black text-foreground">
                               {e.ticketsSold.toLocaleString()} SOLD
@@ -602,7 +602,7 @@ const ManagerDetailPage = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-6">
+                        <td className="px-6 py-4">
                           <Badge
                             className={`rounded-lg px-2.5 py-1 text-[9px] font-black uppercase tracking-widest border-none ${
                               e.status === "published"
@@ -615,7 +615,7 @@ const ManagerDetailPage = () => {
                             {e.status}
                           </Badge>
                         </td>
-                        <td className="px-8 py-6 text-right font-black tabular-nums text-foreground text-base italic">
+                        <td className="px-6 py-4 text-right font-black tabular-nums text-foreground text-sm italic">
                           ₹{e.revenue.toLocaleString()}
                         </td>
                       </motion.tr>
@@ -630,14 +630,14 @@ const ManagerDetailPage = () => {
         <TabsContent value="revenue" className="space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Settlement History */}
-            <section className="lg:col-span-2 bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl h-full">
+            <section className="lg:col-span-2 bg-card border border-border overflow-hidden rounded-xl shadow-xl h-full">
               <div className="p-6 border-b border-border bg-muted/20">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-4 text-foreground">
                   <CreditCard className="h-4 w-4 text-emerald-500" />
                   Historical Settlement Log
                 </h3>
               </div>
-              <div className="p-8 space-y-4">
+              <div className="p-5 space-y-4">
                 {!payouts || payouts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-4 opacity-30 italic">
                     <Receipt className="h-12 w-12" />
@@ -650,7 +650,7 @@ const ManagerDetailPage = () => {
                     {payouts.map((p: any) => (
                       <div
                         key={p._id}
-                        className="p-6 bg-muted/10 border border-border/50 rounded-2xl flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
+                        className="p-4 bg-muted/10 border border-border/50 rounded-xl flex items-center justify-between group hover:border-primary/20 transition-all shadow-sm"
                       >
                         <div className="flex items-center gap-4">
                           <div
@@ -694,7 +694,7 @@ const ManagerDetailPage = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xl font-black text-foreground tabular-nums tracking-tighter">
+                          <p className="text-lg font-black text-foreground tabular-nums tracking-tighter">
                             ₹{p.amount.toLocaleString()}
                           </p>
                         </div>
@@ -706,19 +706,19 @@ const ManagerDetailPage = () => {
             </section>
 
             {/* Deal Architecture */}
-            <section className="bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl h-auto">
+            <section className="bg-card border border-border overflow-hidden rounded-xl shadow-xl h-auto">
               <div className="p-6 border-b border-border bg-primary/5">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-4 text-primary">
                   <ShieldCheck className="h-4 w-4" />
                   Core Deal Architecture
                 </h3>
               </div>
-              <div className="p-8 space-y-8">
+              <div className="p-5 space-y-6">
                 <div className="space-y-4">
                   <p className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest border-l-3 border-primary pl-3">
                     Platform Entitlement
                   </p>
-                  <div className="space-y-3 bg-muted/20 p-6 rounded-2xl border border-border">
+                  <div className="space-y-3 bg-muted/20 p-5 rounded-xl border border-border">
                     <div className="flex justify-between items-center text-primary">
                       <span className="text-[9px] font-black uppercase tracking-widest opacity-60">
                         Status
@@ -728,7 +728,7 @@ const ManagerDetailPage = () => {
                         Synchronized
                       </span>
                     </div>
-                    <div className="text-3xl font-black italic tracking-tighter text-foreground">
+                    <div className="text-2xl font-black italic tracking-tighter text-foreground">
                       {manager.commissionValue}
                       <span className="text-lg ml-1 opacity-40">
                         {manager.commissionType === "percentage"
@@ -759,7 +759,7 @@ const ManagerDetailPage = () => {
         </TabsContent>
 
         <TabsContent value="volunteers" className="space-y-10">
-          <section className="bg-card border border-border overflow-hidden rounded-[1.5rem] shadow-xl">
+          <section className="bg-card border border-border overflow-hidden rounded-xl shadow-xl">
             <div className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
               <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
                 <Users className="h-4 w-4 text-primary" />

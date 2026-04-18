@@ -80,31 +80,31 @@ const StoreOwnerPortal = () => {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top header */}
       <header className="bg-card border-b border-border sticky top-0 z-30">
-        <div className="container max-w-6xl flex items-center justify-between h-16 px-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center">
-              <Store className="h-5 w-5 text-amber-500" />
+        <div className="container max-w-6xl flex items-center justify-between h-14 px-4">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+              <Store className="h-4 w-4 text-amber-500" />
             </div>
             <div>
-              <p className="font-black text-sm leading-none">{owner.storeName}</p>
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Store Owner Portal</p>
+              <p className="font-black text-xs leading-none">{owner.storeName}</p>
+              <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest leading-none mt-0.5">Owner Portal</p>
             </div>
           </div>
 
           {/* Tab bar (desktop) */}
-          <nav className="hidden md:flex items-center gap-1 bg-muted/40 rounded-xl p-1">
+          <nav className="hidden md:flex items-center gap-0.5 bg-muted/40 rounded-lg p-0.5">
             {TABS.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black uppercase tracking-wider transition-all",
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all",
                   activeTab === id
                     ? "bg-card shadow text-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3 w-3" />
                 {label}
               </button>
             ))}
@@ -140,7 +140,7 @@ const StoreOwnerPortal = () => {
       </header>
 
       {/* Tab content */}
-      <main className="flex-1 container max-w-6xl px-4 py-8">
+      <main className="flex-1 container max-w-6xl px-4 py-4">
         <AnimatePresence mode="wait">
           {activeTab === "orders" && <OrdersTab key="orders" owner={owner} qc={qc} />}
           {activeTab === "products" && <ProductsTab key="products" owner={owner} qc={qc} />}
@@ -185,19 +185,19 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
   return (
     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Orders",   value: stats.total,                     color: "text-foreground",  icon: Package },
+          { label: "Orders",         value: stats.total,                     color: "text-foreground",  icon: Package },
           { label: "Pending",        value: stats.pending,                   color: "text-amber-500",   icon: AlertCircle },
           { label: "Delivered",      value: stats.delivered,                 color: "text-emerald-500", icon: CheckCircle2 },
           { label: "Revenue",        value: `₹${stats.revenue.toFixed(0)}`, color: "text-amber-500",   icon: IndianRupee },
         ].map((s) => (
-          <div key={s.label} className="bg-card border border-border rounded-2xl p-5 flex flex-col gap-3">
+          <div key={s.label} className="bg-card border border-border rounded-xl p-3.5 flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{s.label}</p>
-              <s.icon className={cn("h-4 w-4 opacity-60", s.color)} />
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{s.label}</p>
+              <s.icon className={cn("h-3.5 w-3.5 opacity-60", s.color)} />
             </div>
-            <p className={cn("text-2xl font-black", s.color)}>{s.value}</p>
+            <p className={cn("text-xl font-black italic", s.color)}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -227,29 +227,29 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No orders yet</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {orders.map((order: any) => (
-            <div key={order._id} className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-              <div className="flex items-center gap-4 p-5">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
-                  <Package className="h-5 w-5 text-amber-500" />
+            <div key={order._id} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 p-3.5">
+                <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                  <Package className="h-4 w-4 text-amber-500" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-bold text-sm">{order.customer.name}</p>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase">#{order._id.slice(-6).toUpperCase()}</span>
+                    <p className="font-bold text-xs">{order.customer.name}</p>
+                    <span className="text-[9px] text-muted-foreground font-black uppercase">#{order._id.slice(-4).toUpperCase()}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     {order.customer.phone} · {new Date(order.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="font-black text-sm hidden sm:block">₹{order.totalAmount.toFixed(0)}</span>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="font-black text-xs hidden sm:block">₹{order.totalAmount.toFixed(0)}</span>
                   <Select
                     value={order.status}
                     onValueChange={(val) => updateStatus.mutate({ id: order._id, status: val })}
                   >
-                    <SelectTrigger className={cn("w-32 h-8 rounded-xl border text-xs font-bold capitalize", STATUS_STYLES[order.status])}>
+                    <SelectTrigger className={cn("w-28 h-7 rounded-lg border text-[10px] font-black uppercase tracking-wider", STATUS_STYLES[order.status])}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -260,9 +260,9 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
                   </Select>
                   <button
                     onClick={() => setExpanded(expanded === order._id ? null : order._id)}
-                    className="h-8 w-8 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                    className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
                   >
-                    {expanded === order._id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {expanded === order._id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               </div>
@@ -401,43 +401,43 @@ const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void })
           <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-4">
             <FormField control={form.control} name="name" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product Name *</FormLabel>
-                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="e.g. Masala Chai" {...field} /></FormControl>
+                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Product Name *</FormLabel>
+                <FormControl><Input className="h-10 rounded-lg bg-muted/30 border-border" placeholder="e.g. Masala Chai" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )} />
             <FormField control={form.control} name="description" render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Description</FormLabel>
-                <FormControl><Input className="h-12 rounded-xl bg-muted/30 border-border" placeholder="Short description" {...field} /></FormControl>
+                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Description</FormLabel>
+                <FormControl><Input className="h-10 rounded-lg bg-muted/30 border-border" placeholder="Short description" {...field} /></FormControl>
               </FormItem>
             )} />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <FormField control={form.control} name="price" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Price (₹) *</FormLabel>
-                  <FormControl><Input type="number" className="h-12 rounded-xl bg-muted/30 border-border" {...field} /></FormControl>
+                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Price (₹) *</FormLabel>
+                  <FormControl><Input type="number" className="h-10 rounded-lg bg-muted/30 border-border" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="discountPercent" render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Discount %</FormLabel>
-                  <FormControl><Input type="number" className="h-12 rounded-xl bg-muted/30 border-border" {...field} /></FormControl>
+                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Discount %</FormLabel>
+                  <FormControl><Input type="number" className="h-10 rounded-lg bg-muted/30 border-border" {...field} /></FormControl>
                 </FormItem>
               )} />
             </div>
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product Image</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Product Image</p>
               {form.watch("image") && (
-                <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-border">
+                <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-border">
                   <img src={form.watch("image")} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => form.setValue("image", "")}
-                    className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/80 text-white flex items-center justify-center"
+                    className="absolute top-1 right-1 h-5 w-5 rounded-full bg-destructive/80 text-white flex items-center justify-center"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-2.5 w-2.5" />
                   </button>
                 </div>
               )}
@@ -445,16 +445,16 @@ const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void })
               <button
                 type="button"
                 onClick={handleProductImageUpload}
-                className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+                className="w-full h-10 rounded-lg border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
               >
-                <Upload className="h-4 w-4" /> {form.watch("image") ? "Change Image" : "Upload Image"}
+                <Upload className="h-3.5 w-3.5" /> {form.watch("image") ? "Change Image" : "Upload Image"}
               </button>
             </div>
             <Button
               type="button"
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
               disabled={mutation.isPending}
-              className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary mt-4"
+              className="w-full h-10 rounded-xl font-black uppercase tracking-widest text-[9px] bg-primary mt-4"
             >
               {mutation.isPending ? "Adding..." : "Add Product"}
             </Button>
@@ -517,10 +517,10 @@ const ProductsTab = ({ owner, qc }: { owner: any; qc: any }) => {
       
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black tracking-tight">Products</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Manage your store's inventory</p>
+          <h2 className="text-lg font-black tracking-tight">Products</h2>
+          <p className="text-[11px] text-muted-foreground mt-0.5">Manage your store's inventory</p>
         </div>
-        <Button size="sm" onClick={() => setShowAddForm(true)} className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black gap-1.5 h-10 px-4">
+        <Button size="sm" onClick={() => setShowAddForm(true)} className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black gap-1.5 h-9 px-4 text-[10px] font-black uppercase tracking-widest">
           <Plus className="h-4 w-4" /> Add Product
         </Button>
       </div>
@@ -532,43 +532,43 @@ const ProductsTab = ({ owner, qc }: { owner: any; qc: any }) => {
           <p className="text-xs text-muted-foreground mt-2">Add products to your store to start selling.</p>
         </div>
       ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {products.map((product: any) => (
-            <div key={product._id} className="bg-card rounded-2xl border border-border overflow-hidden flex flex-col group">
-              <div className="relative h-48 bg-muted shrink-0">
+            <div key={product._id} className="bg-card rounded-xl border border-border overflow-hidden flex flex-col group">
+              <div className="relative h-40 bg-muted shrink-0">
                 {product.image ? (
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                     <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                     <ImageIcon className="h-7 w-7 text-muted-foreground/30" />
                   </div>
                 )}
                 {!product.isAvailable && (
                   <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
-                    <Badge variant="destructive" className="font-black uppercase tracking-widest text-[10px]">Unavailable</Badge>
+                    <Badge variant="destructive" className="font-black uppercase tracking-widest text-[9px]">Unavailable</Badge>
                   </div>
                 )}
                 {product.discountPercent > 0 && (
-                  <div className="absolute top-2 left-2 bg-rose-500 text-white px-2 py-0.5 rounded text-[10px] font-black tracking-widest">
+                  <div className="absolute top-2 left-2 bg-rose-500 text-white px-2 py-0.5 rounded text-[9px] font-black tracking-widest">
                     {product.discountPercent}% OFF
                   </div>
                 )}
               </div>
-              <div className="p-4 flex flex-col flex-1">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-sm leading-tight group-hover:text-amber-500 transition-colors">{product.name}</h3>
+              <div className="p-3.5 flex flex-col flex-1">
+                <div className="flex justify-between items-start mb-1.5">
+                  <h3 className="font-bold text-xs leading-tight group-hover:text-amber-500 transition-colors uppercase italic">{product.name}</h3>
                   <div className="text-right shrink-0 ml-3">
-                    <p className="font-black text-sm">₹{product.price}</p>
+                    <p className="font-black text-xs">₹{product.price}</p>
                   </div>
                 </div>
                 {product.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 flex-1 mb-4">{product.description}</p>
+                  <p className="text-[10px] text-muted-foreground line-clamp-2 flex-1 mb-3">{product.description}</p>
                 )}
-                <div className="flex items-center gap-2 pt-4 border-t mt-auto">
+                <div className="flex items-center gap-2 pt-3 border-t mt-auto">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1 h-8 rounded-lg text-[10px] uppercase font-black tracking-wider"
+                    className="flex-1 h-7 rounded-lg text-[9px] uppercase font-black tracking-wider"
                     onClick={() => toggleProductMutation.mutate({ productId: product._id, isAvailable: !product.isAvailable })}
                   >
                     {product.isAvailable ? "Mark Unavailable" : "Mark Available"}
@@ -576,14 +576,14 @@ const ProductsTab = ({ owner, qc }: { owner: any; qc: any }) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
+                    className="h-7 w-7 rounded-lg text-destructive hover:bg-destructive/10 shrink-0"
                     onClick={() => {
                       if (window.confirm("Are you sure you want to remove this product?")) {
                         removeProductMutation.mutate(product._id);
                       }
                     }}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>
@@ -644,23 +644,23 @@ const StoreDetailsTab = ({ owner }: { owner: any }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black tracking-tight">{store.name}</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{store.address}</p>
+          <h2 className="text-lg font-black tracking-tight">{store.name}</h2>
+          <p className="text-[11px] text-muted-foreground mt-0.5">{store.address}</p>
         </div>
         <div className="flex items-center gap-2">
           {isEditing ? (
             <>
-              <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); setForm(store); }} className="rounded-xl gap-1.5">
+              <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); setForm(store); }} className="rounded-lg gap-1.5 h-8 text-[10px] font-black uppercase">
                 <X className="h-3.5 w-3.5" /> Cancel
               </Button>
-              <Button size="sm" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending} className="rounded-xl bg-amber-500 hover:bg-amber-400 text-black gap-1.5">
+              <Button size="sm" onClick={() => saveMutation.mutate(form)} disabled={saveMutation.isPending} className="rounded-lg bg-amber-500 hover:bg-amber-400 text-black gap-1.5 h-8 text-[10px] font-black uppercase">
                 {saveMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                Save Changes
+                Save
               </Button>
             </>
           ) : (
-            <Button size="sm" onClick={() => setIsEditing(true)} className="rounded-xl gap-1.5 bg-amber-500 hover:bg-amber-400 text-black">
-              <Edit2 className="h-3.5 w-3.5" /> Edit Details
+            <Button size="sm" onClick={() => setIsEditing(true)} className="rounded-lg gap-1.5 bg-amber-500 hover:bg-amber-400 text-black h-8 text-[10px] font-black uppercase">
+              <Edit2 className="h-3.5 w-3.5" /> Edit
             </Button>
           )}
         </div>
@@ -841,33 +841,33 @@ const PayoutsTab = ({ owner, qc }: { owner: any; qc: any }) => {
           {Array(4).fill(0).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-muted animate-pulse" />)}
         </div>
       ) : summary && (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <SummaryCard
             label="Gross Revenue"
             value={`₹${summary.grossRevenue.toFixed(0)}`}
-            sub="From delivered orders"
+            sub="Delivered orders"
             icon={TrendingUp}
             color="text-foreground"
           />
           <SummaryCard
             label="Platform Fee"
             value={`₹${summary.platformFee.toFixed(0)}`}
-            sub={`${summary.platformFeePercent}% of available`}
+            sub={`${summary.platformFeePercent}% of gross`}
             icon={CreditCard}
             color="text-muted-foreground"
           />
           <SummaryCard
-            label="Available Payout"
+            label="Available"
             value={`₹${summary.availableNet.toFixed(0)}`}
-            sub="After platform fee"
+            sub="Net payout"
             icon={IndianRupee}
             color="text-amber-500"
             highlight
           />
           <SummaryCard
-            label="Total Paid Out"
+            label="Total Paid"
             value={`₹${summary.paidOut.toFixed(0)}`}
-            sub="Settled to your account"
+            sub="Settled"
             icon={CheckCircle2}
             color="text-emerald-500"
           />
@@ -876,23 +876,23 @@ const PayoutsTab = ({ owner, qc }: { owner: any; qc: any }) => {
 
       {/* Request payout CTA */}
       {!showRequestForm && (
-        <div className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-amber-500/20 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="font-black text-sm">Request a Payout</p>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="font-black text-xs">Request Settlement</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">
               {hasPending
-                ? "You have a payout request in progress."
+                ? "Payout request in progress."
                 : summary?.availableNet > 0
-                  ? `₹${summary?.availableNet?.toFixed(0)} is available for withdrawal.`
-                  : "No earnings available yet. Orders need to be delivered first."}
+                  ? `₹${summary?.availableNet?.toFixed(0)} available for withdrawal.`
+                  : "No earnings available yet."}
             </p>
           </div>
           <Button
             onClick={() => setShowRequestForm(true)}
             disabled={hasPending || !summary?.availableNet || summary.availableNet <= 0}
-            className="shrink-0 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest gap-2"
+            className="shrink-0 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest gap-2 h-9 px-4"
           >
-            <ArrowUpRight className="h-4 w-4" />
+            <ArrowUpRight className="h-3.5 w-3.5" />
             Withdraw ₹{summary?.availableNet?.toFixed(0) || "0"}
           </Button>
         </div>
@@ -1037,9 +1037,9 @@ const PayoutsTab = ({ owner, qc }: { owner: any; qc: any }) => {
 // ─── Shared tiny components ───────────────────────────────────────────────────
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-    <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{title}</h3>
-    <div className="space-y-4">{children}</div>
+  <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+    <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{title}</h3>
+    <div className="space-y-3">{children}</div>
   </div>
 );
 
@@ -1058,15 +1058,15 @@ const SummaryCard = ({
   label, value, sub, icon: Icon, color, highlight,
 }: { label: string; value: string; sub: string; icon: any; color: string; highlight?: boolean }) => (
   <div className={cn(
-    "rounded-2xl p-5 border space-y-3",
+    "rounded-xl p-3.5 border space-y-2",
     highlight ? "bg-amber-500/5 border-amber-500/20" : "bg-card border-border"
   )}>
     <div className="flex items-center justify-between">
-      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
-      <Icon className={cn("h-4 w-4 opacity-70", color)} />
+      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">{label}</p>
+      <Icon className={cn("h-3.5 w-3.5 opacity-70", color)} />
     </div>
-    <p className={cn("text-2xl font-black", color)}>{value}</p>
-    <p className="text-[10px] text-muted-foreground">{sub}</p>
+    <p className={cn("text-xl font-black italic", color)}>{value}</p>
+    <p className="text-[9px] text-muted-foreground leading-tight">{sub}</p>
   </div>
 );
 

@@ -93,37 +93,37 @@ const ManagerEventAnalyticsPage = () => {
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
-      <div className="relative z-10 space-y-10 pb-20 p-6 md:p-10">
+      <div className="relative z-10 space-y-6 pb-12 p-4 md:p-6">
         {/* Header */}
-        <header className="flex flex-col gap-8 border-b border-border/50 pb-10">
+        <header className="flex flex-col gap-4 border-b border-border/50 pb-5">
           <Link
             to="/portal/events"
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+            className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors italic"
           >
             <ArrowLeft className="h-3 w-3" />
             Back to Roster
           </Link>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-10 bg-primary/20 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2.5">
+                <div className="h-1.5 w-8 bg-primary/20 rounded-full" />
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary italic">
                   Intelligence Portal
                 </span>
                 <div
-                  className={`h-2 w-2 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_15px_#10B981]" : "bg-orange-500 shadow-[0_0_15px_#F97316] animate-pulse"}`}
+                  className={`h-1.5 w-1.5 rounded-full ${event.isApproved ? "bg-emerald-500 shadow-[0_0_10px_#10B981]" : "bg-orange-500 shadow-[0_0_10px_#F97316] animate-pulse"}`}
                 />
               </div>
-              <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter uppercase leading-[0.8]">
+              <h1 className="text-2xl md:text-3xl font-black italic tracking-tight uppercase leading-none text-foreground drop-shadow-sm">
                 {event.title}
               </h1>
             </div>
-            <div className="flex gap-4">
+            <div className="flex gap-3">
               <Link to={`/events/${event._id}`} target="_blank">
                 <Button
-                  className="h-14 px-10 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:bg-primary transition-all active:scale-95 shadow-xl flex items-center gap-3"
+                  className="h-10 px-6 rounded-xl bg-foreground text-background font-black uppercase tracking-widest text-[8px] hover:bg-primary transition-all active:scale-95 shadow-lg flex items-center gap-2.5 italic"
                 >
-                  Public Listing <ArrowUpRight className="h-4 w-4" />
+                  Public Listing <ArrowUpRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>
             </div>
@@ -131,74 +131,74 @@ const ManagerEventAnalyticsPage = () => {
         </header>
 
         {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-primary/30 transition-all duration-500">
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center justify-between italic">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-5 rounded-2xl relative overflow-hidden group shadow-lg shadow-black/5 hover:border-primary/30 transition-all duration-500">
+            <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 mb-4 flex items-center justify-between italic">
               Gross Revenue
-              <IndianRupee className="h-4 w-4 opacity-30" />
+              <IndianRupee className="h-3.5 w-3.5 opacity-20" />
             </div>
-            <div className="text-3xl font-black italic tracking-tighter tabular-nums">
+            <div className="text-xl font-black italic tracking-tight tabular-nums text-foreground">
               ₹{stats.grossRevenue.toLocaleString()}
             </div>
-            <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+            <div className="absolute -bottom-4 -right-4 h-16 w-16 bg-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-1000" />
           </div>
 
-          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-rose-500/30 transition-all duration-500">
-            <div className="text-[10px] font-black uppercase tracking-widest text-rose-500/60 mb-6 flex items-center justify-between italic">
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-5 rounded-2xl relative overflow-hidden group shadow-lg shadow-black/5 hover:border-rose-500/30 transition-all duration-500">
+            <div className="text-[9px] font-black uppercase tracking-widest text-rose-500/50 mb-4 flex items-center justify-between italic">
               Platform Fee
-              <ShieldAlert className="h-4 w-4 opacity-30" />
+              <ShieldAlert className="h-3.5 w-3.5 opacity-20" />
             </div>
-            <div className="text-3xl font-black italic tracking-tighter text-rose-500/80 tabular-nums">
+            <div className="text-xl font-black italic tracking-tight text-rose-500/80 tabular-nums">
               -₹{stats.platformCommission.toLocaleString()}
             </div>
-            <div className="text-[9px] font-black uppercase mt-4 text-muted-foreground/40 tracking-[0.2em] italic">
+            <div className="text-[8px] font-black uppercase mt-3 text-muted-foreground/30 tracking-widest italic">
               {stats.commissionInfo.value}
               {stats.commissionInfo.type === "percentage" ? "%" : " FLAT"} Deal
             </div>
           </div>
 
-          <div className="bg-primary/5 backdrop-blur-xl border-2 border-primary/20 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-[0_0_50px_rgba(var(--primary),0.05)] hover:border-primary/40 transition-all duration-500">
-            <div className="absolute top-6 right-6">
-              <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+          <div className="bg-primary/5 backdrop-blur-xl border border-primary/20 p-5 rounded-2xl relative overflow-hidden group shadow-[0_0_30px_rgba(var(--primary),0.05)] hover:border-primary/40 transition-all duration-500">
+            <div className="absolute top-4 right-4">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
             </div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-6 flex items-center justify-between italic">
+            <div className="text-[9px] font-black uppercase tracking-widest text-primary mb-4 flex items-center justify-between italic opacity-70">
               Net Revenue
-              <TrendingUp className="h-4 w-4" />
+              <TrendingUp className="h-3.5 w-3.5" />
             </div>
-            <div className="text-4xl font-black italic tracking-tighter text-emerald-400 tabular-nums">
+            <div className="text-2xl font-black italic tracking-tight text-emerald-400 tabular-nums">
               ₹{stats.netRevenue.toLocaleString()}
             </div>
           </div>
 
-          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-8 rounded-[2.5rem] relative overflow-hidden group shadow-xl hover:border-primary/30 transition-all duration-500">
-            <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-6 flex items-center justify-between italic">
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-5 rounded-2xl relative overflow-hidden group shadow-lg shadow-black/5 hover:border-primary/30 transition-all duration-500">
+            <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 mb-4 flex items-center justify-between italic">
               Tickets Sold
-              <Ticket className="h-4 w-4 opacity-30" />
+              <Ticket className="h-3.5 w-3.5 opacity-20" />
             </div>
-            <div className="text-3xl font-black italic tracking-tighter tabular-nums">
+            <div className="text-xl font-black italic tracking-tight tabular-nums text-foreground">
               {stats.totalTicketsSold}
-              <span className="text-sm font-light text-muted-foreground/20 ml-2">
+              <span className="text-[10px] font-light text-muted-foreground/30 ml-2">
                 / {stats.capacity}
               </span>
             </div>
-            <div className="mt-4">
-                <Progress value={sellThroughRate} className="h-1 bg-muted rounded-full" />
+            <div className="mt-3">
+                <Progress value={sellThroughRate} className="h-1 bg-muted/30 rounded-full" />
             </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-12 gap-12 pt-10">
+        <div className="grid lg:grid-cols-12 gap-6 pt-6">
           {/* Left Column */}
-          <div className="lg:col-span-8 space-y-16">
+          <div className="lg:col-span-8 space-y-10">
             <section>
-              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+              <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-6">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2.5 italic">
                   <BarChart3 className="h-3 w-3" />
                   Revenue Velocity
                 </h2>
-                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic">Sync: Active</span>
+                <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 italic">Sync: Active</span>
               </div>
-              <div className="bg-card/20 backdrop-blur-xl border border-border/50 p-10 rounded-[3rem] flex items-end justify-between h-56 gap-4 shadow-2xl overflow-hidden relative">
+              <div className="bg-card/20 backdrop-blur-xl border border-border/50 p-6 rounded-2xl flex items-end justify-between h-40 gap-3 shadow-2xl overflow-hidden relative">
                  <div className="absolute inset-0 bg-gradient-to-t from-primary/5 via-transparent to-transparent pointer-events-none" />
                 {salesHistory.map((s, i) => {
                   const max = Math.max(...salesHistory.map((d) => d.amount)) || 1;
@@ -206,21 +206,21 @@ const ManagerEventAnalyticsPage = () => {
                   return (
                     <div
                       key={i}
-                      className="flex-1 flex flex-col items-center gap-6 group relative z-10"
+                      className="flex-1 flex flex-col items-center gap-4 group relative z-10"
                     >
-                      <div className="w-full h-40 relative flex items-end">
+                      <div className="w-full h-24 relative flex items-end">
                         <motion.div
                           initial={{ height: 0 }}
                           animate={{ height: `${height}%` }}
                           transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
-                          className="w-full bg-primary/20 group-hover:bg-primary/50 transition-all duration-500 rounded-xl relative"
+                          className="w-full bg-primary/20 group-hover:bg-primary/50 transition-all duration-500 rounded-md relative"
                         >
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                <span className="text-[10px] font-black italic bg-card px-2 py-1 rounded-lg border border-border shadow-2xl">₹{s.amount}</span>
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-1.5 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                <span className="text-[8px] font-black italic bg-card px-1.5 py-0.5 rounded-md border border-border shadow-2xl">₹{s.amount}</span>
                             </div>
                         </motion.div>
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground/60 transition-colors group-hover:text-primary">
+                      <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground/50 transition-colors group-hover:text-primary">
                         {s.date}
                       </span>
                     </div>
@@ -230,49 +230,49 @@ const ManagerEventAnalyticsPage = () => {
             </section>
 
             <section>
-              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+              <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-6">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2.5 italic">
                   <Ticket className="h-3 w-3" />
                   Artifact Distribution
                 </h2>
               </div>
-              <div className="grid md:grid-cols-2 gap-8">
+              <div className="grid md:grid-cols-2 gap-4">
                 {ticketStats.map((tt, i) => (
                   <div
                     key={i}
-                    className="bg-card/20 backdrop-blur-xl border border-border/50 p-10 rounded-[3rem] group hover:border-primary/30 transition-all duration-500 shadow-xl"
+                    className="bg-card/20 backdrop-blur-xl border border-border/50 p-6 rounded-2xl group hover:border-primary/30 transition-all duration-500 shadow-xl shadow-black/5"
                   >
-                    <div className="flex justify-between items-start mb-10">
-                      <div className="space-y-2">
-                        <h4 className="font-black italic uppercase text-xl leading-none tracking-tighter text-foreground">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="space-y-1.5">
+                        <h4 className="font-black italic uppercase text-lg leading-none tracking-tight text-foreground">
                           {tt.name}
                         </h4>
-                        <div className="inline-block px-3 py-1 rounded-full bg-muted/50 border border-border/50 text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">
+                        <div className="inline-block px-2.5 py-0.5 rounded-lg bg-muted/30 border border-border/50 text-[8px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
                           ₹{tt.price.toLocaleString()} Unit
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-black italic tracking-tighter text-foreground tabular-nums leading-none mb-2">{tt.sold}</div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 italic">
+                        <div className="text-xl font-black italic tracking-tight text-foreground tabular-nums leading-none mb-1">{tt.sold}</div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 italic">
                           Admitted
                         </p>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                        <div className="flex justify-between text-[8px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 italic">
+                    <div className="space-y-3">
+                        <div className="flex justify-between text-[7px] font-black uppercase tracking-widest text-muted-foreground/30 italic">
                             <span>Capacity Usage</span>
                             <span>{Math.round((tt.sold / tt.capacity) * 100)}%</span>
                         </div>
                         <Progress
                             value={(tt.sold / tt.capacity) * 100}
-                            className="h-2 bg-muted/40 rounded-full overflow-hidden"
+                            className="h-1 bg-muted/20 rounded-full overflow-hidden"
                         />
                     </div>
-                    <div className="mt-10 pt-8 border-t border-border/40 flex justify-between items-center group-hover:border-primary/20 transition-colors">
-                      <span className="text-[10px] font-black uppercase text-muted-foreground/60 tracking-widest italic">
+                    <div className="mt-6 pt-4 border-t border-border/40 flex justify-between items-center group-hover:border-primary/20 transition-colors">
+                      <span className="text-[9px] font-black uppercase text-muted-foreground/40 tracking-widest italic leading-none">
                         Revenue Impact
                       </span>
-                      <span className="text-lg font-black italic text-primary tabular-nums">
+                      <span className="text-lg font-black italic text-primary tabular-nums leading-none tracking-tight">
                         ₹{tt.revenue.toLocaleString()}
                       </span>
                     </div>
@@ -283,15 +283,15 @@ const ManagerEventAnalyticsPage = () => {
           </div>
 
           {/* Recent Transactions Column */}
-          <div className="lg:col-span-4 space-y-16">
+          <div className="lg:col-span-4 space-y-10">
             <section>
-              <div className="flex items-center justify-between border-b border-border/50 pb-6 mb-10">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground flex items-center gap-3 italic">
+              <div className="flex items-center justify-between border-b border-border/50 pb-4 mb-6">
+                <h2 className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground flex items-center gap-2.5 italic">
                   <Clock className="h-3 w-3" />
                   Live Sync
                 </h2>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {recentBookings.length > 0 ? (
                   recentBookings.map((b, i) => (
                     <motion.div
@@ -299,23 +299,23 @@ const ManagerEventAnalyticsPage = () => {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="p-8 rounded-[2.5rem] bg-card/20 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 shadow-lg group relative overflow-hidden"
+                      className="p-5 rounded-2xl bg-card/20 backdrop-blur-xl border border-border/50 hover:border-primary/30 transition-all duration-500 shadow-lg group relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 h-24 w-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
-                      <div className="flex justify-between items-start mb-4 relative z-10">
-                        <div className="space-y-1">
-                            <div className="font-black italic uppercase text-sm tracking-tight truncate max-w-[180px] text-foreground">
+                        <div className="absolute top-0 right-0 h-16 w-16 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-1000" />
+                      <div className="flex justify-between items-start mb-3 relative z-10">
+                        <div className="space-y-0.5">
+                            <div className="font-black italic uppercase text-[11px] tracking-tight truncate max-w-[140px] text-foreground">
                             {b.userName}
                             </div>
-                            <div className="text-[9px] font-medium text-muted-foreground italic truncate max-w-[180px]">{b.userEmail}</div>
+                            <div className="text-[8px] font-medium text-muted-foreground/50 italic truncate max-w-[140px]">{b.userEmail}</div>
                         </div>
-                        <div className="font-black italic text-lg text-primary tabular-nums shrink-0">
+                        <div className="font-black italic text-base text-primary tabular-nums shrink-0">
                           ₹{b.totalAmount.toLocaleString()}
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 italic relative z-10">
+                      <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-muted-foreground/30 italic relative z-10">
                         <span>{new Date(b.createdAt).toLocaleDateString()}</span>
-                        <span className="bg-muted/50 px-2 py-0.5 rounded-lg border border-border/50 text-foreground">
+                        <span className="bg-muted/30 px-1.5 py-0.5 rounded-md border border-border/50 text-foreground/70">
                           {b.tickets.reduce((sum, t) => sum + t.quantity, 0)}{" "}
                           PULSE
                         </span>

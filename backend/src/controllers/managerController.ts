@@ -298,14 +298,31 @@ export const addVolunteer: RequestHandler = async (req: AuthRequest, res: Respon
 };
 
 export const getVolunteersByEvent: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
     const { eventId } = req.params;
     const managerId = req.user?._id;
 
-    const volunteers = await Volunteer.find({ event: eventId, manager: managerId }).select('-password');
-    res.json(volunteers);
+    const total = await Volunteer.countDocuments({ event: eventId, manager: managerId });
+    const volunteers = await Volunteer.find({ event: eventId, manager: managerId })
+      .select('-password')
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: volunteers,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -327,10 +344,27 @@ export const removeVolunteer: RequestHandler = async (req: AuthRequest, res: Res
 };
 
 export const getManagerPayouts: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const payouts = await Payout.find({ manager: req.user?._id }).sort({ createdAt: -1 });
-    res.json(payouts);
+    const total = await Payout.countDocuments({ manager: req.user?._id });
+    const payouts = await Payout.find({ manager: req.user?._id })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: payouts,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };

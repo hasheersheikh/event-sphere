@@ -47,11 +47,28 @@ export const getPublicPost = async (req: Request, res: Response) => {
 // ── Admin routes ─────────────────────────────────────────────────────────────
 
 export const adminGetAllPosts = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const posts = await Blog.find().sort({ createdAt: -1 });
-    res.json(posts);
+    const total = await Blog.countDocuments({});
+    const posts = await Blog.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: posts,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 

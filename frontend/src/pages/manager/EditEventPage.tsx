@@ -325,23 +325,23 @@ const EditEventPage = () => {
     <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
 
-      <main className="flex-1 container max-w-4xl py-12 px-4 md:px-6 relative z-10">
-        <header className="mb-12">
+      <main className="flex-1 container max-w-4xl py-8 px-3 md:px-4 relative z-10">
+        <header className="mb-8">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors group mb-8"
+            className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors group mb-6"
           >
             <ArrowLeft className="h-3 w-3 transition-transform group-hover:-translate-x-1" />
             Back to Dashboard
           </button>
 
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-none text-foreground">
+          <h1 className="text-2xl md:text-4xl font-black tracking-tighter leading-none text-foreground">
             Edit <span className="text-gradient">Event.</span>
           </h1>
 
           {/* Stepper Indicator */}
-          <div className="mt-12 flex items-center justify-center max-w-2xl mx-auto">
+          <div className="mt-8 flex items-center justify-center max-w-2xl mx-auto">
             {steps.map((s, i) => {
               const StepIcon = s.icon;
               const isActive = currentStep === i + 1;
@@ -349,12 +349,12 @@ const EditEventPage = () => {
 
               return (
                 <div key={i} className="flex items-center group">
-                  <div className="flex flex-col items-center gap-3">
+                  <div className="flex flex-col items-center gap-2">
                     <div
                       className={cn(
-                        "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-2",
+                        "h-10 w-10 rounded-xl flex items-center justify-center transition-all duration-500 border-2",
                         isActive
-                          ? "bg-primary border-primary shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-110"
+                          ? "bg-primary border-primary shadow-[0_0_15px_rgba(16,185,129,0.3)] scale-110"
                           : isCompleted
                             ? "bg-primary/20 border-primary/40 text-primary"
                             : "bg-card border-border text-muted-foreground",
@@ -362,14 +362,14 @@ const EditEventPage = () => {
                     >
                       <StepIcon
                         className={cn(
-                          "h-5 w-5",
+                          "h-4 w-4",
                           isActive ? "text-primary-foreground" : "",
                         )}
                       />
                     </div>
                     <span
                       className={cn(
-                        "text-[10px] font-black uppercase tracking-widest",
+                        "text-[9px] font-black uppercase tracking-widest",
                         isActive ? "text-primary" : "text-muted-foreground",
                       )}
                     >
@@ -379,7 +379,7 @@ const EditEventPage = () => {
                   {i < steps.length - 1 && (
                     <div
                       className={cn(
-                        "w-20 md:w-32 h-[2px] mx-2 md:mx-4 transition-all duration-700",
+                        "w-12 md:w-20 h-[2px] mx-2 md:mx-4 transition-all duration-700",
                         isCompleted ? "bg-primary" : "bg-border",
                       )}
                     />
@@ -403,26 +403,26 @@ const EditEventPage = () => {
                   className="space-y-6"
                 >
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-lg flex items-center gap-3 font-black text-foreground">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <Info className="h-4 w-4 text-primary" />
+                    <CardHeader className="pb-3 bg-muted/20 border-b">
+                      <CardTitle className="text-base flex items-center gap-3 font-black text-foreground">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Info className="h-3.5 w-3.5 text-primary" />
                         </div>
                         General Information
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6 p-6">
+                    <CardContent className="space-y-5 p-5">
                       <FormField
                         control={form.control}
                         name="title"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                               Event Title
                             </FormLabel>
                             <FormControl>
                               <Input
-                                className="h-14 bg-background/50 border-white/10 rounded-xl font-black text-base focus:ring-primary shadow-inner"
+                                className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm focus:ring-primary shadow-inner"
                                 {...field}
                               />
                             </FormControl>
@@ -466,18 +466,18 @@ const EditEventPage = () => {
                           )}
                         />
 
-                        <div className="space-y-4">
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
+                        <div className="space-y-3">
+                          <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
                             Event Banner
                           </FormLabel>
                           <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
                           <button
                             type="button"
                             onClick={handleUpload}
-                            className="w-full h-14 bg-background/50 border border-dashed border-white/20 rounded-xl flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
+                            className="w-full h-11 bg-background/50 border border-dashed border-white/20 rounded-lg flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
                           >
-                            <ImageIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
                               {form.watch("image")
                                 ? "Change Image"
                                 : "Upload Image"}
@@ -491,12 +491,12 @@ const EditEventPage = () => {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                            <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                               Description
                             </FormLabel>
                             <FormControl>
                               <Textarea
-                                className="min-h-[120px] bg-background/50 border-white/10 rounded-xl font-black text-sm resize-none shadow-inner"
+                                className="min-h-[100px] bg-background/50 border-white/10 rounded-lg font-bold text-xs resize-none shadow-inner"
                                 {...field}
                               />
                             </FormControl>
@@ -511,12 +511,12 @@ const EditEventPage = () => {
                           name="videoUrl"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                              <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                                 YouTube Video URL
                               </FormLabel>
                               <FormControl>
                                 <Input
-                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
+                                  className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner"
                                   placeholder="Link URL"
                                   {...field}
                                 />
@@ -593,25 +593,25 @@ const EditEventPage = () => {
                   className="space-y-6"
                 >
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-lg flex items-center gap-3 font-black text-foreground">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <CalendarIcon className="h-4 w-4 text-primary" />
+                    <CardHeader className="pb-3 bg-muted/20 border-b">
+                      <CardTitle className="text-base flex items-center gap-3 font-black text-foreground">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <CalendarIcon className="h-3.5 w-3.5 text-primary" />
                         </div>
                         Date & Location
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-8 p-6">
+                    <CardContent className="space-y-6 p-5">
                       <div className="space-y-6">
                         <FormField
                           control={form.control}
                           name="isMultiDay"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-[2rem] border border-white/10 p-6 bg-muted/20 glass-card">
+                            <FormItem className="flex flex-row items-center justify-between rounded-xl border border-white/10 p-4 bg-muted/20 glass-card">
                               <div className="space-y-0.5">
-                                <FormLabel className="text-base font-black tracking-tighter uppercase italic">Multi-Day Event</FormLabel>
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
-                                  Configure this event to span several dates with individual daily schedules.
+                                <FormLabel className="text-sm font-black tracking-tighter uppercase italic">Multi-Day Event</FormLabel>
+                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mt-1">
+                                  Config span several dates schedule.
                                 </p>
                               </div>
                               <FormControl>
@@ -631,7 +631,7 @@ const EditEventPage = () => {
                               name="date"
                               render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <FormControl>
@@ -639,12 +639,12 @@ const EditEventPage = () => {
                                           type="button"
                                           variant={"outline"}
                                           className={cn(
-                                            "h-14 bg-background/50 border-white/10 rounded-xl font-black text-left px-4",
+                                            "h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm text-left px-3",
                                             !field.value && "text-muted-foreground"
                                           )}
                                         >
                                           {field.value instanceof Date ? format(field.value, "PPP") : <span>Select Date</span>}
-                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                          <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
@@ -668,9 +668,9 @@ const EditEventPage = () => {
                               name="time"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
                                   <FormControl>
-                                    <Input type="time" className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner" {...field} />
+                                    <Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -682,9 +682,9 @@ const EditEventPage = () => {
                               name="endTime"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
                                   <FormControl>
-                                    <Input type="time" className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner" {...field} />
+                                    <Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -707,9 +707,9 @@ const EditEventPage = () => {
                             </div>
 
                             {dayFields.map((field, index) => (
-                              <div key={field.id} className="p-6 border border-white/5 rounded-2xl bg-muted/10 relative group glass-card">
-                                <div className="flex justify-between items-center mb-6">
-                                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Day {index + 1}</span>
+                              <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 relative group glass-card">
+                                <div className="flex justify-between items-center mb-4">
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Day {index + 1}</span>
                                   <Button
                                     type="button"
                                     variant="ghost"
@@ -1091,11 +1091,11 @@ const EditEventPage = () => {
                   </Card>
 
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
+                    <CardHeader className="pb-3 bg-muted/20 border-b">
                       <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg flex items-center gap-3 font-black text-foreground">
-                          <div className="p-2 bg-primary/10 rounded-xl">
-                            <Tag className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-base flex items-center gap-3 font-black text-foreground">
+                          <div className="p-2 bg-primary/10 rounded-lg">
+                            <Tag className="h-3.5 w-3.5 text-primary" />
                           </div>
                           Vouchers
                         </CardTitle>
@@ -1111,13 +1111,13 @@ const EditEventPage = () => {
                               isActive: true,
                             })
                           }
-                          className="rounded-xl h-10 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/10 text-primary"
+                          className="rounded-lg h-9 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/10 text-primary"
                         >
                           <Plus className="h-3 w-3" /> Add Voucher
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-6 p-6">
+                    <CardContent className="space-y-5 p-5">
                       {voucherFields.map((field, index) => (
                         <div
                           key={field.id}
@@ -1196,13 +1196,13 @@ const EditEventPage = () => {
             </AnimatePresence>
 
             {/* Navigation Buttons */}
-            <div className="flex gap-4 pt-8 relative z-20">
+            <div className="flex gap-4 pt-6 relative z-20">
               {currentStep > 1 && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={prevStep}
-                  className="h-14 flex-1 rounded-xl bg-background border-white/10 font-black uppercase tracking-widest text-[10px] hover:bg-muted transition-all"
+                  className="h-10 flex-1 rounded-lg bg-background border-white/10 font-black uppercase tracking-widest text-[9px] hover:bg-muted transition-all"
                 >
                   <ChevronLeft className="h-4 w-4 mr-2" /> Previous
                 </Button>
@@ -1212,7 +1212,7 @@ const EditEventPage = () => {
                   type="button"
                   onClick={nextStep}
                   disabled={mutation.isPending}
-                  className="h-14 flex-[2] rounded-xl font-black uppercase tracking-[0.3em] text-[10px] transition-all shadow-2xl bg-primary text-primary-foreground hover:scale-[1.02]"
+                  className="h-10 flex-[2] rounded-lg font-black uppercase tracking-[0.3em] text-[9px] transition-all shadow-2xl bg-primary text-primary-foreground"
                 >
                   Next <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -1221,7 +1221,7 @@ const EditEventPage = () => {
                   type="button"
                   onClick={() => form.handleSubmit(onSubmit)()}
                   disabled={mutation.isPending}
-                  className="h-14 flex-[2] rounded-xl font-black uppercase tracking-[0.3em] text-[10px] transition-all shadow-2xl bg-emerald-500 text-black hover:bg-emerald-400"
+                  className="h-10 flex-[2] rounded-lg font-black uppercase tracking-[0.3em] text-[10px] transition-all shadow-2xl bg-emerald-500 text-black hover:bg-emerald-400"
                 >
                   {mutation.isPending ? "Updating..." : "Update Event"}
                 </Button>

@@ -11,20 +11,56 @@ import Volunteer from '../models/Volunteer.js';
 import { createRazorpayContact, createRazorpayFundAccount, initiateRazorpayPayout } from '../utils/razorpayPayouts.js';
 
 export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
-    res.json(users);
+    const total = await User.countDocuments({});
+    const users = await User.find()
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: users,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 export const getManagers: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const managers = await EventManager.find().select('-password').sort({ createdAt: -1 });
-    res.json(managers);
+    const total = await EventManager.countDocuments({});
+    const managers = await EventManager.find()
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: managers,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -330,18 +366,33 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
 };
 
 export const getAllAdminEvents: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const events = await Event.find().populate('creator', 'name email').sort({ createdAt: -1 });
-    const eventIds = events.map(e => e._id);
-    
-    const bookings = await Booking.find({ 
+    const total = await Event.countDocuments({});
+    const events = await Event.find()
+      .populate("creator", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const eventIds = events.map((e) => e._id);
+
+    const bookings = await Booking.find({
       event: { $in: eventIds },
-      status: 'confirmed'
+      status: "confirmed",
     });
 
-    const eventsWithStats = events.map(event => {
-      const eventBookings = bookings.filter(b => b.event.toString() === event._id.toString());
-      const revenue = eventBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
+    const eventsWithStats = events.map((event) => {
+      const eventBookings = bookings.filter(
+        (b) => b.event.toString() === event._id.toString()
+      );
+      const revenue = eventBookings.reduce(
+        (acc, b) => acc + (b.totalAmount || 0),
+        0
+      );
       const ticketsSold = eventBookings.reduce((acc, b) => {
         return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
       }, 0);
@@ -349,13 +400,21 @@ export const getAllAdminEvents: RequestHandler = async (req: AuthRequest, res: R
       return {
         ...event.toObject(),
         revenue,
-        ticketsSold
+        ticketsSold,
       };
     });
 
-    res.json(eventsWithStats);
+    res.json({
+      data: eventsWithStats,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -369,12 +428,37 @@ export const getPendingEvents: RequestHandler = async (req: AuthRequest, res: Re
 };
 
 export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const users = await User.find().select('-password');
-    const managers = await EventManager.find().select('-password');
-    res.json([...users, ...managers]);
+    const userCount = await User.countDocuments({});
+    const managerCount = await EventManager.countDocuments({});
+    const total = userCount + managerCount;
+
+    // This is a bit tricky since it's two collections. 
+    // For simplicity, we'll fetch both and combine, but real pagination would need 
+    // a more complex aggregation or a unified User model.
+    // Given the current structure, we'll fetch recent from both.
+    const users = await User.find().select("-password").sort({ createdAt: -1 }).limit(limit);
+    const managers = await EventManager.find().select("-password").sort({ createdAt: -1 }).limit(limit);
+    
+    const combined = [...users, ...managers]
+      .sort((a, b) => (b as any).createdAt - (a as any).createdAt)
+      .slice(skip, skip + limit);
+
+    res.json({
+      data: combined,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -690,15 +774,31 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
 import bcrypt from 'bcrypt';
 
 export const getAllVolunteers: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
+    const total = await Volunteer.countDocuments({});
     const volunteers = await Volunteer.find()
-      .populate('event', 'title')
-      .populate('manager', 'name email')
-      .select('-password')
-      .sort({ createdAt: -1 });
-    res.json(volunteers);
+      .populate("event", "title")
+      .populate("manager", "name email")
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: volunteers,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 

@@ -199,61 +199,61 @@ const CreateStorePage = () => {
 
   const prevStep = () => setCurrentStep((p) => Math.max(p - 1, 1));
 
-  const labelClass = "text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1";
-  const inputClass = "h-12 rounded-xl bg-muted/30 border-border";
+  const labelClass = "text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1";
+  const inputClass = "h-9 rounded-lg bg-muted/30 border-border text-xs";
 
   return (
     <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
 
-      <main className="flex-1 container max-w-3xl py-10 px-4 md:px-6 relative z-10">
+      <main className="flex-1 container max-w-3xl py-6 px-4 md:px-6 relative z-10">
         {/* Header */}
-        <header className="mb-10">
+        <header className="mb-6">
           <button
             type="button"
             onClick={() => navigate("/portal/admin/local-stores")}
-            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-6"
+            className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
-            <ChevronLeft className="h-3.5 w-3.5" /> Back to Stores
+            <ChevronLeft className="h-3 w-3" /> Back to Stores
           </button>
-          <div className="flex items-center gap-3 mb-3 text-primary font-black text-[10px] uppercase tracking-[0.4em]">
-            <Store className="h-4 w-4" />
+          <div className="flex items-center gap-2 mb-2 text-primary font-black text-[9px] uppercase tracking-[0.4em]">
+            <Store className="h-3.5 w-3.5" />
             {isEdit ? "Edit Store" : "New Store"}
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-foreground">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tighter leading-none text-foreground italic">
             {isEdit ? "Edit" : "Create"} <span className="text-gradient">Store.</span>
           </h1>
 
           {/* Step indicator */}
-          <div className="mt-10 flex items-center justify-center">
+          <div className="mt-6 flex items-center justify-center">
             {STEPS.map((s, i) => {
               const StepIcon = s.icon;
               const isActive = currentStep === i + 1;
               const isCompleted = currentStep > i + 1;
               return (
                 <div key={i} className="flex items-center">
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-1.5">
                     <div className={cn(
-                      "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 border-2",
+                      "h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-500 border-2",
                       isActive
-                        ? "bg-primary border-primary shadow-[0_0_20px_rgba(16,185,129,0.3)] scale-110"
+                        ? "bg-primary border-primary shadow-[0_0_15px_rgba(16,185,129,0.3)] scale-105"
                         : isCompleted
                         ? "bg-primary/20 border-primary/40 text-primary"
                         : "bg-card border-border text-muted-foreground"
                     )}>
                       {isCompleted
-                        ? <Check className="h-5 w-5 text-primary" />
-                        : <StepIcon className={cn("h-5 w-5", isActive ? "text-primary-foreground" : "")} />
+                        ? <Check className="h-4 w-4 text-primary" />
+                        : <StepIcon className={cn("h-4 w-4", isActive ? "text-primary-foreground" : "")} />
                       }
                     </div>
                     <span className={cn(
-                      "text-[9px] font-black uppercase tracking-widest hidden sm:block",
+                      "text-[8px] font-black uppercase tracking-widest hidden sm:block",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )}>{s.title}</span>
                   </div>
                   {i < STEPS.length - 1 && (
                     <div className={cn(
-                      "w-12 sm:w-20 h-[2px] mx-2 transition-all duration-700",
+                      "w-8 sm:w-12 h-[2px] mx-1.5 transition-all duration-700",
                       isCompleted ? "bg-primary" : "bg-border"
                     )} />
                   )}
@@ -275,16 +275,16 @@ const CreateStorePage = () => {
                   exit={{ opacity: 0, x: -30 }}
                   className="space-y-5"
                 >
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <Store className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <Store className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Store Information
+                        Store Info
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-5 p-6">
+                    <CardContent className="space-y-4 p-4">
                       <FormField control={form.control} name="name" render={({ field }) => (
                         <FormItem>
                           <FormLabel className={labelClass}>Store Name *</FormLabel>
@@ -301,7 +301,7 @@ const CreateStorePage = () => {
                           <FormControl>
                             <select
                               {...field}
-                              className="w-full h-12 rounded-xl bg-muted/30 border border-border px-4 text-sm font-bold focus:outline-none focus:border-primary"
+                              className="w-full h-9 rounded-lg bg-muted/30 border border-border px-3 text-xs font-bold focus:outline-none focus:border-primary"
                             >
                               <option value="">Select category...</option>
                               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -329,7 +329,7 @@ const CreateStorePage = () => {
                           <FormLabel className={labelClass}>Description</FormLabel>
                           <FormControl>
                             <Textarea
-                              className="rounded-xl bg-muted/30 border-border resize-none min-h-[100px]"
+                              className="rounded-lg bg-muted/30 border-border resize-none min-h-[80px] text-xs"
                               placeholder="Tell customers what makes your store special..."
                               {...field}
                             />
@@ -350,16 +350,16 @@ const CreateStorePage = () => {
                   exit={{ opacity: 0, x: -30 }}
                   className="space-y-5"
                 >
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <Phone className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <Phone className="h-3.5 w-3.5 text-primary" />
                         </div>
                         Contact Details
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-5 p-6">
+                    <CardContent className="space-y-4 p-4">
                       <div className="grid sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="contactPhone" render={({ field }) => (
                           <FormItem>
@@ -437,16 +437,16 @@ const CreateStorePage = () => {
                   exit={{ opacity: 0, x: -30 }}
                   className="space-y-5"
                 >
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <CreditCard className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <CreditCard className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Payment Methods
+                        Payment Processing
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-5 p-6">
+                    <CardContent className="space-y-4 p-4">
                       <div className="space-y-3">
                         <p className={labelClass}>Accepted Payment Methods</p>
                         <div className="flex flex-wrap gap-2">
@@ -456,7 +456,7 @@ const CreateStorePage = () => {
                               type="button"
                               onClick={() => togglePaymentMethod(opt.value)}
                               className={cn(
-                                "px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
+                                "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all",
                                 watchedPaymentMethods.includes(opt.value)
                                   ? "bg-primary text-primary-foreground border-primary shadow-md"
                                   : "bg-muted/30 border-border text-muted-foreground hover:border-primary/40"
@@ -482,16 +482,16 @@ const CreateStorePage = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <Building2 className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <Building2 className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Bank Account Details
+                        Settlement Details
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4">
                       <div className="grid sm:grid-cols-2 gap-4">
                         <FormField control={form.control} name="bankDetails.accountHolder" render={({ field }) => (
                           <FormItem>
@@ -532,16 +532,16 @@ const CreateStorePage = () => {
                   exit={{ opacity: 0, x: -30 }}
                   className="space-y-5"
                 >
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <ImageIcon className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <ImageIcon className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Store Photos
+                        Gallery
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-4">
+                    <CardContent className="p-4 space-y-3">
                       {photoFields.length > 0 && (
                         <div className="grid grid-cols-3 gap-3">
                           {photoFields.map((f, i) => (
@@ -568,16 +568,16 @@ const CreateStorePage = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="border-none shadow-xl glass-card overflow-hidden">
-                    <CardHeader className="pb-4 bg-muted/20 border-b">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl">
-                          <Globe className="h-4 w-4 text-primary" />
+                  <Card className="border-none shadow-xl glass-card overflow-hidden rounded-xl">
+                    <CardHeader className="py-3 bg-muted/20 border-b">
+                      <CardTitle className="text-sm flex items-center gap-2 font-black">
+                        <div className="p-1.5 bg-primary/10 rounded-lg">
+                          <Globe className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Social &amp; Web Presence
+                        Social Sync
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4 p-6">
+                    <CardContent className="space-y-3 p-4">
                       <FormField control={form.control} name="website" render={({ field }) => (
                         <FormItem>
                           <FormLabel className={labelClass}>Website URL</FormLabel>
@@ -626,9 +626,9 @@ const CreateStorePage = () => {
                 type="button"
                 variant="ghost"
                 onClick={currentStep === 1 ? () => navigate("/portal/admin/local-stores") : prevStep}
-                className="h-12 px-6 rounded-2xl font-black uppercase tracking-widest text-[10px] gap-2"
+                className="h-10 px-5 rounded-lg font-black uppercase tracking-widest text-[9px] gap-2"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3.5 w-3.5" />
                 {currentStep === 1 ? "Cancel" : "Back"}
               </Button>
 
@@ -636,19 +636,19 @@ const CreateStorePage = () => {
                 <Button
                   type="button"
                   onClick={nextStep}
-                  className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary gap-2"
+                  className="h-10 px-6 rounded-lg font-black uppercase tracking-widest text-[9px] bg-primary gap-2 italic shadow-lg shadow-primary/20"
                 >
-                  Next <ChevronRight className="h-4 w-4" />
+                  Next <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               ) : (
                 <Button
                   type="button"
                   onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
                   disabled={mutation.isPending}
-                  className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary gap-2"
+                  className="h-10 px-6 rounded-lg font-black uppercase tracking-widest text-[9px] bg-primary gap-2 italic shadow-lg shadow-primary/20"
                 >
-                  {mutation.isPending ? "Saving..." : isEdit ? "Update Store" : "Create Store"}
-                  <Check className="h-4 w-4" />
+                  {mutation.isPending ? "Syncing..." : isEdit ? "Update Store" : "Finalize Protocol"}
+                  <Check className="h-3.5 w-3.5" />
                 </Button>
               )}
             </div>

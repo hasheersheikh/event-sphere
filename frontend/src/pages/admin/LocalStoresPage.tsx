@@ -27,6 +27,7 @@ import {
   Instagram,
   Facebook,
   Image as ImageIcon,
+  Activity,
 } from "lucide-react";
 import api from "@/lib/api";
 import {
@@ -47,6 +48,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalStatCard } from "@/components/portal/PortalStatCard";
+import { PortalDataTable } from "@/components/portal/PortalDataTable";
 
 interface BankDetails {
   accountHolder?: string;
@@ -299,35 +304,35 @@ const StoreForm = ({
   });
 
   const labelClass =
-    "text-[10px] font-black uppercase tracking-widest text-muted-foreground";
-  const inputClass = "h-12 rounded-xl bg-muted/30 border-border";
+    "text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-70";
+  const inputClass = "h-9 rounded-lg bg-muted/30 border-border text-xs";
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-background border border-border rounded-3xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl">
+      <div className="bg-background border border-border rounded-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border sticky top-0 bg-background z-10">
-          <h2 className="font-black text-lg uppercase tracking-tight">
-            {editStore ? "Edit Store" : "Add New Store"}
+        <div className="flex items-center justify-between p-3 border-b border-border sticky top-0 bg-background z-10">
+          <h2 className="font-black text-sm uppercase tracking-tight italic">
+            {editStore ? "Refine Store" : "Initialize Entity"}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center"
+            className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border px-6 sticky top-[73px] bg-background z-10">
+        <div className="flex border-b border-border px-3 sticky top-[53px] bg-background z-10">
           {TABS.map((tab) => (
             <button
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
               className={cn(
-                "px-4 py-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-colors",
+                "px-2.5 py-2 text-[8px] font-black uppercase tracking-widest border-b-2 transition-colors italic",
                 activeTab === tab
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground",
@@ -370,7 +375,7 @@ const StoreForm = ({
                       <FormControl>
                         <select
                           {...field}
-                          className="w-full h-12 rounded-xl bg-muted/30 border border-border px-4 text-sm font-bold focus:outline-none focus:border-primary"
+                          className="w-full h-9 rounded-lg bg-muted/30 border border-border px-2 text-[11px] font-bold focus:outline-none focus:border-primary"
                         >
                           <option value="">Select category...</option>
                           {CATEGORIES.map((c) => (
@@ -460,9 +465,9 @@ const StoreForm = ({
                   <button
                     type="button"
                     onClick={handlePhotoUpload}
-                    className="w-full h-12 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+                    className="w-full h-9 rounded-lg border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[8px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-1.5 transition-colors italic"
                   >
-                    <Upload className="h-4 w-4" /> Upload Photos
+                    <Upload className="h-3.5 w-3.5" /> Deploy Assets
                   </button>
                 </div>
               </>
@@ -596,7 +601,7 @@ const StoreForm = ({
                         type="button"
                         onClick={() => togglePaymentMethod(method)}
                         className={cn(
-                          "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-colors",
+                          "px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-colors italic",
                           watchedPaymentMethods.includes(method)
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-muted/30 border-border text-muted-foreground hover:border-primary/50",
@@ -793,10 +798,10 @@ const StoreForm = ({
               type="button"
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
               disabled={mutation.isPending}
-              className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary"
+              className="w-full h-10 rounded-xl font-black uppercase tracking-widest text-[9px] bg-primary italic shadow-lg shadow-primary/20"
             >
               {mutation.isPending
-                ? "Saving..."
+                ? "SYNCHRONIZING..."
                 : editStore
                   ? "Update Store"
                   : "Create Store"}
@@ -1020,9 +1025,9 @@ const AddProductForm = ({
               type="button"
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}
               disabled={mutation.isPending}
-              className="w-full h-12 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary"
+              className="w-full h-10 rounded-xl font-black uppercase tracking-widest text-[9px] bg-primary italic shadow-lg shadow-primary/20"
             >
-              {mutation.isPending ? "Adding..." : "Add Product"}
+              {mutation.isPending ? "ENROLLING..." : "Finalize Listing"}
             </Button>
           </form>
         </Form>
@@ -1407,10 +1412,10 @@ const StoreRow = ({
   return (
     <div
       onClick={() => navigate(`/portal/admin/local-stores/${store._id}`)}
-      className="border border-border/60 rounded-2xl overflow-hidden bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
+      className="border border-border/60 rounded-xl overflow-hidden bg-card hover:border-primary/30 hover:shadow-md transition-all cursor-pointer group"
     >
-      <div className="flex items-center gap-4 p-5">
-        <div className="h-14 w-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+      <div className="flex items-center gap-3 p-2.5">
+        <div className="h-9 w-9 rounded-lg overflow-hidden bg-muted flex-shrink-0">
           {store.photos[0] ? (
             <img
               src={store.photos[0]}
@@ -1419,28 +1424,28 @@ const StoreRow = ({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Store className="h-6 w-6 text-muted-foreground/40" />
+              <Store className="h-4 w-4 text-muted-foreground/40" />
             </div>
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="font-black truncate group-hover:text-primary transition-colors">
+            <p className="font-black text-xs truncate group-hover:text-primary transition-colors italic uppercase">
               {store.name}
             </p>
-            <span className="text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
+            <span className="text-[8px] font-black uppercase tracking-widest bg-primary/10 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
               {store.category}
             </span>
             <span
               className={cn(
-                "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex-shrink-0",
+                "text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex-shrink-0 italic",
                 store.isActive
                   ? "bg-emerald-500/10 text-emerald-500"
                   : "bg-muted text-muted-foreground",
               )}
             >
-              {store.isActive ? "Active" : "Inactive"}
+              {store.isActive ? "Live" : "Idle"}
             </span>
           </div>
           <div className="flex items-center gap-1 mt-0.5">
@@ -1466,7 +1471,7 @@ const StoreRow = ({
             type="button"
             onClick={() => toggleMutation.mutate()}
             className={cn(
-              "h-8 w-8 rounded-xl flex items-center justify-center transition-colors",
+              "h-7 w-7 rounded-lg flex items-center justify-center transition-colors",
               store.isActive
                 ? "text-emerald-500 bg-emerald-500/10 hover:bg-emerald-500/20"
                 : "text-muted-foreground bg-muted hover:bg-muted/80",
@@ -1482,7 +1487,7 @@ const StoreRow = ({
           <button
             type="button"
             onClick={() => onAddProduct(store._id)}
-            className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            className="h-7 w-7 rounded-lg bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
             title="Add product"
           >
             <Plus className="h-4 w-4" />
@@ -1490,7 +1495,7 @@ const StoreRow = ({
           <button
             type="button"
             onClick={() => onEdit(store)}
-            className="h-8 w-8 rounded-xl bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            className="h-7 w-7 rounded-lg bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
             title="Edit store"
           >
             <Edit3 className="h-4 w-4" />
@@ -1500,7 +1505,7 @@ const StoreRow = ({
             onClick={() => {
               if (confirm("Delete this store?")) deleteMutation.mutate();
             }}
-            className="h-8 w-8 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
+            className="h-7 w-7 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 flex items-center justify-center transition-colors"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -1514,20 +1519,192 @@ const StoreRow = ({
 // ── Main Page ────────────────────────────────────────────────────────────────
 const LocalStoresPage = () => {
   const navigate = useNavigate();
+  const qc = useQueryClient();
+  const [page, setPage] = useState(1);
   const [addProductStoreId, setAddProductStoreId] = useState<string | null>(
     null,
   );
 
-  const { data: stores, isLoading } = useQuery({
-    queryKey: ["adminLocalStores"],
+  const { data: response, isLoading } = useQuery({
+    queryKey: ["adminLocalStores", page],
     queryFn: async () => {
-      const { data } = await api.get("/local-stores/admin/all");
-      return data as LocalStore[];
+      const { data } = await api.get(`/local-stores/admin/all?page=${page}&limit=20`);
+      return data;
     },
   });
 
+  const stores = response?.data || [];
+  const pagination = response?.pagination;
+
+  const columns = [
+    {
+      header: "Entity Identity",
+      accessor: (store: LocalStore) => (
+        <div 
+          className="flex items-center gap-3 cursor-pointer group/item"
+          onClick={() => navigate(`/portal/admin/local-stores/${store._id}`)}
+        >
+          <div className="h-8 w-8 rounded-lg overflow-hidden bg-muted border border-border flex-shrink-0">
+            {store.photos[0] ? (
+              <img
+                src={store.photos[0]}
+                alt={store.name}
+                className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Store className="h-3 w-3 text-muted-foreground/30" />
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="font-black text-[11px] uppercase tracking-tight group-hover/item:text-primary transition-colors italic leading-none mb-1 text-foreground">
+              {store.name}
+            </p>
+            <p className="text-[8px] text-muted-foreground font-black italic opacity-60 flex items-center gap-1">
+              <MapPin className="h-2 w-2" /> {store.address}
+            </p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: "Classification",
+      accessor: (store: LocalStore) => (
+        <Badge className="bg-primary/10 text-primary border border-primary/20 rounded-md text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 italic">
+          {store.category}
+        </Badge>
+      ),
+    },
+    {
+      header: "Transmission",
+      accessor: (store: LocalStore) => (
+        <div className="flex items-center gap-1.5">
+          <div
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              store.isActive
+                ? "bg-emerald-500 shadow-[0_0_8px_#10B981]"
+                : "bg-muted shadow-none",
+            )}
+          />
+          <span className="text-[8px] font-black uppercase tracking-widest italic opacity-80 text-foreground">
+            {store.isActive ? "Active" : "Idle"}
+          </span>
+        </div>
+      ),
+    },
+    {
+      header: "Inventory",
+      accessor: (store: LocalStore) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[9px] font-black text-foreground italic flex items-center gap-1 leading-none">
+            <Package className="h-2.5 w-2.5 opacity-60" /> {store.products.length} Units
+          </span>
+          {store.paymentMethods && (
+            <span className="text-[7px] font-bold text-muted-foreground uppercase tracking-tighter opacity-70">
+              {store.paymentMethods.slice(0, 2).join(" · ")}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      header: "Tactical Operations",
+      headerClassName: "text-right",
+      accessor: (store: LocalStore) => (
+        <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={cn(
+              "h-7 w-7 rounded-lg border border-border",
+              store.isActive ? "text-emerald-500 hover:bg-emerald-500/10" : "text-muted-foreground hover:bg-muted"
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              api.patch(`/local-stores/${store._id}/toggle`).then(() => {
+                qc.invalidateQueries({ queryKey: ["adminLocalStores"] });
+              });
+            }}
+          >
+            {store.isActive ? <ToggleRight className="h-3.5 w-3.5" /> : <ToggleLeft className="h-3.5 w-3.5" />}
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 rounded-lg border border-border hover:bg-primary/10 hover:text-primary"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAddProductStoreId(store._id);
+            }}
+          >
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 rounded-lg border border-border hover:bg-muted"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/portal/admin/local-stores/${store._id}/edit`);
+            }}
+          >
+            <Edit3 className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7 rounded-lg border border-border hover:bg-rose-500 hover:text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm("Initiate purge protocol for this entity?")) {
+                api.delete(`/local-stores/${store._id}`).then(() => {
+                  qc.invalidateQueries({ queryKey: ["adminLocalStores"] });
+                  toast.success("Node purged.");
+                });
+              }
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  const statCards = [
+    {
+      label: "Node Registry",
+      value: pagination?.total ?? 0,
+      icon: Store,
+      iconClass: "icon-events",
+      subtext: "Total provisioners",
+    },
+    {
+      label: "Operational",
+      value: stores?.filter((s) => s.isActive).length ?? 0, // This is current page stats, maybe fine or need global. For now sticking to this or total active if available.
+      icon: Activity,
+      iconClass: "icon-tickets",
+      subtext: "Live transmissions",
+    },
+    {
+      label: "Inventory Load",
+      value: stores?.reduce((a, s) => a + s.products.length, 0) ?? 0,
+      icon: Package,
+      iconClass: "icon-revenue",
+      subtext: "Total product units",
+    },
+  ];
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const filteredStores = stores?.filter((s) => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.category.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-3 md:p-4 space-y-4 bg-background min-h-screen">
       {/* Modals */}
       {addProductStoreId && (
         <AddProductForm
@@ -1536,98 +1713,46 @@ const LocalStoresPage = () => {
         />
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="h-1 w-6 bg-amber-400 rounded-full" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
-              Admin Panel
-            </span>
-          </div>
-          <h1 className="text-3xl font-black tracking-tighter">
-            <span className="text-amber-400">Stores</span>
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Manage stores displayed on the homepage.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={() => navigate("/portal/admin/local-stores/new")}
-          className="h-12 px-6 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-primary gap-2"
-        >
-          <Plus className="h-4 w-4" /> Add Store
-        </Button>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          {
-            label: "Total Stores",
-            value: stores?.length ?? "—",
-            color: "text-primary",
-          },
-          {
-            label: "Active",
-            value: stores?.filter((s) => s.isActive).length ?? "—",
-            color: "text-emerald-500",
-          },
-          {
-            label: "Total Products",
-            value: stores?.reduce((a, s) => a + s.products.length, 0) ?? "—",
-            color: "text-amber-500",
-          },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className="p-5 rounded-2xl bg-card border border-border/60"
+      <PortalPageHeader 
+        title="Provisioner Grid"
+        icon={Store}
+        subtitle="Logistical management of all registered local provisioners."
+        actions={
+          <Button
+            onClick={() => navigate("/portal/admin/local-stores/new")}
+            className="h-10 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all border-none italic"
           >
-            <p className={`text-2xl font-black ${stat.color}`}>{stat.value}</p>
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-              {stat.label}
-            </p>
-          </div>
+            Initialize Node
+          </Button>
+        }
+      />
+
+      {/* Standardized Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {statCards.map((stat, index) => (
+          <PortalStatCard
+            key={stat.label}
+            label={stat.label}
+            value={isLoading ? "—" : stat.value}
+            icon={stat.icon}
+            subtext={stat.subtext}
+            iconClass={stat.iconClass}
+            index={index}
+          />
         ))}
       </div>
 
-      {/* Stores list */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array(3)
-            .fill(0)
-            .map((_, i) => (
-              <div
-                key={i}
-                className="h-24 rounded-2xl bg-muted animate-pulse"
-              />
-            ))}
-        </div>
-      ) : !stores?.length ? (
-        <div className="py-20 text-center border border-dashed border-border rounded-3xl">
-          <Store className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            No stores yet
-          </p>
-          <p className="text-xs text-muted-foreground/60 mt-2">
-            Click "Add Store" to create your first local store.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {stores.map((store) => (
-            <StoreRow
-              key={store._id}
-              store={store}
-              onEdit={(s) =>
-                navigate(`/portal/admin/local-stores/${s._id}/edit`)
-              }
-              onAddProduct={setAddProductStoreId}
-            />
-          ))}
-        </div>
-      )}
+      <PortalDataTable
+        columns={columns}
+        data={filteredStores}
+        isLoading={isLoading}
+        pagination={pagination}
+        onPageChange={setPage}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="SEARCH BY NODE IDENTITY..."
+        rowKey="_id"
+      />
     </div>
   );
 };

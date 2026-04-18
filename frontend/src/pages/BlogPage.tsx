@@ -37,40 +37,16 @@ const BlogPage = () => {
   });
 
   const allTags = [...new Set(posts?.flatMap((p) => p.tags) || [])];
-  
+
   // Featured post is the first one if we're not searching
-  const featuredPost = !search && !activeTag && posts && posts.length > 0 ? posts[0] : null;
+  const featuredPost =
+    !search && !activeTag && posts && posts.length > 0 ? posts[0] : null;
   const regularPosts = featuredPost ? posts?.slice(1) : posts;
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
       <Navbar />
       <main className="flex-1">
-        {/* Modern Hero Section with Mesh Gradient */}
-        <section className="relative overflow-hidden pt-24 pb-16 md:pt-32 md:pb-24 border-b border-border/50">
-          <div className="absolute inset-0 mesh-bg opacity-30" />
-          <div className="container relative z-10">
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="max-w-3xl"
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary font-black text-[10px] uppercase tracking-[0.2em] mb-6">
-                <BookOpen className="h-3.5 w-3.5" /> Discovery Hub
-              </div>
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter leading-[0.9] mb-6">
-                Stories <span className="text-muted-foreground/30">&amp;</span> <br />
-                <span className="text-gradient">Insights</span>
-              </h1>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-xl font-medium leading-relaxed">
-                Exploring the pulse of the city through the eyes of creators, 
-                organizers, and the community.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
         <section className="container py-12 md:py-20">
           {/* Featured Post */}
           {featuredPost && (
@@ -84,17 +60,23 @@ const BlogPage = () => {
               <Link to={`/blog/${featuredPost.slug}`} className="group block">
                 <div className="relative h-[500px] md:h-[600px] rounded-[2.5rem] overflow-hidden bg-muted shadow-2xl transition-all duration-500 group-hover:shadow-primary/10">
                   <img
-                    src={featuredPost.coverImage || "https://images.unsplash.com/photo-1514525253361-bee8718a300a?w=1200&q=80"}
+                    src={
+                      featuredPost.coverImage ||
+                      "https://images.unsplash.com/photo-1514525253361-bee8718a300a?w=1200&q=80"
+                    }
                     alt={featuredPost.title}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  
+
                   <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
                     <div className="max-w-3xl">
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {featuredPost.tags.map(tag => (
-                          <span key={tag} className="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest">
+                        {featuredPost.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-3 py-1 rounded-full bg-primary text-white text-[10px] font-black uppercase tracking-widest"
+                          >
                             {tag}
                           </span>
                         ))}
@@ -108,7 +90,10 @@ const BlogPage = () => {
                       <div className="flex items-center gap-6 text-[11px] text-white/50 font-black uppercase tracking-[0.2em]">
                         <span className="flex items-center gap-2">
                           <Clock className="h-3.5 w-3.5" />
-                          {new Date(featuredPost.createdAt).toLocaleDateString("en-IN", { month: "long", day: "numeric" })}
+                          {new Date(featuredPost.createdAt).toLocaleDateString(
+                            "en-IN",
+                            { month: "long", day: "numeric" },
+                          )}
                         </span>
                         <span className="flex items-center gap-1 group-hover:gap-2 transition-all text-primary">
                           Featured Story <ArrowRight className="h-3.5 w-3.5" />
@@ -139,9 +124,9 @@ const BlogPage = () => {
                 onClick={() => setActiveTag("")}
                 className={cn(
                   "px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                  !activeTag 
-                    ? "bg-foreground text-background border-foreground shadow-lg shadow-black/10 scale-105" 
-                    : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
+                  !activeTag
+                    ? "bg-foreground text-background border-foreground shadow-lg shadow-black/10 scale-105"
+                    : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary",
                 )}
               >
                 Refine All
@@ -152,9 +137,9 @@ const BlogPage = () => {
                   onClick={() => setActiveTag(activeTag === tag ? "" : tag)}
                   className={cn(
                     "px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                    activeTag === tag 
-                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105" 
-                      : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary"
+                    activeTag === tag
+                      ? "bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105"
+                      : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary",
                   )}
                 >
                   {tag}
@@ -166,19 +151,21 @@ const BlogPage = () => {
           {/* Posts Grid */}
           {isLoading ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array(6).fill(0).map((_, i) => (
-                <div key={i} className="space-y-4">
-                  <Skeleton className="h-64 w-full rounded-[2rem]" />
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                </div>
-              ))}
+              {Array(6)
+                .fill(0)
+                .map((_, i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="h-64 w-full rounded-[2rem]" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
             </div>
           ) : !regularPosts?.length ? (
             <div className="py-32 text-center rounded-[3rem] border-2 border-dashed border-border/50 bg-muted/30">
               <div className="relative inline-block mb-6">
                 <BookOpen className="h-16 w-16 text-muted-foreground/20" />
-                <motion.div 
+                <motion.div
                   animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{ repeat: Infinity, duration: 3 }}
                   className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary/40 blur-sm"
@@ -186,7 +173,8 @@ const BlogPage = () => {
               </div>
               <h3 className="text-xl font-black mb-2">No stories found</h3>
               <p className="text-muted-foreground max-w-xs mx-auto text-sm font-medium">
-                Maybe try a different keyword or category? We're adding new perspectives every week.
+                Maybe try a different keyword or category? We're adding new
+                perspectives every week.
               </p>
             </div>
           ) : (
@@ -199,20 +187,29 @@ const BlogPage = () => {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ delay: i * 0.1, duration: 0.5 }}
                 >
-                  <Link to={`/blog/${post.slug}`} className="group block h-full">
+                  <Link
+                    to={`/blog/${post.slug}`}
+                    className="group block h-full"
+                  >
                     <div className="glass-card hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 flex flex-col h-full overflow-hidden group">
                       {/* Image Container */}
                       <div className="relative h-64 overflow-hidden">
                         <img
-                          src={post.coverImage || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"}
+                          src={
+                            post.coverImage ||
+                            "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80"
+                          }
                           alt={post.title}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        
+
                         {/* Date Float */}
                         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-black shadow-xl">
-                          {new Date(post.createdAt).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                          {new Date(post.createdAt).toLocaleDateString(
+                            "en-IN",
+                            { month: "short", day: "numeric" },
+                          )}
                         </div>
                       </div>
 
@@ -220,7 +217,10 @@ const BlogPage = () => {
                       <div className="p-7 flex-1 flex flex-col">
                         <div className="flex flex-wrap gap-1.5 mb-4">
                           {post.tags.slice(0, 2).map((tag) => (
-                            <span key={tag} className="text-[9px] font-black uppercase tracking-[0.15em] text-primary/70">
+                            <span
+                              key={tag}
+                              className="text-[9px] font-black uppercase tracking-[0.15em] text-primary/70"
+                            >
                               #{tag}
                             </span>
                           ))}

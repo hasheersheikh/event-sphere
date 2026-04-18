@@ -62,19 +62,35 @@ export const getMyOrders = async (req: AuthRequest, res: Response) => {
 };
 
 export const getAllOrders = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
     const { status, storeId } = req.query;
     const filter: any = {};
-    if (status) filter.status = status;
+    if (status && status !== "all") filter.status = status;
     if (storeId) filter.storeId = storeId;
 
+    const total = await StoreOrder.countDocuments(filter);
     const orders = await StoreOrder.find(filter)
-      .populate('storeId', 'name photos')
-      .populate('userId', 'name email')
-      .sort({ createdAt: -1 });
-    res.json(orders);
+      .populate("storeId", "name photos")
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: orders,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
@@ -103,15 +119,32 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
 };
 
 export const getStoreOwnerOrders = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
     const storeId = req.user?.storeId;
     const { status } = req.query;
     const filter: any = { storeId };
-    if (status) filter.status = status;
+    if (status && status !== "all") filter.status = status;
 
-    const orders = await StoreOrder.find(filter).sort({ createdAt: -1 });
-    res.json(orders);
+    const total = await StoreOrder.countDocuments(filter);
+    const orders = await StoreOrder.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: orders,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };

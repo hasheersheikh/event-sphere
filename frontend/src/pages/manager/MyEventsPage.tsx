@@ -1,19 +1,14 @@
-import { motion } from "framer-motion";
 import {
   Calendar,
-  ExternalLink,
   Plus,
   Trash2,
-  Filter,
-  Layers,
-  BarChart3,
   Clock,
   AlertTriangle,
   Users,
   Search,
   Edit3,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,20 +25,28 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalStatCard } from "@/components/portal/PortalStatCard";
+import { PortalDataTable } from "@/components/portal/PortalDataTable";
 
 const MyEventsPage = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
   const [deleteEventId, setDeleteEventId] = useState<string | null>(null);
   const [isForceDelete, setIsForceDelete] = useState(false);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
-  const { data: events, isLoading } = useQuery({
-    queryKey: ["my-events"],
+  const { data: response, isLoading } = useQuery({
+    queryKey: ["my-events", page],
     queryFn: async () => {
-      const { data } = await api.get("/events/my");
+      const { data } = await api.get(`/events/my?page=${page}&limit=10`);
       return data;
     },
   });
+
+  const events = response?.data || [];
+  const pagination = response?.pagination;
 
   const deleteMutation = useMutation({
     mutationFn: async ({ id, force }: { id: string; force?: boolean }) => {
@@ -78,257 +81,198 @@ const MyEventsPage = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="py-20 text-center">
-        <div className="h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
-          Syncing Roster...
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-10 min-h-screen bg-background text-foreground">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <div className="flex items-center gap-3 mb-4 text-primary uppercase tracking-[0.3em] font-black text-[10px]">
-            <Layers className="h-4 w-4" />
-            Event Roster
+  const columns = [
+    {
+      header: "Event Identity",
+      accessor: (p: any) => (
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 bg-primary/10 text-primary flex items-center justify-center rounded-xl font-black text-[10px] border border-primary/20 italic shadow-sm">
+            {p.title.charAt(0)}
           </div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-foreground italic">
-            Your <span className="text-primary">Events.</span>
-          </h1>
-          <p className="text-muted-foreground text-sm font-bold italic mt-3">
-            Manage your stage schedules and ticketing performance.
-          </p>
+          <div>
+            <Link to={`/portal/manager/events/${p._id}/details`} className="font-black text-xs uppercase tracking-tight text-foreground hover:text-primary transition-colors block italic leading-tight">
+              {p.title}
+            </Link>
+            <Badge className="bg-muted text-muted-foreground/60 border border-border/50 rounded-md text-[7px] font-black uppercase tracking-widest px-1.5 py-0 mt-0.5 italic">
+              {p.category}
+            </Badge>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Link to="/events/create">
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] font-black uppercase tracking-[0.2em] px-8 py-5 h-12 rounded-xl shadow-lg hover:shadow-primary/20 gap-2 border-none transition-all">
-              <Plus className="h-4 w-4" />
-              New Event
+      ),
+    },
+    {
+      header: "Chronology",
+      accessor: (p: any) => (
+        <div className="text-[10px] font-black uppercase tracking-widest text-foreground/80 flex items-center gap-2 italic">
+          <Clock className="h-3.5 w-3.5 text-primary opacity-50" />
+          {new Date(p.date).toLocaleDateString()}
+        </div>
+      ),
+    },
+    {
+      header: "Yield Metrics",
+      headerClassName: "text-right",
+      accessor: (p: any) => (
+        <div className="text-right">
+          <div className="text-xs font-black text-emerald-500 italic uppercase leading-none tabular-nums">₹{(p.totalRevenue || 0).toLocaleString()}</div>
+          <div className="text-[7px] font-black uppercase text-muted-foreground/40 tracking-widest mt-1 italic">{p.totalSold || 0} DEPLOYED</div>
+        </div>
+      ),
+    },
+    {
+      header: "Registry Status",
+      headerClassName: "text-center",
+      accessor: (p: any) => (
+        <div className="flex justify-center">
+          <Badge 
+            variant="outline"
+            className={`rounded-lg bg-muted text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 italic ${
+              p.status === 'under_review' ? 'text-orange-500 border-orange-500/20' : 
+              p.status === 'blocked' ? 'text-rose-500 border-rose-500/20' : 
+              'text-emerald-500 border-emerald-500/20'
+            }`}
+          >
+            {p.status?.replace('_', ' ') || "ACTIVE"}
+          </Badge>
+        </div>
+      ),
+    },
+    {
+      header: "Systems",
+      headerClassName: "text-right",
+      accessor: (p: any) => (
+        <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0">
+          <Link to={`/portal/manager/events/${p._id}/details`}>
+            <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg border border-border hover:bg-primary/10 hover:text-primary">
+              <Search className="h-3.5 w-3.5" />
             </Button>
           </Link>
+          <Link to={`/portal/manager/events/${p._id}/edit`}>
+            <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg border border-border hover:bg-primary/10 hover:text-primary">
+              <Edit3 className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="h-7 w-7 rounded-lg border border-border hover:bg-rose-500 hover:text-white"
+            onClick={() => setDeleteEventId(p._id)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
-      </header>
+      ),
+    },
+  ];
 
-      {/* Stats Summary - Redesigned for City Pulse */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="p-6 bg-card border border-border rounded-2xl group hover:border-primary/30 transition-all shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4">
-            Total Revenue
-          </p>
-          <div className="flex items-end gap-2 text-foreground">
-            <span className="text-2xl font-black leading-none uppercase italic">
-              ₹
-              {(
-                events?.reduce(
-                  (acc: any, curr: any) => acc + (curr.totalRevenue || 0),
-                  0,
-                ) || 0
-              ).toLocaleString()}
-            </span>
-          </div>
-        </div>
-        <div className="p-6 bg-card border border-border rounded-2xl group hover:border-primary/30 transition-all shadow-sm">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4">
-            Active Tickets
-          </p>
-          <div className="flex items-end gap-2 text-foreground">
-            <span className="text-2xl font-black leading-none uppercase italic">
-              {events?.reduce(
-                (acc: any, curr: any) => acc + (curr.totalSold || 0),
-                0,
-              ) || 0}
-            </span>
-            <span className="text-[10px] font-black text-muted-foreground italic">
-              total scanned
-            </span>
-          </div>
-        </div>
-        <div className="p-6 bg-muted/30 border border-border rounded-2xl group transition-all shadow-inner">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-              Platform Heat
-            </p>
-            <BarChart3 className="h-4 w-4 text-primary" />
-          </div>
-          <div className="h-1.5 w-full bg-muted mt-2 rounded-full overflow-hidden">
-            <div className="h-full bg-primary w-[70%] animate-pulse" />
-          </div>
-        </div>
+  const totalRevenue = events?.reduce((acc: number, curr: any) => acc + (curr.totalRevenue || 0), 0) || 0;
+  const totalSold = events?.reduce((acc: number, curr: any) => acc + (curr.totalSold || 0), 0) || 0;
+
+  return (
+    <div className="p-3 md:p-4 space-y-4 bg-background min-h-screen">
+      <PortalPageHeader
+        title="Event Roster"
+        icon={Calendar}
+        subtitle="Operational stream for stage schedules and ticketing performance."
+        badge={
+          <Badge className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md italic">
+            {pagination?.total ?? 0} OPERATIONS
+          </Badge>
+        }
+        actions={
+          <Link to="/events/create">
+            <Button className="h-10 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all border-none italic">
+              <Plus className="h-4 w-4" />
+              New Operation
+            </Button>
+          </Link>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <PortalStatCard
+          label="Cumulative Yield"
+          value={`₹${totalRevenue.toLocaleString()}`}
+          icon={Calendar}
+          subtext="Net gross revenue"
+          index={0}
+          iconClass="icon-revenue"
+        />
+        <PortalStatCard
+          label="Deployed Access"
+          value={totalSold}
+          icon={Users}
+          subtext="Verified ticket units"
+          index={1}
+        />
       </div>
 
-      <div className="pt-8 border-t border-border mt-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-black uppercase tracking-tight text-foreground italic">
-            Event Roster
-          </h2>
-        </div>
-
-      <div className="bg-card border border-border rounded-[1.5rem] overflow-hidden shadow-xl mt-12 transition-all duration-500">
-        <div className="p-6 border-b border-border bg-muted/20 flex items-center justify-between">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground flex items-center gap-3">
-              <Layers className="h-4 w-4 text-primary" />
-              Event Roster Management
-            </h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-muted/10 text-muted-foreground text-[9px] font-black uppercase tracking-[.2em] border-b border-border">
-                <th className="px-8 py-5">Event Identity</th>
-                <th className="px-8 py-5">Chronology</th>
-                <th className="px-8 py-5 text-right">Yield Metrics</th>
-                <th className="px-8 py-5 text-center">Authorization Status</th>
-                <th className="px-8 py-5 text-right">Systems</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/30">
-              {events?.length === 0 ? (
-                 <tr>
-                    <td colSpan={5} className="py-20 text-center text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em] italic">
-                       No active events found in grid.
-                    </td>
-                 </tr>
-              ) : (
-                events?.map((p: any, index: number) => (
-                  <motion.tr
-                    key={p._id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    className="hover:bg-muted/10 transition-colors group"
-                  >
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-4">
-                         <div className="h-9 w-9 bg-primary/10 text-primary flex items-center justify-center rounded-xl font-black text-xs border border-primary/20">
-                            {p.title.charAt(0)}
-                         </div>
-                         <div>
-                            <Link to={`/portal/manager/events/${p._id}/details`} className="font-black text-sm uppercase tracking-tight text-foreground hover:text-primary transition-colors block italic">
-                               {p.title}
-                            </Link>
-                            <Badge className="bg-muted/50 text-muted-foreground border border-border/50 rounded-md text-[7px] font-black uppercase tracking-[.1em] px-2 py-0.5 mt-1">
-                               {p.category}
-                            </Badge>
-                         </div>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5">
-                       <div className="text-[10px] font-black uppercase tracking-widest text-foreground/80 flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-orange-500" />
-                          {new Date(p.date).toLocaleDateString()}
-                       </div>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                       <div className="text-sm font-black text-emerald-500 italic uppercase">₹{(p.totalRevenue || 0).toLocaleString()}</div>
-                       <div className="text-[8px] font-black uppercase text-muted-foreground tracking-widest mt-1">{p.totalSold || 0} ASSETS DEPLOYED</div>
-                    </td>
-                    <td className="px-8 py-5 text-center">
-                       <Badge 
-                        variant="outline"
-                        className={`rounded-xl border-border bg-muted/20 text-[8px] font-black uppercase tracking-widest px-3 py-1.5 ${
-                          p.status === 'under_review' ? 'text-orange-500 border-orange-500/20' : 
-                          p.status === 'blocked' ? 'text-rose-500 border-rose-500/20' : 
-                          'text-emerald-500 border-emerald-500/20'
-                        }`}
-                      >
-                        {p.status?.replace('_', ' ') || "ACTIVE"}
-                      </Badge>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                       <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                          <Link to={`/portal/manager/events/${p._id}/details`}>
-                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
-                                <Search className="h-3.5 w-3.5" />
-                             </Button>
-                          </Link>
-                          <Link to={`/portal/manager/events/${p._id}/edit`}>
-                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary">
-                                <Edit3 className="h-3.5 w-3.5" />
-                             </Button>
-                          </Link>
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-8 w-8 rounded-lg hover:bg-rose-500/10 hover:text-rose-500"
-                            onClick={() => setDeleteEventId(p._id)}
-                          >
-                             <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                       </div>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      </div>
+      <PortalDataTable
+        columns={columns}
+        data={events}
+        isLoading={isLoading}
+        pagination={pagination}
+        onPageChange={setPage}
+        searchPlaceholder="FILTER ROSTER..."
+        rowKey="_id"
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!deleteEventId}
-        onOpenChange={() => {
-          if (!deleteMutation.isPending) {
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) {
             setDeleteEventId(null);
             setWarningMessage(null);
             setIsForceDelete(false);
           }
         }}
       >
-        <AlertDialogContent className="bg-card border border-border rounded-[2.5rem] text-foreground shadow-2xl">
+        <AlertDialogContent className="bg-background border border-border rounded-2xl text-foreground max-w-sm p-6 shadow-3xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+            <AlertDialogTitle className="text-xl font-black brand-font uppercase tracking-tighter italic flex items-center gap-2">
               {warningMessage ? (
                 <>
-                  <AlertTriangle className="h-6 w-6 text-destructive" />
-                  Critical Warning
+                  <AlertTriangle className="h-5 w-5 text-rose-500" />
+                  CRITICAL WARNING
                 </>
               ) : (
-                "Decommission Event?"
+                "PURGE OPERATION?"
               )}
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground font-medium italic pt-4">
+            <AlertDialogDescription className="text-muted-foreground font-black italic pt-4 leading-relaxed text-[10px] uppercase tracking-widest">
               {warningMessage ? (
                 <div className="space-y-4">
-                  <p className="text-destructive font-black">
+                  <p className="text-rose-500 border-l-2 border-rose-500 pl-3">
                     {warningMessage}
                   </p>
-                  <p>
-                    Deleting this event will invalidate all existing
-                    reservations. This action cannot be reversed within the
-                    current protocol.
+                  <p className="opacity-60">
+                    Deletion will invalidate all existing reservations. Irreversible.
                   </p>
                 </div>
               ) : (
-                "This will remove the event from the active roster. This action is irreversible."
+                "Remove this event from the active roster permanently?"
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="pt-8 gap-3">
-            <AlertDialogCancel className="rounded-2xl border-border bg-muted/50 hover:bg-muted text-muted-foreground font-black uppercase text-[10px] tracking-widest h-14 px-8 transition-all">
-              Abort Signal
+          <AlertDialogFooter className="pt-4 gap-2">
+            <AlertDialogCancel className="rounded-lg border-border bg-muted/20 hover:bg-muted text-foreground font-black uppercase text-[10px] tracking-widest h-10 px-6 transition-all border shadow-sm">
+              ABORT
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
-              className={`rounded-2xl font-black uppercase text-[10px] tracking-widest h-14 px-10 shadow-lg transition-all ${
+              className={`rounded-lg font-black uppercase text-[10px] tracking-widest h-10 px-6 shadow-xl transition-all border-none ${
                 warningMessage
-                  ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-destructive/20"
-                  : "bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/20"
+                  ? "bg-rose-600 hover:bg-rose-700 text-white"
+                  : "bg-primary hover:bg-primary/90 text-black"
               }`}
             >
               {deleteMutation.isPending
-                ? "Processing..."
+                ? "SYNCING..."
                 : warningMessage
-                  ? "Force Deletion"
-                  : "Confirm Decommission"}
+                  ? "CONFIRM PURGE"
+                  : "CONFIRM PURGE"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

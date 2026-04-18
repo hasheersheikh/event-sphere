@@ -163,11 +163,28 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
 };
 
 export const getMyEvents: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const events = await Event.find({ creator: req.user?._id }).sort({ date: 1 });
-    res.json(events);
+    const total = await Event.countDocuments({ creator: req.user?._id });
+    const events = await Event.find({ creator: req.user?._id })
+      .sort({ date: 1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: events,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 

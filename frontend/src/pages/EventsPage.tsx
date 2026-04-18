@@ -13,6 +13,7 @@ import api from "@/lib/api";
 import { categories } from "@/data/mockEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,39 +75,21 @@ const EventsPage = () => {
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="relative pt-20 pb-12 md:pt-28 md:pb-16 overflow-hidden">
+        <section className="relative pt-16 pb-8 md:pt-20 md:pb-12 overflow-hidden">
           <div className="container relative z-20">
-            <header className="max-w-4xl mx-auto text-center mb-10 space-y-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center justify-center gap-3 mb-2"
-              >
-                <div className="h-px w-10 bg-primary/30 rounded-full" />
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-primary">
-                  Premium Experience
-                </span>
-                <div className="h-px w-10 bg-primary/30 rounded-full" />
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-4xl md:text-6xl font-black tracking-tighter leading-none"
-              >
-                Discover <span className="text-primary italic">Events.</span>
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-muted-foreground text-base md:text-lg font-medium max-w-xl mx-auto italic"
-              >
-                Explore {events?.length || 0} curated experiences happening in
-                your orbit. Hand-picked for the bold and the curious.
-              </motion.p>
-            </header>
+            <PublicPageHeader
+              pillText="Premium Experience"
+              title={
+                <>
+                  Discover <span className="text-primary italic">Events.</span>
+                </>
+              }
+              subtitle={`Explore ${
+                events?.length || 0
+              } curated experiences happening in your orbit. Hand-picked for the bold and the curious.`}
+              themeColor="primary"
+              size="md"
+            />
 
             {/* Search & Filter Bar */}
             <motion.div
@@ -126,7 +109,7 @@ const EventsPage = () => {
                     placeholder="Wandering for something specific?"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-14 pl-14 bg-background/50 border-white/5 rounded-3xl font-bold text-base focus:ring-primary focus:border-primary transition-all shadow-inner"
+                    className="h-12 pl-14 bg-background/50 border-white/5 rounded-3xl font-bold text-base focus:ring-primary focus:border-primary transition-all shadow-inner"
                   />
                 </div>
                 <div className="relative md:w-80 group">
@@ -136,13 +119,13 @@ const EventsPage = () => {
                     placeholder="Near you..."
                     value={locationFilter}
                     onChange={(e) => setLocationFilter(e.target.value)}
-                    className="h-14 pl-14 bg-background/50 border-white/5 rounded-3xl font-bold text-base focus:ring-primary focus:border-primary transition-all shadow-inner"
+                    className="h-12 pl-14 bg-background/50 border-white/5 rounded-3xl font-bold text-base focus:ring-primary focus:border-primary transition-all shadow-inner"
                   />
                 </div>
                 <Button
                   type="submit"
                   size="lg"
-                  className="h-14 rounded-[1.6rem] font-black uppercase tracking-[0.2em] text-[9px] px-10 shadow-button hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary text-primary-foreground"
+                  className="h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[9px] px-8 shadow-button hover:scale-[1.02] active:scale-[0.98] transition-all bg-primary text-primary-foreground"
                 >
                   Locate Events
                 </Button>
@@ -152,7 +135,7 @@ const EventsPage = () => {
         </section>
 
         {/* Main Content */}
-        <section className="container py-24">
+        <section className="container py-16">
           <div className="flex flex-col lg:flex-row gap-16">
             {/* Sidebar Filters */}
             <aside
@@ -185,7 +168,7 @@ const EventsPage = () => {
                           )
                         }
                         className={cn(
-                          "w-full flex items-center justify-between px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
+                          "w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border",
                           selectedCategory === category.name
                             ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]"
                             : "bg-card/50 border-border/50 text-muted-foreground hover:bg-card hover:text-foreground",
@@ -226,7 +209,7 @@ const EventsPage = () => {
               {/* Results Header */}
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                  <h2 className="text-4xl font-black tracking-tighter uppercase italic">
+                  <h2 className="text-3xl font-black tracking-tighter uppercase italic">
                     {hasActiveFilters ? "Filtered" : "All"}{" "}
                     <span className="text-primary">Experiences.</span>
                   </h2>
@@ -303,7 +286,7 @@ const EventsPage = () => {
                   ))}
                 </div>
               ) : (
-                <div className="py-32 text-center space-y-8 bg-card/30 border border-dashed border-border/50 rounded-[4rem]">
+                <div className="py-20 text-center space-y-8 bg-card/30 border border-dashed border-border/50 rounded-[3rem]">
                   <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
                     <Search className="h-10 w-10 text-muted-foreground/20" />
                   </div>
@@ -318,7 +301,7 @@ const EventsPage = () => {
                   </div>
                   <Button
                     onClick={clearFilters}
-                    className="rounded-2xl px-12 py-6 font-black uppercase tracking-widest text-[10px] shadow-button"
+                    className="rounded-xl px-10 py-4 font-black uppercase tracking-widest text-[9px] shadow-button"
                   >
                     Reset Search
                   </Button>

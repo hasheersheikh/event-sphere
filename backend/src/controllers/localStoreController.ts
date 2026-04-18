@@ -2,22 +2,39 @@ import { Request, Response } from 'express';
 import LocalStore from '../models/LocalStore.js';
 import { AuthRequest } from '../middleware/auth.js';
 
-export const getLocalStores = async (_req: Request, res: Response) => {
+export const getLocalStores = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const stores = await LocalStore.find({ isActive: true }).sort({ createdAt: -1 });
-    res.json(stores);
+    const total = await LocalStore.countDocuments({ isActive: true });
+    const stores = await LocalStore.find({ isActive: true })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: stores,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const getLocalStore = async (req: Request, res: Response) => {
   try {
     const store = await LocalStore.findById(req.params.id);
-    if (!store) return res.status(404).json({ message: 'Store not found' });
+    if (!store) return res.status(404).json({ message: "Store not found" });
     res.json(store);
   } catch {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -26,7 +43,7 @@ export const createLocalStore = async (req: Request, res: Response) => {
     const store = await LocalStore.create(req.body);
     res.status(201).json(store);
   } catch (err: any) {
-    res.status(400).json({ message: err.message || 'Server error' });
+    res.status(400).json({ message: err.message || "Server error" });
   }
 };
 
@@ -36,55 +53,72 @@ export const updateLocalStore = async (req: Request, res: Response) => {
       new: true,
       runValidators: true,
     });
-    if (!store) return res.status(404).json({ message: 'Store not found' });
+    if (!store) return res.status(404).json({ message: "Store not found" });
     res.json(store);
   } catch (err: any) {
-    res.status(400).json({ message: err.message || 'Server error' });
+    res.status(400).json({ message: err.message || "Server error" });
   }
 };
 
 export const deleteLocalStore = async (req: Request, res: Response) => {
   try {
     const store = await LocalStore.findByIdAndDelete(req.params.id);
-    if (!store) return res.status(404).json({ message: 'Store not found' });
-    res.json({ message: 'Store deleted successfully' });
+    if (!store) return res.status(404).json({ message: "Store not found" });
+    res.json({ message: "Store deleted successfully" });
   } catch {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 export const addProduct = async (req: Request, res: Response) => {
   try {
     const store = await LocalStore.findById(req.params.id);
-    if (!store) return res.status(404).json({ message: 'Store not found' });
+    if (!store) return res.status(404).json({ message: "Store not found" });
     store.products.push(req.body);
     await store.save();
     res.json(store);
   } catch (err: any) {
-    res.status(400).json({ message: err.message || 'Server error' });
+    res.status(400).json({ message: err.message || "Server error" });
   }
 };
 
 export const removeProduct = async (req: Request, res: Response) => {
   try {
     const store = await LocalStore.findById(req.params.id);
-    if (!store) return res.status(404).json({ message: 'Store not found' });
+    if (!store) return res.status(404).json({ message: "Store not found" });
     store.products = store.products.filter(
       (p: any) => p._id?.toString() !== req.params.productId
     );
     await store.save();
     res.json(store);
   } catch {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-export const getAllLocalStores = async (_req: Request, res: Response) => {
+export const getAllLocalStores = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const skip = (page - 1) * limit;
+
   try {
-    const stores = await LocalStore.find().sort({ createdAt: -1 });
-    res.json(stores);
+    const total = await LocalStore.countDocuments({});
+    const stores = await LocalStore.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      data: stores,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
 

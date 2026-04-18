@@ -39,7 +39,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 161 72% 35%;
 
-    --radius: 1.25rem;
+    --radius: 0.75rem;
 
     /* Custom Pulse Tokens */
     --pulse-emerald: #059669; /* Emerald-600 */
@@ -145,7 +145,7 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
-    border-radius: 2.5rem;
+    border-radius: 1.25rem;
   }
 
   .glass-panel {

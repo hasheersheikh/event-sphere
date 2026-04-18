@@ -78,7 +78,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-72 z-50 lg:hidden"
+              className="fixed inset-y-0 left-0 w-64 z-50 lg:hidden"
             >
               <Sidebar />
               <button
@@ -93,9 +93,9 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col lg:pl-72 min-h-screen transition-all duration-300">
+      <div className="flex-1 flex flex-col lg:pl-64 min-h-screen transition-all duration-300">
         {/* Top Header */}
-        <header className="h-20 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-8 sticky top-0 z-30">
+        <header className="h-16 bg-background/80 backdrop-blur-xl border-b border-border flex items-center justify-between px-6 sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <button
               className="lg:hidden p-2 hover:bg-foreground/5 rounded-lg transition-colors text-foreground"
@@ -164,7 +164,7 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-6 md:p-10 animate-in fade-in duration-500">
+        <main className="flex-1 p-4 md:p-8 animate-in fade-in duration-500">
           {children}
         </main>
       </div>

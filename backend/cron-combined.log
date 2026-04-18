@@ -1032,3 +1032,270 @@
 {"level":"info","message":"Cron jobs initialized"}
 {"level":"info","message":"Cron jobs initialized"}
 {"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:15:01.021Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:15:01.263Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:15:01.273Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:20:00.863Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:20:01.183Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:20:01.184Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:25:00.882Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:25:01.199Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:25:01.199Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:30:01.197Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:30:01.200Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:30:01.203Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:35:00.926Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:35:01.204Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:35:01.205Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:40:01.284Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:40:01.284Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:40:01.299Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:45:00.832Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:45:01.165Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:45:01.165Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:50:00.884Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:50:01.147Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:50:01.250Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:55:00.802Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:55:00.811Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T21:55:01.144Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:00:00.908Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:00:00.920Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:00:01.246Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:05:00.940Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:05:00.941Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:10:00.990Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:10:01.290Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:10:01.291Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:15:01.042Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:15:01.043Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:15:01.331Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:20:00.804Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:20:01.171Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:20:01.174Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:25:01.965Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:25:02.244Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:25:02.257Z"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:30:00.886Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:30:01.194Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:30:01.194Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:35:00.829Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:35:01.161Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-17T22:35:01.169Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:23:56.882Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:23:56.882Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:23:56.886Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:55:10.005Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:55:10.018Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T01:55:10.018Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T03:46:53.527Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T03:46:53.527Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T03:46:53.527Z"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T04:30:10.445Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T04:30:10.458Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T04:30:10.460Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:00:10.007Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:00:10.020Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:00:10.020Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:36:22.274Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:36:22.278Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T06:36:22.278Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T06:40:01.688Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T06:40:01.715Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T06:40:01.720Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T07:45:10.015Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T07:45:10.033Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T07:45:10.039Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T07:50:00.974Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T07:50:00.975Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T07:50:01.270Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T12:05:10.030Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T12:05:10.036Z"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-18T12:05:10.032Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:10:01.465Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:10:01.466Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:10:01.484Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:15:01.218Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:15:01.218Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:15:01.223Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:20:01.243Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:20:01.243Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:20:01.243Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:25:00.806Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:25:01.167Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:25:01.163Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:30:01.177Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:30:01.179Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:30:01.184Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:35:01.203Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:35:01.203Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:35:01.205Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:40:01.257Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:40:01.259Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:40:01.259Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:45:01.198Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:45:01.199Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:45:01.199Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:50:00.835Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:50:01.166Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:50:01.171Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:55:00.886Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:55:01.226Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T12:55:01.231Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:00:00.828Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:00:00.841Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:00:00.850Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:05:01.209Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:05:01.227Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-18T13:05:01.229Z"}

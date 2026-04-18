@@ -17,6 +17,8 @@ import api from "@/lib/api";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import StoreCard from "@/components/stores/StoreCard";
 
 const CATEGORIES = [
   "All",
@@ -39,7 +41,7 @@ const LocalStoresPage = () => {
     queryKey: ["localStores"],
     queryFn: async () => {
       const { data } = await api.get("/local-stores");
-      return data;
+      return (data.data || []) as any[];
     },
   });
 
@@ -59,39 +61,20 @@ const LocalStoresPage = () => {
 
       <Navbar />
 
-      <main className="flex-1 container py-16 md:py-24 relative z-10">
+      <main className="flex-1 container pt-12 pb-16 md:pt-16 md:pb-24 relative z-10">
         {/* Header Section */}
-        <header className="max-w-4xl mx-auto text-center mb-12 space-y-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center justify-center gap-3 mb-2"
-          >
-            <div className="h-px w-10 bg-amber-500/30 rounded-full" />
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-amber-500">
-              Community Commerce
-            </span>
-            <div className="h-px w-10 bg-amber-500/30 rounded-full" />
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-black tracking-tighter leading-none"
-          >
-            Discover <span className="text-amber-400 italic">Local Gems.</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-muted-foreground text-base md:text-lg font-medium max-w-xl mx-auto italic"
-          >
-            Curated stores from your neighbourhood, delivered to your doorstep.
-            Fresh, authentic, and uniquely local.
-          </motion.p>
-        </header>
+        <PublicPageHeader
+          pillText="Community Commerce"
+          title={
+            <>
+              Discover <span className="text-amber-400 italic">Local Gems.</span>
+            </>
+          }
+          subtitle="Curated stores from your neighbourhood, delivered to your doorstep. Fresh, authentic, and uniquely local."
+          themeColor="amber"
+          size="md"
+          className="mb-12 max-w-4xl"
+        />
 
         {/* Search & Filter Bar */}
         <div className="max-w-5xl mx-auto space-y-4">
@@ -102,7 +85,7 @@ const LocalStoresPage = () => {
                 placeholder="Search by store name or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-14 pl-14 bg-background/50 border-white/10 rounded-3xl font-bold text-base focus:ring-amber-500 focus:border-amber-500 transition-all shadow-inner"
+                className="h-12 pl-14 bg-background/50 border-white/10 rounded-3xl font-bold text-base focus:ring-amber-500 focus:border-amber-500 transition-all shadow-inner"
               />
             </div>
           </div>
@@ -127,15 +110,15 @@ const LocalStoresPage = () => {
         </div>
 
         {/* Results Grid */}
-        <div className="max-w-5xl mx-auto mt-8 space-y-12">
+        <div className="max-w-7xl px-6 mx-auto mt-8 space-y-12 pb-32">
             {isLoading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {Array(6).fill(0).map((_, i) => (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {Array(8).fill(0).map((_, i) => (
                   <div key={i} className="h-[400px] rounded-[3rem] bg-muted animate-pulse border border-border/10" />
                 ))}
               </div>
             ) : filteredStores?.length === 0 ? (
-              <div className="py-32 text-center space-y-6 bg-card/30 border border-dashed border-border/50 rounded-[4rem]">
+              <div className="py-20 text-center space-y-6 bg-card/30 border border-dashed border-border/50 rounded-[3rem]">
                 <div className="h-24 w-24 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-4">
                   <Store className="h-10 w-10 text-muted-foreground/20" />
                 </div>
@@ -151,7 +134,7 @@ const LocalStoresPage = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 pb-32">
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 <AnimatePresence mode="popLayout">
                   {filteredStores?.map((store: any) => (
                     <motion.div
@@ -162,7 +145,7 @@ const LocalStoresPage = () => {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
                     >
-                      <GoLocalStoreCard store={store} />
+                      <StoreCard store={store} />
                     </motion.div>
                   ))}
                 </AnimatePresence>
@@ -172,72 +155,6 @@ const LocalStoresPage = () => {
       </main>
 
       <Footer />
-    </div>
-  );
-};
-
-// Internal component for the full-page grid (can be refactored into components later)
-const GoLocalStoreCard = ({ store }: { store: any }) => {
-  return (
-    <div className="bg-card border border-border/60 rounded-[3rem] overflow-hidden group hover:border-amber-500/30 transition-all duration-500 shadow-xl hover:shadow-2xl hover:shadow-amber-500/10 h-full flex flex-col">
-       <div className="relative h-56 overflow-hidden">
-        {store.photos?.[0] ? (
-          <img src={store.photos[0]} alt={store.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-amber-500/10 via-accent/5 to-background flex items-center justify-center">
-            <ShoppingBag className="h-16 w-16 text-amber-500/20" />
-          </div>
-        )}
-        <div className="absolute top-6 left-6">
-          <Badge className="bg-amber-500 text-black px-4 py-1.5 rounded-xl font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-xl">
-            {store.category}
-          </Badge>
-        </div>
-      </div>
-
-      <div className="p-8 flex-1 flex flex-col">
-        <div className="flex justify-between items-start gap-4 mb-4">
-          <h3 className="text-2xl font-black tracking-tighter leading-tight italic uppercase">{store.name}</h3>
-          <div className="flex items-center gap-1 text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded-xl">
-             <Sparkles className="h-3.5 w-3.5" />
-             <span className="text-[10px] font-black uppercase tracking-widest">Featured</span>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-2 text-muted-foreground mb-6">
-          <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
-          <p className="text-xs font-bold leading-relaxed">{store.address}</p>
-        </div>
-
-        <p className="text-sm text-muted-foreground/80 font-medium italic mb-8 line-clamp-3">
-          {store.description || "A local neighbourhood favourite, bringing you the best in quality and tradition."}
-        </p>
-
-        <div className="mt-auto space-y-6">
-           <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-                      <div className="flex items-center justify-between">
-              <div className="flex -space-x-3">
-                 {store.products.slice(0, 3).map((p: any) => (
-                   <div key={p._id} className="h-10 w-10 rounded-full border-2 border-card overflow-hidden bg-muted">
-                      {p.image ? <img src={p.image} className="w-full h-full object-cover" /> : <ShoppingBag className="h-4 w-4 m-auto mt-2.5 text-muted-foreground/40" />}
-                   </div>
-                 ))}
-                 {store.products.length > 3 && (
-                   <div className="h-10 w-10 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">
-                      +{store.products.length - 3}
-                   </div>
-                 )}
-              </div>
-              
-              <Link to={`/local-stores/${store._id}`}>
-                <button className="h-12 px-8 rounded-2xl bg-foreground text-background font-black uppercase tracking-widest text-[9px] hover:bg-amber-500 hover:text-black transition-all active:scale-95 flex items-center gap-2 group/btn">
-                   Visit Store
-                   <ChevronRight className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                </button>
-              </Link>
-           </div>
-        </div>
-      </div>
     </div>
   );
 };
