@@ -163,7 +163,7 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
     queryFn: async () => {
       const params = filterStatus !== "all" ? `?status=${filterStatus}` : "";
       const { data } = await api.get(`/store-orders/owner${params}`, { headers: authHeader(owner.token) });
-      return data;
+      return data.data || [];
     },
     enabled: Boolean(owner?.token),
   });
@@ -177,8 +177,8 @@ const OrdersTab = ({ owner, qc }: { owner: any; qc: any }) => {
 
   const stats = {
     total: orders?.length || 0,
-    pending: orders?.filter((o: any) => o.status === "pending").length || 0,
-    delivered: orders?.filter((o: any) => o.status === "delivered").length || 0,
+    pending: orders?.filter((o: any) => o.status === "pending")?.length || 0,
+    delivered: orders?.filter((o: any) => o.status === "delivered")?.length || 0,
     revenue: orders?.reduce((s: number, o: any) => s + (o.totalAmount || 0), 0) || 0,
   };
 
