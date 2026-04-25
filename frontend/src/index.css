@@ -1,4 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap");
+
+/* Foggy — DICE-style display font (place Foggy.woff2 in /public/fonts/) */
+@font-face {
+  font-family: "Foggy";
+  src: url("/fonts/Foggy.woff2") format("woff2");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -6,112 +15,120 @@
 
 @layer base {
   html {
-    font-size: 15px; /* Subtle global scaling down */
+    font-size: 15px;
     background-color: hsl(var(--background));
   }
 
+  /* ─── DICE-inspired: pure black / white ─── */
   :root {
-    --background: 210 40% 98%; /* Sophisticated off-white with hint of blue/emerald */
-    --foreground: 222 47% 11%;
+    /* Light mode */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 5%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 5%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 5%;
 
-    --primary: 161 72% 35%; /* Slightly deeper emerald for better light contrast */
-    --primary-foreground: 210 40% 98%;
+    /* Primary = black in light mode */
+    --primary: 0 0% 8%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11.2%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 40%; /* Darkened for better readability */
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 44%;
 
-    --accent: 239 84% 60%; /* Vibrant but balanced indigo */
-    --accent-foreground: 222 47% 11.2%;
+    --accent: 0 0% 8%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 161 72% 35%;
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 0 0% 8%;
 
     --radius: 0.75rem;
 
-    /* Custom Pulse Tokens */
-    --pulse-emerald: #059669; /* Emerald-600 */
-    --pulse-indigo: #4F46E5; /* Indigo-600 */
-    --pulse-violet: #7C3AED; /* Violet-600 */
-    --pulse-bg: #F8FAFC;
+    /* DICE brand tokens */
+    --dice-black: #080808;
+    --dice-white: #FFFFFF;
 
-    /* Semantic Status Colors */
+    /* Legacy tokens (kept for admin/portal compatibility) */
+    --pulse-emerald: #059669;
+    --pulse-indigo: #4F46E5;
+    --pulse-violet: #7C3AED;
+    --pulse-bg: #FAFAFA;
+
+    /* Semantic Status Colors (admin/portal compat) */
     --status-success: 161 72% 35%;
     --status-warning: 38 92% 50%;
     --status-info: 217 91% 60%;
     --status-neutral: 240 5% 64%;
 
-    /* Semantic Icon Colors (for stat cards & section icons) */
-    --icon-revenue: 161 72% 35%;   /* emerald — matches primary */
-    --icon-events: 217 91% 60%;    /* blue */
-    --icon-users: 270 91% 65%;     /* purple */
-    --icon-tickets: 38 92% 50%;    /* amber */
+    --icon-revenue: 161 72% 35%;
+    --icon-events: 217 91% 60%;
+    --icon-users: 270 91% 65%;
+    --icon-tickets: 38 92% 50%;
 
     --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
     --font-serif: "Plus Jakarta Sans", sans-serif;
 
-    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-bg: rgba(255, 255, 255, 0.90);
     --glass-border: rgba(0, 0, 0, 0.08);
 
-    /* Premium Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    --shadow-primary: 0 10px 30px -10px hsl(var(--primary) / 0.35);
+    --shadow-primary: 0 8px 20px -8px hsl(var(--primary) / 0.45);
 
-    /* Standardized border opacities */
     --border-subtle: hsl(var(--border) / 0.3);
     --border-default: hsl(var(--border) / 0.5);
     --border-strong: hsl(var(--border));
   }
 
+  /* ─── DICE dark: pure black canvas, white accent ─── */
   .dark {
-    --background: 240 10% 2%; /* #050505 equivalent */
-    --foreground: 0 0% 100%;
+    --background: 0 0% 3%;          /* #080808 */
+    --foreground: 0 0% 100%;        /* pure white */
 
-    --card: 240 10% 4%;
+    --card: 0 0% 7%;                /* #111111 */
     --card-foreground: 0 0% 100%;
 
-    --popover: 240 10% 4%;
+    --popover: 0 0% 7%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 161 72% 40%;
-    --primary-foreground: 240 10% 2%;
+    /* Primary = white in dark mode */
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 0 0% 11%;          /* #1C1C1C */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 0 0% 11%;
+    --muted-foreground: 0 0% 55%;   /* #8C8C8C */
 
-    --accent: 239 84% 67%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 0 0% 5%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 161 72% 40%;
+    --border: 0 0% 14%;             /* #242424 */
+    --input: 0 0% 14%;
+    --ring: 0 0% 100%;
 
-    --pulse-bg: #050505;
+    --pulse-bg: #080808;
 
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+
+    --shadow-primary: 0 8px 24px -8px rgba(255, 255, 255, 0.12);
   }
 }
 
@@ -128,10 +145,10 @@
   }
 
   ::selection {
-    background: rgba(16, 185, 129, 0.3);
-    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    color: inherit;
   }
-  
+
   h1, h2, h3, h4, .brand-font {
     font-family: var(--font-sans);
     font-weight: 800;
@@ -145,33 +162,32 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid var(--glass-border);
-    border-radius: 1.25rem;
+    border-radius: 1rem;
   }
 
   .glass-panel {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
   .text-gradient, .gradient-text {
-    background: linear-gradient(to right, var(--pulse-emerald), var(--pulse-indigo), var(--pulse-violet));
+    background: linear-gradient(to right, hsl(var(--foreground)), hsl(var(--muted-foreground)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .bg-pulse-gradient, .gradient-hero {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
     @apply border border-border/50;
   }
 
   .mesh-bg {
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(161, 72%, 40%, 0.15) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(239, 84%, 67%, 0.1) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(161, 72%, 40%, 0.15) 0, transparent 50%);
+    background-image:
+      radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.02) 0, transparent 50%);
     background-size: 100% 100%;
     @apply pointer-events-none;
   }
@@ -180,11 +196,17 @@
     box-shadow: var(--shadow-primary);
   }
 
-  /* Stat card icon containers — standardized */
+  /* Stat card icon containers — standardized (admin compat) */
   .icon-revenue  { color: hsl(var(--icon-revenue));  background-color: hsl(var(--icon-revenue) / 0.1);  border-color: hsl(var(--icon-revenue) / 0.2); }
   .icon-events   { color: hsl(var(--icon-events));   background-color: hsl(var(--icon-events) / 0.1);   border-color: hsl(var(--icon-events) / 0.2); }
   .icon-users    { color: hsl(var(--icon-users));    background-color: hsl(var(--icon-users) / 0.1);    border-color: hsl(var(--icon-users) / 0.2); }
   .icon-tickets  { color: hsl(var(--icon-tickets));  background-color: hsl(var(--icon-tickets) / 0.1);  border-color: hsl(var(--icon-tickets) / 0.2); }
+
+  /* Scrollbar hide */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   /* Accessible focus rings */
   .focus-ring {
@@ -199,5 +221,4 @@
       transition-duration: 0.01ms !important;
     }
   }
-
 }

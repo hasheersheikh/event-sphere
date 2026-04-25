@@ -1728,3 +1728,22 @@
 {"level":"info","message":"Ping successful: 200 - 2026-04-18T16:05:01.722Z"}
 {"level":"info","message":"Ping successful: 200 - 2026-04-18T16:05:01.723Z"}
 {"level":"info","message":"Ping successful: 200 - 2026-04-18T16:05:01.724Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T11:35:01.196Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T11:40:01.193Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T11:45:00.839Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T11:50:01.242Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T11:55:00.877Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-04-25T12:25:10.018Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T12:30:00.984Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-25T19:35:01.237Z"}

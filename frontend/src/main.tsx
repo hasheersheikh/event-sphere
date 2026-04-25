@@ -10,7 +10,7 @@ registerSW({ immediate: true })
 
 createRoot(document.getElementById("root")!).render(
   <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ""}>
-    <ThemeProvider defaultTheme="light" attribute="class">
+    <ThemeProvider defaultTheme="dark" attribute="class">
       <App />
     </ThemeProvider>
   </GoogleOAuthProvider>

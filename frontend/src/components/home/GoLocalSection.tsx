@@ -38,18 +38,18 @@ const GoLocalSection = () => {
 
   return (
     <section className="py-8 relative overflow-hidden">
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-amber-500/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-foreground/4 blur-[100px] rounded-full pointer-events-none" />
 
       <div className="container relative z-10">
         <PublicPageHeader
           pillText="Nearby Gems"
           title={
             <>
-              Go <span className="text-amber-400 italic">Local.</span>
+              Go <span className="text-primary">Local.</span>
             </>
           }
           subtitle="Discover handpicked local stores around you — fresh produce, artisan crafts, neighbourhood favourites."
-          themeColor="amber"
+          themeColor="primary"
           size="md"
         />
 

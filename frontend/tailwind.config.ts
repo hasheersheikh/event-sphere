@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+        display: ['Foggy', '"Plus Jakarta Sans"', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -58,6 +59,10 @@ export default {
           indigo: "var(--pulse-indigo)",
           violet: "var(--pulse-violet)",
           bg: "var(--pulse-bg)",
+        },
+        dice: {
+          black: "#080808",
+          white: "#FFFFFF",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
