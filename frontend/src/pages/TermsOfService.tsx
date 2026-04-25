@@ -1,21 +1,31 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { motion } from "framer-motion";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 const TermsOfService = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
+
       <Navbar />
-      <main className="flex-1 container py-12 md:py-20 max-w-4xl">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          <p className="text-muted-foreground mb-8 text-lg">
-            Last Updated: January 18, 2026
-          </p>
+      <main className="flex-1 relative z-10">
+        <section className="container pt-16 pb-8 md:pt-20 md:pb-12 max-w-4xl">
+          <PublicPageHeader
+            pillText="The Agreement"
+            title={
+              <>
+                Terms of <span className="text-primary italic">Service.</span>
+              </>
+            }
+            subtitle="Last Updated: January 18, 2026. Please read the protocol of use for the Collective."
+            themeColor="primary"
+            size="md"
+            className="mb-12"
+          />
 
           <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
             <section>
@@ -110,7 +120,7 @@ const TermsOfService = () => {
               </p>
             </section>
           </div>
-        </motion.div>
+        </section>
       </main>
       <Footer />
     </div>

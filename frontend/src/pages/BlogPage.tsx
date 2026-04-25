@@ -8,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 interface BlogPost {
   _id: string;
@@ -44,10 +45,28 @@ const BlogPage = () => {
   const regularPosts = featuredPost ? posts?.slice(1) : posts;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
+    <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
+
       <Navbar />
-      <main className="flex-1">
-        <section className="container py-12 md:py-20">
+      <main className="flex-1 relative z-10">
+        <section className="container pt-16 pb-8 md:pt-20 md:pb-12">
+          <PublicPageHeader
+            pillText="Perspectives & Insights"
+            title={
+              <>
+                Pulse <span className="text-primary italic">Stories.</span>
+              </>
+            }
+            subtitle="Deep dives into the culture, technology, and moments that define the City Pulse Collective."
+            themeColor="primary"
+            size="md"
+            className="mb-16"
+          />
+
           {/* Featured Post */}
           {featuredPost && (
             <motion.div

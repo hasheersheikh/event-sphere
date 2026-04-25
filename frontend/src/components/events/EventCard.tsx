@@ -163,7 +163,7 @@ const EventCard = ({ event, index = 0, imageRatio = "16/10" }: EventCardProps) =
                 {typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||
-                    event.location?.address?.split(",")[0]}
+                  event.location?.address?.split(",")[0]}
               </p>
             </div>
 

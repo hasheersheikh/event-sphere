@@ -191,8 +191,8 @@ const Index = () => {
             TOP HALF — hero search (no background photo)
         ════════════════════════════════════════════ */}
         <section
-          className="relative flex items-center justify-center overflow-hidden"
-          style={{ height: "52vh", minHeight: 380 }}
+          className="relative flex items-center justify-center overflow-hidden pt-20 md:pt-0"
+          style={{ height: "52vh", minHeight: 440 }}
         >
           {/* ── gradient blob background ── */}
           <div className="absolute inset-0 bg-background" />

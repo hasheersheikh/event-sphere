@@ -48,6 +48,7 @@ import VolunteerLoginPage from "./pages/VolunteerLoginPage";
 import ScannerDashboardPage from "./pages/ScannerDashboardPage";
 import PortalLayout from "./components/layout/PortalLayout";
 import Navbar from "./components/layout/Navbar";
+import ScrollToTop from "./components/layout/ScrollToTop";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LocalStoresPage from "./pages/LocalStoresPage";
@@ -91,6 +92,7 @@ const AppContent = () => {
             <CitySelectModal />
             <LocalStoreCartDrawer />
             <Router>
+              <ScrollToTop />
               <Routes>
                 {/* [Existing Routes...] */}
                 <Route

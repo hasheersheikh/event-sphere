@@ -1,8 +1,10 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Send, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, Send, MessageSquare, HelpCircle, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -25,7 +27,8 @@ const ContactPage = () => {
 
   const contactInfo = [
     { icon: Mail, label: "Email Support", value: "support@citypulse.com" },
-    { icon: Phone, label: "Call Us", value: "+91 1800-EVENT-SPHERE" },
+    { icon: MessageSquare, label: "WhatsApp Us", value: "+91 98765-43210" },
+    { icon: Phone, label: "Call Us", value: "+91 1800-CITY-PULSE" },
     {
       icon: MapPin,
       label: "Office",
@@ -36,25 +39,50 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Header */}
-        <section className="py-20 bg-primary/5 border-b">
-          <div className="container text-center max-w-3xl mx-auto px-4">
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl font-bold mb-4"
-            >
-              Get in <span className="gradient-text">Touch</span>
-            </motion.h1>
-            <p className="text-xl text-muted-foreground">
-              Have questions or feedback? We'd love to hear from you.
-            </p>
+        <section className="relative pt-16 pb-8 md:pt-20 md:pb-12 overflow-hidden">
+          <div className="container relative z-20">
+            <PublicPageHeader
+              pillText="Connect with Us"
+              title={
+                <>
+                  Get in <span className="text-primary italic">Touch.</span>
+                </>
+              }
+              subtitle="Have questions or feedback? We'd love to hear from you. Our team typically responds within 24 hours."
+              themeColor="primary"
+              size="md"
+            />
           </div>
         </section>
 
         <section className="py-20 container max-w-6xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-16">
+          <div className="grid lg:grid-cols-12 gap-16">
+            {/* Quick Help Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="lg:col-span-12 p-8 rounded-[2.5rem] bg-primary/5 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-8 mb-4 group hover:bg-primary/[0.08] transition-all duration-500"
+            >
+              <div className="flex items-center gap-6">
+                <div className="h-16 w-16 rounded-[1.5rem] bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-500">
+                  <HelpCircle className="h-8 w-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-xl font-bold uppercase tracking-tighter italic">Looking for instant answers?</h3>
+                  <p className="text-muted-foreground font-medium italic">Our Help Center has answers to the most common questions.</p>
+                </div>
+              </div>
+              <Link to="/help">
+                <Button className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-button gap-3 bg-primary text-primary-foreground hover:scale-105 transition-all">
+                  Visit Help Center
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </motion.div>
+
+            <div className="lg:col-span-12 grid lg:grid-cols-2 gap-16 mt-8">
             {/* Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -148,6 +176,7 @@ const ContactPage = () => {
                   Cyber Hub, DLF Phase 2, Gurugram
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </section>

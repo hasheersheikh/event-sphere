@@ -18,81 +18,100 @@ import Footer from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 const categories = [
   {
-    title: "Booking Tickets",
+    title: "Post-Event Services",
     icon: Ticket,
     color: "text-emerald-400",
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/20",
     items: [
       {
-        q: "How do I book a ticket?",
-        a: "Find an event you like, select the ticket type and quantity, and click 'Book Now'. You'll be redirected to a secure payment page (or confirmation for free events).",
-      },
-      {
-        q: "Where can I find my tickets?",
-        a: "Once booked, your tickets are available in the 'My Tickets' section of your dashboard. You'll also receive an email confirmation with a QR code.",
-      },
-      {
-        q: "Can I cancel a booking?",
-        a: "Cancellation policies are set by individual event organizers. Check the event details or contact the organizer directly for refund requests.",
+        q: "Can I view my past event attendances?",
+        a: "Yes, you can view all your past and upcoming event attendances in the 'My Tickets' section of your dashboard.",
       },
     ],
   },
   {
-    title: "Managing Events",
+    title: "Refunds and Event Changes",
     icon: BookOpen,
     color: "text-blue-400",
     bg: "bg-blue-500/10",
     border: "border-blue-500/20",
     items: [
       {
-        q: "How do I create an event?",
-        a: "If you have an Event Manager role, click 'Create New Event' on your dashboard. Follow the multi-step form to add details, tickets, and images.",
+        q: "Can I get a refund if I miss an event?",
+        a: "Refund eligibility depends on the event organizer's policy. Generally, missed events are non-refundable unless specified otherwise.",
       },
       {
-        q: "How do I scan attendee tickets?",
-        a: "Access the 'Scanner' via the navigation bar on your mobile device. Grant camera permissions and scan the QR codes on attendee tickets.",
-      },
-      {
-        q: "Can I edit an event after publishing?",
-        a: "Yes, you can edit event details from the 'My Created Events' section. Some fields may be locked after bookings are made.",
+        q: "What's the refund policy for event cancellations?",
+        a: "If an event is cancelled by the organizer, a full refund is typically processed automatically through City Pulse within 5-7 business days.",
       },
     ],
   },
   {
-    title: "Account & Security",
-    icon: ShieldCheck,
+    title: "Payment and Ticket Delivery",
+    icon: Sparkles,
     color: "text-violet-400",
     bg: "bg-violet-500/10",
     border: "border-violet-500/20",
     items: [
       {
-        q: "How do I change my password?",
-        a: "Navigate to Account Settings from the top navigation to update your password and other account information.",
+        q: "What payment methods are available?",
+        a: "We support all major Credit/Debit cards, UPI, and popular digital wallets via our secure payment gateway.",
       },
       {
-        q: "Is my payment information secure?",
-        a: "Yes, we use industry-standard encryption and secure payment gateways (Razorpay). We never store your full card details on our servers.",
+        q: "How are tickets delivered?",
+        a: "Tickets are delivered instantly via email and are also available for download in the 'My Tickets' section of your profile.",
+      },
+      {
+        q: "How will I receive my tickets?",
+        a: "Once booking is successful, you will receive a confirmation email with your E-ticket and QR code.",
       },
     ],
   },
   {
-    title: "Local Stores",
+    title: "How City Pulse Works",
     icon: MessageCircle,
     color: "text-amber-400",
     bg: "bg-amber-500/10",
     border: "border-amber-500/20",
     items: [
       {
-        q: "How do I order from a local store?",
-        a: "Browse the Local Stores section, add products to your cart, and proceed to checkout. You'll receive order confirmation via email.",
+        q: "How do I find events and purchase tickets on City Pulse?",
+        a: "Browse events on our homepage, select the one you like, choose your ticket type, and complete the secure checkout process.",
+      },
+    ],
+  },
+  {
+    title: "Security & Data",
+    icon: ShieldCheck,
+    color: "text-red-400",
+    bg: "bg-red-500/10",
+    border: "border-red-500/20",
+    items: [
+      {
+        q: "How does City Pulse protect my personal and payment data?",
+        a: "City Pulse uses industry-standard SSL encryption and secure payment processors. We never store your full payment details on our servers.",
+      },
+    ],
+  },
+  {
+    title: "Legal",
+    icon: ShieldCheck,
+    color: "text-slate-400",
+    bg: "bg-slate-500/10",
+    border: "border-slate-500/20",
+    items: [
+      {
+        q: "Where can I find the Terms & Conditions?",
+        a: "Our Terms & Conditions can be found at the footer of every page or by clicking 'Terms' in the Support menu.",
       },
       {
-        q: "How do I track my store order?",
-        a: "Go to 'My Orders' in your dashboard to see real-time status updates for all your local store orders.",
+        q: "What is your Privacy Policy?",
+        a: "We value your privacy. You can read our full Privacy Policy in the footer or under the Legal section of our Help Center.",
       },
     ],
   },
@@ -167,84 +186,75 @@ const HelpCenter = () => {
 
       <main className="flex-1 relative z-10">
         {/* ── Hero ── */}
-        <section className="pt-20 pb-16 container max-w-4xl mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-8"
-          >
-            <HelpCircle className="h-3.5 w-3.5 text-primary" />
-            Support Center
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic leading-[0.85] mb-6"
-          >
-            How can we <span className="text-primary">help?</span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-muted-foreground text-base font-medium italic max-w-xl mx-auto mb-10"
-          >
-            Search our knowledge base or browse categories below to find answers fast.
-          </motion.p>
-
-          {/* Search */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="relative max-w-2xl mx-auto"
-          >
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              placeholder="Search questions..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setActiveCategory(null); }}
-              className="h-16 pl-14 text-base rounded-2xl bg-card/80 border-border shadow-xl backdrop-blur focus:border-primary/50 focus:ring-primary/20"
+        <section className="relative pt-16 pb-12 md:pt-20 md:pb-16 overflow-hidden">
+          <div className="container relative z-20 max-w-4xl mx-auto px-4 text-center">
+            <PublicPageHeader
+              pillText="Support Center"
+              title={
+                <>
+                  How can <span className="text-primary italic">City Pulse</span> help?
+                </>
+              }
+              subtitle="Search our knowledge base or browse categories below to find answers fast."
+              themeColor="primary"
+              size="md"
             />
-          </motion.div>
 
-          {/* Category pills */}
-          {!search && (
+            {/* Search */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-wrap items-center justify-center gap-2 mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="relative max-w-2xl mx-auto mt-12"
             >
-              <button
-                onClick={() => setActiveCategory(null)}
-                className={cn(
-                  "px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                  activeCategory === null
-                    ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted"
-                )}
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                placeholder="Search questions..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setActiveCategory(null);
+                }}
+                className="h-16 pl-14 text-base rounded-2xl bg-card/80 border-border shadow-xl backdrop-blur focus:border-primary/50 focus:ring-primary/20"
+              />
+            </motion.div>
+
+            {/* Category pills */}
+            {!search && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-wrap items-center justify-center gap-2 mt-8"
               >
-                All Topics
-              </button>
-              {categories.map((cat) => (
                 <button
-                  key={cat.title}
-                  onClick={() => setActiveCategory(cat.title)}
+                  onClick={() => setActiveCategory(null)}
                   className={cn(
                     "px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
-                    activeCategory === cat.title
+                    activeCategory === null
                       ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
-                      : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted"
+                      : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted",
                   )}
                 >
-                  {cat.title}
+                  All Topics
                 </button>
-              ))}
-            </motion.div>
-          )}
+                {categories.map((cat) => (
+                  <button
+                    key={cat.title}
+                    onClick={() => setActiveCategory(cat.title)}
+                    className={cn(
+                      "px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all duration-300",
+                      activeCategory === cat.title
+                        ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {cat.title}
+                  </button>
+                ))}
+              </motion.div>
+            )}
+          </div>
         </section>
 
         {/* ── FAQ Grid ── */}
@@ -322,9 +332,15 @@ const HelpCenter = () => {
                 </Button>
               </Link>
               <a href="mailto:support@citypulse.com">
-                <Button variant="outline" className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-2">
+                <Button variant="outline" className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-2 transition-all hover:scale-105 active:scale-95">
                   <Mail className="h-4 w-4" />
                   Email Us
+                </Button>
+              </a>
+              <a href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center gap-2 border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-500 transition-all hover:scale-105 active:scale-95">
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp Us
                 </Button>
               </a>
             </div>
