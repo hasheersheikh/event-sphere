@@ -8,6 +8,8 @@ import {
   getMyEvents,
   applyVoucher,
   toggleTicketSoldOut,
+  stopRecurrence,
+  addRecurrenceException,
 } from '../controllers/eventController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -24,5 +26,9 @@ router
 
 router.post('/:id/vouchers/apply', applyVoucher);
 router.patch('/:id/ticket-types/:ticketIndex/toggle-sold-out', protect, authorize('event_manager', 'admin'), toggleTicketSoldOut);
+
+// Recurrence management
+router.patch('/:id/recurrence/stop', protect, authorize('event_manager', 'admin'), stopRecurrence);
+router.post('/:id/recurrence/exceptions', protect, authorize('event_manager', 'admin'), addRecurrenceException);
 
 export default router;
