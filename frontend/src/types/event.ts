@@ -36,6 +36,7 @@ export interface Event {
   status: 'draft' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
   isSponsored?: boolean;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }

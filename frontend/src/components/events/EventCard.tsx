@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { MapPin, ImageIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { MapPin, ImageIcon, Calendar } from "lucide-react";
 import { Event, ITicketType } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
 
@@ -32,6 +30,7 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(minPrice);
   };
 
@@ -44,16 +43,19 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
   const getCategoryImage = (category: string = "other") => {
     const cats: Record<string, string> = {
       music: "/images/categories/music.jpg",
+      comedy: "/images/categories/entertainment.jpg",
       technology: "/images/categories/technology.jpg",
       business: "/images/categories/business.jpg",
       entertainment: "/images/categories/entertainment.jpg",
       health: "/images/categories/health.jpg",
       sports: "/images/categories/sports.jpg",
       education: "/images/categories/education.jpg",
-      other: "/images/categories/other.jpg",
-      art: "/images/categories/entertainment.jpg",
-      meetup: "/images/categories/business.jpg",
+      workshop: "/images/categories/technology.jpg",
+      "food & drink": "/images/categories/other.jpg",
+      arts: "/images/categories/entertainment.jpg",
+      meetups: "/images/categories/business.jpg",
       tech: "/images/categories/technology.jpg",
+      other: "/images/categories/other.jpg",
     };
     return cats[category.toLowerCase()] || cats.other;
   };
@@ -66,87 +68,81 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
 
   const priceLabel = formatPrice(event.ticketTypes || []);
 
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-30px" }}
-      transition={{
-        duration: 0.45,
-        ease: [0.23, 1, 0.32, 1],
-        delay: index * 0.05,
-      }}
-      className="group h-full"
-    >
-      <Link to={`/events/${event._id}`} className="block h-full">
-        <article className="h-full flex flex-col">
+  const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
-          {/* ── image ── */}
+  return (
+    <div
+      className="group h-full"
+      style={{
+        animationDelay: `${index * 60}ms`,
+      }}
+    >
+      <Link
+        to={`/events/${event._id}`}
+        className="block h-full rounded-2xl overflow-hidden bg-card border border-border/30 hover:border-border hover:shadow-lg transition-all duration-300 ease-out-expo"
+      >
+        <article className="h-full flex flex-col">
           <div
-            className="relative overflow-hidden rounded-xl bg-muted flex-shrink-0"
+            className="relative overflow-hidden flex-shrink-0"
             style={{ aspectRatio: imageRatio }}
           >
-            {/* shimmer */}
-            <AnimatedShimmer visible={!imageLoaded} />
+            {!imageLoaded && (
+              <div className="absolute inset-0 bg-muted flex items-center justify-center">
+                <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer bg-[length:200%_100%]" />
+              </div>
+            )}
 
-            <motion.div
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={imageLoaded ? { opacity: 1 } : { opacity: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <SafeImage
-                src={event.image || getCategoryImage(event.category)}
-                alt={event.title}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                onLoad={() => setImageLoaded(true)}
-              />
-            </motion.div>
+            <SafeImage
+              src={event.image || getCategoryImage(event.category)}
+              alt={event.title}
+              className={`w-full h-full object-cover transition-all duration-500 ease-out-expo group-hover:scale-[1.06] ${
+                imageLoaded ? "opacity-100" : "opacity-0"
+              }`}
+              onLoad={() => setImageLoaded(true)}
+            />
 
-            {/* subtle gradient at bottom for text legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-            {/* top badges */}
-            <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+
+            <div className="absolute top-3 left-3 flex flex-col gap-1.5">
               {event.isSponsored && (
-                <Badge className="bg-foreground text-background border-0 px-2 py-0.5 rounded font-black uppercase tracking-wider text-[8px] w-fit">
-                  Sponsored
-                </Badge>
+                <span className="bg-white text-black px-2.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider">
+                  Promoted
+                </span>
               )}
               {isSoldOut && (
-                <Badge className="bg-white/15 text-white backdrop-blur-sm border-0 px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[8px] w-fit">
+                <span className="bg-black/60 text-white backdrop-blur-sm px-2.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider">
                   Sold Out
-                </Badge>
+                </span>
               )}
-              {isAlmostSoldOut && (
-                <Badge className="bg-red-500/90 text-white border-0 px-2 py-0.5 rounded font-bold uppercase tracking-wider text-[8px] w-fit">
-                  Few Left
-                </Badge>
+              {isAlmostSoldOut && !isSoldOut && (
+                <span className="bg-red-500/90 text-white px-2.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider">
+                  Almost Gone
+                </span>
               )}
             </div>
 
-            {/* price bottom-right on image */}
-            <div className="absolute bottom-2.5 right-2.5">
-              <span className="inline-block px-2.5 py-1 bg-white text-black rounded font-black text-[11px] tracking-tight">
+            <div className="absolute bottom-3 right-3">
+              <span className="inline-block px-3 py-1.5 bg-white text-black rounded-lg font-black text-[11px] tracking-tight shadow-sm">
                 {priceLabel}
               </span>
             </div>
+
+            <div className="absolute bottom-3 left-3 right-16">
+              <p className="text-white/80 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {formatDate(event.date)}
+              </p>
+            </div>
           </div>
 
-          {/* ── text below image ── */}
-          <div className="pt-3 pb-1 flex flex-col gap-1">
-            {/* date */}
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary">
-              {formatDate(event.date)}
-            </p>
-
-            {/* title */}
-            <h3 className="text-sm font-black tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2">
+          <div className="p-3.5 flex flex-col gap-1.5 flex-1">
+            <h3 className="text-[13px] font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2">
               {event.title}
             </h3>
-
-            {/* venue */}
-            <div className="flex items-center gap-1 text-muted-foreground">
+            <div className="flex items-center gap-1 text-muted-foreground mt-auto">
               <MapPin className="h-3 w-3 shrink-0" />
               <p className="text-[11px] font-medium line-clamp-1">
                 {typeof event.location === "string"
@@ -155,28 +151,22 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
                     event.location?.address?.split(",")[0]}
               </p>
             </div>
+
+            {soldPercentage > 50 && !isSoldOut && (
+              <div className="mt-1.5">
+                <div className="h-1 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-foreground/70 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(soldPercentage, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </article>
       </Link>
-    </motion.div>
+    </div>
   );
 };
-
-/* shimmer skeleton */
-const AnimatedShimmer = ({ visible }: { visible: boolean }) => (
-  <motion.div
-    className="absolute inset-0 overflow-hidden bg-muted flex items-center justify-center"
-    animate={{ opacity: visible ? 1 : 0 }}
-    transition={{ duration: 0.3 }}
-    style={{ pointerEvents: visible ? "auto" : "none" }}
-  >
-    <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
-    <motion.div
-      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-      animate={{ x: ["-100%", "200%"] }}
-      transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
-    />
-  </motion.div>
-);
 
 export default EventCard;

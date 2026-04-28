@@ -15,7 +15,6 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
-  Info,
   Mail,
   Phone,
   Plus,
@@ -23,11 +22,13 @@ import {
   Eye,
   Building2,
   ChevronDown,
+  Check,
+  ArrowRight,
+  Shield,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -43,6 +44,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { cn } from "@/lib/utils";
 import { AddToCalendarButton } from "add-to-calendar-button-react";
 import ShareSnippet from "@/components/events/ShareSnippet";
 import { useEffect } from "react";
@@ -60,6 +62,7 @@ const EventDetailPage = () => {
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showMobileTickets, setShowMobileTickets] = useState(false);
+  const [bookingStep, setBookingStep] = useState<"select" | "contact">("select");
   const [guestEmail, setGuestEmail] = useState(user?.email || "");
   const [guestPhone, setGuestPhone] = useState("");
   const [guestContactName, setGuestContactName] = useState(user?.name || "");
@@ -69,7 +72,7 @@ const EventDetailPage = () => {
     quantity: number;
     fullPassPrice?: number;
     isFullPass?: boolean;
-    dayWisePrices?: any[]
+    dayWisePrices?: any[];
   } | null>(null);
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
@@ -157,6 +160,7 @@ const EventDetailPage = () => {
       startBookingProcess({ email: user.email, phone: user.phoneNumber, contactName: user.name, ticket: ticketData });
     } else {
       if (user) { setGuestEmail(user.email || ""); setGuestPhone(user.phoneNumber || ""); setGuestContactName(user.name || ""); }
+      setBookingStep("select");
       setIsBookingModalOpen(true);
     }
   };
@@ -251,10 +255,11 @@ const EventDetailPage = () => {
     const cats: Record<string, string> = {
       music: "/images/categories/music.jpg", technology: "/images/categories/technology.jpg",
       business: "/images/categories/business.jpg", entertainment: "/images/categories/entertainment.jpg",
+      comedy: "/images/categories/entertainment.jpg",
       health: "/images/categories/health.jpg", sports: "/images/categories/sports.jpg",
-      education: "/images/categories/education.jpg", other: "/images/categories/other.jpg",
-      art: "/images/categories/entertainment.jpg", meetup: "/images/categories/business.jpg",
-      tech: "/images/categories/technology.jpg",
+      education: "/images/categories/education.jpg", workshop: "/images/categories/technology.jpg",
+      other: "/images/categories/other.jpg", art: "/images/categories/entertainment.jpg",
+      meetup: "/images/categories/business.jpg", tech: "/images/categories/technology.jpg",
     };
     return cats[category.toLowerCase()] || cats.other;
   };
@@ -270,18 +275,24 @@ const EventDetailPage = () => {
 
   const videoId = getYouTubeId(event.videoUrl);
 
-  // Min price for mobile sticky bar
   const minPrice = event.ticketTypes?.length
     ? Math.min(...event.ticketTypes.map((t: any) => t.price))
     : 0;
   const allSoldOut = event.ticketTypes?.every((t: any) => t.isSoldOut || t.sold >= t.capacity);
 
-  /* ── Ticket panel (shared between sidebar and mobile drawer) ── */
   const TicketPanel = () => (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 text-primary mb-2">
-        <Ticket className="h-4 w-4" />
-        <span className="text-[10px] font-black uppercase tracking-[0.3em]">Tickets</span>
+    <div className="space-y-5">
+      {/* Header: label + from-price */}
+      <div className="flex items-end justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Ticket className="h-4 w-4 shrink-0" />
+          <span className="text-[10px] font-black uppercase tracking-[0.3em]">Tickets</span>
+        </div>
+        {!allSoldOut && minPrice > 0 && (
+          <span className="text-[11px] font-bold text-muted-foreground">
+            from <span className="text-foreground font-black text-sm">{formatPrice(minPrice)}</span>
+          </span>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -295,62 +306,79 @@ const EventDetailPage = () => {
           const finalPrice = Math.max(0, basePrice - discount);
           const maxQty = ticket.capacity - ticket.sold;
           const qty = ticketQuantities[ticket.name] || 1;
+          const isCurrentSoldOut = ticket.isSoldOut || ticket.sold >= ticket.capacity;
 
           return (
             <div
               key={ticket.name}
-              className={`p-4 border rounded-xl flex flex-col gap-3 transition-all ${
-                ticket.isSoldOut
-                  ? "bg-muted/20 border-border/30 opacity-60"
-                  : "bg-muted/30 border-border/40 hover:border-primary/30"
-              }`}
+              className={`p-4 border rounded-xl transition-all duration-200 ${isCurrentSoldOut
+                  ? "bg-muted/20 border-border/20 opacity-50"
+                  : "bg-card border-border/30 hover:border-foreground/20 hover:shadow-sm"
+                }`}
             >
-              <div className="flex justify-between items-start gap-3">
-                <span className="font-black text-sm uppercase tracking-tight">{ticket.name}</span>
+              <div className="flex justify-between items-start gap-3 mb-3">
+                <div>
+                  <span className="font-extrabold text-sm tracking-tight block">{ticket.name}</span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden max-w-[100px]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 bg-foreground/60"
+                        style={{ width: `${Math.min((ticket.sold / ticket.capacity) * 100, 100)}%` }}
+                      />
+                    </div>
+                    <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
+                      {maxQty} left
+                    </span>
+                  </div>
+                </div>
                 <div className="text-right shrink-0">
                   {appliedVoucher && basePrice > 0 && (
                     <span className="text-[9px] line-through text-muted-foreground block">{formatPrice(basePrice)}</span>
                   )}
-                  <span className="font-black text-base text-primary">{formatPrice(finalPrice)}</span>
+                  <span className="font-black text-lg leading-none">{formatPrice(finalPrice)}</span>
                 </div>
               </div>
 
-              <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                {maxQty} spots left
-              </div>
-
-              {!ticket.isSoldOut && ticket.sold < ticket.capacity && (
+              {!isCurrentSoldOut && (
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-1 bg-background/60 rounded-lg border border-border/40 p-0.5">
+                  <div className="flex items-center gap-0.5 bg-muted/60 rounded-lg border border-border/30 p-0.5">
                     <button
                       onClick={() => setTicketQuantities(p => ({ ...p, [ticket.name]: Math.max(1, (p[ticket.name] || 1) - 1) }))}
                       disabled={qty <= 1}
-                      className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-all"
+                      className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-background disabled:opacity-30 transition-all duration-150"
                     >
-                      <Minus className="h-3.5 w-3.5" />
+                      <Minus className="h-3 w-3" />
                     </button>
-                    <span className="w-7 text-center font-black text-sm">{qty}</span>
+                    <span className="w-8 text-center font-black text-sm tabular-nums">{qty}</span>
                     <button
                       onClick={() => setTicketQuantities(p => ({ ...p, [ticket.name]: Math.min(maxQty, (p[ticket.name] || 1) + 1) }))}
                       disabled={qty >= maxQty}
-                      className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-muted disabled:opacity-30 transition-all"
+                      className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-background disabled:opacity-30 transition-all duration-150"
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3 w-3" />
                     </button>
                   </div>
                   <div className="text-right">
-                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Total</p>
-                    <p className="font-black text-primary">{formatPrice(finalPrice * qty)}</p>
+                    <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">Total</p>
+                    <p className="font-black text-sm text-primary">{formatPrice(finalPrice * qty)}</p>
                   </div>
                 </div>
               )}
 
               <Button
                 onClick={() => handleBooking(ticket, finalPrice)}
-                disabled={ticket.isSoldOut || ticket.sold >= ticket.capacity || bookingMutation.isPending}
-                className="w-full h-11 rounded-xl font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                disabled={isCurrentSoldOut || bookingMutation.isPending}
+                className="w-full h-11 rounded-xl font-black uppercase tracking-widest text-[10px] mt-3 bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 disabled:opacity-40 flex items-center justify-center gap-2"
               >
-                {ticket.isSoldOut || ticket.sold >= ticket.capacity ? "Sold Out" : `Book ${qty} Ticket${qty > 1 ? "s" : ""}`}
+                {isCurrentSoldOut ? (
+                  "Sold Out"
+                ) : (
+                  <>
+                    Get {qty} Ticket{qty > 1 ? "s" : ""}
+                    <span className="opacity-60">·</span>
+                    {formatPrice(finalPrice * qty)}
+                  </>
+                )}
               </Button>
             </div>
           );
@@ -364,15 +392,15 @@ const EventDetailPage = () => {
             placeholder="Promo code"
             value={voucherCode}
             onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
-            className="h-10 rounded-lg bg-muted/30 border-border/40 font-bold uppercase tracking-widest text-[11px]"
+            className="h-9 rounded-lg bg-muted/20 border-border/30 font-bold uppercase tracking-widest text-[10px]"
             disabled={!!appliedVoucher}
           />
           {appliedVoucher ? (
-            <Button variant="ghost" size="sm" onClick={() => { setAppliedVoucher(null); setVoucherCode(""); }} className="text-destructive h-10 shrink-0">
-              <Trash2 className="h-4 w-4" />
+            <Button variant="ghost" size="sm" onClick={() => { setAppliedVoucher(null); setVoucherCode(""); }} className="text-destructive h-9 shrink-0">
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           ) : (
-            <Button variant="secondary" size="sm" onClick={handleApplyVoucher} disabled={!voucherCode || isLoadingVoucher} className="h-10 rounded-lg font-black uppercase text-[9px] tracking-widest shrink-0">
+            <Button variant="secondary" size="sm" onClick={handleApplyVoucher} disabled={!voucherCode || isLoadingVoucher} className="h-9 rounded-lg font-black uppercase text-[8px] tracking-widest shrink-0">
               {isLoadingVoucher ? "…" : "Apply"}
             </Button>
           )}
@@ -384,30 +412,40 @@ const EventDetailPage = () => {
         )}
       </div>
 
+      {/* Trust signals */}
+      <div className="flex items-center gap-4 pt-2 text-[9px] text-muted-foreground font-bold uppercase tracking-widest">
+        <div className="flex items-center gap-1">
+          <Shield className="h-3 w-3" /> Secure Payment
+        </div>
+        <div className="flex items-center gap-1">
+          <Check className="h-3 w-3" /> Instant Confirmation
+        </div>
+      </div>
+
       {/* Availability bar */}
       {totalCapacity > 0 && (
         <div className="space-y-1.5 pt-1">
           <div className="flex justify-between text-[10px] text-muted-foreground font-medium">
-            <span>Availability</span>
-            <span>{totalSold} / {totalCapacity}</span>
+            <span>Overall Availability</span>
+            <span>{totalSold} / {totalCapacity} sold</span>
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-500 rounded-full" style={{ width: `${soldPercentage}%` }} />
+            <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${soldPercentage}%` }} />
           </div>
         </div>
       )}
 
       <div className="flex gap-2 pt-1">
         <Button variant="outline" size="sm" className="flex-1 rounded-lg h-9">
-          <Heart className="h-4 w-4" />
+          <Heart className="h-3.5 w-3.5" />
         </Button>
         <Button variant="outline" size="sm" className="flex-1 rounded-lg h-9" onClick={() => setShowShareSnippet(true)}>
-          <Share2 className="h-4 w-4" />
+          <Share2 className="h-3.5 w-3.5" />
         </Button>
       </div>
 
-      <div className="pt-3 border-t border-border/30">
-        <p className="text-[10px] font-bold text-muted-foreground mb-2 uppercase tracking-widest">Add to calendar</p>
+      <div className="pt-3 border-t border-border/20">
+        <p className="text-[9px] font-bold text-muted-foreground mb-2 uppercase tracking-widest">Add to calendar</p>
         <AddToCalendarButton
           name={event.title}
           options={["Google", "Apple", "Outlook.com"]}
@@ -425,7 +463,7 @@ const EventDetailPage = () => {
       </div>
 
       {(event.soldTickets > 0 || event.viewCount > 0) && (
-        <div className="pt-3 border-t border-border/30 flex flex-wrap gap-4">
+        <div className="pt-3 border-t border-border/20 flex flex-wrap gap-4">
           {event.soldTickets > 0 && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Users className="h-3.5 w-3.5" /> {event.soldTickets.toLocaleString()} attending
@@ -448,154 +486,166 @@ const EventDetailPage = () => {
       <main className="flex-1 pt-14 md:pt-16 pb-24 md:pb-0">
 
         {/* ─── Hero ─── */}
-        <div className="relative h-[45vh] sm:h-[52vh] md:h-[58vh] overflow-hidden bg-muted">
+        <div className="relative h-[50vh] sm:h-[58vh] md:h-[65vh] overflow-hidden bg-muted">
           {videoId ? (
             <>
               <iframe
                 src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${isMuted ? 1 : 0}&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1`}
-                className="w-[300%] h-full ml-[-100%] object-cover pointer-events-none"
                 allow="autoplay; encrypted-media"
                 title="Event video"
+                className="absolute pointer-events-none"
+                style={{
+                  top: "50%", left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "max(100%, calc(100vh * 16/9))",
+                  height: "max(100%, calc(100vw * 9/16))",
+                  border: 0,
+                }}
               />
               <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="absolute bottom-4 right-4 z-20 h-10 w-10 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center transition-all"
+                className="absolute bottom-24 right-4 z-20 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center transition-all"
               >
-                {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+                {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
               </button>
             </>
           ) : (
             <SafeImage
               src={event.image || getCategoryImage(event.category)}
               alt={event.title}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           )}
 
-          {/* gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/10 pointer-events-none" />
 
-          {/* back button */}
           <div className="absolute top-4 left-4 z-10">
             <Link to="/events">
-              <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-black/60 transition-all">
+              <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-black/60 transition-all duration-200">
                 <ChevronLeft className="h-3.5 w-3.5" /> Events
               </button>
             </Link>
           </div>
-
-          {/* category badge */}
           <div className="absolute top-4 right-4 z-10">
-            <Badge className="bg-white/90 text-black border-0 px-3 py-1 rounded-lg font-black uppercase tracking-widest text-[9px]">
+            <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/15 text-white text-[9px] font-black uppercase tracking-widest">
               {event.category}
-            </Badge>
+            </span>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-20 z-10 pointer-events-none">
+            <div className="max-w-6xl mx-auto">
+              <h1 className="font-display font-black text-white leading-[0.9] tracking-tighter text-[clamp(1.8rem,5vw,3.5rem)] max-w-3xl mb-4">
+                {event.title}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-white/60 text-sm font-medium">
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" />
+                  {formatDate(event.date)}
+                </div>
+                {event.time && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 shrink-0" />
+                    {event.time}{event.endTime ? ` – ${event.endTime}` : ""}
+                  </div>
+                )}
+                {(event.location?.venueName || event.location?.address) && (
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {event.location.venueName || event.location.address?.split(",")[0]}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* ─── Content ─── */}
-        <div className="container -mt-8 relative z-10 max-w-6xl">
+        <div className="container pt-8 pb-4 max-w-6xl">
           <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
 
             {/* Main Content */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="lg:col-span-2 space-y-8"
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-2 space-y-10"
             >
-              {/* Title block */}
-              <div className="bg-card border border-border/40 rounded-2xl p-6 md:p-8">
-                <h1 className="text-2xl md:text-4xl font-black tracking-tighter leading-tight mb-4">
-                  {event.title}
-                </h1>
-
-                {/* Countdown */}
-                {timeLeft && (
-                  <div className="flex gap-3 mb-6">
-                    {[
-                      { label: "Days", value: timeLeft.days },
-                      { label: "Hrs", value: timeLeft.hours },
-                      { label: "Min", value: timeLeft.minutes },
-                      { label: "Sec", value: timeLeft.seconds },
-                    ].map((item) => (
-                      <div key={item.label} className="flex flex-col items-center bg-primary/10 border border-primary/20 rounded-xl px-3 py-2.5 min-w-[60px]">
-                        <span className="text-xl md:text-2xl font-black text-primary tabular-nums">
-                          {String(item.value).padStart(2, "0")}
-                        </span>
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{item.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary shrink-0" />
-                    <span className="font-medium">{formatDate(event.date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary shrink-0" />
-                    <span className="font-medium">{event.time}{event.endTime && ` – ${event.endTime}`}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Location */}
-              <div className="bg-card border border-border/40 rounded-2xl p-6 md:p-8 space-y-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Venue</p>
-                      {event.location.venueName && <p className="font-black text-base">{event.location.venueName}</p>}
-                      <p className="text-sm text-muted-foreground font-medium">{event.location.address}</p>
+              {/* Countdown */}
+              {timeLeft && (
+                <div className="flex gap-3 flex-wrap">
+                  {[
+                    { label: "Days", value: timeLeft.days },
+                    { label: "Hrs", value: timeLeft.hours },
+                    { label: "Min", value: timeLeft.minutes },
+                    { label: "Sec", value: timeLeft.seconds },
+                  ].map((item) => (
+                    <div key={item.label} className="flex flex-col items-center bg-foreground/[0.04] rounded-xl px-5 py-3.5 min-w-[70px] border border-border/20">
+                      <span className="text-xl md:text-2xl font-black tabular-nums">
+                        {String(item.value).padStart(2, "0")}
+                      </span>
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">{item.label}</span>
                     </div>
-                  </div>
-                  <a
-                    href={event.location.googleMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location.address)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    className="shrink-0 h-9 w-9 flex items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-                  >
-                    <MapPin className="h-4 w-4" />
-                  </a>
+                  ))}
                 </div>
-
-                <div className="rounded-xl overflow-hidden border border-border/30 aspect-video bg-muted">
-                  <iframe
-                    width="100%" height="100%"
-                    style={{ border: 0 }}
-                    src={
-                      event.location.googleMapUrl?.includes("/embed")
-                        ? event.location.googleMapUrl
-                        : `https://maps.google.com/maps?q=${encodeURIComponent(event.location.address)}&t=&z=13&ie=UTF8&iwloc=&output=embed`
-                    }
-                    allowFullScreen
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Description */}
-              <div className="bg-card border border-border/40 rounded-2xl p-6 md:p-8">
-                <div className="flex items-center gap-2 mb-4 text-primary">
-                  <Info className="h-4 w-4" />
-                  <h2 className="text-[10px] font-black uppercase tracking-[0.3em]">About this event</h2>
-                </div>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap font-medium text-sm md:text-base">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-4">About</p>
+                <p className="text-foreground/75 leading-relaxed whitespace-pre-wrap text-sm md:text-base">
                   {event.description}
                 </p>
               </div>
 
+              {/* Location */}
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-4">Location</p>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0 border border-border/30">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <div>
+                        {event.location.venueName && <p className="font-extrabold text-base mb-0.5">{event.location.venueName}</p>}
+                        <p className="text-sm text-muted-foreground">{event.location.address}</p>
+                      </div>
+                    </div>
+                    <a
+                      href={event.location.googleMapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location.address)}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="shrink-0 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                    >
+                      Open <ArrowRight className="h-3 w-3" />
+                    </a>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-border/20 aspect-video bg-muted">
+                    <iframe
+                      width="100%" height="100%"
+                      style={{ border: 0 }}
+                      src={
+                        event.location.googleMapUrl?.includes("/embed")
+                          ? event.location.googleMapUrl
+                          : `https://maps.google.com/maps?q=${encodeURIComponent(event.location.address)}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+                      }
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Reels */}
               {event.reels && event.reels.length > 0 && (
-                <div className="bg-card border border-border/40 rounded-2xl p-6 md:p-8">
-                  <h2 className="font-black uppercase tracking-tight text-sm flex items-center gap-2 mb-6">
-                    <Sparkles className="h-4 w-4 text-primary" /> Shorts
-                  </h2>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-4 flex items-center gap-2">
+                    <Sparkles className="h-3 w-3" /> Shorts
+                  </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {event.reels.map((url: string, idx: number) => {
                       const ytId = getYouTubeId(url);
                       if (!ytId) return null;
                       return (
-                        <div key={idx} className="relative rounded-xl overflow-hidden border border-border/30 bg-muted aspect-[9/16]">
+                        <div key={idx} className="relative rounded-xl overflow-hidden border border-border/20 bg-muted aspect-[9/16]">
                           <iframe src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`} className="w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                         </div>
                       );
@@ -606,25 +656,23 @@ const EventDetailPage = () => {
 
               {/* Tags */}
               {event.tags && event.tags.length > 0 && (
-                <div className="bg-card border border-border/40 rounded-2xl p-6">
-                  <div className="flex flex-wrap gap-2">
-                    {event.tags.map((tag: string) => (
-                      <span key={tag} className="px-3 py-1.5 rounded-full bg-muted border border-border/40 text-[11px] font-bold text-muted-foreground">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  {event.tags.map((tag: string) => (
+                    <span key={tag} className="px-3 py-1.5 rounded-full bg-muted border border-border/30 text-[11px] font-bold text-muted-foreground">
+                      #{tag}
+                    </span>
+                  ))}
                 </div>
               )}
 
               {/* Organizer */}
-              <div className="bg-card border border-border/40 rounded-2xl p-6 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                  <User className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-4 pb-2 border-b border-border/20">
+                <div className="h-11 w-11 rounded-xl bg-muted border border-border/30 flex items-center justify-center shrink-0">
+                  <User className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-0.5">Organized by</p>
-                  <p className="font-black text-base tracking-tight">{event.creator?.name || "Verified Organizer"}</p>
+                  <p className="font-extrabold tracking-tight">{event.creator?.name || "Verified Organizer"}</p>
                 </div>
               </div>
             </motion.div>
@@ -633,10 +681,10 @@ const EventDetailPage = () => {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 }}
+              transition={{ delay: 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="hidden lg:block lg:col-span-1"
             >
-              <div className="sticky top-20 bg-card border border-border/40 p-6 rounded-2xl shadow-xl">
+              <div className="sticky top-20 bg-card border border-border/30 p-6 rounded-2xl shadow-sm">
                 <TicketPanel />
               </div>
             </motion.div>
@@ -645,13 +693,12 @@ const EventDetailPage = () => {
       </main>
 
       {/* ═══ MOBILE STICKY BOTTOM BAR ═══ */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/60 bg-background/98 backdrop-blur-xl">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border/40 bg-background/98 backdrop-blur-xl">
         {showMobileTickets ? (
-          /* Expanded ticket panel */
           <div className="max-h-[75vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-              <span className="font-black text-sm uppercase tracking-tight">Select Tickets</span>
-              <button onClick={() => setShowMobileTickets(false)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-muted text-muted-foreground hover:text-foreground">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
+              <span className="font-extrabold text-sm uppercase tracking-tight">Select Tickets</span>
+              <button onClick={() => setShowMobileTickets(false)} className="h-8 w-8 flex items-center justify-center rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <ChevronDown className="h-4 w-4" />
               </button>
             </div>
@@ -660,20 +707,19 @@ const EventDetailPage = () => {
             </div>
           </div>
         ) : (
-          /* Collapsed bar */
           <div className="flex items-center gap-3 px-4 py-3">
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-muted-foreground font-medium truncate">{event.title}</p>
-              <p className="font-black text-sm text-primary">
+              <p className="text-[10px] text-muted-foreground font-medium truncate">{event.location?.venueName || event.location?.address?.split(",")[0]}</p>
+              <p className="font-black text-base leading-tight">
                 {allSoldOut ? "Sold Out" : minPrice === 0 ? "Free" : `From ${formatPrice(minPrice)}`}
               </p>
             </div>
             <Button
               onClick={() => setShowMobileTickets(true)}
               disabled={allSoldOut}
-              className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 disabled:opacity-50"
+              className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-foreground text-background hover:bg-foreground/90 shrink-0 disabled:opacity-40"
             >
-              {allSoldOut ? "Sold Out" : "Get Tickets"}
+              {allSoldOut ? "Sold Out" : "Get Tickets →"}
             </Button>
           </div>
         )}
@@ -683,86 +729,143 @@ const EventDetailPage = () => {
 
       <Footer />
 
-      {/* Booking modal */}
-      <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl bg-card border-border/40">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black tracking-tighter">Your Contact Details</DialogTitle>
-            <DialogDescription className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest">
-              We'll send your tickets to these details.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="contactName" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                <Building2 className="h-3 w-3" /> Name / Company
-              </Label>
-              <Input id="contactName" type="text" placeholder="Your name or company" value={guestContactName} onChange={(e) => setGuestContactName(e.target.value)} className="rounded-xl bg-muted/30 border-border h-11 font-medium" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                <Mail className="h-3 w-3" /> Email Address
-              </Label>
-              <Input id="email" type="email" placeholder="your@email.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="rounded-xl bg-muted/30 border-border h-11 font-medium" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                <Phone className="h-3 w-3" /> WhatsApp Number
-              </Label>
-              <Input id="phone" type="tel" placeholder="+91 00000 00000" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="rounded-xl bg-muted/30 border-border h-11 font-medium" />
-              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">* Ticket sent via Email & WhatsApp</p>
-            </div>
-          </div>
+      {/* Booking modal — step-by-step */}
+      <Dialog open={isBookingModalOpen} onOpenChange={(open) => { setIsBookingModalOpen(open); if (!open) setBookingStep("select"); }}>
+        <DialogContent className="sm:max-w-md rounded-2xl bg-card border-border/30">
 
+          {/* Step progress indicator */}
           {event.isMultiDay && selectedTicket && (
-            <div className="px-0 pb-2 space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-                <Calendar className="h-3 w-3" /> Select Sessions / Days
-              </Label>
-              <div className="grid grid-cols-1 gap-2">
+            <div className="flex items-center gap-2 mb-1">
+              {[
+                { step: 1, label: "Sessions", active: bookingStep === "select" },
+                { step: 2, label: "Details", active: bookingStep === "contact" },
+              ].map(({ step, label, active }, i) => (
+                <div key={step} className="flex items-center gap-2">
+                  {i > 0 && <div className="h-px w-6 bg-border/40" />}
+                  <div className="flex items-center gap-1.5">
+                    <div className={cn(
+                      "h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-black transition-all",
+                      active ? "bg-foreground text-background" : "bg-muted text-muted-foreground"
+                    )}>
+                      {step}
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-bold uppercase tracking-widest transition-colors",
+                      active ? "text-foreground" : "text-muted-foreground"
+                    )}>
+                      {label}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {bookingStep === "select" && event.isMultiDay && selectedTicket ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-black tracking-tighter">Select Sessions</DialogTitle>
+                <DialogDescription className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest">
+                  Choose which days you'd like to attend.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 py-3">
                 {selectedTicket.isFullPass && (
                   <div
                     onClick={() => { setIsFullPassSelected(!isFullPassSelected); setSelectedDays([]); }}
-                    className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${isFullPassSelected ? "bg-primary/10 border-primary" : "bg-muted/30 border-border/40"}`}
+                    className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all duration-200 ${isFullPassSelected ? "bg-primary/10 border-primary" : "bg-muted/20 border-border/30 hover:border-border"
+                      }`}
                   >
                     <span className="text-xs font-bold uppercase tracking-tight">Full Event Pass</span>
-                    <span className="text-xs font-black text-primary">₹{selectedTicket.fullPassPrice || selectedTicket.price}</span>
+                    <span className="text-xs font-black text-primary">{formatPrice(selectedTicket.fullPassPrice || selectedTicket.price)}</span>
                   </div>
                 )}
                 {!isFullPassSelected && event.days?.map((day: any, idx: number) => {
                   const isSelected = selectedDays.includes(idx);
                   const dayPrice = selectedTicket.dayWisePrices?.find((dp: any) => dp.dayIndex === idx)?.price || selectedTicket.price;
                   return (
-                    <div key={idx} onClick={() => { if (isSelected) setSelectedDays(selectedDays.filter(d => d !== idx)); else setSelectedDays([...selectedDays, idx]); }}
-                      className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all ${isSelected ? "bg-primary/10 border-primary" : "bg-muted/30 border-border/40"}`}>
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        if (isSelected) setSelectedDays(selectedDays.filter(d => d !== idx));
+                        else setSelectedDays([...selectedDays, idx]);
+                      }}
+                      className={`p-3 rounded-xl border flex justify-between items-center cursor-pointer transition-all duration-200 ${isSelected ? "bg-primary/10 border-primary" : "bg-muted/20 border-border/30 hover:border-border"
+                        }`}
+                    >
                       <div>
                         <span className="text-xs font-bold uppercase tracking-tight block">{day.title || `Day ${idx + 1}`}</span>
                         <span className="text-[9px] text-muted-foreground">{formatDate(day.date)}</span>
                       </div>
-                      <span className="text-xs font-black text-primary">₹{dayPrice}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-primary">{formatPrice(dayPrice)}</span>
+                        {isSelected && <Check className="h-3.5 w-3.5 text-primary" />}
+                      </div>
                     </div>
                   );
                 })}
               </div>
-              <div className="pt-2 border-t border-border/40 flex justify-between items-center">
+              <div className="pt-2 border-t border-border/20 flex justify-between items-center">
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total</span>
                 <span className="text-xl font-black text-primary">
-                  ₹{isFullPassSelected ? (selectedTicket.fullPassPrice || selectedTicket.price)
-                    : selectedDays.reduce((acc, idx) => acc + (selectedTicket.dayWisePrices?.find((p: any) => p.dayIndex === idx)?.price || selectedTicket.price), 0)}
+                  {formatPrice(
+                    isFullPassSelected
+                      ? (selectedTicket.fullPassPrice || selectedTicket.price)
+                      : selectedDays.reduce((acc, idx) => acc + (selectedTicket.dayWisePrices?.find((p: any) => p.dayIndex === idx)?.price || selectedTicket.price), 0)
+                  )}
                 </span>
               </div>
-            </div>
-          )}
+              <DialogFooter>
+                <Button
+                  onClick={() => setBookingStep("contact")}
+                  disabled={event.isMultiDay && !isFullPassSelected && selectedDays.length === 0}
+                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                >
+                  Continue <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-black tracking-tighter">Your Contact Details</DialogTitle>
+                <DialogDescription className="text-muted-foreground text-[11px] font-bold uppercase tracking-widest">
+                  We'll send your tickets to these details.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="contactName" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Building2 className="h-3 w-3" /> Name / Company
+                  </Label>
+                  <Input id="contactName" type="text" placeholder="Your name or company" value={guestContactName} onChange={(e) => setGuestContactName(e.target.value)} className="rounded-xl bg-muted/20 border-border/30 h-11 font-medium" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Mail className="h-3 w-3" /> Email Address
+                  </Label>
+                  <Input id="email" type="email" placeholder="your@email.com" value={guestEmail} onChange={(e) => setGuestEmail(e.target.value)} className="rounded-xl bg-muted/20 border-border/30 h-11 font-medium" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                    <Phone className="h-3 w-3" /> WhatsApp Number
+                  </Label>
+                  <Input id="phone" type="tel" placeholder="+91 00000 00000" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="rounded-xl bg-muted/20 border-border/30 h-11 font-medium" />
+                  <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest">* Ticket sent via Email & WhatsApp</p>
+                </div>
+              </div>
 
-          <DialogFooter>
-            <Button
-              onClick={startBookingProcess}
-              disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
-              className="w-full h-13 rounded-xl font-black uppercase tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-            >
-              {bookingMutation.isPending ? "Processing…" : "Confirm & Pay"}
-            </Button>
-          </DialogFooter>
+              <DialogFooter>
+                <Button
+                  onClick={() => startBookingProcess()}
+                  disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
+                  className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                >
+                  {bookingMutation.isPending ? "Processing…" : "Confirm & Pay"}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

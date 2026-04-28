@@ -30,7 +30,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-background border-t border-border/30">
+    <footer className="bg-background border-t border-border/20">
       <div className="container py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
@@ -38,7 +38,7 @@ const Footer = () => {
             <Link to="/" onClick={scrollToTop} className="flex items-center gap-2.5 mb-5 group w-fit">
               <PulseLogo size={22} />
               <span className="font-display text-2xl font-black tracking-tighter uppercase">
-                City <span className="text-primary">Pulse</span>
+                City <span className="opacity-40">Pulse</span>
               </span>
             </Link>
             <p className="text-muted-foreground text-sm font-medium max-w-sm leading-relaxed mb-6">
@@ -50,7 +50,7 @@ const Footer = () => {
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
-                  className="h-9 w-9 flex items-center justify-center rounded-lg bg-muted border border-border/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-all"
+                  className="h-9 w-9 flex items-center justify-center rounded-xl bg-muted/50 border border-border/30 text-muted-foreground hover:text-foreground hover:border-border transition-all duration-200"
                 >
                   <social.icon className="h-4 w-4" />
                 </a>
@@ -82,9 +82,9 @@ const Footer = () => {
         </div>
 
         {/* Bottom */}
-        <div className="pt-8 border-t border-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-border/20 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50">
-            © {currentYear} City Pulse Collective
+            © {currentYear} City Pulse
           </p>
           <div className="flex gap-6">
             <Link to="/privacy" onClick={scrollToTop} className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50 hover:text-foreground transition-colors">

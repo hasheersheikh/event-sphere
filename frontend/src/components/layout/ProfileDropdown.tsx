@@ -64,72 +64,72 @@ const ProfileDropdown = () => {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-4 p-1.5 pr-5 rounded-2xl glass-panel bg-muted border border-border hover:border-pulse-emerald/50 transition-all duration-500 group shadow-lg"
+        className="flex items-center gap-2.5 p-1 pr-3 rounded-xl bg-card border border-border hover:border-primary transition-all duration-500 group"
       >
-        <div className="h-10 w-10 rounded-xl bg-pulse-emerald flex items-center justify-center text-background font-black overflow-hidden shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-          {user?.name?.charAt(0) || <User className="h-5 w-5" />}
+        <div className="h-8 w-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-black overflow-hidden">
+          {user?.name?.charAt(0) || <User className="h-4 w-4" />}
         </div>
         <div className="hidden lg:block text-left">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground leading-tight group-hover:text-pulse-emerald transition-colors">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground leading-tight group-hover:text-primary transition-colors">
             {user?.name}
           </p>
-          <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest italic">
+          <p className="text-[8px] text-muted-foreground font-bold uppercase tracking-widest italic">
             {user?.role?.replace("_", " ")}
           </p>
         </div>
         <ChevronDown
-          className={`h-3 w-3 text-muted-foreground transition-transform duration-500 ${isOpen ? "rotate-180 text-pulse-emerald" : ""}`}
+          className={`h-3 w-3 text-muted-foreground transition-transform duration-500 ${isOpen ? "rotate-180 text-primary" : ""}`}
         />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-0 mt-4 w-72 bg-background border border-border rounded-3xl overflow-hidden z-[100] shadow-[0_30px_100px_rgba(0,0,0,0.2)] dark:shadow-[0_30px_100px_rgba(0,0,0,0.8)]"
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="absolute right-0 mt-2 w-56 bg-background border border-border rounded-xl overflow-hidden z-[100]"
           >
-            <div className="p-6 border-b border-border bg-muted">
-              <div className="flex items-center gap-5">
-                <div className="h-14 w-14 rounded-2xl bg-pulse-emerald text-background flex items-center justify-center font-black text-xl shadow-[0_0_30px_rgba(16,185,129,0.4)]">
+            <div className="p-3 border-b border-border bg-muted">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-black text-sm">
                   {user?.name?.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-black text-xs uppercase tracking-[0.2em] text-foreground italic">
+                  <p className="font-black text-[10px] uppercase tracking-[0.2em] text-foreground italic">
                     {user?.name}
                   </p>
-                  <p className="text-[9px] text-muted-foreground font-bold truncate max-w-[160px] uppercase tracking-[0.2em]">
+                  <p className="text-[8px] text-muted-foreground font-bold truncate max-w-[120px] uppercase tracking-[0.2em]">
                     {user?.email}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-3 space-y-1">
+            <div className="p-1.5 space-y-0.5">
               {menuItems.map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-pulse-emerald/10 transition-all duration-300 group"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 group"
                 >
-                  <item.icon className="h-4.5 w-4.5 transition-all group-hover:scale-110 group-hover:text-pulse-emerald" />
+                  <item.icon className="h-3.5 w-3.5 transition-all group-hover:scale-110 group-hover:text-primary" />
                   {item.label}
                 </Link>
               ))}
             </div>
 
-            <div className="p-3 pt-2 pb-5 border-t border-border mt-1">
+            <div className="p-1.5 pt-1 pb-2 border-t border-border mt-1">
               <button
                 onClick={() => {
                   logout();
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-rose-400 hover:text-foreground hover:bg-rose-500/10 transition-all duration-500 group"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 group"
               >
-                <LogOut className="h-4.5 w-4.5 transition-transform group-hover:scale-110" />
+                <LogOut className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
                 Logout
               </button>
             </div>

@@ -779,7 +779,7 @@ const AdminStoreDetailPage = () => {
                   renderItem={(owner: any) => (
                     <div key={owner._id} className="p-4 bg-muted/10 border border-border/60 rounded-2xl flex items-center justify-between group hover:border-primary/30 transition-all shadow-xl backdrop-blur-sm">
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center font-black text-xs text-primary border border-primary/20 group-hover:bg-primary group-hover:text-black transition-all duration-500 italic shadow-lg shadow-primary/5">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center font-black text-xs text-primary border border-primary/20 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 italic shadow-lg shadow-primary/5">
                           {owner.name.charAt(0)}
                         </div>
                         <div className="min-w-0">

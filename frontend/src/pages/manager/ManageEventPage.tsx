@@ -287,7 +287,7 @@ const ManageEventPage = () => {
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-black transition-all shadow-sm"
+                        className="p-2.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
                         title="Open in Google Maps"
                       >
                         <MapPin className="h-4 w-4" />

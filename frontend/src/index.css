@@ -1,6 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&display=swap");
 
-/* Foggy — DICE-style display font (place Foggy.woff2 in /public/fonts/) */
 @font-face {
   font-family: "Foggy";
   src: url("/fonts/Foggy.woff2") format("woff2");
@@ -17,117 +16,82 @@
   html {
     font-size: 15px;
     background-color: hsl(var(--background));
+    scroll-behavior: smooth;
   }
 
-  /* ─── DICE-inspired: pure black / white ─── */
   :root {
-    /* Light mode */
     --background: 0 0% 98%;
     --foreground: 0 0% 5%;
-
     --card: 0 0% 100%;
     --card-foreground: 0 0% 5%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 5%;
-
-    /* Primary = black in light mode */
     --primary: 0 0% 8%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 0 0% 94%;
     --secondary-foreground: 0 0% 10%;
-
     --muted: 0 0% 94%;
     --muted-foreground: 0 0% 44%;
-
     --accent: 0 0% 8%;
     --accent-foreground: 0 0% 100%;
-
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-
     --border: 0 0% 89%;
     --input: 0 0% 89%;
     --ring: 0 0% 8%;
-
     --radius: 0.75rem;
-
-    /* DICE brand tokens */
     --dice-black: #080808;
     --dice-white: #FFFFFF;
-
-    /* Legacy tokens (kept for admin/portal compatibility) */
     --pulse-emerald: #059669;
     --pulse-indigo: #4F46E5;
     --pulse-violet: #7C3AED;
     --pulse-bg: #FAFAFA;
-
-    /* Semantic Status Colors (admin/portal compat) */
     --status-success: 161 72% 35%;
     --status-warning: 38 92% 50%;
     --status-info: 217 91% 60%;
     --status-neutral: 240 5% 64%;
-
     --icon-revenue: 161 72% 35%;
     --icon-events: 217 91% 60%;
     --icon-users: 270 91% 65%;
     --icon-tickets: 38 92% 50%;
-
     --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
     --font-serif: "Plus Jakarta Sans", sans-serif;
-
     --glass-bg: rgba(255, 255, 255, 0.90);
     --glass-border: rgba(0, 0, 0, 0.08);
-
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
     --shadow-primary: 0 8px 20px -8px hsl(var(--primary) / 0.45);
-
     --border-subtle: hsl(var(--border) / 0.3);
     --border-default: hsl(var(--border) / 0.5);
     --border-strong: hsl(var(--border));
   }
 
-  /* ─── DICE dark: pure black canvas, white accent ─── */
   .dark {
-    --background: 0 0% 3%;          /* #080808 */
-    --foreground: 0 0% 100%;        /* pure white */
-
-    --card: 0 0% 7%;                /* #111111 */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 100%;
-
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 100%;
-
-    /* Primary = white in dark mode */
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 5%;
-
-    --secondary: 0 0% 11%;          /* #1C1C1C */
+    --secondary: 0 0% 11%;
     --secondary-foreground: 0 0% 100%;
-
     --muted: 0 0% 11%;
-    --muted-foreground: 0 0% 55%;   /* #8C8C8C */
-
+    --muted-foreground: 0 0% 55%;
     --accent: 0 0% 100%;
     --accent-foreground: 0 0% 5%;
-
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 14%;             /* #242424 */
+    --border: 0 0% 14%;
     --input: 0 0% 14%;
     --ring: 0 0% 100%;
-
     --pulse-bg: #080808;
-
     --glass-bg: rgba(255, 255, 255, 0.04);
     --glass-border: rgba(255, 255, 255, 0.08);
-
     --shadow-primary: 0 8px 24px -8px rgba(255, 255, 255, 0.12);
   }
 }
@@ -172,6 +136,22 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
+  .surface {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.4);
+    border-radius: var(--radius);
+  }
+
+  .video-cover {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+  }
+
   .text-gradient, .gradient-text {
     background: linear-gradient(to right, hsl(var(--foreground)), hsl(var(--muted-foreground)));
     -webkit-background-clip: text;
@@ -196,24 +176,59 @@
     box-shadow: var(--shadow-primary);
   }
 
-  /* Stat card icon containers — standardized (admin compat) */
   .icon-revenue  { color: hsl(var(--icon-revenue));  background-color: hsl(var(--icon-revenue) / 0.1);  border-color: hsl(var(--icon-revenue) / 0.2); }
   .icon-events   { color: hsl(var(--icon-events));   background-color: hsl(var(--icon-events) / 0.1);   border-color: hsl(var(--icon-events) / 0.2); }
   .icon-users    { color: hsl(var(--icon-users));    background-color: hsl(var(--icon-users) / 0.1);    border-color: hsl(var(--icon-users) / 0.2); }
   .icon-tickets  { color: hsl(var(--icon-tickets));  background-color: hsl(var(--icon-tickets) / 0.1);  border-color: hsl(var(--icon-tickets) / 0.2); }
 
-  /* Scrollbar hide */
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-  /* Accessible focus rings */
   .focus-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
   }
 
-  /* Reduced motion */
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  @keyframes float-gentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .animate-float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.4; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+
+  .animate-pulse-ring {
+    animation: pulse-ring 2s ease-out infinite;
+  }
+
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;

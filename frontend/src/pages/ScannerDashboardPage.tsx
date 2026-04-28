@@ -140,7 +140,7 @@ const ScannerDashboardPage = () => {
         {/* Action Button */}
         <Button
           onClick={() => navigate("/scanner")}
-          className="w-full h-20 bg-foreground text-background hover:bg-emerald-500 hover:text-black rounded-3xl text-sm font-black uppercase tracking-[0.3em] transition-all duration-300 shadow-2xl group border-none hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4"
+          className="w-full h-20 bg-foreground text-background hover:bg-emerald-500 hover:text-white rounded-3xl text-sm font-black uppercase tracking-[0.3em] transition-all duration-300 shadow-2xl group border-none hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4"
         >
           <QrCode className="h-6 w-6 group-hover:rotate-12 transition-transform" />
           Initialize Scanner Protocol

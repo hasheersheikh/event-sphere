@@ -70,6 +70,7 @@ import { CityProvider } from "./contexts/CityContext";
 import CitySelectModal from "./components/layout/CitySelectModal";
 import MaintenancePage from "./pages/MaintenancePage";
 import { useMaintenanceMode } from "./hooks/useMaintenanceMode";
+import ScrollToTop from "./components/layout/ScrollToTop";
 
 
 const queryClient = new QueryClient();
@@ -91,6 +92,7 @@ const AppContent = () => {
             <CitySelectModal />
             <LocalStoreCartDrawer />
             <Router>
+              <ScrollToTop />
               <Routes>
                 {/* [Existing Routes...] */}
                 <Route

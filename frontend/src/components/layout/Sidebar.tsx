@@ -115,12 +115,12 @@ const Sidebar = () => {
               to={link.href}
               className={`flex items-center gap-3 px-4 py-2.5 transition-all group rounded-xl mx-2 ${
                 isActive
-                  ? "bg-primary text-black shadow-lg shadow-primary/10 italic"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/10 italic"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted"
               }`}
             >
               <link.icon
-                className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${isActive ? "text-black" : "text-muted-foreground group-hover:text-primary"}`}
+                className={`h-3.5 w-3.5 transition-transform group-hover:scale-110 ${isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-primary"}`}
               />
               <span className="text-[10.5px] font-black uppercase tracking-widest">
                 {link.label}

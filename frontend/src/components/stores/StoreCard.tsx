@@ -93,32 +93,6 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
               </p>
             )}
 
-            <div className="mt-auto pt-3 border-t border-border/30 flex items-center justify-between">
-              {showProducts && store.products?.length > 0 ? (
-                <div className="flex -space-x-2">
-                  {store.products.slice(0, 3).map((p) => (
-                    <div key={p._id} className="h-7 w-7 rounded-full border-2 border-background overflow-hidden bg-muted">
-                      {p.image ? (
-                        <img src={p.image} className="w-full h-full object-cover" alt={p.name} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="h-3 w-3 text-muted-foreground/40" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                  {store.products.length > 3 && (
-                    <div className="h-7 w-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[8px] font-black text-muted-foreground">
-                      +{store.products.length - 3}
-                    </div>
-                  )}
-                </div>
-              ) : <div />}
-
-              <div className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                <ArrowUpRight className="h-3.5 w-3.5" />
-              </div>
-            </div>
           </div>
         </article>
       </Link>

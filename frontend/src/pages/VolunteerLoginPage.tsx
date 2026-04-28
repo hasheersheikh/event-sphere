@@ -173,7 +173,7 @@ const VolunteerLoginPage = () => {
 
             <Button
               disabled={isLoading}
-              className="w-full h-16 bg-foreground text-background hover:bg-emerald-500 hover:text-black rounded-xl text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-300 shadow-xl relative overflow-hidden group border-none hover:scale-[1.01] active:scale-95"
+              className="w-full h-16 bg-foreground text-background hover:bg-emerald-500 hover:text-white rounded-xl text-[11px] font-black uppercase tracking-[0.3em] transition-all duration-300 shadow-xl relative overflow-hidden group border-none hover:scale-[1.01] active:scale-95"
             >
               <span className="relative z-10 flex items-center justify-center gap-3">
                 {isLoading ? (
