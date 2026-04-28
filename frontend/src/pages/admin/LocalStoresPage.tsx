@@ -1720,7 +1720,7 @@ const LocalStoresPage = () => {
         actions={
           <Button
             onClick={() => navigate("/portal/admin/local-stores/new")}
-            className="h-10 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all border-none italic"
+            className="h-10 px-6 rounded-xl bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:bg-[#A3C800] hover:scale-105 transition-all border-none italic"
           >
             Initialize Node
           </Button>

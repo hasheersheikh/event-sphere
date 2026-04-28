@@ -113,9 +113,9 @@ const ProfileDropdown = () => {
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-200 group"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200 group"
                 >
-                  <item.icon className="h-3.5 w-3.5 transition-all group-hover:scale-110 group-hover:text-primary" />
+                  <item.icon className="h-3.5 w-3.5 transition-all group-hover:scale-110" />
                   {item.label}
                 </Link>
               ))}
@@ -127,7 +127,7 @@ const ProfileDropdown = () => {
                   logout();
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 group"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] text-destructive hover:bg-destructive/10 transition-all duration-200 group"
               >
                 <LogOut className="h-3.5 w-3.5 transition-transform group-hover:scale-110" />
                 Logout

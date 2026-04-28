@@ -333,7 +333,7 @@ const PayoutsPage = () => {
               <Button
                 type="submit"
                 disabled={updateDetailsMutation.isPending}
-                className="w-full h-11 bg-primary text-black rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-105 transition-all border-none italic"
+                className="w-full h-11 bg-[#C4F000] text-black rounded-xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-[#A3C800] hover:scale-105 transition-all border-none italic"
               >
                 <Save className="h-4 w-4 mr-2" />
                 Initialize Vault Update

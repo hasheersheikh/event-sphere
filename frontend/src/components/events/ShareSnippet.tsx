@@ -47,86 +47,87 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="relative max-w-md w-full bg-card rounded-3xl shadow-2xl overflow-hidden border border-primary/20"
+        className="relative max-w-sm w-full bg-card rounded-2xl shadow-2xl overflow-hidden border border-border/30"
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full bg-background/50 backdrop-blur-md hover:bg-background transition-colors"
+          className="absolute top-3 right-3 z-10 p-2 rounded-full bg-background/80 backdrop-blur-md hover:bg-background transition-colors"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        {/* The Actual Shareable Part */}
         <div
           ref={snippetRef}
-          className="aspect-[9/16] relative overflow-hidden bg-foreground"
+          className="aspect-[4/5] relative overflow-hidden bg-gradient-to-br from-primary/20 via-background to-primary/10"
         >
-          {event.image ? (
+          {event.image && (
             <img
               src={event.image}
               alt=""
-              className="absolute inset-0 w-full h-full object-cover opacity-60"
+              className="absolute inset-0 w-full h-full object-cover opacity-40"
             />
-          ) : (
-            <div className="absolute inset-0 gradient-hero opacity-80" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
 
-          <div className="absolute inset-x-0 bottom-0 p-8 flex flex-col justify-end min-h-unit-24 text-white">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary mb-6 w-fit text-sm font-bold uppercase tracking-wider">
-              I'm Going! 🎟️
+          <div className="absolute inset-0 p-6 flex flex-col justify-end text-foreground">
+            <div className="mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 w-fit mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                  I'm Going! 🎉
+                </span>
+              </div>
             </div>
 
-            <h2 className="text-4xl font-extrabold mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-3xl font-black mb-4 leading-tight tracking-tight">
               {event.title}
             </h2>
 
-            <div className="space-y-4 mb-8 opacity-90">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-6 w-6 text-primary" />
-                <span className="text-lg font-medium">
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">
                   {new Date(event.date).toLocaleDateString(undefined, {
-                    month: "long",
+                    month: "short",
                     day: "numeric",
                     year: "numeric",
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="h-6 w-6 text-primary" />
-                <span className="text-lg font-medium truncate">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <MapPin className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium truncate">
                   {event.location.venueName || event.location.address}
                 </span>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-white/20 flex items-center justify-between">
-              <div className="text-sm font-bold tracking-widest text-white/60">
-                CITY PULSE
+            <div className="pt-4 border-t border-border/30 flex items-center justify-between">
+              <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                EVENT SPHERE
               </div>
-              <div className="h-8 w-8 rounded-lg bg-primary/20 backdrop-blur-sm border border-white/20" />
+              <div className="h-6 w-6 rounded-md bg-primary/20 backdrop-blur-sm border border-primary/20" />
             </div>
           </div>
         </div>
 
-        {/* Action Button (Not part of the image) */}
-        <div className="p-6 bg-card">
+        <div className="p-4 bg-card border-t border-border/30">
           <Button
             onClick={handleDownload}
             disabled={isCapturing}
-            className="w-full gap-2 h-12 text-lg rounded-2xl shadow-button"
+            className="w-full gap-2 h-11 text-sm rounded-xl"
           >
             {isCapturing ? (
               "Generating..."
             ) : (
               <>
-                <Download className="h-5 w-5" /> Download Story Image
+                <Download className="h-4 w-4" /> Download Share Image
               </>
             )}
           </Button>
-          <p className="text-center text-xs text-muted-foreground mt-4">
-            Perfect for Instagram, WhatsApp, or Twitter stories!
-          </p>
         </div>
       </motion.div>
     </div>

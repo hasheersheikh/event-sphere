@@ -119,7 +119,7 @@ const ManageEventPage = () => {
           <div className="flex gap-3">
             <Link to={`/portal/manager/events/${event._id}/edit`}>
               <Button
-                className="h-9 px-5 rounded-lg bg-primary text-black hover:bg-primary/90 text-[10px] font-black uppercase tracking-widest transition-all gap-2 shadow-lg border-none"
+                className="h-9 px-5 rounded-lg bg-[#C4F000] text-black hover:bg-[#A3C800] text-[10px] font-black uppercase tracking-widest transition-all gap-2 shadow-lg border-none"
               >
                 Edit Event
               </Button>
@@ -303,7 +303,7 @@ const ManageEventPage = () => {
                <section className="p-4 bg-muted/30 border border-border rounded-lg space-y-3 shadow-black/5">
                 <h3 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground text-center mb-4 italic opacity-60">Quick Actions</h3>
                   <Link to={`/portal/manager/events/${event._id}/edit`} className="block">
-                    <Button className="w-full h-10 rounded-lg bg-primary text-black hover:bg-primary/90 text-[9px] font-black uppercase tracking-widest shadow-lg border-none italic">
+                    <Button className="w-full h-10 rounded-lg bg-[#C4F000] text-black hover:bg-[#A3C800] text-[9px] font-black uppercase tracking-widest shadow-lg border-none italic">
                       Edit Event
                     </Button>
                   </Link>

@@ -145,6 +145,7 @@ const EventSchema: Schema = new Schema(
     image: { type: String },
     videoUrl: { type: String },
     reels: [{ type: String }],
+    ageRestriction: { type: String, default: "All Ages" },
     creator: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
     ticketTypes: [
       {

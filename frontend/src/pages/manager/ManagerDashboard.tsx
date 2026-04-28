@@ -115,7 +115,7 @@ const ManagerDashboard = () => {
         subtitle={`Performance summary for today, ${new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" })}.`}
         actions={
           <Link to="/events/create">
-            <Button className="h-10 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all gap-1.5 border-none">
+            <Button className="h-10 px-6 rounded-xl bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:bg-[#A3C800] hover:scale-105 transition-all gap-1.5 border-none">
               <Plus className="h-4 w-4" />
               Initialize Event
             </Button>

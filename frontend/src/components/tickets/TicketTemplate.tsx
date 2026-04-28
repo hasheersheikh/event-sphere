@@ -14,7 +14,7 @@ interface TicketTemplateProps {
 
 const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
   ({ booking, ticket }, ref) => {
-    const event: Event = booking.event;
+    const event: Event = booking?.event || {};
 
     return (
       <div
@@ -51,7 +51,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
                 <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
                   Event Name
                 </p>
-                <h2 className="text-2xl font-bold">{event.title}</h2>
+                <h2 className="text-2xl font-bold">{event.title || "Deleted Event"}</h2>
               </div>
 
               <div className="grid grid-cols-2 gap-6">
@@ -62,8 +62,8 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
                   <div className="flex items-center gap-2 font-semibold">
                     <Calendar className="h-4 w-4 text-indigo-600" />
                     <span>
-                      {new Date(event.date).toLocaleDateString()} at{" "}
-                      {event.time}
+                      {event.date ? new Date(event.date).toLocaleDateString() : "Date N/A"} at{" "}
+                      {event.time || "Time N/A"}
                     </span>
                   </div>
                 </div>
@@ -74,7 +74,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
                   <div className="flex items-center gap-2 font-semibold">
                     <MapPin className="h-4 w-4 text-indigo-600" />
                     <span className="truncate">
-                      {event.location.venueName || "Main Hall"}
+                      {event.location?.venueName || "Location Unavailable"}
                     </span>
                   </div>
                 </div>

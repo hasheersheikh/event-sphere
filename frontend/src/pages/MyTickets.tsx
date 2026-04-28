@@ -51,14 +51,15 @@ const MyTickets = () => {
 
   const activeTickets =
     bookings?.filter(
-      (b: any) => b.status === "confirmed" || b.status === "pending",
+      (b: any) => (b.status === "confirmed" || b.status === "pending") && b.event,
     ) || [];
   const pastTickets =
     bookings?.filter(
       (b: any) =>
-        b.status === "expired" ||
-        b.status === "cancelled" ||
-        b.status === "refunded",
+        (b.status === "expired" ||
+          b.status === "cancelled" ||
+          b.status === "refunded") &&
+        b.event,
     ) || [];
 
   const handleDownload = async (booking: any) => {
@@ -93,7 +94,7 @@ const MyTickets = () => {
           creator: "Portal",
         });
 
-        pdf.save(`Ticket-${booking.event.title.replace(/\s+/g, "-")}.pdf`);
+        pdf.save(`Ticket-${booking.event?.title?.replace(/\s+/g, "-") || "Event"}.pdf`);
         toast.success("Ticket downloaded successfully!");
       } catch (err) {
         console.error(err);
@@ -208,7 +209,7 @@ const MyTickets = () => {
       {/* Hidden container for PDF capture */}
       <div className="absolute left-[-9999px] top-[-9999px]">
         {activeDownloadBooking &&
-          activeDownloadBooking.tickets.map((t: any, idx: number) => (
+          activeDownloadBooking.tickets?.map((t: any, idx: number) => (
             <div key={`${activeDownloadBooking._id}-${idx}`}>
               <TicketTemplate
                 ref={ticketRef}
@@ -248,26 +249,26 @@ const TicketCard = ({
       </div>
       <div className="p-6 flex-1">
         <h3 className="font-bold text-lg mb-4 line-clamp-1 group-hover:text-primary transition-colors">
-          {booking.event.title}
+          {booking.event?.title || "Deleted Event"}
         </h3>
 
         <div className="space-y-3 mb-6">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4 text-primary shrink-0" />
             <span>
-              {new Date(booking.event.date).toLocaleDateString(undefined, {
+              {booking.event ? new Date(booking.event.date).toLocaleDateString(undefined, {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
                 day: "numeric",
-              })}
+              }) : "Date Unavailable"}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4 text-primary shrink-0" />
             <span className="line-clamp-1">
-              {booking.event.location.venueName ||
-                booking.event.location.address}
+              {booking.event?.location?.venueName ||
+                booking.event?.location?.address || "Location Unavailable"}
             </span>
           </div>
         </div>
@@ -315,7 +316,7 @@ const TicketCard = ({
                 />
               </div>
               <div className="text-center space-y-2">
-                <p className="font-bold text-xl">{booking.event.title}</p>
+                <p className="font-bold text-xl">{booking.event?.title || "Deleted Event"}</p>
                 <p className="text-muted-foreground">
                   Show this code to the event organizer at the door.
                 </p>
@@ -344,19 +345,21 @@ const TicketCard = ({
                     Sync to your calendar
                   </p>
                   <div className="flex justify-center">
-                    <AddToCalendarButton
-                      name={booking.event.title}
-                      options={["Google", "Apple", "Outlook.com"]}
-                      location={booking.event.location.address}
-                      startDate={booking.event.date.split("T")[0]}
-                      startTime={booking.event.time}
-                      description={`Your tickets for ${booking.event.title}`}
-                      timeZone="Asia/Kolkata"
-                      buttonStyle="round"
-                      label="Add to Calendar"
-                      size="small"
-                      lightMode="system"
-                    />
+                    {booking.event && (
+                      <AddToCalendarButton
+                        name={booking.event.title}
+                        options={["Google", "Apple", "Outlook.com"]}
+                        location={booking.event.location?.address}
+                        startDate={booking.event.date?.split("T")[0]}
+                        startTime={booking.event.time}
+                        description={`Your tickets for ${booking.event.title}`}
+                        timeZone="Asia/Kolkata"
+                        buttonStyle="round"
+                        label="Add to Calendar"
+                        size="small"
+                        lightMode="system"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -375,7 +378,7 @@ const TicketCard = ({
         </Button>
 
         <Link
-          to={`/events/${booking.event._id}`}
+          to={`/events/${booking.event?._id}`}
           className="flex-1 min-w-[120px]"
         >
           <Button

@@ -120,7 +120,7 @@ const ManageVolunteersPage = () => {
         actions={
           <Button
             onClick={() => setIsAddModalOpen(true)}
-            className="h-10 px-6 bg-primary text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg border-none hover:scale-105 transition-all italic"
+            className="h-10 px-6 bg-[#C4F000] text-black text-[9px] font-black uppercase tracking-widest rounded-xl shadow-lg border-none hover:bg-[#A3C800] hover:scale-105 transition-all italic"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Initialize Role
@@ -276,7 +276,7 @@ const ManageVolunteersPage = () => {
                 </Button>
                 <Button
                   disabled={isSubmitting}
-                  className="flex-1 bg-primary text-black text-[10px] font-black uppercase h-10 rounded-xl hover:bg-primary/90 shadow-xl border-none italic"
+                  className="flex-1 bg-[#C4F000] text-black text-[10px] font-black uppercase h-10 rounded-xl hover:bg-[#A3C800] shadow-xl border-none italic"
                 >
                   {isSubmitting ? "PROCESSING..." : "FINALIZED ENROLL"}
                 </Button>

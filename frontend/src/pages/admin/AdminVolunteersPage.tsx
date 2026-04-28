@@ -137,7 +137,7 @@ const AdminVolunteersPage = () => {
 
             <Dialog open={isAdding} onOpenChange={setIsAdding}>
               <DialogTrigger asChild>
-                <Button className="rounded-xl h-10 px-6 bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:scale-105 transition-all border-none italic">
+                <Button className="rounded-xl h-10 px-6 bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-lg hover:bg-[#A3C800] hover:scale-105 transition-all border-none italic">
                   <Plus className="h-4 w-4" />
                   Add Volunteer
                 </Button>

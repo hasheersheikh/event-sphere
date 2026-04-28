@@ -400,7 +400,7 @@ const AdminStoreDetailPage = () => {
         p.status === "pending" && (
           <button
             onClick={() => { setPayoutActionId(payoutActionId === p._id ? null : p._id); setPayoutNote(""); }}
-            className="h-8 px-4 rounded-lg bg-primary text-black text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 italic hover:scale-105 transition-all"
+            className="h-8 px-4 rounded-lg bg-[#C4F000] text-black text-[9px] font-black uppercase tracking-widest shadow-lg shadow-primary/10 italic hover:bg-[#A3C800] hover:scale-105 transition-all"
           >
             {payoutActionId === p._id ? "Cancel" : "Review"}
           </button>
@@ -508,7 +508,7 @@ const AdminStoreDetailPage = () => {
               </button>
               <Button
                 onClick={() => navigate(`/portal/admin/local-stores/${id}/edit`)}
-                className="h-10 px-5 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 italic hover:scale-105 transition-all"
+                className="h-10 px-5 rounded-xl bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 italic hover:bg-[#A3C800] hover:scale-105 transition-all"
               >
                 <Edit3 className="h-3.5 w-3.5 mr-1.5" /> Edit Store
               </Button>
@@ -747,7 +747,7 @@ const AdminStoreDetailPage = () => {
                           {store.products?.length ?? 0} products
                         </p>
                       </div>
-                      <Button onClick={() => setShowAddProduct(true)} className="h-9 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:scale-105 transition-all">
+                      <Button onClick={() => setShowAddProduct(true)} className="h-9 px-6 rounded-xl bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:bg-[#A3C800] hover:scale-105 transition-all">
                         <Plus className="h-4 w-4" /> Add Product
                       </Button>
                     </header>
@@ -806,7 +806,7 @@ const AdminStoreDetailPage = () => {
                           Manage who can access this store.
                         </p>
                       </div>
-                      <Button onClick={() => setShowCreateOwner(true)} className="h-9 px-6 rounded-xl bg-primary text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:scale-105 transition-all">
+                      <Button onClick={() => setShowCreateOwner(true)} className="h-9 px-6 rounded-xl bg-[#C4F000] text-black font-black uppercase tracking-widest text-[9px] shadow-xl shadow-primary/10 gap-2 italic hover:bg-[#A3C800] hover:scale-105 transition-all">
                         <UserPlus className="h-4 w-4" /> Add Owner
                       </Button>
                     </header>

@@ -79,7 +79,7 @@ const BlogManagementPage = () => {
         actions={
           <Button
             onClick={() => navigate("/portal/admin/blog/new")}
-            className="h-10 px-6 rounded-xl font-black uppercase tracking-widest text-[9px] bg-primary text-black shadow-lg hover:scale-105 transition-all border-none italic"
+            className="h-10 px-6 rounded-xl font-black uppercase tracking-widest text-[9px] bg-[#C4F000] text-black shadow-lg hover:bg-[#A3C800] hover:scale-105 transition-all border-none italic"
           >
             <Plus className="h-4 w-4" /> New Transmission
           </Button>

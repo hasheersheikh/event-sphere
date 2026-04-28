@@ -148,7 +148,7 @@ const AccountSettingsPage = () => {
                 <div className="md:col-span-2 pt-2">
                   <Button
                     disabled={isLoading}
-                    className="h-10 px-8 bg-primary hover:bg-primary/90 text-black rounded-xl font-black uppercase tracking-widest text-[10px] italic group shadow-lg shadow-primary/10 transition-all hover:scale-105"
+                    className="h-10 px-8 bg-[#C4F000] hover:bg-[#A3C800] text-black rounded-xl font-black uppercase tracking-widest text-[10px] italic group shadow-lg shadow-primary/10 transition-all hover:scale-105 border-none"
                   >
                     Authorize Update
                     <ChevronRight className="h-3.5 w-3.5 ml-2 group-hover:translate-x-1 transition-transform" />

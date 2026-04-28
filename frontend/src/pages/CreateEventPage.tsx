@@ -69,6 +69,7 @@ const eventSchema = z.object({
   image: z.string().url("Please enter a valid image URL").or(z.literal("")),
   videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
   reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
+  ageRestriction: z.string().optional().default("All Ages"),
 
   // ── Schedule ──────────────────────────────────────────────────────────────
   scheduleType: z.enum(["single", "multi_slot", "recurring", "multi_day"]).default("single"),
@@ -188,6 +189,7 @@ const CreateEventPage = () => {
       image: "",
       videoUrl: "",
       reels: [],
+      ageRestriction: "All Ages",
       scheduleType: "single",
       date: undefined,
       time: "",
@@ -435,20 +437,35 @@ const CreateEventPage = () => {
                       )} />
 
                       <div className="grid md:grid-cols-2 gap-6">
+                        <FormField control={form.control} name="ageRestriction" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelCls}>Age Requirement</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className={cn(inputCls, "h-12")}><SelectValue placeholder="Select Age" /></SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {["All Ages", "13+", "16+", "18+", "21+"].map((age) => (<SelectItem key={age} value={age} className="font-medium">{age}</SelectItem>))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        
                         <FormField control={form.control} name="videoUrl" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={labelCls}>YouTube Video URL</FormLabel>
-                            <FormControl><Input placeholder="https://youtube.com/..." className={inputCls} {...field} /></FormControl>
+                            <FormLabel className={labelCls}>Main Video URL (YouTube)</FormLabel>
+                            <FormControl><Input placeholder="https://youtube.com/watch?v=..." className={inputCls} {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
 
                         <div className="space-y-2">
-                          <Label className={labelCls}>YouTube Shorts</Label>
+                          <Label className={labelCls}>Event Reels & Shorts</Label>
                           <div className="space-y-2">
                             {form.watch("reels")?.map((_, index) => (
                               <div key={index} className="flex gap-2">
-                                <Input className={cn(inputCls, "h-10 text-xs")} placeholder="https://youtube.com/shorts/..."
+                                <Input className={cn(inputCls, "h-10 text-xs")} placeholder="YouTube Short or Instagram Reel URL"
                                   value={form.watch(`reels.${index}`)}
                                   onChange={(e) => { const r = [...(form.getValues("reels") || [])]; r[index] = e.target.value; form.setValue("reels", r); }}
                                 />
@@ -458,7 +475,7 @@ const CreateEventPage = () => {
                               </div>
                             ))}
                             <Button type="button" variant="outline" size="sm" onClick={() => form.setValue("reels", [...(form.getValues("reels") || []), ""])} className="w-full h-10 rounded-xl border-dashed border-border/50 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5">
-                              <Plus className="h-3 w-3" /> Add Short
+                              <Plus className="h-3 w-3" /> Add Reel/Short
                             </Button>
                           </div>
                         </div>

@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { categories } from "@/data/mockEvents";
-import { eventsWithImages } from "@/data/eventsData";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCity } from "@/contexts/CityContext";
@@ -157,32 +156,7 @@ const EventsPage = () => {
     },
   });
 
-  // Filtered mock events used when API returns nothing
-  const filteredMockEvents = useMemo(() => {
-    let result = [...eventsWithImages];
-    if (selectedCategory) result = result.filter((e) => e.category === selectedCategory);
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.title.toLowerCase().includes(q) ||
-          e.location?.address?.toLowerCase().includes(q) ||
-          e.location?.venueName?.toLowerCase().includes(q) ||
-          e.city?.toLowerCase().includes(q)
-      );
-    }
-    if (locationFilter) {
-      const lf = locationFilter.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.location?.address?.toLowerCase().includes(lf) ||
-          e.city?.toLowerCase().includes(lf)
-      );
-    }
-    return result;
-  }, [selectedCategory, searchQuery, locationFilter]);
-
-  const rawEvents: Event[] = apiEvents?.length ? apiEvents : filteredMockEvents;
+  const rawEvents: Event[] = apiEvents || [];
   const displayEvents = filterByDate(rawEvents, dateFilter);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -288,7 +262,7 @@ const EventsPage = () => {
                   type="button"
                   variant="ghost"
                   onClick={clearFilters}
-                  className="h-10 self-center px-4 rounded-xl text-muted-foreground hover:text-foreground text-[11px] font-bold shrink-0"
+                  className="h-10 self-center px-4 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 text-[11px] font-bold shrink-0 transition-all"
                 >
                   <X className="h-4 w-4 mr-1" /> Clear all
                 </Button>
@@ -429,7 +403,7 @@ const EventsPage = () => {
               <Button
                 onClick={clearFilters}
                 variant="outline"
-                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-10 px-6"
+                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-10 px-6 hover:bg-primary/10 hover:text-primary border-border/50 hover:border-primary/30 transition-all"
               >
                 Clear Filters
               </Button>
