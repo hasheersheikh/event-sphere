@@ -196,7 +196,7 @@ const EventsPage = () => {
             <img
               src="/mic.png"
               alt=""
-              className="w-full h-full object-contain grayscale dark:brightness-0 dark:invert"
+              className="w-full h-full object-contain grayscale"
             />
           </motion.div>
 

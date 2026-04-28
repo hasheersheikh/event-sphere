@@ -26,6 +26,9 @@ const LocalStoreCartDrawer = () => {
     email: user?.email || "",
     phone: user?.phoneNumber || "",
     address: "",
+    state: "",
+    pincode: "",
+    country: "India",
     paymentMethod: "cash",
     notes: "",
   });
@@ -44,10 +47,12 @@ const LocalStoreCartDrawer = () => {
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.email || !form.phone || !form.address) {
+    if (!form.name || !form.email || !form.phone || !form.address || !form.state || !form.pincode || !form.country) {
       toast.error("Please fill in all required fields.");
       return;
     }
+
+    const fullAddress = `${form.address}, ${form.state}, ${form.pincode}, ${form.country}`;
 
     setIsSubmitting(true);
     try {
@@ -62,7 +67,7 @@ const LocalStoreCartDrawer = () => {
               productId: i.productId, name: i.name, price: i.price,
               discountPercent: i.discountPercent || 0, quantity: i.quantity, image: i.image,
             })),
-            customer: { name: form.name, email: form.email, phone: form.phone, address: form.address },
+            customer: { name: form.name, email: form.email, phone: form.phone, address: fullAddress },
             paymentMethod: "cod",
             notes: form.notes,
           });
@@ -87,7 +92,7 @@ const LocalStoreCartDrawer = () => {
               productId: i.productId, name: i.name, price: i.price,
               discountPercent: i.discountPercent || 0, quantity: i.quantity, image: i.image,
             })),
-            customer: { name: form.name, email: form.email, phone: form.phone, address: form.address },
+            customer: { name: form.name, email: form.email, phone: form.phone, address: fullAddress },
             paymentMethod: "online",
             notes: form.notes,
           });
@@ -330,16 +335,49 @@ const LocalStoreCartDrawer = () => {
                       />
                     </div>
 
-                    <div className="relative">
-                      <MapPin className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground/50" />
-                      <textarea
-                        required
-                        placeholder="Delivery address"
-                        value={form.address}
-                        onChange={(e) => field("address", e.target.value)}
-                        rows={2}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 placeholder:text-muted-foreground/50"
-                      />
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-3.5 h-4 w-4 text-muted-foreground/50" />
+                        <textarea
+                          required
+                          placeholder="Street address, Area, House No."
+                          value={form.address}
+                          onChange={(e) => field("address", e.target.value)}
+                          rows={2}
+                          className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 placeholder:text-muted-foreground/50"
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="relative">
+                          <Input
+                            required
+                            placeholder="State"
+                            value={form.state}
+                            onChange={(e) => field("state", e.target.value)}
+                            className="h-12 rounded-xl bg-muted/20 border-border text-sm font-bold"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Input
+                            required
+                            placeholder="Pin code"
+                            value={form.pincode}
+                            onChange={(e) => field("pincode", e.target.value)}
+                            className="h-12 rounded-xl bg-muted/20 border-border text-sm font-bold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="relative">
+                        <Input
+                          required
+                          placeholder="Country"
+                          value={form.country}
+                          onChange={(e) => field("country", e.target.value)}
+                          className="h-12 rounded-xl bg-muted/20 border-border text-sm font-bold"
+                        />
+                      </div>
                     </div>
                   </div>
 

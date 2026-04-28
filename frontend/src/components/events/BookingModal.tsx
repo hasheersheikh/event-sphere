@@ -571,17 +571,24 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
 
           {step === 3 && (
             <div className="space-y-5 relative z-10">
-              <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
-                <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(calculateTotal())}</span>
+              <div className="space-y-5 relative z-10">
+                <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
+                  <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(calculateTotal())}</span>
+                </div>
+                <div className="px-1 text-center">
+                  <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
+                    By clicking "Pay Securely", you agree to the <span className="text-foreground font-bold cursor-help border-b border-dotted border-muted-foreground/50">Terms & Conditions</span> of this event and our platform.
+                  </p>
+                </div>
+                <Button 
+                  className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
+                  disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
+                  onClick={handleCheckout}
+                >
+                  {bookingMutation.isPending ? "Processing securely..." : "Pay Securely"}
+                </Button>
               </div>
-              <Button 
-                className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
-                disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
-                onClick={handleCheckout}
-              >
-                {bookingMutation.isPending ? "Processing securely..." : "Pay Securely"}
-              </Button>
             </div>
           )}
         </div>

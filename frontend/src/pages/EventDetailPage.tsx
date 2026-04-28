@@ -51,6 +51,7 @@ import { AddToCalendarButton } from "add-to-calendar-button-react";
 import ShareSnippet from "@/components/events/ShareSnippet";
 import SafeImage from "@/components/ui/SafeImage";
 import BookingModal from "@/components/events/BookingModal";
+import TermsAndConditions from "@/components/events/TermsAndConditions";
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -443,6 +444,11 @@ const EventDetailPage = () => {
                     <p className="text-lg font-black text-foreground mt-1.5">{event.time} IST</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Terms & Conditions Section */}
+              <div className="pt-10 border-t border-border">
+                <TermsAndConditions />
               </div>
 
               {/* App Promotion */}

@@ -2174,3 +2174,11 @@
 {"level":"info","message":"Running hourly email journey cron..."}
 {"level":"info","message":"Ping successful: 200 - 2026-04-28T21:30:00.940Z"}
 {"level":"info","message":"Ping successful: 200 - 2026-04-28T21:30:01.187Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-28T21:35:00.847Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-28T21:35:01.173Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-04-28T21:40:01.032Z"}
+{"level":"info","message":"Ping successful: 200 - 2026-04-28T21:40:01.162Z"}
