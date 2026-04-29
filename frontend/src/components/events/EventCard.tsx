@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, ImageIcon, Calendar } from "lucide-react";
+import { MapPin, ImageIcon, Calendar, Phone } from "lucide-react";
 import { Event, ITicketType } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
 
@@ -26,12 +26,14 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
     if (!ticketTypes || ticketTypes.length === 0) return "Free";
     const minPrice = Math.min(...ticketTypes.map((t) => t.price));
     if (minPrice === 0) return "Free";
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(minPrice);
+    return (
+      new Intl.NumberFormat("en-IN", {
+        style: "currency",
+        currency: "INR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+      }).format(minPrice) + " onwards"
+    );
   };
 
   const totalCapacity =
@@ -123,28 +125,26 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
                 </span>
               )}
             </div>
+          </div>
 
-            <div className="absolute bottom-3 right-3">
-              <span className="inline-block px-3 py-1.5 bg-white text-black rounded-lg font-black text-[11px] tracking-tight shadow-sm">
+          <div className="p-3.5 flex flex-col gap-2 flex-1">
+            <h3 className="text-[13px] font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2">
+              {event.title}
+            </h3>
+
+            <div className="flex items-center justify-between gap-2 mt-0.5">
+              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.1em] flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-primary/60" />
+                {formatDate(event.date)}
+              </p>
+              <span className="text-foreground font-black text-[11px] tracking-tight">
                 {priceLabel}
               </span>
             </div>
 
-            <div className="absolute bottom-3 left-3 right-16">
-              <p className="text-white/80 text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {formatDate(event.date)}
-              </p>
-            </div>
-          </div>
-
-          <div className="p-3.5 flex flex-col gap-1.5 flex-1">
-            <h3 className="text-[13px] font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2">
-              {event.title}
-            </h3>
-            <div className="flex items-center gap-1 text-muted-foreground mt-auto">
-              <MapPin className="h-3 w-3 shrink-0" />
-              <p className="text-[11px] font-medium line-clamp-1">
+            <div className="flex items-center gap-1 text-muted-foreground mt-auto pt-1 border-t border-border/10">
+              <MapPin className="h-2.5 w-2.5 shrink-0" />
+              <p className="text-[10px] font-medium line-clamp-1">
                 {typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||
@@ -152,8 +152,17 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
               </p>
             </div>
 
+            {event.coordinator?.phone && (
+              <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
+                <Phone className="h-2.5 w-2.5 shrink-0" />
+                <p className="text-[10px] font-medium">
+                  {event.coordinator.phone}
+                </p>
+              </div>
+            )}
+
             {soldPercentage > 50 && !isSoldOut && (
-              <div className="mt-1.5">
+              <div className="mt-1">
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-foreground/70 rounded-full transition-all duration-500"

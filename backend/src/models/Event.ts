@@ -74,6 +74,10 @@ export interface IEvent extends Document {
   videoUrl?: string;
   reels?: string[];
   creator: mongoose.Types.ObjectId;
+  coordinator?: {
+    name: string;
+    phone: string;
+  };
   ticketTypes: ITicketType[];
   vouchers?: {
     code: string;
@@ -147,6 +151,10 @@ const EventSchema: Schema = new Schema(
     reels: [{ type: String }],
     ageRestriction: { type: String, default: "All Ages" },
     creator: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
+    coordinator: {
+      name: { type: String },
+      phone: { type: String },
+    },
     ticketTypes: [
       {
         name: { type: String, required: true },

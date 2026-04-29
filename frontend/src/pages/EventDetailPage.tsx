@@ -446,6 +446,42 @@ const EventDetailPage = () => {
                 </div>
               </div>
 
+              {/* Coordinator Section */}
+              {event.coordinator && (event.coordinator.name || event.coordinator.phone) && (
+                <div className="space-y-8 pt-10 border-t border-border">
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Contact Coordinator</h3>
+                  <div className="space-y-5">
+                    {event.coordinator.name && (
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <User className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Coordinator Name</p>
+                          <p className="text-xl font-black">{event.coordinator.name}</p>
+                        </div>
+                      </div>
+                    )}
+                    {event.coordinator.phone && (
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                          <Phone className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Contact Number</p>
+                          <a
+                            href={`tel:${event.coordinator.phone}`}
+                            className="text-xl font-black text-foreground hover:text-primary transition-colors"
+                          >
+                            {event.coordinator.phone}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Terms & Conditions Section */}
               <div className="pt-10 border-t border-border">
                 <TermsAndConditions />

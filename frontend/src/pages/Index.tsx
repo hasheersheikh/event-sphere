@@ -6,7 +6,6 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Search,
-  MapPin,
   CalendarDays,
   Users,
   Globe,
@@ -47,7 +46,6 @@ const CATEGORIES = [
 const Index = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
   const { selectedCity } = useCity();
   const shouldReduce = useReducedMotion();
 
@@ -65,7 +63,6 @@ const Index = () => {
     e.preventDefault();
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.append("q", searchQuery);
-    if (locationQuery.trim()) params.append("location", locationQuery);
     navigate(`/events${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
@@ -103,7 +100,7 @@ const Index = () => {
             {/* Subtle background mesh purely for text legibility and aesthetic */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-muted/50 via-transparent to-transparent pointer-events-none" />
 
-            <div className="relative z-30 lg:-mr-20">
+            <div className="relative z-30 lg:mr-0">
 
               <motion.p
                 className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-4"
@@ -117,19 +114,19 @@ const Index = () => {
                 className="font-display font-black leading-[0.85] tracking-tighter text-[clamp(2.8rem,8vw,5.5rem)] mb-6"
                 {...fadeUp(0.05)}
               >
-                Catch Your<br />Pulse.
+                Catch the<br />City Pulse.
               </motion.h1>
 
               <motion.p
                 className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 max-w-md md:max-w-lg"
                 {...fadeUp(0.1)}
               >
-                Live shows, local gems, and everything worth showing up for curated for your city.
+                Live Shows Local Gems, Adventure - everything worth showing up for
               </motion.p>
 
               {/* Search bar */}
               <motion.form onSubmit={handleSearch} {...fadeUp(0.14)} className="mb-8">
-                <div className="flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/50 rounded-2xl max-w-xl">
+                <div className="flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/50 rounded-2xl max-w-md">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
                     <Input
@@ -137,17 +134,6 @@ const Index = () => {
                       placeholder="Search events…"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-10 pl-9 bg-transparent border-none focus-visible:ring-0 text-sm"
-                    />
-                  </div>
-                  <div className="hidden sm:block w-px self-stretch my-1.5 bg-border/40" />
-                  <div className="relative sm:w-36">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
-                    <Input
-                      type="text"
-                      placeholder="Location…"
-                      value={locationQuery}
-                      onChange={(e) => setLocationQuery(e.target.value)}
                       className="h-10 pl-9 bg-transparent border-none focus-visible:ring-0 text-sm"
                     />
                   </div>
@@ -250,7 +236,7 @@ const Index = () => {
             {isLoading ? (
               <div className="flex gap-3 overflow-hidden">
                 {Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-48">
+                  <div key={i} className="flex-shrink-0 w-80">
                     <div className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
                     <div className="mt-3 space-y-2">
                       <div className="h-2 w-20 rounded bg-muted animate-pulse" />

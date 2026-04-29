@@ -67,6 +67,10 @@ export interface Event {
     name: string;
     email: string;
   };
+  coordinator?: {
+    name: string;
+    phone: string;
+  };
   ticketTypes: ITicketType[];
   vouchers?: {
     code: string;

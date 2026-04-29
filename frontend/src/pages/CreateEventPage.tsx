@@ -66,7 +66,7 @@ const eventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
-  image: z.string().url("Please enter a valid image URL").or(z.literal("")),
+  image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
   videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
   reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
   ageRestriction: z.string().optional().default("All Ages"),
@@ -103,11 +103,16 @@ const eventSchema = z.object({
   })).optional(),
 
   // ── Location ──────────────────────────────────────────────────────────────
-  city: z.string().optional(),
+  city: z.string().min(1, "City is required"),
   location: z.object({
     address: z.string().min(5, "Address must be at least 5 characters"),
     venueName: z.string().optional(),
     googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  }),
+
+  coordinator: z.object({
+    name: z.string().min(1, "Coordinator name is required"),
+    phone: z.string().regex(/^\+91\d{10}$/, "Phone number must start with +91 and be 13 digits"),
   }),
 
   // ── Tickets & vouchers ────────────────────────────────────────────────────
@@ -199,6 +204,7 @@ const CreateEventPage = () => {
       days: [],
       city: "",
       location: { address: "", venueName: "", googleMapUrl: "" },
+      coordinator: { name: "", phone: "" },
       ticketTypes: [{ name: "General Admission", price: 0, capacity: 100, isSoldOut: false, isFullPass: false, dayWisePrices: [] }],
       vouchers: [],
     },
@@ -279,18 +285,26 @@ const CreateEventPage = () => {
   const nextStep = async () => {
     const fieldsToValidate: any[] = [];
     if (currentStep === 1) {
-      fieldsToValidate.push("title", "description", "category");
+      fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
     }
     if (currentStep === 2) {
-      fieldsToValidate.push("location.address");
+      fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
       else if (scheduleType === "recurring") fieldsToValidate.push("date", "time", "recurrence");
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
     }
     const isValid = await form.trigger(fieldsToValidate);
-    if (isValid) setCurrentStep((p) => Math.min(p + 1, 3));
-    else toast.error("Please resolve the issues in the current stage.");
+    if (isValid) {
+      if (currentStep === 2 && scheduleType === "multi_slot" && hasSlotOverlap()) {
+        toast.error("Please resolve time slot overlaps.");
+        return;
+      }
+      setCurrentStep((p) => Math.min(p + 1, 3));
+      window.scrollTo(0, 0);
+    } else {
+      toast.error("Please resolve the issues in the current stage.");
+    }
   };
 
   const prevStep = () => setCurrentStep((p) => Math.max(p - 1, 1));
@@ -871,6 +885,34 @@ const CreateEventPage = () => {
                           <FormMessage />
                         </FormItem>
                       )} />
+                    </CardContent>
+                  </Card>
+
+                  <Card className="border border-border/40 shadow-sm bg-card">
+                    <CardHeader className="pb-4 border-b border-border/30">
+                      <CardTitle className="text-base flex items-center gap-3 font-black">
+                        <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
+                        Coordinator Details (optional)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-5">
+                      <div className="grid md:grid-cols-2 gap-5">
+                        <FormField control={form.control} name="coordinator.name" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelCls}>Coordinator Name</FormLabel>
+                            <FormControl><Input placeholder="e.g. John Doe" className={inputCls} {...field} /></FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                        <FormField control={form.control} name="coordinator.phone" render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className={labelCls}>Contact Number</FormLabel>
+                            <FormControl><Input placeholder="+919876543210" className={inputCls} {...field} /></FormControl>
+                            <FormDescription className="text-[10px] text-muted-foreground">Must start with +91 followed by 10 digits (e.g., +919876543210)</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>

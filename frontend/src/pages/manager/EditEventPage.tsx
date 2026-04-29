@@ -16,12 +16,19 @@ import {
   ChevronLeft,
   ChevronRight,
   LayoutGrid,
+  MapPin,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import {
+  RefreshCw,
+  CalendarDays,
+  Layers,
+  AlertCircle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,59 +66,113 @@ const eventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
-  date: z.any().refine((val) => val instanceof Date, "Please select a date"),
-  time: z.string().min(1, "Please select a time"),
-  endTime: z.string().optional(),
-  city: z.string().optional(),
-  location: z.object({
-    address: z.string().min(5, "Address must be at least 5 characters"),
-    venueName: z.string().optional(),
-    googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
-  }),
-  image: z.string().url("Please enter a valid image URL").or(z.literal("")),
-  videoUrl: z
-    .string()
-    .url("Please enter a valid YouTube URL")
-    .or(z.literal(""))
-    .optional(),
+  image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
+  videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
   reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
-  ticketTypes: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Ticket name is required"),
-        description: z.string().optional(),
-        price: z.coerce.number().min(0, "Price cannot be negative"),
-        capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
-        isSoldOut: z.boolean().optional().default(false),
-        isFullPass: z.boolean().optional().default(false),
-        fullPassPrice: z.coerce.number().min(0).optional(),
-        dayWisePrices: z.array(z.object({
-          dayIndex: z.number(),
-          price: z.coerce.number().min(0)
-        })).optional(),
-      }),
-    )
-    .min(1, "At least one ticket type is required"),
-  isMultiDay: z.boolean().default(false),
+  ageRestriction: z.string().optional().default("All Ages"),
+
+  // ── Schedule ──────────────────────────────────────────────────────────────
+  scheduleType: z.enum(["single", "multi_slot", "recurring", "multi_day"]).default("single"),
+
+  // single / multi_slot / recurring share a base date
+  date: z.any().optional(),
+  time: z.string().optional(),
+  endTime: z.string().optional(),
+
+  // multi_slot – N shows on the same day
+  slots: z.array(z.object({
+    startTime: z.string().min(1, "Start time required"),
+    endTime: z.string().optional(),
+    label: z.string().optional(),
+    capacity: z.coerce.number().min(1).optional(),
+  })).optional(),
+
+  // recurring
+  recurrence: z.object({
+    frequency: z.enum(["daily", "weekly"]),
+    daysOfWeek: z.array(z.number()).optional(),
+    endDate: z.any().optional(),
+  }).optional(),
+
+  // multi_day – arbitrary dates
   days: z.array(z.object({
     date: z.date({ required_error: "Date is required" }),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().optional(),
     title: z.string().optional(),
   })).optional(),
-  vouchers: z
-    .array(
-      z.object({
-        code: z.string().min(1, "Code is required"),
-        discountType: z.enum(["percentage", "fixed"]),
-        discountAmount: z.coerce.number().min(0),
-        isActive: z.boolean().default(true),
-      }),
-    )
-    .optional(),
+
+  // ── Location ──────────────────────────────────────────────────────────────
+  city: z.string().min(1, "City is required"),
+  location: z.object({
+    address: z.string().min(5, "Address must be at least 5 characters"),
+    venueName: z.string().optional(),
+    googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
+  }),
+
+  coordinator: z.object({
+    name: z.string().min(1, "Coordinator name is required"),
+    phone: z.string().regex(/^\+91\d{10}$/, "Phone number must start with +91 and be 13 digits"),
+  }),
+
+  // ── Tickets & vouchers ────────────────────────────────────────────────────
+  ticketTypes: z.array(z.object({
+    name: z.string().min(1, "Ticket name is required"),
+    description: z.string().optional(),
+    price: z.coerce.number().min(0, "Price cannot be negative"),
+    capacity: z.coerce.number().min(1, "Capacity must be at least 1"),
+    isSoldOut: z.boolean().optional().default(false),
+    isFullPass: z.boolean().optional().default(false),
+    fullPassPrice: z.coerce.number().min(0).optional(),
+    dayWisePrices: z.array(z.object({ dayIndex: z.number(), price: z.coerce.number().min(0) })).optional(),
+  })).min(1, "At least one ticket type is required"),
+
+  vouchers: z.array(z.object({
+    code: z.string().min(1, "Code is required"),
+    discountType: z.enum(["percentage", "fixed"]),
+    discountAmount: z.coerce.number().min(0),
+    isActive: z.boolean().default(true),
+  })).optional(),
 });
 
 type EventFormValues = z.infer<typeof eventSchema>;
+
+const WEEK_DAYS = [
+  { label: "Sun", value: 0 },
+  { label: "Mon", value: 1 },
+  { label: "Tue", value: 2 },
+  { label: "Wed", value: 3 },
+  { label: "Thu", value: 4 },
+  { label: "Fri", value: 5 },
+  { label: "Sat", value: 6 },
+];
+
+const SCHEDULE_TYPES = [
+  {
+    type: "single" as const,
+    label: "Single Event",
+    icon: CalendarIcon,
+    desc: "One date and time",
+  },
+  {
+    type: "multi_slot" as const,
+    label: "Multi-Slot",
+    icon: Layers,
+    desc: "Multiple shows, same day",
+  },
+  {
+    type: "recurring" as const,
+    label: "Recurring",
+    icon: RefreshCw,
+    desc: "Repeats daily or weekly",
+  },
+  {
+    type: "multi_day" as const,
+    label: "Multi-Day",
+    icon: CalendarDays,
+    desc: "Spans multiple dates",
+  },
+];
 
 const EditEventPage = () => {
   const { id } = useParams();
@@ -135,27 +196,51 @@ const EditEventPage = () => {
       title: "",
       description: "",
       category: "",
-      date: undefined as any,
+      scheduleType: "single",
+      date: undefined,
       time: "",
+      endTime: "",
+      slots: [],
+      recurrence: { frequency: "daily", daysOfWeek: [] },
       city: "",
       location: {
         address: "",
         venueName: "",
+        googleMapUrl: "",
+      },
+      coordinator: {
+        name: "",
+        phone: "",
       },
       image: "",
       videoUrl: "",
       reels: [],
-      isMultiDay: false,
       days: [],
       ticketTypes: [],
       vouchers: [],
     },
   });
 
-  const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({
-    name: "days",
-    control: form.control,
-  });
+  const { fields: slotFields, append: appendSlot, remove: removeSlot } = useFieldArray({ name: "slots", control: form.control });
+  const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
+  const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
+  const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
+
+  const scheduleType = form.watch("scheduleType");
+  const recurrenceFreq = form.watch("recurrence.frequency");
+  const recurrenceDays = form.watch("recurrence.daysOfWeek") || [];
+
+  const hasSlotOverlap = () => {
+    const slots = form.getValues("slots") || [];
+    for (let i = 0; i < slots.length; i++) {
+      for (let j = i + 1; j < slots.length; j++) {
+        const aEnd = slots[i].endTime || "23:59";
+        const bEnd = slots[j].endTime || "23:59";
+        if (slots[i].startTime < bEnd && aEnd > slots[j].startTime) return true;
+      }
+    }
+    return false;
+  };
 
   useEffect(() => {
     if (event) {
@@ -163,56 +248,75 @@ const EditEventPage = () => {
         title: event.title,
         description: event.description,
         category: event.category,
+        scheduleType: event.scheduleType || (event.isMultiDay ? "multi_day" : "single"),
         date: event.date,
         time: event.time,
         endTime: event.endTime || "",
+        slots: event.slots || [],
+        recurrence: event.recurrence || { frequency: "daily", daysOfWeek: [] },
         city: event.city || "",
         location: {
           address: event.location?.address || "",
           venueName: event.location?.venueName || "",
           googleMapUrl: event.location?.googleMapUrl || "",
         },
+        coordinator: {
+          name: event.coordinator?.name || "",
+          phone: event.coordinator?.phone || "",
+        },
         image: event.image || "",
         videoUrl: event.videoUrl || "",
         reels: event.reels || [],
-        isMultiDay: event.isMultiDay || false,
         days: event.days?.map((d: any) => ({
           ...d,
           date: d.date ? new Date(d.date) : undefined
         })) || [],
         ticketTypes: event.ticketTypes || [],
         vouchers: event.vouchers || [],
+        ageRestriction: event.ageRestriction || "All Ages",
       });
     }
   }, [event, form]);
 
-  const { fields, append, remove } = useFieldArray({
-    name: "ticketTypes",
-    control: form.control,
-  });
+  // Remove the duplicate ticketTypes/vouchers useFieldArray calls below if they exist
 
-  const {
-    fields: voucherFields,
-    append: appendVoucher,
-    remove: removeVoucher,
-  } = useFieldArray({
-    name: "vouchers",
-    control: form.control,
-  });
+
+
+
 
   const mutation = useMutation({
-    mutationFn: async (values: any) => {
-      const payload = {
+    mutationFn: async (values: EventFormValues) => {
+      const st = values.scheduleType;
+      const payload: any = {
         ...values,
-        date: values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
-        days: values.isMultiDay ? values.days.map((d: any) => ({
-          ...d,
-          date: d.date ? format(new Date(d.date), "yyyy-MM-dd") : ""
-        })) : []
+        scheduleType: st,
+        isMultiDay: st === "multi_day",
       };
-      
-      if (!values.isMultiDay) {
+
+      if (st === "single") {
+        payload.date = values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        delete payload.slots;
         delete payload.days;
+        delete payload.recurrence;
+      } else if (st === "multi_slot") {
+        payload.date = values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        payload.time = values.slots?.[0]?.startTime || "00:00";
+        delete payload.days;
+        delete payload.recurrence;
+      } else if (st === "recurring") {
+        payload.date = values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        if (values.recurrence?.endDate) {
+          payload.recurrence = { ...values.recurrence, endDate: format(new Date(values.recurrence.endDate), "yyyy-MM-dd") };
+        }
+        delete payload.slots;
+        delete payload.days;
+      } else if (st === "multi_day") {
+        const sortedDays = [...(values.days || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        payload.date = sortedDays[0]?.date ? format(new Date(sortedDays[0].date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+        payload.time = sortedDays[0]?.startTime || "09:00";
+        payload.days = sortedDays.map((d) => ({ ...d, date: format(new Date(d.date), "yyyy-MM-dd") }));
+        delete payload.slots;
+        delete payload.recurrence;
       }
 
       const { data } = await api.put(`/events/${id}`, payload);
@@ -228,21 +332,25 @@ const EditEventPage = () => {
   });
 
   const nextStep = async () => {
-    let fieldsToValidate: any[] = [];
+    const fieldsToValidate: any[] = [];
     if (currentStep === 1) {
-      fieldsToValidate = ["title", "description", "category"];
-    } else if (currentStep === 2) {
-      if (form.watch("isMultiDay")) {
-        fieldsToValidate = ["days", "location.address"];
-      } else {
-        fieldsToValidate = ["date", "time", "location.address"];
-      }
+      fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
     }
-
+    if (currentStep === 2) {
+      fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
+      if (scheduleType === "single") fieldsToValidate.push("date", "time");
+      else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
+      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time", "recurrence");
+      else if (scheduleType === "multi_day") fieldsToValidate.push("days");
+    }
     const isValid = await form.trigger(fieldsToValidate);
-
     if (isValid) {
-      setCurrentStep((prev) => Math.min(prev + 1, 3));
+      if (currentStep === 2 && scheduleType === "multi_slot" && hasSlotOverlap()) {
+        toast.error("Please resolve time slot overlaps.");
+        return;
+      }
+      setCurrentStep((p) => Math.min(p + 1, 3));
+      window.scrollTo(0, 0);
     } else {
       toast.error("Please resolve the issues in the current stage.");
     }
@@ -605,205 +713,313 @@ const EditEventPage = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6 p-5">
-                      <div className="space-y-6">
-                        <FormField
-                          control={form.control}
-                          name="isMultiDay"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-xl border border-white/10 p-4 bg-muted/20 glass-card">
-                              <div className="space-y-0.5">
-                                <FormLabel className="text-sm font-black tracking-tighter uppercase italic">Multi-Day Event</FormLabel>
-                                <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest leading-none mt-1">
-                                  Config span several dates schedule.
-                                </p>
-                              </div>
-                              <FormControl>
-                                <Switch
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
+                      <div className="space-y-8">
+                        {/* ── Schedule type selector ─────────────────────── */}
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Event Type</p>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {SCHEDULE_TYPES.map((opt) => {
+                              const Icon = opt.icon;
+                              const active = scheduleType === opt.type;
+                              return (
+                                <button
+                                  key={opt.type}
+                                  type="button"
+                                  onClick={() => form.setValue("scheduleType", opt.type)}
+                                  className={cn(
+                                    "p-4 border-2 rounded-xl text-left transition-all duration-200",
+                                    active
+                                      ? "bg-primary text-primary-foreground border-primary"
+                                      : "bg-muted/20 border-border/40 hover:border-primary/40 hover:bg-muted/40"
+                                  )}
+                                >
+                                  <Icon className={cn("h-5 w-5 mb-2.5", active ? "text-primary-foreground" : "text-muted-foreground")} />
+                                  <p className="text-[11px] font-black uppercase tracking-wider">{opt.label}</p>
+                                  <p className={cn("text-[10px] mt-0.5 leading-snug", active ? "text-primary-foreground/70" : "text-muted-foreground")}>{opt.desc}</p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                        {!form.watch("isMultiDay") ? (
-                          <div className="grid md:grid-cols-3 gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                            <FormField
-                              control={form.control}
-                              name="date"
-                              render={({ field }) => (
+                        {/* ── Single Event ───────────────────────────────── */}
+                        {scheduleType === "single" && (
+                          <div className="grid md:grid-cols-3 gap-5 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <FormField control={form.control} name="date" render={({ field }) => (
+                              <FormItem className="flex flex-col">
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button type="button" variant="outline" className={cn("h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm text-left px-3", !field.value && "text-muted-foreground")}>
+                                        {field.value instanceof Date ? format(field.value, "PPP") : field.value ? format(new Date(field.value), "PPP") : "Select Date"}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0 glass-card border-white/20" align="start">
+                                    <Calendar mode="single" selected={field.value instanceof Date ? field.value : field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="time" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
+                                <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                            <FormField control={form.control} name="endTime" render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
+                                <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+                        )}
+
+                        {/* ── Multi-Slot ─────────────────────────────────── */}
+                        {scheduleType === "multi_slot" && (
+                          <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <FormField control={form.control} name="date" render={({ field }) => (
+                              <FormItem className="flex flex-col max-w-xs">
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Event Date</FormLabel>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <FormControl>
+                                      <Button type="button" variant="outline" className={cn("h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm text-left px-3", !field.value && "text-muted-foreground")}>
+                                        {field.value instanceof Date ? format(field.value, "PPP") : field.value ? format(new Date(field.value), "PPP") : "Select Date"}
+                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
+                                      </Button>
+                                    </FormControl>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0 glass-card border-white/20" align="start">
+                                    <Calendar mode="single" selected={field.value instanceof Date ? field.value : field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
+                                  </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+
+                            {hasSlotOverlap() && (
+                              <div className="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-orange-600 text-xs font-bold">
+                                <AlertCircle className="h-4 w-4 shrink-0" />
+                                Some time slots overlap. Please check the times.
+                              </div>
+                            )}
+
+                            <div className="space-y-3">
+                              {slotFields.map((slot, index) => (
+                                <div key={slot.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 space-y-3 glass-card">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Show {index + 1}</span>
+                                    <button type="button" onClick={() => removeSlot(index)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                      <Trash2 className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    <FormField control={form.control} name={`slots.${index}.startTime`} render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
+                                        <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} /></FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`slots.${index}.endTime`} render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
+                                        <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} /></FormControl>
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`slots.${index}.label`} render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Label</FormLabel>
+                                        <FormControl><Input placeholder="e.g. Evening" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                      </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name={`slots.${index}.capacity`} render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Capacity</FormLabel>
+                                        <FormControl><Input type="number" placeholder="100" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                      </FormItem>
+                                    )} />
+                                  </div>
+                                </div>
+                              ))}
+                              <Button type="button" variant="outline" onClick={() => appendSlot({ startTime: "09:00", endTime: "11:00", label: "", capacity: undefined })}
+                                className="w-full h-11 rounded-xl border-dashed border-primary/30 text-[9px] font-black uppercase gap-2 hover:bg-primary/5 hover:border-primary">
+                                <Plus className="h-3.5 w-3.5" /> Add Show Slot
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── Recurring ──────────────────────────────────── */}
+                        {scheduleType === "recurring" && (
+                          <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="grid md:grid-cols-3 gap-5">
+                              <FormField control={form.control} name="date" render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Date</FormLabel>
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <FormControl>
-                                        <Button
-                                          type="button"
-                                          variant={"outline"}
-                                          className={cn(
-                                            "h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm text-left px-3",
-                                            !field.value && "text-muted-foreground"
-                                          )}
-                                        >
-                                          {field.value instanceof Date ? format(field.value, "PPP") : <span>Select Date</span>}
-                                          <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
+                                        <Button type="button" variant="outline" className={cn("h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm text-left px-3", !field.value && "text-muted-foreground")}>
+                                          {field.value instanceof Date ? format(field.value, "PPP") : field.value ? format(new Date(field.value), "PPP") : "Select Date"}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
                                         </Button>
                                       </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-auto p-0 glass-card border-white/20" align="start">
-                                      <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                        initialFocus
-                                      />
+                                      <Calendar mode="single" selected={field.value instanceof Date ? field.value : field.value ? new Date(field.value) : undefined} onSelect={field.onChange} disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
                                     </PopoverContent>
                                   </Popover>
                                   <FormMessage />
                                 </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name="time"
-                              render={({ field }) => (
+                              )} />
+                              <FormField control={form.control} name="time" render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
-                                  <FormControl>
-                                    <Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} />
-                                  </FormControl>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Time</FormLabel>
+                                  <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
                                   <FormMessage />
                                 </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name="endTime"
-                              render={({ field }) => (
+                              )} />
+                              <FormField control={form.control} name="endTime" render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">End Time</FormLabel>
-                                  <FormControl>
-                                    <Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
+                                  <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
                                 </FormItem>
-                              )}
-                            />
-                          </div>
-                        ) : (
-                          <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
-                            <div className="flex justify-between items-center">
-                              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Event Schedule</h3>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => appendDay({ date: undefined, startTime: "09:00", endTime: "17:00", title: "" })}
-                                className="h-10 rounded-xl border-dashed border-primary/30 text-[9px] font-black uppercase gap-2 hover:bg-primary/5 hover:border-primary"
-                              >
-                                <Plus className="h-3.5 w-3.5" /> Append Day
-                              </Button>
+                              )} />
                             </div>
 
-                            {dayFields.map((field, index) => (
-                              <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 relative group glass-card">
-                                <div className="flex justify-between items-center mb-4">
-                                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Day {index + 1}</span>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeDay(index)}
-                                    className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive text-muted-foreground transition-colors"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </div>
-                                <div className="grid md:grid-cols-4 gap-4">
-                                  <div className="md:col-span-2">
-                                    <FormField
-                                      control={form.control}
-                                      name={`days.${index}.title`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Day Title (Optional)</FormLabel>
-                                          <FormControl>
-                                            <Input placeholder="e.g. Opening Keynote" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  </div>
-                                  <FormField
-                                    control={form.control}
-                                    name={`days.${index}.date`}
-                                    render={({ field }) => (
-                                      <FormItem className="flex flex-col">
-                                        <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Date</FormLabel>
-                                        <Popover>
-                                          <PopoverTrigger asChild>
-                                            <FormControl>
-                                              <Button
-                                                variant={"outline"}
-                                                className={cn(
-                                                  "h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold text-left px-3",
-                                                  !field.value && "text-muted-foreground"
-                                                )}
-                                              >
-                                                {field.value ? format(new Date(field.value), "MMM d, yyyy") : "Select"}
-                                                <CalendarIcon className="ml-auto h-3 w-3 opacity-50" />
-                                              </Button>
-                                            </FormControl>
-                                          </PopoverTrigger>
-                                          <PopoverContent className="w-auto p-0 glass-card" align="end">
-                                            <Calendar
-                                              mode="single"
-                                              selected={field.value as any}
-                                              onSelect={field.onChange}
-                                              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                            />
-                                          </PopoverContent>
-                                        </Popover>
-                                        <FormMessage />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <FormField
-                                      control={form.control}
-                                      name={`days.${index}.startTime`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Start</FormLabel>
-                                          <FormControl>
-                                            <Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                    <FormField
-                                      control={form.control}
-                                      name={`days.${index}.endTime`}
-                                      render={({ field }) => (
-                                        <FormItem>
-                                          <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">End</FormLabel>
-                                          <FormControl>
-                                            <Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} />
-                                          </FormControl>
-                                          <FormMessage />
-                                        </FormItem>
-                                      )}
-                                    />
-                                  </div>
-                                </div>
+                            <div className="p-5 border border-white/5 rounded-xl bg-muted/10 space-y-4 glass-card">
+                              <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Repeat Frequency</p>
+                              <div className="flex gap-3">
+                                {(["daily", "weekly"] as const).map((freq) => (
+                                  <button key={freq} type="button"
+                                    onClick={() => form.setValue("recurrence.frequency", freq)}
+                                    className={cn("flex-1 h-11 rounded-xl border-2 text-[11px] font-black uppercase tracking-wider transition-all",
+                                      recurrenceFreq === freq ? "bg-primary text-primary-foreground border-primary" : "border-border/50 hover:border-primary/40"
+                                    )}>
+                                    {freq === "daily" ? "Daily" : "Weekly"}
+                                  </button>
+                                ))}
                               </div>
-                            ))}
+
+                              {recurrenceFreq === "weekly" && (
+                                <div>
+                                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3">Repeat On</p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {WEEK_DAYS.map((day) => {
+                                      const selected = recurrenceDays.includes(day.value);
+                                      return (
+                                        <button key={day.value} type="button"
+                                          onClick={() => {
+                                            const current = form.getValues("recurrence.daysOfWeek") || [];
+                                            form.setValue("recurrence.daysOfWeek",
+                                              selected ? current.filter((d) => d !== day.value) : [...current, day.value]
+                                            );
+                                          }}
+                                          className={cn("h-9 w-12 rounded-lg border-2 text-[10px] font-black uppercase transition-all",
+                                            selected ? "bg-primary text-primary-foreground border-primary" : "border-border/50 hover:border-primary/40"
+                                          )}>
+                                          {day.label}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+
+                              <FormField control={form.control} name="recurrence.endDate" render={({ field }) => (
+                                <FormItem className="flex flex-col max-w-xs">
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">End Date (optional)</FormLabel>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button type="button" variant="outline" className={cn("h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold text-left px-3", !field.value && "text-muted-foreground")}>
+                                          {field.value ? format(new Date(field.value), "PPP") : "No end date"}
+                                          <CalendarIcon className="ml-auto h-4 w-4 opacity-40" />
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 glass-card" align="start">
+                                      <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined}
+                                        onSelect={(d) => field.onChange(d || null)}
+                                        disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
+                                    </PopoverContent>
+                                  </Popover>
+                                </FormItem>
+                              )} />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── Multi-Day ──────────────────────────────────── */}
+                        {scheduleType === "multi_day" && (
+                          <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
+                            <div className="flex justify-center">
+                              <div className="border border-white/5 rounded-2xl overflow-hidden p-1 bg-muted/10 glass-card">
+                                <Calendar
+                                  mode="multiple"
+                                  selected={dayFields.map((f) => f.date as unknown as Date).filter(Boolean)}
+                                  onSelect={(dates: Date[] | undefined) => {
+                                    const existing = form.getValues("days") || [];
+                                    const newDates = dates || [];
+                                    const merged = newDates.map((d) => {
+                                      const found = existing.find((e) => e.date && isSameDay(new Date(e.date), d));
+                                      return found || { date: d, startTime: "09:00", endTime: "17:00", title: "" };
+                                    });
+                                    form.setValue("days", merged);
+                                  }}
+                                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                                  numberOfMonths={1}
+                                  className="rounded-xl"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="space-y-3">
+                              {dayFields
+                                .slice()
+                                .sort((a, b) => new Date(a.date as unknown as Date).getTime() - new Date(b.date as unknown as Date).getTime())
+                                .map((field, index) => (
+                                  <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 glass-card">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                        {field.date ? format(new Date(field.date as unknown as Date), "EEE, MMM d") : `Day ${index + 1}`}
+                                      </span>
+                                    </div>
+                                    <div className="grid md:grid-cols-4 gap-4">
+                                      <div className="md:col-span-2">
+                                        <FormField control={form.control} name={`days.${index}.title`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Day Title</FormLabel>
+                                            <FormControl><Input placeholder="Keynote" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-2 md:col-span-2">
+                                        <FormField control={form.control} name={`days.${index}.startTime`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start</FormLabel>
+                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name={`days.${index}.endTime`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">End</FormLabel>
+                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -895,6 +1111,59 @@ const EditEventPage = () => {
                       />
                     </CardContent>
                   </Card>
+
+                  <Card className="border border-border/40 shadow-sm bg-card">
+                    <CardHeader className="pb-4 border-b border-border/30">
+                      <CardTitle className="text-base flex items-center gap-3 font-black">
+                        <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
+                        Coordinator Details (optional)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6 space-y-5">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="coordinator.name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                                Coordinator Name
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. John Doe"
+                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="coordinator.phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                                Contact Number
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="+919876543210"
+                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <p className="text-[10px] text-muted-foreground ml-1">Must start with +91 followed by 10 digits (e.g., +919876543210)</p>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </motion.div>
               )}
 
@@ -921,11 +1190,12 @@ const EditEventPage = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() =>
-                            append({
+                            appendTicket({
                               name: "",
                               price: 0,
                               capacity: 100,
                               isSoldOut: false,
+                              isFullPass: false,
                             })
                           }
                           className="rounded-xl h-10 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/10 text-primary"
@@ -935,7 +1205,7 @@ const EditEventPage = () => {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6 p-6">
-                      {fields.map((field, index) => (
+                      {ticketFields.map((field, index) => (
                         <div
                           key={field.id}
                           className="p-6 border border-white/5 rounded-2xl bg-background/20 relative group"
@@ -944,10 +1214,10 @@ const EditEventPage = () => {
                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
                               Ticket Tier {index + 1}
                             </span>
-                            {fields.length > 1 && (
+                            {ticketFields.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => remove(index)}
+                                onClick={() => removeTicket(index)}
                                 className="text-muted-foreground hover:text-destructive transition-colors"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -1020,7 +1290,7 @@ const EditEventPage = () => {
                               />
                             </div>
 
-                            {form.watch("isMultiDay") && (
+                            {scheduleType === "multi_day" && (
                               <div className="space-y-6 pt-6 border-t border-white/5 mt-4">
                                 <div className="flex flex-wrap items-center gap-8">
                                   <FormField

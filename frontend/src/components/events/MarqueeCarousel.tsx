@@ -28,7 +28,7 @@ const MarqueeCarousel = ({
     
     if (!inner) return;
 
-    const cardWidth = 192; // w-48 = 12rem = 192px
+    const cardWidth = 320; // w-80 = 20rem = 320px
     const gap = 12; // gap-3 = 12px
     const totalItemWidth = cardWidth + gap;
     const totalWidth = events.length * totalItemWidth;
@@ -105,7 +105,7 @@ const MarqueeCarousel = ({
         {duplicatedEvents.map((event, index) => (
           <div
             key={`${event._id}-${index}`}
-            className="flex-shrink-0 w-48"
+            className="flex-shrink-0 w-80"
           >
             <EventCard event={event} index={index} imageRatio="3/4" />
           </div>

@@ -114,22 +114,27 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     return basePrice;
   };
 
-  const calculateTotal = () => {
-    if (!selectedTicketType) return 0;
+  const calculateBookingAmounts = () => {
+    if (!selectedTicketType) return { subtotal: 0, discount: 0, total: 0 };
     const ticket = event.ticketTypes.find((t: any) => t.name === selectedTicketType);
-    if (!ticket) return 0;
+    if (!ticket) return { subtotal: 0, discount: 0, total: 0 };
     
-    let total = getTicketPrice(ticket) * numberOfPeople;
+    const subtotal = getTicketPrice(ticket) * numberOfPeople;
+    let discount = 0;
 
-    if (appliedVoucher && total > 0) {
+    if (appliedVoucher && subtotal > 0) {
       if (appliedVoucher.discountType === "percentage") {
-        total = total - (total * appliedVoucher.discountAmount / 100);
+        discount = (subtotal * appliedVoucher.discountAmount / 100);
       } else {
-        total = total - appliedVoucher.discountAmount;
+        discount = appliedVoucher.discountAmount;
       }
     }
-    return Math.max(0, total);
+    
+    const total = Math.max(0, subtotal - discount);
+    return { subtotal, discount, total };
   };
+
+  const { subtotal, discount, total } = calculateBookingAmounts();
 
   const handleCheckout = () => {
     if (!guestEmail || !guestPhone) {
@@ -557,7 +562,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             <div className="flex items-center justify-between gap-4 relative z-10">
               <div className="flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">Total</p>
-                <p className="font-display font-black text-3xl leading-none tracking-tight">{formatPrice(calculateTotal())}</p>
+                <p className="font-display font-black text-3xl leading-none tracking-tight">{formatPrice(total)}</p>
               </div>
               <Button 
                 className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-xs shrink-0 shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
@@ -572,10 +577,29 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {step === 3 && (
             <div className="space-y-5 relative z-10">
               <div className="space-y-5 relative z-10">
-                <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
-                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
-                  <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(calculateTotal())}</span>
-                </div>
+                {appliedVoucher ? (
+                  <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 space-y-3 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
+                      <span className="font-bold text-sm">{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-primary">
+                      <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                        <Check className="h-3 w-3" /> Discount ({appliedVoucher.code})
+                      </span>
+                      <span className="font-bold text-sm">-{formatPrice(discount)}</span>
+                    </div>
+                    <div className="pt-2 border-t border-border/50 flex justify-between items-center">
+                      <span className="text-xs font-black uppercase tracking-widest">Total Payable</span>
+                      <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(total)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
+                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
+                    <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(total)}</span>
+                  </div>
+                )}
                 <div className="px-1 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
                     By clicking "Pay Securely", you agree to the <span className="text-foreground font-bold cursor-help border-b border-dotted border-muted-foreground/50">Terms & Conditions</span> of this event and our platform.
