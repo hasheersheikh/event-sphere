@@ -56,10 +56,13 @@ export const getManagerStats: RequestHandler = async (req: AuthRequest, res: Res
     const netDue = totalRevenue - totalCommission;
     const pendingPayout = netDue - totalSettled;
 
+    const totalViews = myEvents.reduce((acc, e) => acc + (e.viewCount || 0), 0);
+
     res.json({
       totalEvents,
       totalBookings,
       totalRevenue,
+      totalViews,
       netDue,
       pendingPayout,
       totalSettled,

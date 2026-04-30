@@ -374,6 +374,10 @@ const EventDetailPage = () => {
                       <MapPin className="h-3.5 w-3.5" />
                       {event.location.city || event.location.address?.split(",")[0]}
                     </div>
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">
+                      <Eye className="h-3.5 w-3.5" />
+                      {event.viewCount || 0} Views
+                    </div>
                   </div>
                 </div>
               </div>

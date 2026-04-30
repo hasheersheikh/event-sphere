@@ -12,6 +12,7 @@ import {
   IndianRupee,
   Plus,
   Clock,
+  Eye,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import api from "@/lib/api";
@@ -73,6 +74,13 @@ const ManagerDashboard = () => {
       subtext: "All time",
     },
     {
+      label: "Total Views",
+      value: stats?.totalViews || 0,
+      icon: Eye,
+      iconClass: "icon-views",
+      subtext: "Across all events",
+    },
+    {
       label: "Unique Attendees",
       value: stats?.totalAttendees || 0,
       icon: Users,
@@ -124,7 +132,7 @@ const ManagerDashboard = () => {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((stat, index) => (
           <PortalStatCard
             key={stat.label}

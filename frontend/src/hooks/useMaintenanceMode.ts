@@ -16,7 +16,7 @@ export const useMaintenanceMode = () => {
 
         // return response.data?.underMaintenance === true;
 
-        return true;
+        return false;
       } catch (error) {
         console.error("Failed to fetch maintenance status:", error);
         return false;

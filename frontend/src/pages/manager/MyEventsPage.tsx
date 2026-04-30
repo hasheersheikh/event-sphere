@@ -116,6 +116,7 @@ const MyEventsPage = () => {
         <div className="text-right">
           <div className="text-xs font-black text-emerald-500 italic uppercase leading-none tabular-nums">₹{(p.totalRevenue || 0).toLocaleString()}</div>
           <div className="text-[7px] font-black uppercase text-muted-foreground/40 tracking-widest mt-1 italic">{p.totalSold || 0} DEPLOYED</div>
+          <div className="text-[7px] font-black uppercase text-muted-foreground/40 tracking-widest mt-0.5 italic">{p.viewCount || 0} VIEWS</div>
         </div>
       ),
     },

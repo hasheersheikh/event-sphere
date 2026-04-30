@@ -12,6 +12,7 @@ import {
   Calendar,
   Clock,
   ArrowUpRight,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -184,6 +185,17 @@ const ManagerEventAnalyticsPage = () => {
             <div className="mt-3">
                 <Progress value={sellThroughRate} className="h-1 bg-muted/30 rounded-full" />
             </div>
+          </div>
+
+          <div className="bg-card/30 backdrop-blur-xl border border-border/50 p-5 rounded-2xl relative overflow-hidden group shadow-lg shadow-black/5 hover:border-primary/30 transition-all duration-500">
+            <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 mb-4 flex items-center justify-between italic">
+              Total Views
+              <Eye className="h-3.5 w-3.5 opacity-20" />
+            </div>
+            <div className="text-xl font-black italic tracking-tight tabular-nums text-foreground">
+              {event.viewCount || 0}
+            </div>
+            <div className="absolute -bottom-4 -right-4 h-16 w-16 bg-primary/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-1000" />
           </div>
         </div>
 
