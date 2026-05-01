@@ -20,21 +20,49 @@ export const cleanupPastEventsAndTickets = async () => {
   logger.info(`Running cleanup job at ${now.toISOString()}`);
 
   try {
-    // 1. Move events to 'past' status if their date has passed
-    const eventsResult = await Event.updateMany(
+    // 1. Move non-recurring events (single, multi_slot, multi_day) to 'past' status if their date has passed
+    const nonRecurringResult = await Event.updateMany(
       { 
+        scheduleType: { $ne: 'recurring' },
         date: { $lt: now },
         status: { $ne: 'past' }
       },
       { $set: { status: 'past' } }
     );
-    logger.info(`Updated ${eventsResult.modifiedCount} events to 'past' status`);
+    logger.info(`Updated ${nonRecurringResult.modifiedCount} non-recurring events to 'past' status`);
 
-    // 2. Identify all 'past' events
+    // 2. Move recurring events to 'past' status ONLY if they have an end date and it has passed
+    const recurringResult = await Event.updateMany(
+      { 
+        scheduleType: 'recurring',
+        'recurrence.endDate': { $lt: now, $ne: null },
+        status: { $ne: 'past' }
+      },
+      { $set: { status: 'past' } }
+    );
+    logger.info(`Updated ${recurringResult.modifiedCount} recurring events to 'past' status`);
+
+    // 3. Fix recurring events that were incorrectly marked as 'past' (Self-healing for previous bug)
+    const fixResult = await Event.updateMany(
+      { 
+        scheduleType: 'recurring',
+        status: 'past',
+        $or: [
+          { 'recurrence.endDate': { $gte: now } },
+          { 'recurrence.endDate': null }
+        ]
+      },
+      { $set: { status: 'published' } }
+    );
+    if (fixResult.modifiedCount > 0) {
+      logger.info(`Restored ${fixResult.modifiedCount} recurring events from 'past' to 'published' status`);
+    }
+
+    // 4. Identify all 'past' events
     const pastEvents = await Event.find({ status: 'past' }).select('_id');
     const pastEventIds = pastEvents.map(event => event._id);
 
-    // 3. Move associated bookings to 'expired' status
+    // 5. Move associated bookings to 'expired' status
     const bookingsResult = await Booking.updateMany(
       {
         event: { $in: pastEventIds },
@@ -120,8 +148,8 @@ export const pingExternalService = async () => {
 
 // Initialize cron jobs:
 export const initCronJobs = () => {
-  // Weekly cleanup on Sundays
-  cron.schedule('0 0 * * 0', () => {
+  // Hourly cleanup to move past events to 'past' status
+  cron.schedule('0 * * * *', () => {
     cleanupPastEventsAndTickets();
   });
 

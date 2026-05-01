@@ -69,8 +69,8 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
     availableTickets <= totalCapacity * 0.1 && availableTickets > 0;
 
   const priceLabel = formatPrice(event.ticketTypes || []);
-
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
+  const isPast = new Date(event.date) < new Date() || event.status === 'past';
 
   return (
     <div
@@ -114,7 +114,12 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
                   Promoted
                 </span>
               )}
-              {isSoldOut && (
+              {isPast && (
+                <span className="bg-rose-500 text-white px-2.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider">
+                  Ended
+                </span>
+              )}
+              {isSoldOut && !isPast && (
                 <span className="bg-black/60 text-white backdrop-blur-sm px-2.5 py-0.5 rounded-md text-[8px] font-bold uppercase tracking-wider">
                   Sold Out
                 </span>

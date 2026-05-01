@@ -20,12 +20,13 @@ import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import GoLocalSection from "@/components/home/GoLocalSection";
 import { useCity } from "@/contexts/CityContext";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
+import { cn } from "@/lib/utils";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -59,6 +60,63 @@ const Index = () => {
     },
   });
 
+  const { data: heroAssets } = useQuery({
+    queryKey: ["heroAssets"],
+    queryFn: async () => {
+      const { data } = await api.get("/hero-assets");
+      return data;
+    }
+  });
+
+  const FALLBACK_HERO_ASSETS = [
+    {
+      _id: "fb-1",
+      type: "video" as const,
+      url: "/hero/capped-1080p.mp4",
+      isActive: true,
+      targetDevice: "all" as const
+    },
+    {
+      _id: "fb-2",
+      type: "image" as const,
+      url: "/hero/From KlickPin CF Bright kindness reminders with charm and useful ideas for creative people that feel calm and clear 🌿 - Pin-1065453224404265030.jpg",
+      isActive: true,
+      targetDevice: "all" as const
+    },
+    {
+      _id: "fb-3",
+      type: "image" as const,
+      url: "/hero/From KlickPin CF Discover Stunning minimalist bedroom decor that make your next project look polished and expensive for ideas worth saving right now - Pin-921338036281486033.jpg",
+      isActive: true,
+      targetDevice: "all" as const
+    },
+    {
+      _id: "fb-4",
+      type: "image" as const,
+      url: "/hero/From KlickPin CF Steal these elegant rainy day activity ideas you’ll want to recreate this weekend with aesthetic touches that photograph beautifully — save these - Pin-985936543440402367.jpg",
+      isActive: true,
+      targetDevice: "all" as const
+    }
+  ];
+
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  const filteredHeroAssets = (heroAssets && heroAssets.length > 0) 
+    ? heroAssets.filter((a: any) => {
+        if (!a.isActive) return false;
+        if (a.targetDevice === 'all') return true;
+        return isMobile ? a.targetDevice === 'mobile' : a.targetDevice === 'desktop';
+      })
+    : FALLBACK_HERO_ASSETS;
+
+  const hasHeroAssets = filteredHeroAssets.length > 0;
+
+  useEffect(() => {
+    if (heroAssets) {
+      console.log('Hero Assets received:', heroAssets);
+      console.log('Final Hero Assets displayed:', filteredHeroAssets);
+    }
+  }, [heroAssets, filteredHeroAssets]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -74,34 +132,47 @@ const Index = () => {
       <main className="flex-1">
 
         {/* ═══════════════════════════════════════════════════════
-            HERO  —  split: left text + right video (boxed)
-            • Mobile: video (16:9 box) on top, text below
-            • Desktop: text left, boxed video right
+            HERO SECTION
         ═══════════════════════════════════════════════════════ */}
-        <section className="flex flex-col gap-16 md:gap-24 lg:gap-0 lg:grid lg:grid-cols-12 mt-14 md:mt-16 min-h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-4rem)]">
 
-          {/* ── VIDEO BOX (right on desktop) ── */}
-          <div className="order-1 lg:order-2 lg:col-span-5 flex items-center justify-center p-6 sm:p-10 lg:p-0 lg:pr-12 relative">
-            {/* Background motion gradient blob behind video */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 aspect-square bg-primary/20 blur-[100px] rounded-full animate-pulse pointer-events-none" />
+        {/* ── MOBILE HERO ── */}
+        {hasHeroAssets && (
+          <section className="lg:hidden mt-14 p-4 relative overflow-hidden bg-black">
+            <HeroGallery assets={filteredHeroAssets} />
+          </section>
+        )}
 
-            <motion.div
-              className="w-full max-w-md relative z-10"
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: typeof window !== "undefined" && window.innerWidth >= 1024 ? 1.3 : 1.05 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              <HeroGallery />
-            </motion.div>
-          </div>
+        {/* ── DESKTOP HERO ── */}
+        <section className={cn(
+          "flex flex-col lg:grid lg:grid-cols-12 md:mt-16 lg:min-h-[calc(100dvh-4rem)]",
+          !hasHeroAssets && "lg:block pt-20"
+        )}>
+          {/* ── VIDEO BOX ── */}
+          {hasHeroAssets && (
+            <div className="hidden lg:flex lg:order-2 lg:col-span-5 items-center justify-center lg:pr-12 relative overflow-hidden">
+              {/* Background motion gradient blob behind video */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 aspect-square bg-primary/20 blur-[100px] rounded-full animate-pulse pointer-events-none" />
 
-          {/* ── TEXT PANEL (left on desktop) ── */}
-          <div className="order-2 lg:order-1 lg:col-span-7 flex flex-col justify-center px-6 sm:px-12 lg:pl-24 lg:pr-0 py-12 lg:py-20 relative z-20">
+              <motion.div
+                className="w-full lg:max-w-md relative z-10"
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1.3 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+                <HeroGallery assets={filteredHeroAssets} />
+              </motion.div>
+            </div>
+          )}
+
+          {/* ── TEXT PANEL ── */}
+          <div className={cn(
+            "flex flex-col justify-center px-6 sm:px-12 lg:pl-24 lg:pr-0 py-12 lg:py-20 relative z-20",
+            hasHeroAssets ? "lg:col-span-7 lg:order-1 hidden lg:flex" : "lg:col-span-12 items-center text-center lg:pl-0"
+          )}>
             {/* Subtle background mesh purely for text legibility and aesthetic */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-muted/50 via-transparent to-transparent pointer-events-none" />
 
-            <div className="relative z-30 lg:mr-0">
-
+            <div className={cn("relative z-30 lg:mr-0", !hasHeroAssets && "max-w-3xl")}>
               <motion.p
                 className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-4"
                 {...fadeUp(0)}
@@ -118,7 +189,10 @@ const Index = () => {
               </motion.h1>
 
               <motion.p
-                className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 max-w-md md:max-w-lg"
+                className={cn(
+                  "text-muted-foreground text-base md:text-lg leading-relaxed mb-8 max-w-md md:max-w-lg",
+                  !hasHeroAssets && "mx-auto"
+                )}
                 {...fadeUp(0.1)}
               >
                 Live Shows Local Gems, Adventure - everything worth showing up for
@@ -126,7 +200,10 @@ const Index = () => {
 
               {/* Search bar */}
               <motion.form onSubmit={handleSearch} {...fadeUp(0.14)} className="mb-8">
-                <div className="flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/50 rounded-2xl max-w-md">
+                <div className={cn(
+                  "flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/50 rounded-2xl max-w-md",
+                  !hasHeroAssets && "mx-auto"
+                )}>
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
                     <Input
@@ -148,7 +225,7 @@ const Index = () => {
               </motion.form>
 
               {/* CTAs */}
-              <motion.div className="flex items-center gap-4 mb-7" {...fadeUp(0.18)}>
+              <motion.div className={cn("flex items-center gap-4 mb-7", !hasHeroAssets && "justify-center")} {...fadeUp(0.18)}>
                 <Link to="/events">
                   <Button variant="default" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px]">
                     Browse Events <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -165,7 +242,10 @@ const Index = () => {
               {/* Stats */}
               <motion.div
                 {...fadeUp(0.22)}
-                className="hidden sm:flex items-center gap-5 pt-5 border-t border-border/20"
+                className={cn(
+                  "hidden sm:flex items-center gap-5 pt-5 border-t border-border/20",
+                  !hasHeroAssets && "justify-center"
+                )}
               >
                 {[
                   { icon: CalendarDays, value: "10K+", label: "Events" },
@@ -267,7 +347,7 @@ const Index = () => {
         </section>
 
         {/* ═══ FEATURED EVENTS GRID ═══ */}
-        {upcomingEvents?.length > 4 && (
+        {upcomingEvents && upcomingEvents.length > 0 && (
           <section className="border-t border-border/20 py-12">
             <div className="container">
               <div className="flex items-end justify-between mb-8">

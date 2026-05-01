@@ -230,6 +230,14 @@ const EditEventPage = () => {
   const recurrenceFreq = form.watch("recurrence.frequency");
   const recurrenceDays = form.watch("recurrence.daysOfWeek") || [];
 
+  const handleScheduleTypeChange = (newType: EventFormValues["scheduleType"]) => {
+    if (newType === scheduleType) return;
+    form.setValue("scheduleType", newType);
+    form.setValue("slots", []);
+    form.setValue("days", []);
+    form.setValue("recurrence", { frequency: "daily", daysOfWeek: [] });
+  };
+
   const hasSlotOverlap = () => {
     const slots = form.getValues("slots") || [];
     for (let i = 0; i < slots.length; i++) {
@@ -305,11 +313,13 @@ const EditEventPage = () => {
         delete payload.recurrence;
       } else if (st === "recurring") {
         payload.date = values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
-        if (values.recurrence?.endDate) {
-          payload.recurrence = { ...values.recurrence, endDate: format(new Date(values.recurrence.endDate), "yyyy-MM-dd") };
-        }
-        delete payload.slots;
+        payload.recurrence = {
+          frequency: values.recurrence?.frequency || "daily",
+          daysOfWeek: values.recurrence?.daysOfWeek || [],
+          endDate: values.recurrence?.endDate ? format(new Date(values.recurrence.endDate), "yyyy-MM-dd") : null,
+        };
         delete payload.days;
+        // slots (optional sub-slots per occurrence) are intentionally kept
       } else if (st === "multi_day") {
         const sortedDays = [...(values.days || [])].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         payload.date = sortedDays[0]?.date ? format(new Date(sortedDays[0].date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
@@ -339,15 +349,23 @@ const EditEventPage = () => {
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
-      else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
-      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time", "recurrence");
+      else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
+      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
     }
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
-      if (currentStep === 2 && scheduleType === "multi_slot" && hasSlotOverlap()) {
-        toast.error("Please resolve time slot overlaps.");
-        return;
+      if (currentStep === 2) {
+        if (scheduleType === "multi_slot") {
+          if (slotFields.length === 0) {
+            toast.error("Please add at least one time slot.");
+            return;
+          }
+          if (hasSlotOverlap()) {
+            toast.error("Please resolve time slot overlaps.");
+            return;
+          }
+        }
       }
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
@@ -725,7 +743,7 @@ const EditEventPage = () => {
                                 <button
                                   key={opt.type}
                                   type="button"
-                                  onClick={() => form.setValue("scheduleType", opt.type)}
+                                  onClick={() => handleScheduleTypeChange(opt.type)}
                                   className={cn(
                                     "p-4 border-2 rounded-xl text-left transition-all duration-200",
                                     active
@@ -952,8 +970,67 @@ const EditEventPage = () => {
                                         disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} initialFocus />
                                     </PopoverContent>
                                   </Popover>
+                                  {field.value && (
+                                    <button type="button" onClick={() => field.onChange(null)} className="text-[10px] font-bold text-muted-foreground hover:text-destructive w-fit mt-1 transition-colors">
+                                      Clear end date
+                                    </button>
+                                  )}
                                 </FormItem>
                               )} />
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-white/10">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-foreground">Time Slots (Optional)</p>
+                                  <p className="text-[9px] text-muted-foreground font-medium">Add specific shows for each day of this recurrence.</p>
+                                </div>
+                                <Button type="button" variant="outline" size="sm" onClick={() => appendSlot({ startTime: "10:00", endTime: "12:00", label: "", capacity: undefined })}
+                                  className="h-9 rounded-xl border-dashed border-primary/30 text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-primary/5">
+                                  <Plus className="h-3 w-3" /> Add Slot
+                                </Button>
+                              </div>
+
+                              {slotFields.length > 0 && (
+                                <div className="space-y-3">
+                                  {slotFields.map((slot, index) => (
+                                    <div key={slot.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 space-y-3 glass-card animate-in fade-in zoom-in-95 duration-200">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Show {index + 1}</span>
+                                        <button type="button" onClick={() => removeSlot(index)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                          <Trash2 className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        <FormField control={form.control} name={`slots.${index}.startTime`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start</FormLabel>
+                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name={`slots.${index}.endTime`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">End</FormLabel>
+                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name={`slots.${index}.label`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Label</FormLabel>
+                                            <FormControl><Input placeholder="Evening" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                        <FormField control={form.control} name={`slots.${index}.capacity`} render={({ field }) => (
+                                          <FormItem>
+                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cap</FormLabel>
+                                            <FormControl><Input type="number" placeholder="100" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                          </FormItem>
+                                        )} />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}

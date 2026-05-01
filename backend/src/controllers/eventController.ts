@@ -30,7 +30,7 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       time: time || (slots?.[0]?.startTime) || '00:00',
       endTime,
       scheduleType: resolvedScheduleType,
-      slots: resolvedScheduleType === 'multi_slot' ? (slots || []) : [],
+      slots: ['multi_slot', 'recurring'].includes(resolvedScheduleType) ? (slots || []) : [],
       recurrence: resolvedScheduleType === 'recurring' ? {
         frequency: recurrence?.frequency || 'daily',
         daysOfWeek: recurrence?.daysOfWeek || [],
@@ -75,24 +75,24 @@ export const getEvents = async (req: Request, res: Response) => {
     if (location) andConditions.push({ 'location.address': { $regex: location as string, $options: 'i' } });
     if (city) andConditions.push({ city: { $regex: city as string, $options: 'i' } });
 
-    if (date) {
-      const dateFilter = new Date(date as string);
-      // Non-recurring: filter by date field. Recurring: include if still active.
-      andConditions.push({
-        $or: [
-          { scheduleType: { $ne: 'recurring' }, date: { $gte: dateFilter } },
-          {
-            scheduleType: 'recurring',
-            'recurrence.isActive': true,
-            $or: [
-              { 'recurrence.endDate': { $exists: false } },
-              { 'recurrence.endDate': null },
-              { 'recurrence.endDate': { $gte: dateFilter } },
-            ],
-          },
-        ],
-      });
-    }
+    // Always filter out past events for public view
+    const dateFilter = date ? new Date(date as string) : new Date();
+    dateFilter.setHours(0, 0, 0, 0);
+
+    andConditions.push({
+      $or: [
+        { scheduleType: { $ne: 'recurring' }, date: { $gte: dateFilter } },
+        {
+          scheduleType: 'recurring',
+          'recurrence.isActive': true,
+          $or: [
+            { 'recurrence.endDate': { $exists: false } },
+            { 'recurrence.endDate': null },
+            { 'recurrence.endDate': { $gte: dateFilter } },
+          ],
+        },
+      ],
+    });
 
     const query = andConditions.length === 1 ? andConditions[0] : { $and: andConditions };
 
@@ -145,9 +145,47 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ message: 'User not authorized' });
     }
 
-    const updateData = { ...req.body };
+    const updateData: any = { ...req.body };
+
+    // Normalize schedule-type-specific fields so stale data is never persisted
+    const st: string = updateData.scheduleType || event.scheduleType;
+    if (st === 'single') {
+      updateData.slots = [];
+      updateData.days = [];
+      updateData.isMultiDay = false;
+      delete updateData.recurrence;
+    } else if (st === 'multi_slot') {
+      updateData.days = [];
+      updateData.isMultiDay = false;
+      delete updateData.recurrence;
+    } else if (st === 'recurring') {
+      updateData.days = [];
+      updateData.isMultiDay = false;
+      if (updateData.recurrence) {
+        updateData.recurrence = {
+          frequency: updateData.recurrence.frequency || 'daily',
+          daysOfWeek: updateData.recurrence.daysOfWeek || [],
+          endDate: updateData.recurrence.endDate || null,
+          isActive: updateData.recurrence.isActive ?? event.recurrence?.isActive ?? true,
+          exceptions: updateData.recurrence.exceptions ?? event.recurrence?.exceptions ?? [],
+        };
+      }
+    } else if (st === 'multi_day') {
+      updateData.slots = [];
+      updateData.isMultiDay = true;
+      delete updateData.recurrence;
+    }
+
     if (Array.isArray(updateData.reels)) {
       updateData.reels = updateData.reels.filter((r: string) => r?.trim());
+    }
+
+    // If event was 'past' but date is moved to future, reset status to 'published'
+    if (event.status === 'past') {
+      const newDate = updateData.date ? new Date(updateData.date) : event.date;
+      if (newDate > new Date()) {
+        updateData.status = 'published';
+      }
     }
 
     const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });

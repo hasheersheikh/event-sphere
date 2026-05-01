@@ -1,6 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import winston from 'winston';
 import path from 'path';
@@ -17,11 +19,10 @@ import storeOwnerRoutes from './routes/storeOwnerRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import storePayoutRoutes from './routes/storePayoutRoutes.js';
+import heroAssetRoutes from './routes/heroAssetRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -66,6 +67,8 @@ app.use('/api/store-owner', storeOwnerRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/store-payouts', storePayoutRoutes);
+app.use('/api/hero-assets', heroAssetRoutes);
+console.log('✅ Registered /api/hero-assets route');
 console.log('Registered /api/local-stores route');
 
 // Health Check API
@@ -89,9 +92,9 @@ app.get('/', (_req, res) => {
   res.status(health.status === 'healthy' ? 200 : 503).json(health);
 });
 
-app.get('/health', (_req, res) => {
-  const health = getHealthStatus();
-  res.status(health.status === 'healthy' ? 200 : 503).json(health);
+app.get('/api/config/cloudinary-status', (_req, res) => {
+  const isConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
+  res.json({ isConfigured });
 });
 
 // Start Server

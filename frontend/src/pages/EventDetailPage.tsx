@@ -177,6 +177,15 @@ const EventDetailPage = () => {
   const totalSold = event.ticketTypes?.reduce((acc: number, t: any) => acc + t.sold, 0) || 0;
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
+  const getRecurrenceText = (recurrence: any) => {
+    if (!recurrence || !recurrence.isActive) return "";
+    const freq = recurrence.frequency === "daily" ? "Daily" : "Weekly";
+    const days = recurrence.daysOfWeek?.length 
+      ? ` on ${recurrence.daysOfWeek.map((d: number) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]).join(", ")}`
+      : "";
+    return `${freq}${days}`;
+  };
+
   const getCategoryImage = (category: string = "other") => {
     const cats: Record<string, string> = {
       music: "/images/categories/music.jpg", technology: "/images/categories/technology.jpg",
@@ -201,13 +210,8 @@ const EventDetailPage = () => {
 
   const videoId = getYouTubeId(event.videoUrl);
 
-  // Mock reels for demonstration if none exist
-  const displayReels = event.reels?.length ? event.reels : [
-    "https://www.youtube.com/shorts/qL-N-a7L_0o",
-    "https://www.instagram.com/reel/C5_8Q9-x_5_/", // Sample Instagram Reel
-    "https://www.youtube.com/shorts/8-1P-Z6hLw0",
-    "https://www.instagram.com/reel/C6Be3YpR_v_/"
-  ];
+  // Only use reels if they exist on the event
+  const displayReels = event.reels?.length ? event.reels : [];
 
   const visibleReels = showAllReels ? displayReels : displayReels.slice(0, 2);
 
@@ -289,52 +293,54 @@ const EventDetailPage = () => {
                 )}
 
                 {/* Reels Section */}
-                <div className="pt-10 space-y-6">
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
+                {displayReels.length > 0 && (
+                  <div className="pt-10 space-y-6">
+                    <div className="flex items-center justify-between border-b border-border pb-3">
+                      <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {visibleReels.map((reel, idx) => {
+                        const data = getReelData(reel);
+                        const embedUrl = data?.type === 'youtube'
+                          ? `https://www.youtube.com/embed/${data.id}?controls=0&modestbranding=1&rel=0`
+                          : data?.type === 'instagram'
+                            ? `https://www.instagram.com/reel/${data.id}/embed`
+                            : null;
+
+                        return (
+                          <div key={idx} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group">
+                            {embedUrl ? (
+                              <iframe
+                                src={embedUrl}
+                                className="absolute inset-0 w-full h-full"
+                                title={`Event reel ${idx + 1}`}
+                                allowFullScreen
+                                style={{ border: 0 }}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                                <Play className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {displayReels.length > 2 && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAllReels(!showAllReels)}
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-muted"
+                      >
+                        {showAllReels ? "Show Less" : "Show More Reels"}
+                      </Button>
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {visibleReels.map((reel, idx) => {
-                      const data = getReelData(reel);
-                      const embedUrl = data?.type === 'youtube'
-                        ? `https://www.youtube.com/embed/${data.id}?controls=0&modestbranding=1&rel=0`
-                        : data?.type === 'instagram'
-                          ? `https://www.instagram.com/reel/${data.id}/embed`
-                          : null;
-
-                      return (
-                        <div key={idx} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group">
-                          {embedUrl ? (
-                            <iframe
-                              src={embedUrl}
-                              className="absolute inset-0 w-full h-full"
-                              title={`Event reel ${idx + 1}`}
-                              allowFullScreen
-                              style={{ border: 0 }}
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                              <Play className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {displayReels.length > 2 && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAllReels(!showAllReels)}
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-muted"
-                    >
-                      {showAllReels ? "Show Less" : "Show More Reels"}
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
             </div>
 
@@ -347,13 +353,22 @@ const EventDetailPage = () => {
                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-[0.15em]">
                     {event.category}
                   </span>
-                  {timeLeft && (
+                  {timeLeft ? (
                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
                       <Clock className="h-3.5 w-3.5" />
                       <span className="text-[10px] font-black uppercase tracking-widest">
                         Starts in {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
                       </span>
                     </div>
+                  ) : (
+                    (new Date(event.date) < new Date() || event.status === 'past') && (
+                      <div className="flex items-center gap-2 bg-rose-500/10 px-3 py-1 rounded-full text-rose-500">
+                        <Clock className="h-3.5 w-3.5" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">
+                          This event has ended
+                        </span>
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -363,7 +378,9 @@ const EventDetailPage = () => {
                 <div className="space-y-2.5">
                   <p className="text-2xl font-bold text-muted-foreground tracking-tight">{event.location.venueName || "Venue"}</p>
                   <p className="text-2xl font-black text-[#C4F000] tracking-tight">
-                    {formatDate(event.date)}, {event.time} IST
+                    {event.scheduleType === "recurring"
+                      ? `${getRecurrenceText(event.recurrence)}, ${event.time} IST`
+                      : `${formatDate(event.date)}, ${event.time} IST`}
                   </p>
                   <div className="flex flex-wrap items-center gap-6 pt-3">
                     <div className="flex items-center gap-2 text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">
@@ -390,10 +407,10 @@ const EventDetailPage = () => {
                 </div>
                 <Button
                   onClick={() => setIsBookingModalOpen(true)}
-                  disabled={allSoldOut}
+                  disabled={allSoldOut || (new Date(event.date) < new Date() || event.status === 'past')}
                   className="h-14 px-10 rounded-full font-black uppercase tracking-widest text-sm bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_8px_20px_rgba(196,240,0,0.3)] hover:shadow-[0_12px_24px_rgba(196,240,0,0.4)] border-none"
                 >
-                  {allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
+                  {event.status === 'past' || (new Date(event.date) < new Date()) ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
                 </Button>
               </div>
 
@@ -532,52 +549,54 @@ const EventDetailPage = () => {
                 )}
 
                 {/* Reels Section */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between border-b border-border pb-3">
-                    <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
+                {displayReels.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-border pb-3">
+                      <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {visibleReels.map((reel, idx) => {
+                        const data = getReelData(reel);
+                        const embedUrl = data?.type === 'youtube'
+                          ? `https://www.youtube.com/embed/${data.id}?controls=0&modestbranding=1&rel=0`
+                          : data?.type === 'instagram'
+                            ? `https://www.instagram.com/reel/${data.id}/embed`
+                            : null;
+
+                        return (
+                          <div key={idx} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group">
+                            {embedUrl ? (
+                              <iframe
+                                src={embedUrl}
+                                className="absolute inset-0 w-full h-full"
+                                title={`Event reel ${idx + 1}`}
+                                allowFullScreen
+                                style={{ border: 0 }}
+                              />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                                <Play className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {displayReels.length > 2 && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowAllReels(!showAllReels)}
+                        className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-muted"
+                      >
+                        {showAllReels ? "Show Less" : "Show More Reels"}
+                      </Button>
+                    )}
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {visibleReels.map((reel, idx) => {
-                      const data = getReelData(reel);
-                      const embedUrl = data?.type === 'youtube'
-                        ? `https://www.youtube.com/embed/${data.id}?controls=0&modestbranding=1&rel=0`
-                        : data?.type === 'instagram'
-                          ? `https://www.instagram.com/reel/${data.id}/embed`
-                          : null;
-
-                      return (
-                        <div key={idx} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group">
-                          {embedUrl ? (
-                            <iframe
-                              src={embedUrl}
-                              className="absolute inset-0 w-full h-full"
-                              title={`Event reel ${idx + 1}`}
-                              allowFullScreen
-                              style={{ border: 0 }}
-                            />
-                          ) : (
-                            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                              <Play className="h-8 w-8 text-muted-foreground" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {displayReels.length > 2 && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowAllReels(!showAllReels)}
-                      className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-muted"
-                    >
-                      {showAllReels ? "Show Less" : "Show More Reels"}
-                    </Button>
-                  )}
-                </div>
+                )}
               </div>
 
             </div>

@@ -1,29 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const HERO_ASSETS = [
-  {
-    type: "image",
-    src: "/hero/From KlickPin CF Bright kindness reminders with charm and useful ideas for creative people that feel calm and clear 🌿 - Pin-1065453224404265030.jpg",
-    duration: 2000,
-  },
-  {
-    type: "image",
-    src: "/hero/From KlickPin CF Discover Stunning minimalist bedroom decor that make your next project look polished and expensive for ideas worth saving right now - Pin-921338036281486033.jpg",
-    duration: 2000,
-  },
-  {
-    type: "image",
-    src: "/hero/From KlickPin CF Steal these elegant rainy day activity ideas you’ll want to recreate this weekend with aesthetic touches that photograph beautifully — save these - Pin-985936543440402367.jpg",
-    duration: 2000,
-  },
-  {
-    type: "video",
-    src: "/hero/capped-1080p.mp4",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
-const HeroGallery = () => {
+interface HeroGalleryProps {
+  assets: any[];
+}
+
+const HeroGallery = ({ assets }: HeroGalleryProps) => {
+  const HERO_ASSETS = assets;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -33,12 +20,14 @@ const HeroGallery = () => {
   };
 
   useEffect(() => {
+    if (HERO_ASSETS.length === 0) return;
+    
     const currentAsset = HERO_ASSETS[currentIndex];
 
     if (currentAsset.type === "image") {
       timeoutRef.current = setTimeout(() => {
         nextSlide();
-      }, currentAsset.duration || 2000);
+      }, currentAsset.duration || 5000);
     }
 
     return () => {
@@ -46,14 +35,16 @@ const HeroGallery = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [currentIndex]);
+  }, [currentIndex, HERO_ASSETS]);
 
   const handleVideoEnded = () => {
     nextSlide();
   };
 
+  if (HERO_ASSETS.length === 0) return null;
+
   return (
-    <div className="relative w-full aspect-[4/5] overflow-hidden rounded-3xl border border-border shadow-2xl bg-black rotate-2 hover:rotate-0 transition-transform duration-500">
+    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-2xl lg:rounded-3xl border border-white/10 lg:border lg:border-border shadow-lg lg:shadow-2xl bg-black rotate-0 lg:rotate-2 lg:hover:rotate-0 transition-transform duration-500">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -65,7 +56,7 @@ const HeroGallery = () => {
         >
           {HERO_ASSETS[currentIndex].type === "image" ? (
             <img
-              src={HERO_ASSETS[currentIndex].src}
+              src={HERO_ASSETS[currentIndex].url}
               alt="Hero gallery"
               className="w-full h-full object-cover opacity-90"
             />
@@ -78,7 +69,7 @@ const HeroGallery = () => {
               onEnded={handleVideoEnded}
               className="w-full h-full object-cover opacity-90"
             >
-              <source src={HERO_ASSETS[currentIndex].src} type="video/mp4" />
+              <source src={HERO_ASSETS[currentIndex].url} type="video/mp4" />
             </video>
           )}
         </motion.div>
@@ -88,13 +79,18 @@ const HeroGallery = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
       
       {/* Progress indicators (optional, but adds to "premium" feel) */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-30">
         {HERO_ASSETS.map((_, i) => (
-          <div
+          <button
             key={i}
-            className={`h-1 rounded-full transition-all duration-500 ${
+            onClick={() => {
+              if (timeoutRef.current) clearTimeout(timeoutRef.current);
+              setCurrentIndex(i);
+            }}
+            className={`h-1.5 rounded-full transition-all duration-500 hover:bg-white ${
               i === currentIndex ? "w-8 bg-white" : "w-2 bg-white/30"
             }`}
+            aria-label={`Go to slide ${i + 1}`}
           />
         ))}
       </div>

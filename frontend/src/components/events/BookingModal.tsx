@@ -29,6 +29,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
   const [selectedTicketType, setSelectedTicketType] = useState<string | null>(null);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number | null>(null);
   const [selectedDateIndex, setSelectedDateIndex] = useState<number | null>(null);
+  const [sessionStep, setSessionStep] = useState(0); // 0: Date, 1: Slot (for recurring + slots)
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [isFullPassSelected, setIsFullPassSelected] = useState(false);
   
@@ -45,6 +46,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
         setStep(1);
       } else {
         setStep(0);
+        setSessionStep(0);
       }
       setSelectedSlotIndex(null);
       setSelectedDateIndex(null);
@@ -183,11 +185,20 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     if (event.scheduleType !== "recurring" || !event.recurrence) return [];
     
     const { frequency, daysOfWeek, endDate, exceptions } = event.recurrence;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Only show booking for 2 weeks from today date
+    const twoWeeksFromNow = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+    
+    // Start from either today or event start date, whichever is later
     const startDate = new Date(event.date);
-    const end = endDate ? new Date(endDate) : new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 days default
+    const current = new Date(startDate < today ? today : startDate);
+    
+    // End is either endDate or two weeks from now, whichever is sooner
+    const end = endDate ? (new Date(endDate) < twoWeeksFromNow ? new Date(endDate) : twoWeeksFromNow) : twoWeeksFromNow;
     
     const dates: Date[] = [];
-    const current = new Date(startDate);
     
     // Safety cap to avoid infinite loops
     while (current <= end && dates.length < 50) {
@@ -210,7 +221,12 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     if (event.scheduleType === "single") return true;
     if (event.scheduleType === "multi_slot") return selectedSlotIndex !== null;
     if (event.scheduleType === "multi_day") return isFullPassSelected || selectedDays.length > 0;
-    if (event.scheduleType === "recurring") return selectedDateIndex !== null;
+    if (event.scheduleType === "recurring") {
+      if (event.slots && event.slots.length > 0) {
+        return selectedDateIndex !== null && selectedSlotIndex !== null;
+      }
+      return selectedDateIndex !== null;
+    }
     return true;
   };
 
@@ -221,9 +237,12 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
         {/* Header */}
         <div className="bg-muted/30 border-b border-border/30 p-5 shrink-0">
           <div className="flex items-center gap-3 mb-4">
-            {step > (event.scheduleType === "single" || !event.scheduleType ? 1 : 0) && (
+            {(step > (event.scheduleType === "single" || !event.scheduleType ? 1 : 0) || (step === 0 && sessionStep === 1)) && (
               <button 
-                onClick={() => setStep(step - 1)} 
+                onClick={() => {
+                  if (step === 0 && sessionStep === 1) setSessionStep(0);
+                  else setStep(step - 1);
+                }} 
                 className="h-8 w-8 rounded-full bg-background border border-border/30 flex items-center justify-center hover:bg-muted transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -363,27 +382,69 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
               )}
 
               {event.scheduleType === "recurring" && (
-                <div className="grid gap-3">
-                  {recurringDates.map((date, idx) => {
-                    const isSelected = selectedDateIndex === idx;
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => setSelectedDateIndex(idx)}
-                        className={cn(
-                          "p-4 rounded-xl border-2 flex justify-between items-center cursor-pointer transition-all",
-                          isSelected ? "bg-primary/5 border-primary" : "bg-card border-border/30 hover:border-border"
-                        )}
-                      >
-                        <div>
-                          <span className="font-extrabold block">{formatDate(date.toISOString())}</span>
-                        </div>
-                        <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center", isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30")}>
-                          {isSelected && <Check className="h-3 w-3" />}
-                        </div>
+                <div className="space-y-4">
+                  {sessionStep === 0 ? (
+                    <div className="grid gap-3">
+                      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">Pick a Date</p>
+                      {recurringDates.map((date, idx) => {
+                        const isSelected = selectedDateIndex === idx;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => {
+                              setSelectedDateIndex(idx);
+                              if (event.slots && event.slots.length > 0) setSessionStep(1);
+                            }}
+                            className={cn(
+                              "p-4 rounded-xl border-2 flex justify-between items-center cursor-pointer transition-all",
+                              isSelected ? "bg-primary/5 border-primary" : "bg-card border-border/30 hover:border-border"
+                            )}
+                          >
+                            <div>
+                              <span className="font-extrabold block">{formatDate(date.toISOString())}</span>
+                            </div>
+                            <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center", isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30")}>
+                              {isSelected && <Check className="h-3 w-3" />}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="grid gap-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pick a Slot</p>
+                        <button onClick={() => setSessionStep(0)} className="text-[10px] font-black uppercase text-primary hover:underline">Change Date</button>
                       </div>
-                    );
-                  })}
+                      {event.slots?.map((slot, idx) => {
+                        const isSelected = selectedSlotIndex === idx;
+                        return (
+                          <div
+                            key={idx}
+                            onClick={() => !slot.isSoldOut && setSelectedSlotIndex(idx)}
+                            className={cn(
+                              "p-4 rounded-xl border-2 flex justify-between items-center transition-all",
+                              slot.isSoldOut ? "opacity-50 grayscale cursor-not-allowed bg-muted/30 border-border/20" : "cursor-pointer",
+                              isSelected ? "bg-primary/5 border-primary" : "bg-card border-border/30 hover:border-border"
+                            )}
+                          >
+                            <div>
+                              <span className="font-extrabold block">{slot.label || `Slot ${idx + 1}`}</span>
+                              <span className="text-xs text-muted-foreground font-medium">{slot.startTime} {slot.endTime ? `- ${slot.endTime}` : ""}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {slot.isSoldOut && <span className="text-[10px] font-bold text-destructive uppercase tracking-widest">Sold Out</span>}
+                              {!slot.isSoldOut && (
+                                <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center", isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30")}>
+                                  {isSelected && <Check className="h-3 w-3" />}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -543,7 +604,13 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             <Button 
               className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
               disabled={!canProceedFromSession()}
-              onClick={() => setStep(1)}
+              onClick={() => {
+                if (event.scheduleType === "recurring" && event.slots && event.slots.length > 0 && sessionStep === 0) {
+                  setSessionStep(1);
+                } else {
+                  setStep(1);
+                }
+              }}
             >
               Continue <ArrowRight className="h-4 w-4 ml-2" />
             </Button>

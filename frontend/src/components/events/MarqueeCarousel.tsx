@@ -1,6 +1,7 @@
 import { Event } from "@/types/event";
 import EventCard from "@/components/events/EventCard";
 import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface MarqueeCarouselProps {
   events: Event[];
@@ -23,15 +24,17 @@ const MarqueeCarousel = ({
   const positionRef = useRef(0);
   const lastTimeRef = useRef(0);
 
+  const totalWidthRef = useRef(0);
+
   useEffect(() => {
     const inner = innerRef.current;
-    
     if (!inner) return;
 
-    const cardWidth = 320; // w-80 = 20rem = 320px
-    const gap = 12; // gap-3 = 12px
+    const cardWidth = 320; 
+    const gap = 12;
     const totalItemWidth = cardWidth + gap;
     const totalWidth = events.length * totalItemWidth;
+    totalWidthRef.current = totalWidth;
     const pixelsPerSecond = totalWidth / speed;
     
     const animate = (timestamp: number) => {
@@ -73,15 +76,95 @@ const MarqueeCarousel = ({
     };
   }, [events.length, speed, direction, isPaused]);
 
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const startPos = useRef(0);
+  const hasMoved = useRef(false);
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const x = e.pageX;
+      const walk = x - startX.current;
+      
+      if (Math.abs(walk) > 5) {
+        hasMoved.current = true;
+      }
+
+      if (hasMoved.current) {
+        let newPos = startPos.current + walk;
+        const totalWidth = totalWidthRef.current;
+
+        // Loop logic for manual drag
+        if (newPos <= -totalWidth) newPos += totalWidth;
+        if (newPos > 0) newPos -= totalWidth;
+
+        positionRef.current = newPos;
+        if (innerRef.current) {
+          innerRef.current.style.transform = `translateX(${newPos}px)`;
+        }
+      }
+    };
+
+    const onMouseUp = (e: MouseEvent) => {
+      if (hasMoved.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      setIsDragging(false);
+      setIsPaused(false);
+      lastTimeRef.current = 0;
+      hasMoved.current = false;
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [isDragging]);
+
+  const handleDragStart = (x: number) => {
+    setIsPaused(true);
+    startX.current = x;
+    startPos.current = positionRef.current;
+    hasMoved.current = false;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const x = e.touches[0].pageX;
+    const walk = x - startX.current;
+    
+    if (Math.abs(walk) > 5) {
+      hasMoved.current = true;
+    }
+
+    if (hasMoved.current) {
+      let newPos = startPos.current + walk;
+      const totalWidth = totalWidthRef.current;
+
+      if (newPos <= -totalWidth) newPos += totalWidth;
+      if (newPos > 0) newPos -= totalWidth;
+
+      positionRef.current = newPos;
+      if (innerRef.current) {
+        innerRef.current.style.transform = `translateX(${newPos}px)`;
+      }
+    }
+  };
+
   const handleMouseEnter = () => {
-    if (pauseOnHover) {
+    if (pauseOnHover && !isDragging) {
       setIsPaused(true);
       lastTimeRef.current = 0;
     }
   };
 
   const handleMouseLeave = () => {
-    if (pauseOnHover) {
+    if (pauseOnHover && !isDragging) {
       setIsPaused(false);
       lastTimeRef.current = 0;
     }
@@ -89,10 +172,21 @@ const MarqueeCarousel = ({
 
   return (
     <div 
-      className="relative overflow-hidden" 
+      className={cn(
+        "relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
+      )} 
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onMouseDown={(e) => handleDragStart(e.pageX)}
+      onTouchStart={(e) => handleDragStart(e.touches[0].pageX)}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={(e) => {
+        setIsDragging(false);
+        setIsPaused(false);
+        lastTimeRef.current = 0;
+        hasMoved.current = false;
+      }}
     >
       <div
         ref={innerRef}
@@ -105,7 +199,10 @@ const MarqueeCarousel = ({
         {duplicatedEvents.map((event, index) => (
           <div
             key={`${event._id}-${index}`}
-            className="flex-shrink-0 w-80"
+            className={cn(
+              "flex-shrink-0 w-80",
+              isDragging && "pointer-events-none"
+            )}
           >
             <EventCard event={event} index={index} imageRatio="3/4" />
           </div>

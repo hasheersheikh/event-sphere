@@ -32,6 +32,7 @@ const Sidebar = () => {
     { label: "Stores", icon: Store, href: "/portal/admin/local-stores" },
     { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
     { label: "Blog", icon: BookOpen, href: "/portal/admin/blog" },
+    { label: "Hero Gallery", icon: LayoutDashboard, href: "/portal/admin/hero" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Platform Settings", icon: Settings, href: "/portal/settings" },

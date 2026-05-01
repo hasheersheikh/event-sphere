@@ -220,6 +220,15 @@ const CreateEventPage = () => {
   const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
   const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
 
+  // ── Schedule type change — clears stale type-specific data ───────────────
+  const handleScheduleTypeChange = (newType: EventFormValues["scheduleType"]) => {
+    if (newType === scheduleType) return;
+    form.setValue("scheduleType", newType);
+    form.setValue("slots", []);
+    form.setValue("days", []);
+    form.setValue("recurrence", { frequency: "daily", daysOfWeek: [] });
+  };
+
   // ── Slot overlap detection ─────────────────────────────────────────────────
   const hasSlotOverlap = () => {
     const slots = form.getValues("slots") || [];
@@ -255,11 +264,13 @@ const CreateEventPage = () => {
         delete payload.recurrence;
       } else if (st === "recurring") {
         payload.date = values.date ? format(new Date(values.date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
-        if (values.recurrence?.endDate) {
-          payload.recurrence = { ...values.recurrence, endDate: format(new Date(values.recurrence.endDate), "yyyy-MM-dd") };
-        }
-        delete payload.slots;
+        payload.recurrence = {
+          frequency: values.recurrence?.frequency || "daily",
+          daysOfWeek: values.recurrence?.daysOfWeek || [],
+          endDate: values.recurrence?.endDate ? format(new Date(values.recurrence.endDate), "yyyy-MM-dd") : null,
+        };
         delete payload.days;
+        // slots (optional sub-slots per occurrence) are intentionally kept
       } else if (st === "multi_day") {
         const sortedDays = [...(values.days || [])].sort((a, b) => a.date.getTime() - b.date.getTime());
         payload.date = sortedDays[0]?.date ? format(new Date(sortedDays[0].date), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
@@ -290,15 +301,23 @@ const CreateEventPage = () => {
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
-      else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
-      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time", "recurrence");
+      else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
+      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
     }
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
-      if (currentStep === 2 && scheduleType === "multi_slot" && hasSlotOverlap()) {
-        toast.error("Please resolve time slot overlaps.");
-        return;
+      if (currentStep === 2) {
+        if (scheduleType === "multi_slot") {
+          if (slotFields.length === 0) {
+            toast.error("Please add at least one time slot.");
+            return;
+          }
+          if (hasSlotOverlap()) {
+            toast.error("Please resolve time slot overlaps.");
+            return;
+          }
+        }
       }
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
@@ -524,7 +543,7 @@ const CreateEventPage = () => {
                               <button
                                 key={opt.type}
                                 type="button"
-                                onClick={() => form.setValue("scheduleType", opt.type)}
+                                onClick={() => handleScheduleTypeChange(opt.type)}
                                 className={cn(
                                   "p-4 border-2 rounded-xl text-left transition-all duration-200",
                                   active
@@ -760,6 +779,60 @@ const CreateEventPage = () => {
                                 )}
                               </FormItem>
                             )} />
+                          </div>
+
+                          <div className="space-y-4 pt-4 border-t border-border/20">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className={cn(labelCls, "text-[11px] text-foreground")}>Time Slots (Optional)</p>
+                                <p className="text-[10px] text-muted-foreground font-medium">Add specific shows for each day of this recurrence.</p>
+                              </div>
+                              <Button type="button" variant="outline" size="sm" onClick={() => appendSlot({ startTime: "10:00", endTime: "12:00", label: "", capacity: undefined })}
+                                className="h-9 rounded-xl border-dashed border-primary/30 text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-primary/5">
+                                <Plus className="h-3 w-3" /> Add Slot
+                              </Button>
+                            </div>
+
+                            {slotFields.length > 0 && (
+                              <div className="space-y-3">
+                                {slotFields.map((slot, index) => (
+                                  <div key={slot.id} className="p-4 border border-border/40 rounded-xl bg-muted/10 space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="flex items-center justify-between">
+                                      <span className={cn(labelCls)}>Show {index + 1}</span>
+                                      <button type="button" onClick={() => removeSlot(index)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                        <Trash2 className="h-4 w-4" />
+                                      </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                      <FormField control={form.control} name={`slots.${index}.startTime`} render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className={cn(labelCls, "text-[9px]")}>Start</FormLabel>
+                                          <FormControl><Input type="time" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                                        </FormItem>
+                                      )} />
+                                      <FormField control={form.control} name={`slots.${index}.endTime`} render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className={cn(labelCls, "text-[9px]")}>End</FormLabel>
+                                          <FormControl><Input type="time" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                                        </FormItem>
+                                      )} />
+                                      <FormField control={form.control} name={`slots.${index}.label`} render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className={cn(labelCls, "text-[9px]")}>Label</FormLabel>
+                                          <FormControl><Input placeholder="e.g. Afternoon" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                                        </FormItem>
+                                      )} />
+                                      <FormField control={form.control} name={`slots.${index}.capacity`} render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel className={cn(labelCls, "text-[9px]")}>Capacity</FormLabel>
+                                          <FormControl><Input type="number" placeholder="100" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                                        </FormItem>
+                                      )} />
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

@@ -12,6 +12,19 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export const uploadToCloudinary = async (filePath: string, folder: string = 'event-sphere'): Promise<string> => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, {
+      folder,
+      resource_type: 'auto', // Automatically detect image or video
+    });
+    return result.secure_url;
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw new Error('Failed to upload to Cloudinary');
+  }
+};
+
 const extractCloudinaryPublicId = (url: string): string | null => {
   // Match: /upload/ then optional /v{digits}/ then capture public_id (with folders) minus extension
   const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.[^.]+$/);
