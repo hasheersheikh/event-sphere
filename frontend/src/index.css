@@ -237,3 +237,14 @@
     }
   }
 }
+
+/* ─── Cloudinary Widget Fixes ────────────────────────────────────────────── */
+/* Ensure the uploader always stays above Radix/Shadcn dialogs and is clickable */
+.cloudinary-thumbnails,
+.cloudinary-widget,
+.cloudinary-widget-container,
+#cloudinary-overlay,
+#cloudinary-widget {
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}

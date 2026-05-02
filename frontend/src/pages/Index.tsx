@@ -99,7 +99,15 @@ const Index = () => {
     }
   ];
 
-  const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   const filteredHeroAssets = (heroAssets && heroAssets.length > 0) 
     ? heroAssets.filter((a: any) => {
         if (!a.isActive) return false;
@@ -113,9 +121,9 @@ const Index = () => {
   useEffect(() => {
     if (heroAssets) {
       console.log('Hero Assets received:', heroAssets);
-      console.log('Final Hero Assets displayed:', filteredHeroAssets);
+      console.log('Final Hero Assets displayed (isMobile:', isMobile, '):', filteredHeroAssets);
     }
-  }, [heroAssets, filteredHeroAssets]);
+  }, [heroAssets, filteredHeroAssets, isMobile]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

@@ -65,6 +65,7 @@ const HeroManagementPage = () => {
   const widgetRef = useRef<any>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isCloudinaryOpen, setIsCloudinaryOpen] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -175,6 +176,9 @@ const HeroManagementPage = () => {
           maxFileSize: 50_000_000,
           singleUploadAutoClose: true,
           showCompletedButton: false,
+          styles: {
+            zIndex: 99999,
+          },
         },
         (error: any, result: any) => {
           if (error) {
@@ -210,8 +214,14 @@ const HeroManagementPage = () => {
               break;
             }
 
+            case "display-changed":
+              if (result.info === "shown") setIsCloudinaryOpen(true);
+              if (result.info === "hidden") setIsCloudinaryOpen(false);
+              break;
+
             case "close":
               setUploading(false);
+              setIsCloudinaryOpen(false);
               break;
           }
         }
@@ -284,6 +294,7 @@ const HeroManagementPage = () => {
 
       {/* Add asset dialog */}
       <Dialog
+        modal={!isCloudinaryOpen}
         open={dialogOpen}
         onOpenChange={(open) => {
           if (!open) closeDialog();
