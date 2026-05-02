@@ -65,7 +65,7 @@ const MyEventsPage = () => {
     onError: (error: any) => {
       if (error.response?.data?.hasBookings) {
         setWarningMessage(error.response.data.message);
-        setIsForceDelete(true);
+        setIsForceDelete(false); // Disable force delete if we want them to cancel instead
       } else {
         toast.error(
           error.response?.data?.message || "Failed to delete event",
@@ -262,19 +262,27 @@ const MyEventsPage = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || (!!warningMessage && !isForceDelete)}
               className={`rounded-lg font-black uppercase text-[10px] tracking-widest h-10 px-6 shadow-xl transition-all border-none ${
                 warningMessage
-                  ? "bg-rose-600 hover:bg-rose-700 text-white"
+                  ? (isForceDelete ? "bg-rose-600 hover:bg-rose-700 text-white" : "bg-muted text-muted-foreground cursor-not-allowed")
                   : "bg-primary hover:bg-primary/90 text-black"
               }`}
             >
               {deleteMutation.isPending
                 ? "SYNCING..."
                 : warningMessage
-                  ? "CONFIRM PURGE"
+                  ? (isForceDelete ? "CONFIRM PURGE" : "LOCKED")
                   : "CONFIRM PURGE"}
             </AlertDialogAction>
+            {warningMessage && !isForceDelete && (
+              <Button 
+                onClick={() => navigate(`/portal/manager/events/${deleteEventId}/details`)}
+                className="rounded-lg bg-[#C4F000] text-black hover:bg-[#A3C800] font-black uppercase text-[10px] tracking-widest h-10 px-6 shadow-xl border-none italic"
+              >
+                GO TO CANCEL FLOW
+              </Button>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

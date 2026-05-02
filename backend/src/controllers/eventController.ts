@@ -4,6 +4,9 @@ import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { deleteEventAssets } from '../utils/cloudinaryService.js';
+import razorpay from '../utils/razorpay.js';
+import Payout from '../models/Payout.js';
+import RefundRequest from '../models/RefundRequest.js';
 
 export const createEvent = async (req: AuthRequest, res: Response) => {
   try {
@@ -204,8 +207,12 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
     }
 
     const bookingCount = await Booking.countDocuments({ event: req.params.id, status: 'confirmed' });
-    if (bookingCount > 0 && req.query.force !== 'true') {
-      return res.status(400).json({ message: 'Cannot delete event with active bookings.', hasBookings: true, bookingCount });
+    if (bookingCount > 0) {
+      return res.status(400).json({ 
+        message: 'Cannot delete event with active bookings. Please cancel the event instead to initiate refunds.', 
+        hasBookings: true, 
+        bookingCount 
+      });
     }
 
     deleteEventAssets(event.image, event.reels).catch(() => {});
@@ -325,6 +332,119 @@ export const addRecurrenceException = async (req: AuthRequest, res: Response) =>
 
     res.json({ message: 'Exception added', exceptions: event.recurrence!.exceptions });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+/**
+ * PATCH /events/:id/cancel
+ * Cancels an event, refunds all confirmed bookings, and invalidates tickets.
+ */
+export const cancelEvent = async (req: AuthRequest, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const event = await Event.findById(req.params.id).session(session);
+    if (!event) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.creator.toString() !== req.user?._id.toString() && req.user?.role !== 'admin') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(401).json({ message: 'User not authorized' });
+    }
+
+    if (event.status === 'cancelled') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: 'Event is already cancelled' });
+    }
+
+    if (event.status === 'past') {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: 'Cannot cancel a past event' });
+    }
+
+    // 1. Update event status
+    event.status = 'cancelled';
+    await event.save({ session });
+
+    // 2. Find all confirmed bookings for this event
+    const bookings = await Booking.find({ 
+      event: event._id, 
+      status: 'confirmed' 
+    }).session(session);
+
+    const refundResults = [];
+
+    // 3. Process refunds
+    for (const booking of bookings) {
+      if (booking.paymentId) {
+        try {
+          // Trigger Razorpay refund
+          // Note: In production, you might want to handle this asynchronously 
+          // or with a queue to avoid long-running transactions
+          await razorpay.payments.refund(booking.paymentId, {
+            amount: booking.totalAmount * 100, // Razorpay expects amount in paise
+            notes: {
+              reason: `Event "${event.title}" cancelled by organizer`,
+              bookingId: booking._id.toString()
+            }
+          });
+
+          booking.status = 'refunded';
+          await booking.save({ session });
+          refundResults.push({ bookingId: booking._id, status: 'refunded' });
+        } catch (refundError: any) {
+          console.error(`Refund failed for booking ${booking._id}:`, refundError);
+          
+          // Create a RefundRequest for admin review
+          await RefundRequest.create([{
+            booking: booking._id,
+            event: event._id,
+            user: booking.user,
+            paymentId: booking.paymentId,
+            amount: booking.totalAmount,
+            reason: `Automatic refund failed: ${refundError.message}`,
+            status: 'pending',
+            failureReason: refundError.message
+          }], { session });
+
+          // If refund fails, we still mark it as cancelled but maybe add a note
+          booking.status = 'cancelled';
+          await booking.save({ session });
+          refundResults.push({ bookingId: booking._id, status: 'cancelled', error: refundError.message });
+        }
+      } else {
+        // No payment ID (maybe free event or manual payment)
+        booking.status = 'cancelled';
+        await booking.save({ session });
+        refundResults.push({ bookingId: booking._id, status: 'cancelled' });
+      }
+    }
+
+    // 4. Cancel pending payouts for this event
+    await Payout.updateMany(
+      { event: event._id, status: 'pending' },
+      { status: 'failed', notes: 'Event cancelled' }
+    ).session(session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({ 
+      message: 'Event cancelled and refunds initiated', 
+      refundCount: bookings.length,
+      results: refundResults 
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error('Cancel event error:', error);
     res.status(500).json({ message: 'Server error', error });
   }
 };

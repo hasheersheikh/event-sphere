@@ -2765,3 +2765,33 @@
 {"level":"info","message":"Running external service ping..."}
 {"level":"info","message":"Ping successful: 200 - 2026-05-02T10:50:01.161Z"}
 {"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T11:15:00.897Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T11:35:01.193Z"}
+{"level":"info","message":"Running cleanup job at 2026-05-02T12:30:00.024Z"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:30:01.302Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:35:01.251Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:40:01.182Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:45:01.200Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:50:00.846Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-02T12:55:01.762Z"}

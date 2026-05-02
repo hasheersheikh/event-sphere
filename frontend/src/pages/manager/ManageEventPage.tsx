@@ -25,6 +25,7 @@ import {
   Info,
   Zap,
   Activity,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +34,17 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const ManageEventPage = () => {
   const { id } = useParams();
@@ -53,6 +65,21 @@ const ManageEventPage = () => {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Trigger failed.");
+    },
+  });
+
+  const cancelEventMutation = useMutation({
+    mutationFn: async () => {
+      const { data } = await api.patch(`/events/${id}/cancel`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Event cancelled and refunds initiated.");
+      fetchDetails();
+      queryClient.invalidateQueries({ queryKey: ["event", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Cancellation failed.");
     },
   });
 
@@ -317,6 +344,44 @@ const ManageEventPage = () => {
                       Manage Volunteers
                     </Button>
                   </Link>
+                  
+                  {event.status !== 'cancelled' && event.status !== 'past' && (new Date(event.date) > new Date()) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button className="w-full h-10 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white text-[9px] font-black uppercase tracking-widest shadow-sm italic transition-all gap-2">
+                          <AlertTriangle className="h-3.5 w-3.5" />
+                          Cancel Event
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent className="bg-card border-border rounded-2xl max-w-md">
+                        <AlertDialogHeader>
+                          <AlertDialogTitle className="text-xl font-black uppercase italic tracking-tight flex items-center gap-3 text-rose-500">
+                            <AlertTriangle className="h-6 w-6" />
+                            Irreversible Action
+                          </AlertDialogTitle>
+                          <AlertDialogDescription className="text-sm font-bold italic opacity-70">
+                            You are about to cancel <span className="text-foreground font-black">"{event.title}"</span>. 
+                            This will automatically:
+                            <ul className="list-disc list-inside mt-3 space-y-1 text-xs">
+                              <li>Refund all confirmed ticket holders via Razorpay.</li>
+                              <li>Invalidate all existing tickets for this event.</li>
+                              <li>Stop any pending payouts.</li>
+                            </ul>
+                            This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="mt-6">
+                          <AlertDialogCancel className="h-10 rounded-xl font-black uppercase tracking-widest text-[10px] border-border italic">Keep Event</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => cancelEventMutation.mutate()}
+                            className="h-10 rounded-xl bg-rose-500 text-white hover:bg-rose-600 font-black uppercase tracking-widest text-[10px] border-none italic"
+                          >
+                            Yes, Cancel & Refund
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
               </section>
 
               <section className="p-6 bg-primary/5 border border-primary/10 rounded-[1.5rem] space-y-4">

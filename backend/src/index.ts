@@ -20,6 +20,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 import blogRoutes from './routes/blogRoutes.js';
 import storePayoutRoutes from './routes/storePayoutRoutes.js';
 import heroAssetRoutes from './routes/heroAssetRoutes.js';
+import refundRoutes from './routes/refundRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -68,6 +69,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/store-payouts', storePayoutRoutes);
 app.use('/api/hero-assets', heroAssetRoutes);
+app.use('/api/refunds', refundRoutes);
 console.log('✅ Registered /api/hero-assets route');
 console.log('Registered /api/local-stores route');
 

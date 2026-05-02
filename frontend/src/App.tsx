@@ -72,6 +72,7 @@ import MaintenancePage from "./pages/MaintenancePage";
 import { useMaintenanceMode } from "./hooks/useMaintenanceMode";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import HeroManagementPage from "./pages/admin/HeroManagementPage";
+import RefundManagementPage from "./pages/admin/RefundManagementPage";
 
 
 const queryClient = new QueryClient();
@@ -272,6 +273,7 @@ const AppContent = () => {
                   <Route path="admin/local-stores/:id/edit" element={<CreateStorePage />} />
                   <Route path="admin/store-orders" element={<StoreOrdersPage />} />
                   <Route path="admin/hero" element={<HeroManagementPage />} />
+                  <Route path="admin/refunds" element={<RefundManagementPage />} />
                   <Route path="manager" element={<ManagerDashboard />} />
                   <Route path="manager/payouts" element={<PayoutsPage />} />
                   <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
