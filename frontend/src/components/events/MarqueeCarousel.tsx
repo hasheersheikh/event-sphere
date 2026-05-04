@@ -88,11 +88,12 @@ const MarqueeCarousel = ({
       const x = e.pageX;
       const walk = x - startX.current;
       
-      if (Math.abs(walk) > 5) {
-        hasMoved.current = true;
+      if (Math.abs(walk) > 5 && !isDragging) {
+        setIsDragging(true);
       }
 
-      if (hasMoved.current) {
+      if (isDragging || Math.abs(walk) > 5) {
+        hasMoved.current = true;
         let newPos = startPos.current + walk;
         const totalWidth = totalWidthRef.current;
 
@@ -131,18 +132,19 @@ const MarqueeCarousel = ({
     startX.current = x;
     startPos.current = positionRef.current;
     hasMoved.current = false;
-    setIsDragging(true);
+    // Don't set isDragging to true yet, wait for move threshold
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     const x = e.touches[0].pageX;
     const walk = x - startX.current;
     
-    if (Math.abs(walk) > 5) {
-      hasMoved.current = true;
+    if (Math.abs(walk) > 5 && !isDragging) {
+      setIsDragging(true);
     }
 
-    if (hasMoved.current) {
+    if (isDragging || Math.abs(walk) > 5) {
+      hasMoved.current = true;
       let newPos = startPos.current + walk;
       const totalWidth = totalWidthRef.current;
 

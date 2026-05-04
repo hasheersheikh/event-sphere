@@ -73,6 +73,8 @@ import { useMaintenanceMode } from "./hooks/useMaintenanceMode";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import HeroManagementPage from "./pages/admin/HeroManagementPage";
 import RefundManagementPage from "./pages/admin/RefundManagementPage";
+import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
+import { FEATURES } from "./config/features";
 
 
 const queryClient = new QueryClient();
@@ -206,8 +208,12 @@ const AppContent = () => {
                               </ProtectedRoute>
                             }
                           />
-                          <Route path="blog" element={<BlogPage />} />
-                          <Route path="blog/:slug" element={<BlogPostPage />} />
+                          {FEATURES.ENABLE_BLOGS && (
+                            <>
+                              <Route path="blog" element={<BlogPage />} />
+                              <Route path="blog/:slug" element={<BlogPostPage />} />
+                            </>
+                          )}
                           <Route path="about" element={<AboutPage />} />
                           <Route path="terms" element={<TermsOfService />} />
                           <Route path="privacy" element={<PrivacyPolicy />} />
@@ -224,22 +230,26 @@ const AppContent = () => {
                 <Route path="/store-owner/login" element={<StoreOwnerLoginPage />} />
                 <Route path="/store-owner/portal" element={<StoreOwnerPortal />} />
 
-                <Route
-                  path="/portal/admin/blog/new"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <CreateBlogPostPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/portal/admin/blog/:id/edit"
-                  element={
-                    <ProtectedRoute allowedRoles={["admin"]}>
-                      <CreateBlogPostPage />
-                    </ProtectedRoute>
-                  }
-                />
+                {FEATURES.ENABLE_BLOGS && (
+                  <>
+                    <Route
+                      path="/portal/admin/blog/new"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <CreateBlogPostPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/portal/admin/blog/:id/edit"
+                      element={
+                        <ProtectedRoute allowedRoles={["admin"]}>
+                          <CreateBlogPostPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </>
+                )}
 
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/admin-auth" element={<AdminLoginPage />} />
@@ -266,7 +276,9 @@ const AppContent = () => {
                   />
                   <Route path="admin/events" element={<EventModerationPage />} />
                   <Route path="admin/events/:id" element={<EventInsightsPage />} />
-                  <Route path="admin/blog" element={<BlogManagementPage />} />
+                  {FEATURES.ENABLE_BLOGS && (
+                    <Route path="admin/blog" element={<BlogManagementPage />} />
+                  )}
                   <Route path="admin/local-stores" element={<AdminLocalStoresPage />} />
                   <Route path="admin/local-stores/new" element={<CreateStorePage />} />
                   <Route path="admin/local-stores/:id" element={<AdminStoreDetailPage />} />
@@ -295,6 +307,7 @@ const AppContent = () => {
                     path="manager/events/:eventId/volunteers"
                     element={<ManageVolunteersPage />}
                   />
+                  <Route path="manager/boost" element={<BoostMarketingPage />} />
                   <Route path="settings" element={<AccountSettingsPage />} />
                 </Route>
 

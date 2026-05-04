@@ -8,7 +8,8 @@ import {
   addVolunteer,
   getVolunteersByEvent,
   removeVolunteer,
-  getManagerPayouts
+  getManagerPayouts,
+  requestMarketingBoost
 } from '../controllers/managerController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -30,5 +31,6 @@ router.post('/volunteers', addVolunteer);
 router.get('/events/:eventId/volunteers', getVolunteersByEvent);
 router.delete('/volunteers/:id', removeVolunteer);
 router.get('/payouts', getManagerPayouts);
+router.post('/marketing-boost', requestMarketingBoost);
 
 export default router;

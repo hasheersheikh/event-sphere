@@ -91,6 +91,8 @@ export interface IEvent extends Document {
   viewCount?: number;
   createdAt: Date;
   updatedAt: Date;
+  isActive?: boolean;
+  nextOccurrence?: Date;
 }
 
 const EventSchema: Schema = new Schema(

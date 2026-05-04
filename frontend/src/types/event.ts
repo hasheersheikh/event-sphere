@@ -86,6 +86,8 @@ export interface Event {
   soldTickets?: number;
   createdAt: string;
   updatedAt: string;
+  isActive?: boolean;
+  nextOccurrence?: string;
 }
 
 export interface Category {

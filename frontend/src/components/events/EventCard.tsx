@@ -13,8 +13,9 @@ interface EventCardProps {
 const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (dateString: string, nextOccurrence?: string) => {
+    const dateToUse = nextOccurrence || dateString;
+    const date = new Date(dateToUse);
     return date.toLocaleDateString("en-US", {
       weekday: "short",
       month: "short",
@@ -70,7 +71,7 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
 
   const priceLabel = formatPrice(event.ticketTypes || []);
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
-  const isPast = new Date(event.date) < new Date() || event.status === 'past';
+  const isPast = event.isActive === false || event.status === 'past';
 
   return (
     <div
@@ -140,7 +141,7 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
             <div className="flex items-center justify-between gap-2 mt-0.5">
               <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.1em] flex items-center gap-1">
                 <Calendar className="h-3 w-3 text-primary/60" />
-                {formatDate(event.date)}
+                {formatDate(event.date, event.nextOccurrence)}
               </p>
               <span className="text-foreground font-black text-[11px] tracking-tight">
                 {priceLabel}

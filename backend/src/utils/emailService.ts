@@ -498,3 +498,45 @@ export const sendEventDeclineEmail = async (email: string, userName: string, eve
     logger.error('Failed to send event decline email', err);
   }
 };
+export const sendMarketingBoostRequestEmail = async (managerName: string, managerEmail: string, requestData: any) => {
+  if (!process.env.RESEND_API_KEY) return;
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@eventsphere.dev';
+
+  try {
+    await resend.emails.send({
+      from: 'Event Sphere Marketing <marketing@eventsphere.dev>',
+      to: [adminEmail],
+      subject: `Marketing Boost Requested: ${requestData.eventTitle} 🚀`,
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #f59e0b; padding: 40px; text-align: center; color: black;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">Marketing Request</h1>
+          </div>
+          <div style="padding: 40px;">
+            <h2>New Boost Request from ${managerName}</h2>
+            <p>A manager has requested a marketing boost for their event.</p>
+            
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 4px 0;"><strong>Event:</strong> ${requestData.eventTitle}</p>
+              <p style="margin: 4px 0;"><strong>Plan:</strong> ${requestData.plan.toUpperCase()}</p>
+              <p style="margin: 4px 0;"><strong>Instagram:</strong> ${requestData.igHandle}</p>
+              <p style="margin: 4px 0;"><strong>WhatsApp:</strong> ${requestData.phone}</p>
+              <p style="margin: 4px 0;"><strong>Manager Email:</strong> ${managerEmail}</p>
+            </div>
+
+            ${requestData.message ? `
+            <div style="margin: 20px 0;">
+              <p style="font-weight: bold; margin-bottom: 5px;">Additional Message:</p>
+              <p style="font-style: italic; color: #64748b;">"${requestData.message}"</p>
+            </div>` : ''}
+
+            <p style="color: #64748b; font-size: 14px;">Please connect with the manager via WhatsApp or email to finalize the campaign.</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Marketing boost request sent to admin for: ${managerEmail}`);
+  } catch (err) {
+    logger.error('Failed to send marketing boost request email', err);
+  }
+};

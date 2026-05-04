@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import PulseLogo from "./PulseLogo";
+import { FEATURES } from "@/config/features";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -9,7 +10,7 @@ const Footer = () => {
     Explore: [
       { label: "Live Events", href: "/events" },
       { label: "Local Stores", href: "/local-stores" },
-      { label: "Blog", href: "/blog" },
+      ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", href: "/blog" }] : []),
       { label: "About", href: "/about" },
     ],
     Support: [

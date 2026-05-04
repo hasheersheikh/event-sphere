@@ -139,8 +139,8 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
 
     // Daily Sales (Last 7 Days)
     const last7Days = [...Array(7)].map((_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+      const d = new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000));
+      d.setUTCDate(d.getUTCDate() - i);
       const day = d.toISOString().split('T')[0];
       const amount = bookings
         .filter(b => b.createdAt.toISOString().split('T')[0] === day)
@@ -201,8 +201,8 @@ export const getManagerAnalytics: RequestHandler = async (req: AuthRequest, res:
 
     // Revenue history (last 7 days)
     const last7Days = [...Array(7)].map((_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
+      const d = new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000));
+      d.setUTCDate(d.getUTCDate() - i);
       const day = d.toISOString().split('T')[0];
       const amount = bookings
         .filter(b => b.createdAt.toISOString().split('T')[0] === day)
@@ -369,5 +369,39 @@ export const getManagerPayouts: RequestHandler = async (req: AuthRequest, res: R
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
+  }
+};
+export const requestMarketingBoost: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { eventId, plan, igHandle, phone, message } = req.body;
+    const userId = req.user?._id;
+    const managerName = req.user?.name || 'Manager';
+    const managerEmail = req.user?.email || '';
+
+    const event = await Event.findById(eventId);
+    if (!event) {
+      res.status(404).json({ message: 'Event not found' });
+      return;
+    }
+
+    if (event.creator.toString() !== userId?.toString()) {
+      res.status(401).json({ message: 'Unauthorized access to this production.' });
+      return;
+    }
+
+    // Import email service dynamically to avoid circular dependencies if any
+    const { sendMarketingBoostRequestEmail } = await import('../utils/emailService.js');
+
+    await sendMarketingBoostRequestEmail(managerName, managerEmail, {
+      eventTitle: event.title,
+      plan,
+      igHandle,
+      phone,
+      message
+    });
+
+    res.json({ message: 'Marketing request sent successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
   }
 };

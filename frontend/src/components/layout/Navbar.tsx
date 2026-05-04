@@ -9,6 +9,7 @@ import { useCity } from "@/contexts/CityContext";
 import ProfileDropdown from "./ProfileDropdown";
 import PulseLogo from "./PulseLogo";
 import { ThemeToggle } from "./ThemeToggle";
+import { FEATURES } from "@/config/features";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,7 +32,7 @@ const Navbar = () => {
   const navLinks = [
     { href: "/events", label: "Events" },
     { href: "/local-stores", label: "Stores" },
-    { href: "/blog", label: "Blog" },
+    ...(FEATURES.ENABLE_BLOGS ? [{ href: "/blog", label: "Blog" }] : []),
     { href: "/about", label: "About" },
   ];
 

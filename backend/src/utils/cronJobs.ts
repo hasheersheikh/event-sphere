@@ -16,15 +16,20 @@ const logger = winston.createLogger({
 });
 
 export const cleanupPastEventsAndTickets = async () => {
-  const now = new Date();
-  logger.info(`Running cleanup job at ${now.toISOString()}`);
+  const nowIST = new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000));
+  logger.info(`Running cleanup job at ${nowIST.toISOString()} (IST)`);
 
   try {
-    // 1. Move non-recurring events (single, multi_slot, multi_day) to 'past' status if their date has passed
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffset);
+    const today = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()));
+
+    // 1. Move non-recurring events to 'past' if their date is before 'today' (shifted)
     const nonRecurringResult = await Event.updateMany(
       { 
         scheduleType: { $ne: 'recurring' },
-        date: { $lt: now },
+        date: { $lt: today },
         status: { $ne: 'past' }
       },
       { $set: { status: 'past' } }
@@ -35,7 +40,7 @@ export const cleanupPastEventsAndTickets = async () => {
     const recurringResult = await Event.updateMany(
       { 
         scheduleType: 'recurring',
-        'recurrence.endDate': { $lt: now, $ne: null },
+        'recurrence.endDate': { $lt: today, $ne: null },
         status: { $ne: 'past' }
       },
       { $set: { status: 'past' } }
@@ -48,7 +53,7 @@ export const cleanupPastEventsAndTickets = async () => {
         scheduleType: 'recurring',
         status: 'past',
         $or: [
-          { 'recurrence.endDate': { $gte: now } },
+          { 'recurrence.endDate': { $gte: nowIST } },
           { 'recurrence.endDate': null }
         ]
       },
@@ -78,10 +83,12 @@ export const cleanupPastEventsAndTickets = async () => {
 };
 
 export const checkAndSendReminders = async () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const nowIST = new Date(new Date().getTime() + (5.5 * 60 * 60 * 1000));
+  const tomorrow = new Date(nowIST);
+  tomorrow.setUTCHours(0, 0, 0, 0);
+  tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
   const tomorrowEnd = new Date(tomorrow);
-  tomorrowEnd.setHours(23, 59, 59, 999);
+  tomorrowEnd.setUTCHours(23, 59, 59, 999);
 
   try {
     // Find events happening tomorrow

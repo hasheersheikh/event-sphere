@@ -12,9 +12,11 @@ import {
   Scan,
   Store,
   BookOpen,
+  Instagram,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PulseLogo from "./PulseLogo";
+import { FEATURES } from "@/config/features";
 
 const Sidebar = () => {
   const { user } = useAuth();
@@ -31,7 +33,7 @@ const Sidebar = () => {
     { label: "Event Moderation", icon: Calendar, href: "/portal/admin/events" },
     { label: "Stores", icon: Store, href: "/portal/admin/local-stores" },
     { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
-    { label: "Blog", icon: BookOpen, href: "/portal/admin/blog" },
+    ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", icon: BookOpen, href: "/portal/admin/blog" }] : []),
     { label: "Hero Gallery", icon: LayoutDashboard, href: "/portal/admin/hero" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
@@ -52,6 +54,7 @@ const Sidebar = () => {
       icon: TrendingUp,
       href: "/portal/manager/analytics",
     },
+    { label: "Boost Marketing", icon: Instagram, href: "/portal/manager/boost" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Profile Settings", icon: Settings, href: "/portal/settings" },
   ];

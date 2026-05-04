@@ -27,6 +27,7 @@ import {
   Shield,
   ExternalLink,
   Play,
+  Zap,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -73,18 +74,27 @@ const EventDetailPage = () => {
     enabled: !!id,
   });
 
-  const getTimeRemaining = (date: string, time: string) => {
-    if (!date || !time) return null;
+  const getTimeRemaining = () => {
+    if (!event?.nextOccurrence || !event?.isActive) return null;
+
     try {
-      const eventDate = new Date(date);
-      const timeParts = time.split(":");
-      if (timeParts.length >= 2) {
-        eventDate.setHours(parseInt(timeParts[0], 10));
-        eventDate.setMinutes(parseInt(timeParts[1], 10));
-        eventDate.setSeconds(0);
+      const nextDate = new Date(event.nextOccurrence);
+      const now = new Date();
+
+      let endDateTime = new Date(nextDate);
+
+      if (event.endTime && event.endTime.trim() !== '') {
+        const timeParts = event.endTime.split(":");
+        if (timeParts.length >= 2) {
+          endDateTime.setUTCHours(parseInt(timeParts[0], 10));
+          endDateTime.setUTCMinutes(parseInt(timeParts[1], 10));
+          endDateTime.setUTCSeconds(0);
+        }
       }
-      const difference = eventDate.getTime() - new Date().getTime();
+
+      const difference = endDateTime.getTime() - now.getTime();
       if (difference <= 0) return null;
+
       return {
         days: Math.floor(difference / (1000 * 60 * 60 * 24)),
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
@@ -95,11 +105,15 @@ const EventDetailPage = () => {
   };
 
   useEffect(() => {
-    if (!event?.date || !event?.time) return;
-    setTimeLeft(getTimeRemaining(event.date, event.time));
-    const timer = setInterval(() => setTimeLeft(getTimeRemaining(event.date, event.time)), 1000);
+    if (!event?.isActive) {
+      setTimeLeft(null);
+      return;
+    }
+
+    setTimeLeft(getTimeRemaining());
+    const timer = setInterval(() => setTimeLeft(getTimeRemaining()), 1000);
     return () => clearInterval(timer);
-  }, [event?.date, event?.time]);
+  }, [event?.isActive, event?.nextOccurrence, event?.endTime]);
 
   useEffect(() => {
     if (!event?.image) return;
@@ -353,7 +367,7 @@ const EventDetailPage = () => {
                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-[0.15em]">
                     {event.category}
                   </span>
-                  {timeLeft ? (
+                  {event.isActive && timeLeft ? (
                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
                       <Clock className="h-3.5 w-3.5" />
                       <span className="text-[10px] font-black uppercase tracking-widest">
@@ -361,7 +375,7 @@ const EventDetailPage = () => {
                       </span>
                     </div>
                   ) : (
-                    (new Date(event.date) < new Date() || event.status === 'past') && (
+                    event.isActive === false && (
                       <div className="flex items-center gap-2 bg-rose-500/10 px-3 py-1 rounded-full text-rose-500">
                         <Clock className="h-3.5 w-3.5" />
                         <span className="text-[10px] font-black uppercase tracking-widest">
@@ -379,8 +393,10 @@ const EventDetailPage = () => {
                   <p className="text-2xl font-bold text-muted-foreground tracking-tight">{event.location.venueName || "Venue"}</p>
                   <p className="text-2xl font-black text-[#C4F000] tracking-tight">
                     {event.scheduleType === "recurring"
-                      ? `${getRecurrenceText(event.recurrence)}, ${event.time} IST`
-                      : `${formatDate(event.date)}, ${event.time} IST`}
+                      ? event.nextOccurrence
+                        ? `${getRecurrenceText(event.recurrence)} • Next: ${formatDate(event.nextOccurrence)} at ${event.time} IST`
+                        : `${getRecurrenceText(event.recurrence)}, ${event.time} IST`
+                      : `${formatDate(event.nextOccurrence || event.date)} at ${event.time} IST`}
                   </p>
                   <div className="flex flex-wrap items-center gap-6 pt-3">
                     <div className="flex items-center gap-2 text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">
@@ -398,6 +414,26 @@ const EventDetailPage = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Manager Actions - Internal Tooling */}
+              {user && (user._id === event.creator?._id || user.role === 'admin') && (
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-primary/70">Manager Action</p>
+                      <p className="text-sm font-black uppercase tracking-tight italic">Promote this event on Instagram</p>
+                    </div>
+                  </div>
+                  <Link to={`/portal/manager/boost?eventId=${event._id}`} className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto bg-primary text-black hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-8 h-12 italic shadow-lg shadow-primary/10">
+                      Boost This Event
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               {/* Ticket Card */}
               <div className="bg-card rounded-2xl p-8 border border-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors">
@@ -407,10 +443,10 @@ const EventDetailPage = () => {
                 </div>
                 <Button
                   onClick={() => setIsBookingModalOpen(true)}
-                  disabled={allSoldOut || (new Date(event.date) < new Date() || event.status === 'past')}
+                  disabled={allSoldOut || event.isActive === false || event.status === 'past'}
                   className="h-14 px-10 rounded-full font-black uppercase tracking-widest text-sm bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_8px_20px_rgba(196,240,0,0.3)] hover:shadow-[0_12px_24px_rgba(196,240,0,0.4)] border-none"
                 >
-                  {event.status === 'past' || (new Date(event.date) < new Date()) ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
+                  {event.isActive === false || event.status === 'past' ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
                 </Button>
               </div>
 

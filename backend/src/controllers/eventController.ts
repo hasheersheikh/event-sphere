@@ -59,45 +59,117 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
   }
 };
 
+function getNextOccurrence(event: any): Date | null {
+  const now = new Date();
+  const eventDate = new Date(event.date);
+  const eventTime = event.time || '00:00';
+  const [startHours, startMinutes] = eventTime.split(':').map(Number);
+
+  const createUTCDate = (date: Date, hours: number, minutes: number) => {
+    return new Date(Date.UTC(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      hours,
+      minutes,
+      0,
+      0
+    ));
+  };
+
+  if (event.scheduleType === 'single') {
+    return createUTCDate(eventDate, startHours, startMinutes);
+  }
+
+  if (event.scheduleType === 'multi_slot' && event.slots && event.slots.length > 0) {
+    let earliestSlotEnd: Date | null = null;
+    event.slots.forEach((slot: any) => {
+      if (slot.endTime) {
+        const [endHours, endMinutes] = slot.endTime.split(':').map(Number);
+        const slotEnd = createUTCDate(eventDate, endHours, endMinutes);
+        if (!earliestSlotEnd || slotEnd < earliestSlotEnd) {
+          earliestSlotEnd = slotEnd;
+        }
+      }
+    });
+    return earliestSlotEnd;
+  }
+
+  if (event.scheduleType === 'multi_day' && event.days && event.days.length > 0) {
+    const lastDay = event.days[event.days.length - 1];
+    const lastDayDate = new Date(lastDay.date);
+    if (lastDay.endTime) {
+      const [endHours, endMinutes] = lastDay.endTime.split(':').map(Number);
+      return createUTCDate(lastDayDate, endHours, endMinutes);
+    }
+    return lastDayDate;
+  }
+
+  if (event.scheduleType === 'recurring' && event.recurrence && event.recurrence.isActive) {
+    if (event.recurrence.endDate && new Date(event.recurrence.endDate) < now) {
+      return null;
+    }
+
+    const daysOfWeek = event.recurrence.daysOfWeek || [];
+    if (daysOfWeek.length === 0) return null;
+
+    const currentDay = now.getUTCDay();
+    const today = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+    let daysUntilNext = null;
+
+    const sortedDays = [...daysOfWeek].sort((a, b) => a - b);
+
+    for (const day of sortedDays) {
+      if (day > currentDay) {
+        daysUntilNext = day - currentDay;
+        break;
+      }
+    }
+
+    if (daysUntilNext === null) {
+      const smallestDay = sortedDays[0];
+      if (smallestDay !== undefined) {
+        daysUntilNext = 7 - currentDay + smallestDay;
+      }
+    }
+
+    if (daysUntilNext !== null && daysUntilNext >= 0) {
+      const nextDate = new Date(today);
+      nextDate.setDate(today.getDate() + daysUntilNext);
+      const result = createUTCDate(nextDate, startHours, startMinutes);
+      return result;
+    }
+
+    return null;
+  }
+
+  return null;
+}
+
+function isEventActive(event: any): boolean {
+  const now = new Date();
+  const nextOccurrence = getNextOccurrence(event);
+  if (!nextOccurrence) return false;
+
+  const endTime = event.endTime || event.time || '23:59';
+  const [endHours, endMinutes] = endTime.split(':').map(Number);
+  const endDateTime = new Date(Date.UTC(
+    nextOccurrence.getUTCFullYear(),
+    nextOccurrence.getUTCMonth(),
+    nextOccurrence.getUTCDate(),
+    endHours,
+    endMinutes,
+    0,
+    0
+  ));
+
+  return endDateTime > now;
+}
+
 export const getEvents = async (req: Request, res: Response) => {
   try {
     const { q, category, location, city, date, sort, limit } = req.query;
-
-    // Build query with $and so we can stack multiple $or conditions safely
-    const andConditions: any[] = [{ status: 'published', isApproved: true }];
-
-    if (q) {
-      andConditions.push({
-        $or: [
-          { title: { $regex: q as string, $options: 'i' } },
-          { description: { $regex: q as string, $options: 'i' } },
-        ],
-      });
-    }
-    if (category) andConditions.push({ category });
-    if (location) andConditions.push({ 'location.address': { $regex: location as string, $options: 'i' } });
-    if (city) andConditions.push({ city: { $regex: city as string, $options: 'i' } });
-
-    // Always filter out past events for public view
-    const dateFilter = date ? new Date(date as string) : new Date();
-    dateFilter.setHours(0, 0, 0, 0);
-
-    andConditions.push({
-      $or: [
-        { scheduleType: { $ne: 'recurring' }, date: { $gte: dateFilter } },
-        {
-          scheduleType: 'recurring',
-          'recurrence.isActive': true,
-          $or: [
-            { 'recurrence.endDate': { $exists: false } },
-            { 'recurrence.endDate': null },
-            { 'recurrence.endDate': { $gte: dateFilter } },
-          ],
-        },
-      ],
-    });
-
-    const query = andConditions.length === 1 ? andConditions[0] : { $and: andConditions };
 
     const secondarySort = sort ? (sort as string).split(',').join(' ') : '';
     const sortOption: any = { isSponsored: -1 };
@@ -112,14 +184,51 @@ export const getEvents = async (req: Request, res: Response) => {
     }
 
     const limitOption = limit ? parseInt(limit as string) : 0;
-    const events = await Event.find(query)
+
+    const additionalFilters: any = {};
+    if (q) {
+      additionalFilters.$or = [
+        { title: { $regex: q as string, $options: 'i' } },
+        { description: { $regex: q as string, $options: 'i' } },
+      ];
+    }
+    if (category) additionalFilters.category = category;
+    if (location) {
+      additionalFilters['location.address'] = { $regex: location as string, $options: 'i' };
+    } else if (location === '') {
+      delete additionalFilters['location.address'];
+    }
+    if (city) {
+      additionalFilters.city = { $regex: city as string, $options: 'i' };
+    } else if (city === '') {
+      delete additionalFilters.city;
+    }
+
+    const baseQuery = {
+      status: 'published',
+      isApproved: true,
+      ...additionalFilters
+    };
+
+    let events = await Event.find(baseQuery)
       .populate('creator', 'name email')
       .sort(sortOption)
-      .limit(limitOption);
+      .limit(limitOption || 1000);
 
-    res.json(events);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    events = events.filter(event => isEventActive(event));
+
+    const eventsWithStatus = events.map(event => {
+      const eventObj: any = event.toObject();
+      eventObj.isActive = isEventActive(event);
+      const nextOccurrence = getNextOccurrence(event);
+      eventObj.nextOccurrence = nextOccurrence;
+      return eventObj;
+    });
+
+    res.json(eventsWithStatus);
+  } catch (error: any) {
+    console.error('Error in getEvents:', error);
+    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
   }
 };
 
