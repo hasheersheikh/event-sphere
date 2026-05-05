@@ -163,7 +163,7 @@ const BoostMarketingPage = () => {
             }`}
           >
             {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-black text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">
                 Recommended
               </div>
             )}
@@ -196,7 +196,7 @@ const BoostMarketingPage = () => {
             <Button 
               variant={selectedPlan === plan.id ? "default" : "outline"}
               className={`w-full rounded-xl h-11 font-black uppercase tracking-widest text-[9px] italic ${
-                selectedPlan === plan.id ? "bg-primary text-black" : ""
+                selectedPlan === plan.id ? "bg-primary text-primary-foreground" : ""
               }`}
             >
               {selectedPlan === plan.id ? "Selected Plan" : "Choose Plan"}

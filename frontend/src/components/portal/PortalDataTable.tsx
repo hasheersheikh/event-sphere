@@ -202,7 +202,7 @@ export function PortalDataTable<T>({
                     className={cn(
                       "h-8 w-8 rounded-lg text-[10px] font-black transition-all border",
                       pagination.page === pageNum
-                        ? "bg-primary text-black border-transparent shadow-[0_0_15px_rgba(var(--primary),0.3)] scale-110"
+                        ? "bg-primary text-primary-foreground border-transparent shadow-[0_0_15px_rgba(var(--primary),0.3)] scale-110"
                         : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
                     )}
                   >
