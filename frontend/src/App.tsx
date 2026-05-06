@@ -74,6 +74,7 @@ import ScrollToTop from "./components/layout/ScrollToTop";
 import HeroManagementPage from "./pages/admin/HeroManagementPage";
 import RefundManagementPage from "./pages/admin/RefundManagementPage";
 import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
+import BoostRequestPage from "./pages/manager/BoostRequestPage";
 import { FEATURES } from "./config/features";
 
 
@@ -308,6 +309,7 @@ const AppContent = () => {
                     element={<ManageVolunteersPage />}
                   />
                   <Route path="manager/boost" element={<BoostMarketingPage />} />
+                  <Route path="manager/boost/request" element={<BoostRequestPage />} />
                   <Route path="settings" element={<AccountSettingsPage />} />
                 </Route>
 
