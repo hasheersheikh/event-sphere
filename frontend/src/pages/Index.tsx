@@ -270,7 +270,7 @@ const Index = () => {
         </section>
 
         {/* ═══ CATEGORY PILLS ═══ */}
-        <section className="border-t border-border/20 py-5">
+        <section className="hidden lg:block border-t border-border/20 py-5">
           <div className="container">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
               {CATEGORIES.map((cat, i) => (
