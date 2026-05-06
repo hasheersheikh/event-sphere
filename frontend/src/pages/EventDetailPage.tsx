@@ -328,7 +328,7 @@ const EventDetailPage = () => {
                             {embedUrl ? (
                               <iframe
                                 src={embedUrl}
-                                className="absolute inset-0 w-full h-full"
+                                className="absolute inset-0 w-full h-full pointer-events-auto"
                                 title={`Event reel ${idx + 1}`}
                                 allowFullScreen
                                 style={{ border: 0 }}
@@ -338,7 +338,7 @@ const EventDetailPage = () => {
                                 <Play className="h-8 w-8 text-muted-foreground" />
                               </div>
                             )}
-                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
                           </div>
                         );
                       })}
@@ -606,7 +606,7 @@ const EventDetailPage = () => {
                             {embedUrl ? (
                               <iframe
                                 src={embedUrl}
-                                className="absolute inset-0 w-full h-full"
+                                className="absolute inset-0 w-full h-full pointer-events-auto"
                                 title={`Event reel ${idx + 1}`}
                                 allowFullScreen
                                 style={{ border: 0 }}
@@ -616,7 +616,7 @@ const EventDetailPage = () => {
                                 <Play className="h-8 w-8 text-muted-foreground" />
                               </div>
                             )}
-                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
                           </div>
                         );
                       })}

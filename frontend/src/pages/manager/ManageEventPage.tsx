@@ -143,7 +143,15 @@ const ManageEventPage = () => {
               {event.title}
             </h1>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
+            <Link to={`/portal/manager/boost?eventId=${event._id}`}>
+              <Button
+                className="h-9 px-5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-widest transition-all gap-2 border-none italic"
+              >
+                <Zap className="h-4 w-4 fill-primary" />
+                Boost Event
+              </Button>
+            </Link>
             <Link to={`/portal/manager/events/${event._id}/edit`}>
               <Button
                 className="h-9 px-5 rounded-lg bg-[#C4F000] text-black hover:bg-[#A3C800] text-[10px] font-black uppercase tracking-widest transition-all gap-2 shadow-lg border-none"
