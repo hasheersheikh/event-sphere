@@ -44,7 +44,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
   if (HERO_ASSETS.length === 0) return null;
 
   return (
-    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-2xl lg:rounded-3xl border border-white/10 lg:border lg:border-border shadow-lg lg:shadow-2xl bg-black rotate-0 lg:rotate-2 lg:hover:rotate-0 transition-transform duration-500">
+    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-2xl lg:rounded-3xl border border-border shadow-lg lg:shadow-2xl bg-muted rotate-0 lg:rotate-2 lg:hover:rotate-0 transition-transform duration-500">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
@@ -58,7 +58,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
             <img
               src={HERO_ASSETS[currentIndex].url}
               alt="Hero gallery"
-              className="w-full h-full object-cover opacity-90"
+              className="w-full h-full object-cover"
             />
           ) : (
             <video
@@ -67,7 +67,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
               muted
               playsInline
               onEnded={handleVideoEnded}
-              className="w-full h-full object-cover opacity-90"
+              className="w-full h-full object-cover"
             >
               <source src={HERO_ASSETS[currentIndex].url} type="video/mp4" />
             </video>

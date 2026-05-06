@@ -23,14 +23,22 @@ const MarqueeCarousel = ({
   const animationRef = useRef<number>();
   const positionRef = useRef(0);
   const lastTimeRef = useRef(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const totalWidthRef = useRef(0);
 
   useEffect(() => {
     const inner = innerRef.current;
     if (!inner) return;
-
-    const cardWidth = 320; 
+ 
+    const cardWidth = isMobile ? 256 : 320; 
     const gap = 12;
     const totalItemWidth = cardWidth + gap;
     const totalWidth = events.length * totalItemWidth;
@@ -202,7 +210,7 @@ const MarqueeCarousel = ({
           <div
             key={`${event._id}-${index}`}
             className={cn(
-              "flex-shrink-0 w-80",
+              "flex-shrink-0 w-64 md:w-80",
               isDragging && "pointer-events-none"
             )}
           >
