@@ -10,6 +10,7 @@ const Footer = () => {
     Explore: [
       { label: "Live Events", href: "/events" },
       { label: "Local Stores", href: "/local-stores" },
+      { label: "Boost Event", href: "/boost" },
       ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", href: "/blog" }] : []),
       { label: "About", href: "/about" },
     ],

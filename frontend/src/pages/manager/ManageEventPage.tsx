@@ -144,7 +144,7 @@ const ManageEventPage = () => {
             </h1>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Link to={`/portal/manager/boost?eventId=${event._id}`}>
+            <Link to={`/boost?eventId=${event._id}`}>
               <Button
                 className="h-9 px-5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 text-[10px] font-black uppercase tracking-widest transition-all gap-2 border-none italic"
               >

@@ -32,6 +32,7 @@ const Navbar = () => {
   const navLinks = [
     { href: "/events", label: "Events" },
     { href: "/local-stores", label: "Stores" },
+    { href: "/boost", label: "Marketing" },
     ...(FEATURES.ENABLE_BLOGS ? [{ href: "/blog", label: "Blog" }] : []),
     { href: "/about", label: "About" },
   ];

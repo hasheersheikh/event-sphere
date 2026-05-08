@@ -15,6 +15,7 @@ import {
   Sparkles,
   Zap,
   TrendingUp,
+  Store,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
@@ -100,7 +101,7 @@ const Index = () => {
   ];
 
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -108,12 +109,12 @@ const Index = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  const filteredHeroAssets = (heroAssets && heroAssets.length > 0) 
+  const filteredHeroAssets = (heroAssets && heroAssets.length > 0)
     ? heroAssets.filter((a: any) => {
-        if (!a.isActive) return false;
-        if (a.targetDevice === 'all') return true;
-        return isMobile ? a.targetDevice === 'mobile' : a.targetDevice === 'desktop';
-      })
+      if (!a.isActive) return false;
+      if (a.targetDevice === 'all') return true;
+      return isMobile ? a.targetDevice === 'mobile' : a.targetDevice === 'desktop';
+    })
     : FALLBACK_HERO_ASSETS;
 
   const hasHeroAssets = filteredHeroAssets.length > 0;
@@ -237,11 +238,11 @@ const Index = () => {
                     Browse Events <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
                   </Button>
                 </Link>
-                <Link
-                  to="/local-stores"
-                  className="text-[11px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Local Stores →
+                <Link to="/local-stores">
+                  <Button variant="outline" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-foreground hover:text-background transition-all gap-2">
+                    <Store className="h-4 w-4" />
+                    Local Stores
+                  </Button>
                 </Link>
               </motion.div>
 
@@ -421,9 +422,10 @@ const Index = () => {
                       Create Account <ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   </Link>
-                  <Link to="/events">
-                    <Button variant="outline" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto">
-                      Browse Events
+                  <Link to="/boost">
+                    <Button variant="outline" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      Boost Event
                     </Button>
                   </Link>
                 </div>

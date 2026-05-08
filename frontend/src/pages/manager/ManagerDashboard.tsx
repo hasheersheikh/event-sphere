@@ -124,7 +124,7 @@ const ManagerDashboard = () => {
         subtitle={`Performance summary for today, ${new Date().toLocaleDateString(undefined, { month: "long", day: "numeric" })}.`}
         actions={
           <div className="flex items-center gap-3">
-            <Link to="/portal/manager/boost">
+            <Link to="/boost">
               <Button className="h-10 px-6 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 font-black uppercase tracking-widest text-[9px] transition-all gap-1.5 border-none italic">
                 <Instagram className="h-4 w-4" />
                 Boost Marketing

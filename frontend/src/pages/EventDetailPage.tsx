@@ -427,7 +427,7 @@ const EventDetailPage = () => {
                       <p className="text-sm font-black uppercase tracking-tight italic">Promote this event on Instagram</p>
                     </div>
                   </div>
-                  <Link to={`/portal/manager/boost?eventId=${event._id}`} className="w-full sm:w-auto">
+                  <Link to={`/boost?eventId=${event._id}`} className="w-full sm:w-auto">
                     <Button className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-8 h-12 italic shadow-lg shadow-primary/10">
                       Boost This Event
                     </Button>

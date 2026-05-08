@@ -35,6 +35,7 @@ const Sidebar = () => {
     { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
     ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", icon: BookOpen, href: "/portal/admin/blog" }] : []),
     { label: "Hero Gallery", icon: LayoutDashboard, href: "/portal/admin/hero" },
+    { label: "Influencer Net", icon: Users, href: "/portal/admin/influencers" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Refund Backlog", icon: Clock, href: "/portal/admin/refunds" },
@@ -54,7 +55,7 @@ const Sidebar = () => {
       icon: TrendingUp,
       href: "/portal/manager/analytics",
     },
-    { label: "Boost Marketing", icon: Instagram, href: "/portal/manager/boost" },
+    { label: "Boost Marketing", icon: Instagram, href: "/boost" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Profile Settings", icon: Settings, href: "/portal/settings" },
   ];

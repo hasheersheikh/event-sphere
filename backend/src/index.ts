@@ -21,6 +21,7 @@ import blogRoutes from './routes/blogRoutes.js';
 import storePayoutRoutes from './routes/storePayoutRoutes.js';
 import heroAssetRoutes from './routes/heroAssetRoutes.js';
 import refundRoutes from './routes/refundRoutes.js';
+import influencerRoutes from './routes/influencerRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,7 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/store-payouts', storePayoutRoutes);
 app.use('/api/hero-assets', heroAssetRoutes);
 app.use('/api/refunds', refundRoutes);
+app.use('/api/influencers', influencerRoutes);
 console.log('✅ Registered /api/hero-assets route');
 console.log('Registered /api/local-stores route');
 

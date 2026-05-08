@@ -73,6 +73,7 @@ import { useMaintenanceMode } from "./hooks/useMaintenanceMode";
 import ScrollToTop from "./components/layout/ScrollToTop";
 import HeroManagementPage from "./pages/admin/HeroManagementPage";
 import RefundManagementPage from "./pages/admin/RefundManagementPage";
+import InfluencerManagementPage from "./pages/admin/InfluencerManagementPage";
 import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
 import BoostRequestPage from "./pages/manager/BoostRequestPage";
 import { FEATURES } from "./config/features";
@@ -141,6 +142,8 @@ const AppContent = () => {
                             }
                           />
                           <Route path="events/:id" element={<EventDetailPage />} />
+                          <Route path="boost" element={<BoostMarketingPage />} />
+                          <Route path="boost/request" element={<BoostRequestPage />} />
                           <Route
                             path="events/:id/success"
                             element={<EventPendingPage />}
@@ -287,6 +290,7 @@ const AppContent = () => {
                   <Route path="admin/store-orders" element={<StoreOrdersPage />} />
                   <Route path="admin/hero" element={<HeroManagementPage />} />
                   <Route path="admin/refunds" element={<RefundManagementPage />} />
+                  <Route path="admin/influencers" element={<InfluencerManagementPage />} />
                   <Route path="manager" element={<ManagerDashboard />} />
                   <Route path="manager/payouts" element={<PayoutsPage />} />
                   <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />
@@ -308,8 +312,6 @@ const AppContent = () => {
                     path="manager/events/:eventId/volunteers"
                     element={<ManageVolunteersPage />}
                   />
-                  <Route path="manager/boost" element={<BoostMarketingPage />} />
-                  <Route path="manager/boost/request" element={<BoostRequestPage />} />
                   <Route path="settings" element={<AccountSettingsPage />} />
                 </Route>
 
