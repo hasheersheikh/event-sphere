@@ -10,6 +10,7 @@ import {
   Trash2,
   ChevronRight,
   Star,
+  Edit3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -178,6 +179,23 @@ const EventModerationPage = () => {
       ),
     },
     {
+      header: "Status",
+      accessor: (event: any) => (
+        <Badge
+          variant="outline"
+          className={`rounded-lg bg-muted text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 italic ${
+            event.status === "under_review"
+              ? "text-orange-500 border-orange-500/20"
+              : event.status === "blocked"
+                ? "text-rose-500 border-rose-500/20"
+                : "text-emerald-500 border-emerald-500/20"
+          }`}
+        >
+          {event.status?.replace("_", " ") || "ACTIVE"}
+        </Badge>
+      ),
+    },
+    {
       header: "Approval",
       accessor: (event: any) => (
         <div className="flex items-center gap-1.5">
@@ -212,6 +230,11 @@ const EventModerationPage = () => {
           <Link to={`/portal/admin/events/${event._id}`}>
             <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg border border-border hover:bg-muted">
               <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+          <Link to={`/portal/admin/events/${event._id}/edit`}>
+            <Button size="icon" variant="ghost" className="h-7 w-7 rounded-lg border border-border hover:bg-primary/10 hover:text-primary">
+              <Edit3 className="h-3.5 w-3.5" />
             </Button>
           </Link>
           {!event.isApproved && (

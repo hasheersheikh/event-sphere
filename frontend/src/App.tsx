@@ -280,6 +280,7 @@ const AppContent = () => {
                   />
                   <Route path="admin/events" element={<EventModerationPage />} />
                   <Route path="admin/events/:id" element={<EventInsightsPage />} />
+                  <Route path="admin/events/:id/edit" element={<EditEventPage />} />
                   {FEATURES.ENABLE_BLOGS && (
                     <Route path="admin/blog" element={<BlogManagementPage />} />
                   )}

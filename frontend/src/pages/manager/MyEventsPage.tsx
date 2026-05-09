@@ -121,7 +121,7 @@ const MyEventsPage = () => {
       ),
     },
     {
-      header: "Registry Status",
+      header: "Status",
       headerClassName: "text-center",
       accessor: (p: any) => (
         <div className="flex justify-center">

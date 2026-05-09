@@ -223,10 +223,24 @@ const CreateEventPage = () => {
   // ── Schedule type change — clears stale type-specific data ───────────────
   const handleScheduleTypeChange = (newType: EventFormValues["scheduleType"]) => {
     if (newType === scheduleType) return;
+    // Clear multi_day-specific ticket data when leaving multi_day
+    if (scheduleType === "multi_day" && newType !== "multi_day") {
+      const tickets = form.getValues("ticketTypes");
+      tickets.forEach((_, i) => {
+        form.setValue(`ticketTypes.${i}.isFullPass`, false);
+        form.setValue(`ticketTypes.${i}.dayWisePrices`, []);
+      });
+    }
     form.setValue("scheduleType", newType);
     form.setValue("slots", []);
     form.setValue("days", []);
     form.setValue("recurrence", { frequency: "daily", daysOfWeek: [] });
+    // Clear date/time when switching to multi_day — derived from days array instead
+    if (newType === "multi_day") {
+      form.setValue("date", undefined);
+      form.setValue("time", "");
+      form.setValue("endTime", "");
+    }
   };
 
   // ── Slot overlap detection ─────────────────────────────────────────────────
@@ -719,7 +733,10 @@ const CreateEventPage = () => {
                             <div className="flex gap-3">
                               {(["daily", "weekly"] as const).map((freq) => (
                                 <button key={freq} type="button"
-                                  onClick={() => form.setValue("recurrence.frequency", freq)}
+                                  onClick={() => {
+                    form.setValue("recurrence.frequency", freq);
+                    if (freq === "daily") form.setValue("recurrence.daysOfWeek", []);
+                  }}
                                   className={cn("flex-1 h-11 rounded-xl border-2 text-[11px] font-black uppercase tracking-wider transition-all",
                                     recurrenceFreq === freq ? "bg-primary text-primary-foreground border-primary" : "border-border/50 hover:border-primary/40"
                                   )}>
@@ -860,7 +877,10 @@ const CreateEventPage = () => {
                                   });
                                   form.setValue("days", merged);
                                 }}
-                                disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                                disabled={(d) => {
+                                  const alreadySelected = dayFields.some(f => f.date && isSameDay(new Date(f.date as unknown as Date), d));
+                                  return !alreadySelected && d < new Date(new Date().setHours(0, 0, 0, 0));
+                                }}
                                 numberOfMonths={2}
                                 className="rounded-xl"
                               />
@@ -871,9 +891,11 @@ const CreateEventPage = () => {
                             <div className="space-y-3">
                               <p className={labelCls}>{dayFields.length} date{dayFields.length > 1 ? "s" : ""} selected — set times for each</p>
                               {dayFields
-                                .slice()
+                                .map((f, i) => ({ ...f, originalIndex: i }))
                                 .sort((a, b) => new Date(a.date as unknown as Date).getTime() - new Date(b.date as unknown as Date).getTime())
-                                .map((field, index) => (
+                                .map((field) => {
+                                  const index = field.originalIndex;
+                                  return (
                                   <div key={field.id} className="p-4 border border-border/40 rounded-xl bg-muted/10">
                                     <div className="flex items-center justify-between mb-3">
                                       <span className="text-sm font-black tracking-tight">
@@ -905,7 +927,8 @@ const CreateEventPage = () => {
                                       )} />
                                     </div>
                                   </div>
-                                ))}
+                                  );
+                                })}
                             </div>
                           )}
                         </div>

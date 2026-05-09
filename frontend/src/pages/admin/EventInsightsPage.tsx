@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   ShieldAlert,
   MapPin,
+  Edit3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -152,6 +153,15 @@ const EventInsightsPage = () => {
                 {isReleasingPayout ? "RELEASING..." : "RELEASE PAYOUT"}
               </Button>
             )}
+            <Link to={`/portal/admin/events/${event._id}/edit`}>
+              <Button
+                variant="outline"
+                className="h-9 px-5 border-border rounded-xl bg-card hover:bg-primary hover:text-white text-[9px] font-black uppercase tracking-widest transition-all gap-2 shadow-sm italic"
+              >
+                <Edit3 className="h-3.5 w-3.5" />
+                Edit Event
+              </Button>
+            </Link>
             <Link to={`/events/${event._id}`} target="_blank">
               <Button
                 variant="outline"

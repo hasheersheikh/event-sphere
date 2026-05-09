@@ -103,8 +103,17 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
   const getTicketPrice = (ticket: any) => {
     let basePrice = ticket.price;
     if (event.scheduleType === "multi_day") {
-      if (isFullPassSelected && ticket.fullPassPrice !== undefined) {
-        basePrice = ticket.fullPassPrice;
+      if (isFullPassSelected) {
+        if (ticket.fullPassPrice !== undefined) {
+          basePrice = ticket.fullPassPrice;
+        } else {
+          // No full pass price set — sum all days as fallback
+          basePrice = 0;
+          (event.days || []).forEach((_: any, idx: number) => {
+            const dayPrice = ticket.dayWisePrices?.find((dp: any) => dp.dayIndex === idx)?.price;
+            basePrice += dayPrice !== undefined ? dayPrice : ticket.price;
+          });
+        }
       } else if (selectedDays.length > 0) {
         basePrice = 0;
         selectedDays.forEach(idx => {
@@ -306,7 +315,11 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
               {event.scheduleType === "multi_day" && (
                 <div className="space-y-3">
                   <div
-                    onClick={() => { setIsFullPassSelected(!isFullPassSelected); setSelectedDays([]); }}
+                    onClick={() => {
+                      const turningOn = !isFullPassSelected;
+                      setIsFullPassSelected(turningOn);
+                      if (turningOn) setSelectedDays([]);
+                    }}
                     className={cn(
                       "p-4 rounded-xl border-2 flex justify-between items-center cursor-pointer transition-all",
                       isFullPassSelected ? "bg-primary/5 border-primary" : "bg-card border-border/30 hover:border-border"
@@ -470,8 +483,9 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                   </p>
                 </div>
                 <button
-                  onClick={() => setNumberOfPeople(numberOfPeople + 1)}
-                  className="h-14 w-14 rounded-2xl bg-foreground text-background hover:bg-foreground/90 flex items-center justify-center transition-all hover:scale-105"
+                  onClick={() => setNumberOfPeople(Math.min(numberOfPeople + 1, 10))}
+                  disabled={numberOfPeople >= 10}
+                  className="h-14 w-14 rounded-2xl bg-foreground text-background hover:bg-foreground/90 flex items-center justify-center transition-all hover:scale-105 disabled:opacity-30 disabled:hover:scale-100"
                 >
                   <Plus className="h-6 w-6" />
                 </button>
@@ -487,7 +501,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
               <div className="space-y-4">
                 {event.ticketTypes.map((ticket: any) => {
                   const price = getTicketPrice(ticket);
-                  const maxQty = ticket.capacity - ticket.sold;
+                  const maxQty = ticket.capacity - (ticket.sold ?? 0);
                   const isSoldOut = ticket.isSoldOut || maxQty <= 0;
                   const isSelected = selectedTicketType === ticket.name;
 
@@ -499,7 +513,14 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                         isSoldOut ? "opacity-50 grayscale bg-muted/30 border-border/20 cursor-not-allowed" : 
                         isSelected ? "border-primary bg-primary/5 shadow-md" : "border-border/40 bg-card hover:border-primary/50 hover:shadow-lg"
                       )}
-                      onClick={() => !isSoldOut && setSelectedTicketType(ticket.name)}
+                      onClick={() => {
+                        if (isSoldOut) return;
+                        setSelectedTicketType(ticket.name);
+                        if (numberOfPeople > maxQty) {
+                          setNumberOfPeople(maxQty);
+                          toast.error(`Only ${maxQty} ticket${maxQty !== 1 ? "s" : ""} remaining — quantity adjusted.`);
+                        }
+                      }}
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">

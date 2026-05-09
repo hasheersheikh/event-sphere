@@ -12,8 +12,6 @@ import {
   Ticket,
   Trash2,
   User,
-  Volume2,
-  VolumeX,
   Sparkles,
   Mail,
   Phone,
@@ -60,9 +58,7 @@ const EventDetailPage = () => {
   const navigate = useNavigate();
   const [showShareSnippet, setShowShareSnippet] = useState(false);
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
-  const [isMuted, setIsMuted] = useState(true);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [dominantColor, setDominantColor] = useState<{ r: number; g: number; b: number } | null>(null);
   const [showAllReels, setShowAllReels] = useState(false);
 
   const { data: event, isLoading, error } = useQuery({
@@ -81,18 +77,27 @@ const EventDetailPage = () => {
       const nextDate = new Date(event.nextOccurrence);
       const now = new Date();
 
-      let endDateTime = new Date(nextDate);
-
-      if (event.endTime && event.endTime.trim() !== '') {
-        const timeParts = event.endTime.split(":");
-        if (timeParts.length >= 2) {
-          endDateTime.setUTCHours(parseInt(timeParts[0], 10));
-          endDateTime.setUTCMinutes(parseInt(timeParts[1], 10));
-          endDateTime.setUTCSeconds(0);
-        }
+      // Build start datetime from the occurrence date + event.time
+      const startDateTime = new Date(nextDate);
+      if (event.time && event.time.trim() !== '') {
+        const [sh, sm] = event.time.split(":").map(Number);
+        startDateTime.setHours(sh, sm, 0, 0);
       }
 
-      const difference = endDateTime.getTime() - now.getTime();
+      // Build end datetime if endTime is provided
+      let endDateTime: Date | null = null;
+      if (event.endTime && event.endTime.trim() !== '') {
+        endDateTime = new Date(nextDate);
+        const [eh, em] = event.endTime.split(":").map(Number);
+        endDateTime.setHours(eh, em, 0, 0);
+      }
+
+      const hasStarted = startDateTime <= now;
+      // After start: count to end (if available), otherwise nothing to show
+      const target = hasStarted ? endDateTime : startDateTime;
+      if (!target) return null;
+
+      const difference = target.getTime() - now.getTime();
       if (difference <= 0) return null;
 
       return {
@@ -100,6 +105,7 @@ const EventDetailPage = () => {
         hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
         minutes: Math.floor((difference / 1000 / 60) % 60),
         seconds: Math.floor((difference / 1000) % 60),
+        hasStarted,
       };
     } catch { return null; }
   };
@@ -115,38 +121,6 @@ const EventDetailPage = () => {
     return () => clearInterval(timer);
   }, [event?.isActive, event?.nextOccurrence, event?.endTime]);
 
-  useEffect(() => {
-    if (!event?.image) return;
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      let r = 0, g = 0, b = 0, count = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] > 128) {
-          r += data[i];
-          g += data[i + 1];
-          b += data[i + 2];
-          count++;
-        }
-      }
-      if (count > 0) {
-        setDominantColor({
-          r: Math.round(r / count),
-          g: Math.round(g / count),
-          b: Math.round(b / count)
-        });
-      }
-    };
-    img.src = event.image;
-  }, [event?.image]);
 
   if (isLoading) {
     return (
@@ -192,7 +166,7 @@ const EventDetailPage = () => {
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
 
   const getRecurrenceText = (recurrence: any) => {
-    if (!recurrence || !recurrence.isActive) return "";
+    if (!recurrence || !recurrence.frequency) return "";
     const freq = recurrence.frequency === "daily" ? "Daily" : "Weekly";
     const days = recurrence.daysOfWeek?.length 
       ? ` on ${recurrence.daysOfWeek.map((d: number) => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]).join(", ")}`
@@ -371,7 +345,9 @@ const EventDetailPage = () => {
                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
                       <Clock className="h-3.5 w-3.5" />
                       <span className="text-[10px] font-black uppercase tracking-widest">
-                        Starts in {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m
+                        {timeLeft.hasStarted
+                          ? `Ends in ${timeLeft.hours}h ${timeLeft.minutes}m`
+                          : `Starts in ${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m`}
                       </span>
                     </div>
                   ) : (

@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   RefreshCw,
   CalendarDays,
@@ -177,6 +178,7 @@ const SCHEDULE_TYPES = [
 const EditEventPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
 
   const { data: event, isLoading: isFetching } = useQuery({
@@ -232,10 +234,24 @@ const EditEventPage = () => {
 
   const handleScheduleTypeChange = (newType: EventFormValues["scheduleType"]) => {
     if (newType === scheduleType) return;
+    // Clear multi_day-specific ticket data when leaving multi_day
+    if (scheduleType === "multi_day" && newType !== "multi_day") {
+      const tickets = form.getValues("ticketTypes");
+      tickets.forEach((_, i) => {
+        form.setValue(`ticketTypes.${i}.isFullPass`, false);
+        form.setValue(`ticketTypes.${i}.dayWisePrices`, []);
+      });
+    }
     form.setValue("scheduleType", newType);
     form.setValue("slots", []);
     form.setValue("days", []);
     form.setValue("recurrence", { frequency: "daily", daysOfWeek: [] });
+    // Clear date/time when switching to multi_day — derived from days array instead
+    if (newType === "multi_day") {
+      form.setValue("date", undefined);
+      form.setValue("time", "");
+      form.setValue("endTime", "");
+    }
   };
 
   const hasSlotOverlap = () => {
@@ -334,7 +350,11 @@ const EditEventPage = () => {
     },
     onSuccess: () => {
       toast.success("Event successfully updated.");
-      navigate(`/portal/manager/events/${id}/details`);
+      if (user?.role === "admin") {
+        navigate(`/portal/admin/events/${id}`);
+      } else {
+        navigate(`/portal/manager/events/${id}/details`);
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Modification failed.");
@@ -637,6 +657,31 @@ const EditEventPage = () => {
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
+                          name="ageRestriction"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                                Age Requirement
+                              </FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11 bg-background/50 border-white/10 rounded-xl font-black">
+                                    <SelectValue placeholder="Select Age" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-popover border-border shadow-2xl">
+                                  {["All Ages", "13+", "16+", "18+", "21+"].map((age) => (
+                                    <SelectItem key={age} value={age} className="font-bold">{age}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
                           name="videoUrl"
                           render={({ field }) => (
                             <FormItem>
@@ -654,11 +699,12 @@ const EditEventPage = () => {
                             </FormItem>
                           )}
                         />
+                      </div>
 
-                        <div className="space-y-4">
-                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
-                            YouTube Shorts
-                          </FormLabel>
+                      <div className="space-y-4">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
+                          YouTube Shorts
+                        </FormLabel>
                           <div className="space-y-3">
                             {form.watch("reels")?.map((_, index) => (
                               <div key={index} className="flex gap-2">
@@ -706,7 +752,6 @@ const EditEventPage = () => {
                             </Button>
                           </div>
                         </div>
-                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -918,7 +963,10 @@ const EditEventPage = () => {
                               <div className="flex gap-3">
                                 {(["daily", "weekly"] as const).map((freq) => (
                                   <button key={freq} type="button"
-                                    onClick={() => form.setValue("recurrence.frequency", freq)}
+                                    onClick={() => {
+                                  form.setValue("recurrence.frequency", freq);
+                                  if (freq === "daily") form.setValue("recurrence.daysOfWeek", []);
+                                }}
                                     className={cn("flex-1 h-11 rounded-xl border-2 text-[11px] font-black uppercase tracking-wider transition-all",
                                       recurrenceFreq === freq ? "bg-primary text-primary-foreground border-primary" : "border-border/50 hover:border-primary/40"
                                     )}>
@@ -1052,7 +1100,10 @@ const EditEventPage = () => {
                                     });
                                     form.setValue("days", merged);
                                   }}
-                                  disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+                                  disabled={(d) => {
+                                    const alreadySelected = dayFields.some(f => f.date && isSameDay(new Date(f.date as unknown as Date), d));
+                                    return !alreadySelected && d < new Date(new Date().setHours(0, 0, 0, 0));
+                                  }}
                                   numberOfMonths={1}
                                   className="rounded-xl"
                                 />
@@ -1061,9 +1112,11 @@ const EditEventPage = () => {
 
                             <div className="space-y-3">
                               {dayFields
-                                .slice()
+                                .map((f, i) => ({ ...f, originalIndex: i }))
                                 .sort((a, b) => new Date(a.date as unknown as Date).getTime() - new Date(b.date as unknown as Date).getTime())
-                                .map((field, index) => (
+                                .map((field) => {
+                                  const index = field.originalIndex;
+                                  return (
                                   <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 glass-card">
                                     <div className="flex items-center justify-between mb-3">
                                       <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
@@ -1095,7 +1148,8 @@ const EditEventPage = () => {
                                       </div>
                                     </div>
                                   </div>
-                                ))}
+                                  );
+                                })}
                             </div>
                           </div>
                         )}
