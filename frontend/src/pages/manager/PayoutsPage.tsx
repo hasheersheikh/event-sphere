@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -87,8 +88,37 @@ const PayoutsPage = () => {
     },
   });
 
+  const validatePayoutForm = (): string | null => {
+    const hasUpi = payoutForm.upiId.trim().length > 0;
+    const hasBank = payoutForm.bankDetails.accountNumber.trim().length > 0;
+    if (!hasUpi && !hasBank) return "Please enter either a UPI ID or bank account details.";
+    if (hasUpi && !/^[\w.\-_]{2,256}@[a-zA-Z]{2,64}$/.test(payoutForm.upiId.trim())) {
+      return "UPI ID format is invalid (e.g. name@upi).";
+    }
+    if (hasBank) {
+      if (!/^\d{9,18}$/.test(payoutForm.bankDetails.accountNumber.trim())) {
+        return "Account number must be 9–18 digits.";
+      }
+      if (!payoutForm.bankDetails.ifscCode.trim()) {
+        return "IFSC code is required for bank payouts.";
+      }
+      if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(payoutForm.bankDetails.ifscCode.trim().toUpperCase())) {
+        return "IFSC code format is invalid (e.g. HDFC0001234).";
+      }
+      if (!payoutForm.bankDetails.bankName.trim()) {
+        return "Bank name is required for bank payouts.";
+      }
+      if (!payoutForm.bankDetails.accountHolderName.trim()) {
+        return "Account holder name is required for bank payouts.";
+      }
+    }
+    return null;
+  };
+
   const handleUpdateDetails = (e: React.FormEvent) => {
     e.preventDefault();
+    const error = validatePayoutForm();
+    if (error) { toast.error(error); return; }
     updateDetailsMutation.mutate(payoutForm);
   };
 
@@ -141,7 +171,7 @@ const PayoutsPage = () => {
       headerClassName: "text-right",
       accessor: (p: any) => (
         <div className="text-right font-black italic text-sm tabular-nums">
-          ₹{p.amount.toLocaleString()}
+          ₹{(p.amount ?? 0).toLocaleString()}
         </div>
       ),
     },
@@ -289,6 +319,25 @@ const PayoutsPage = () => {
                     className="h-10 bg-muted/20 border-border rounded-xl font-black text-xs italic tracking-widest"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
+                    Account Holder Name
+                  </label>
+                  <Input
+                    value={payoutForm.bankDetails.accountHolderName}
+                    onChange={(e) =>
+                      setPayoutForm({
+                        ...payoutForm,
+                        bankDetails: {
+                          ...payoutForm.bankDetails,
+                          accountHolderName: e.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Full name as per bank"
+                    className="h-10 bg-muted/20 border-border rounded-xl font-black text-xs italic tracking-widest"
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
@@ -301,16 +350,17 @@ const PayoutsPage = () => {
                           ...payoutForm,
                           bankDetails: {
                             ...payoutForm.bankDetails,
-                            ifscCode: e.target.value,
+                            ifscCode: e.target.value.toUpperCase(),
                           },
                         })
                       }
+                      placeholder="HDFC0001234"
                       className="h-10 bg-muted/20 border-border rounded-xl font-black text-xs uppercase italic tracking-widest"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
-                      Protocol
+                      Bank Name
                     </label>
                     <Input
                       value={payoutForm.bankDetails.bankName}
@@ -323,7 +373,7 @@ const PayoutsPage = () => {
                           },
                         })
                       }
-                      placeholder="HD-01..."
+                      placeholder="HDFC Bank"
                       className="h-10 bg-muted/20 border-border rounded-xl font-black text-xs uppercase italic tracking-widest"
                     />
                   </div>

@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -62,6 +70,10 @@ const EventInsightsPage = () => {
   const [data, setData] = useState<EventInsights | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isReleasingPayout, setIsReleasingPayout] = useState(false);
+  const [showPayoutConfirm, setShowPayoutConfirm] = useState(false);
+  const [payoutReleased, setPayoutReleased] = useState(false);
+  const [attendeesPage, setAttendeesPage] = useState(1);
+  const ATTENDEES_PER_PAGE = 20;
 
   useEffect(() => {
     fetchInsights();
@@ -79,12 +91,17 @@ const EventInsightsPage = () => {
     }
   };
 
+  const confirmReleasePayout = () => setShowPayoutConfirm(true);
+
   const handleReleasePayout = async () => {
     if (!data?.event?._id) return;
+    setShowPayoutConfirm(false);
     setIsReleasingPayout(true);
     try {
       const response = await api.post(`/admin/payout/events/${data.event._id}`);
       toast.success(`Payout of ₹${response.data.payoutAmount?.toLocaleString() || '...'} initiated successfully!`);
+      setPayoutReleased(true);
+      fetchInsights(); // Refresh data to update status
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to release payout.");
     } finally {
@@ -105,10 +122,45 @@ const EventInsightsPage = () => {
   if (!data) return null;
 
   const { event, stats, ticketStats, attendees, volunteers } = data;
-  const sellThroughRate = (stats.totalTicketsSold / stats.capacity) * 100;
+  const sellThroughRate = stats.capacity > 0 ? (stats.totalTicketsSold / stats.capacity) * 100 : 0;
+  const paginatedAttendees = attendees.slice((attendeesPage - 1) * ATTENDEES_PER_PAGE, attendeesPage * ATTENDEES_PER_PAGE);
+  const totalAttendeePages = Math.ceil(attendees.length / ATTENDEES_PER_PAGE);
 
   return (
     <div className="space-y-4 pb-8 p-3 md:p-4 bg-background text-foreground min-h-screen">
+      {/* Payout Confirmation Dialog */}
+      <Dialog open={showPayoutConfirm} onOpenChange={setShowPayoutConfirm}>
+        <DialogContent className="bg-card border-border rounded-2xl sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black uppercase italic tracking-tight">Authorize Payout</DialogTitle>
+            <DialogDescription className="text-[11px] font-medium uppercase tracking-widest leading-relaxed opacity-70">
+              You are about to release ₹{stats.totalRevenue.toLocaleString()} to the event organizer. This action is permanent and will initiate the fund transfer protocol.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 border-y border-border/50 my-2">
+             <div className="flex justify-between items-center bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Net Payable</span>
+                <span className="text-xl font-black italic text-emerald-500 tabular-nums">₹{stats.totalRevenue.toLocaleString()}</span>
+             </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPayoutConfirm(false)}
+              className="rounded-xl text-[9px] font-black uppercase tracking-widest italic"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleReleasePayout}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest italic"
+            >
+              Confirm Release
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Navigation & Header */}
       <header className="flex flex-col gap-4 border-b border-border pb-4">
         <Link
@@ -144,13 +196,13 @@ const EventInsightsPage = () => {
           <div className="flex flex-wrap gap-2.5">
             {stats.totalRevenue > 0 && (
               <Button
-                onClick={handleReleasePayout}
-                disabled={isReleasingPayout}
+                onClick={confirmReleasePayout}
+                disabled={isReleasingPayout || payoutReleased}
                 type="button"
-                className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl text-[9px] font-black uppercase tracking-widest transition-all gap-2 shadow-sm italic"
+                className="h-9 px-5 bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl text-[9px] font-black uppercase tracking-widest transition-all gap-2 shadow-sm italic disabled:opacity-50"
               >
                 <IndianRupee className="h-3.5 w-3.5" />
-                {isReleasingPayout ? "RELEASING..." : "RELEASE PAYOUT"}
+                {isReleasingPayout ? "RELEASING..." : payoutReleased ? "PAYOUT RELEASED" : "RELEASE PAYOUT"}
               </Button>
             )}
             <Link to={`/portal/admin/events/${event._id}/edit`}>
@@ -374,7 +426,7 @@ const EventInsightsPage = () => {
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {attendees.length > 0 ? (
-                      attendees.map((at, i) => (
+                      paginatedAttendees.map((at, i) => (
                         <tr key={i} className="hover:bg-muted/20 transition-colors group">
                           <td className="px-4 py-3">
                              <div className="font-black uppercase tracking-tight text-[12px] group-hover:text-orange-500 transition-colors text-foreground">{at.name}</div>
@@ -407,6 +459,33 @@ const EventInsightsPage = () => {
                   </tbody>
                 </table>
              </div>
+             {totalAttendeePages > 1 && (
+               <div className="p-4 border-t border-border flex items-center justify-between bg-muted/5">
+                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-50 italic">
+                   Page {attendeesPage} of {totalAttendeePages}
+                 </p>
+                 <div className="flex gap-2">
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     disabled={attendeesPage === 1}
+                     onClick={() => setAttendeesPage(p => p - 1)}
+                     className="h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border-border italic"
+                   >
+                     Prev
+                   </Button>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     disabled={attendeesPage === totalAttendeePages}
+                     onClick={() => setAttendeesPage(p => p + 1)}
+                     className="h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border-border italic"
+                   >
+                     Next
+                   </Button>
+                 </div>
+               </div>
+             )}
           </div>
         </TabsContent>
 
@@ -456,7 +535,7 @@ const EventInsightsPage = () => {
                              </span>
                           </td>
                           <td className="px-4 py-3 text-right font-black text-[9px] text-muted-foreground/40 tabular-nums uppercase italic">
-                             {new Date((v as any).createdAt).toLocaleDateString()}
+                             {(v as any).createdAt ? new Date((v as any).createdAt).toLocaleDateString() : "N/A"}
                           </td>
                         </tr>
                       ))

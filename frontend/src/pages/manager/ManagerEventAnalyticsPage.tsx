@@ -66,7 +66,7 @@ const ManagerEventAnalyticsPage = () => {
       setData(response.data);
     } catch (error) {
       toast.error("Failed to recover event metrics.");
-      navigate("/portal/events");
+      navigate("/portal/manager/events");
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +85,7 @@ const ManagerEventAnalyticsPage = () => {
   if (!data) return null;
 
   const { event, stats, ticketStats, salesHistory, recentBookings } = data;
-  const sellThroughRate = (stats.totalTicketsSold / stats.capacity) * 100;
+  const sellThroughRate = stats.capacity > 0 ? (stats.totalTicketsSold / stats.capacity) * 100 : 0;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -98,7 +98,7 @@ const ManagerEventAnalyticsPage = () => {
         {/* Header */}
         <header className="flex flex-col gap-4 border-b border-border/50 pb-5">
           <Link
-            to="/portal/events"
+            to="/portal/manager/events"
             className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors italic"
           >
             <ArrowLeft className="h-3 w-3" />

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   TrendingUp,
@@ -26,10 +27,11 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const AnalyticsPage = () => {
   const { user } = useAuth();
-  const endpoint = user?.role === "admin" ? "/admin/analytics" : "/manager/analytics";
-  
+  const [period, setPeriod] = useState("30d");
+  const endpoint = user?.role === "admin" ? `/admin/analytics?period=${period}` : `/manager/analytics?period=${period}`;
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["analytics", endpoint],
+    queryKey: ["analytics", endpoint, period],
     queryFn: async () => {
       const { data } = await api.get(endpoint);
       return data;
@@ -46,40 +48,49 @@ const AnalyticsPage = () => {
     );
   }
 
+  const colorMap: Record<string, { bg: string, border: string, text: string }> = {
+    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/20", text: "text-emerald-400" },
+    blue: { bg: "bg-blue-500/10", border: "border-blue-500/20", text: "text-blue-400" },
+    purple: { bg: "bg-purple-500/10", border: "border-purple-500/20", text: "text-purple-400" },
+    orange: { bg: "bg-orange-500/10", border: "border-orange-500/20", text: "text-orange-400" },
+  };
+
   const statCards = [
     {
       label: "Total Revenue",
       value: `₹${stats?.totalRevenue?.toLocaleString() || 0}`,
       icon: DollarSign,
-      trend: "+12.5%",
-      trendUp: true,
+      trend: stats?.revenueTrend || "STABLE",
+      trendUp: stats?.revenueTrend?.includes("+"),
       color: "emerald",
     },
     {
       label: "Tickets Sold",
       value: stats?.totalTickets?.toLocaleString() || 0,
       icon: Ticket,
-      trend: "+8.2%",
-      trendUp: true,
+      trend: stats?.ticketsTrend || "STABLE",
+      trendUp: stats?.ticketsTrend?.includes("+"),
       color: "blue",
     },
     {
       label: "Active Users",
       value: stats?.activeUsers?.toLocaleString() || 0,
       icon: Users,
-      trend: "-2.1%",
-      trendUp: false,
+      trend: stats?.usersTrend || "STABLE",
+      trendUp: stats?.usersTrend?.includes("+"),
       color: "purple",
     },
     {
       label: "Growth Rate",
-      value: "24.5%",
+      value: stats?.growthRate ? `${stats.growthRate}%` : "—",
       icon: TrendingUp,
-      trend: "+4.3%",
-      trendUp: true,
+      trend: stats?.growthTrend || "STABLE",
+      trendUp: stats?.growthTrend?.includes("+"),
       color: "orange",
     },
-  ];  return (
+  ];
+
+  return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
       {/* Background Decor */}
       <div className="fixed inset-0 mesh-bg opacity-20 z-0" />
@@ -109,21 +120,21 @@ const AnalyticsPage = () => {
               className="p-5 bg-card/30 backdrop-blur-xl border border-border/50 rounded-2xl hover:border-emerald-500/30 transition-all duration-500 group shadow-lg shadow-black/5"
             >
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl bg-${card.color}-500/10 border border-${card.color}-500/20`}>
-                  <card.icon className={`h-4 w-4 text-${card.color}-400`} />
+                <div className={cn("p-3 rounded-xl border", colorMap[card.color].bg, colorMap[card.color].border)}>
+                  <card.icon className={cn("h-4 w-4", colorMap[card.color].text)} />
                 </div>
                 <div
                   className={cn(
                     "flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-background/50 border border-border/50 text-[8px] font-black uppercase tracking-widest transition-colors",
-                    card.trendUp ? "text-emerald-400 border-emerald-500/20" : "text-rose-400 border-rose-500/20"
+                    card.trendUp ? "text-emerald-400 border-emerald-500/20" : card.trend === "STABLE" ? "text-muted-foreground border-border/50" : "text-rose-400 border-rose-500/20"
                   )}
                 >
                   {card.trend}
-                  {card.trendUp ? (
+                  {card.trend !== "STABLE" && (card.trendUp ? (
                     <ArrowUpRight className="h-3 w-3" />
                   ) : (
                     <ArrowDownRight className="h-3 w-3" />
-                  )}
+                  ))}
                 </div>
               </div>
               <div>
@@ -142,9 +153,14 @@ const AnalyticsPage = () => {
               <h3 className="text-[9px] font-black uppercase tracking-[0.3em] italic text-muted-foreground">
                 Revenue Velocity
               </h3>
-              <select className="bg-muted/30 border border-border/50 rounded-lg px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground outline-none hover:border-emerald-500/30 transition-colors italic">
-                <option>Last 30 Days</option>
-                <option>Last 12 Months</option>
+              <select 
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="bg-muted/30 border border-border/50 rounded-lg px-3 py-1.5 text-[8px] font-black uppercase tracking-widest text-muted-foreground outline-none hover:border-emerald-500/30 transition-colors italic cursor-pointer"
+              >
+                <option value="30d">Last 30 Days</option>
+                <option value="12m">Last 12 Months</option>
+                <option value="all">All Time</option>
               </select>
             </div>
             <div className="h-60 w-full translate-x-[-5px]">

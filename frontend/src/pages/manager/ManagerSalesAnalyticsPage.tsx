@@ -50,32 +50,32 @@ const ManagerSalesAnalyticsPage = () => {
       label: "Gross Revenue",
       value: `₹${stats?.totalRevenue?.toLocaleString() || 0}`,
       icon: DollarSign,
-      trend: "+12.5%",
-      trendUp: true,
+      trend: stats?.revenueTrend || "STABLE",
+      trendUp: stats?.revenueTrend?.includes("+"),
       color: "emerald",
     },
     {
       label: "Tickets Sold",
       value: stats?.totalTickets?.toLocaleString() || 0,
       icon: Ticket,
-      trend: "+8.2%",
-      trendUp: true,
+      trend: stats?.ticketsTrend || "STABLE",
+      trendUp: stats?.ticketsTrend?.includes("+"),
       color: "blue",
     },
     {
       label: "Unique Attendees",
       value: stats?.activeUsers?.toLocaleString() || 0,
       icon: Users,
-      trend: "+3 new",
-      trendUp: true,
+      trend: stats?.usersTrend || "STABLE",
+      trendUp: stats?.usersTrend?.includes("+"),
       color: "purple",
     },
     {
       label: "Performance Score",
-      value: "A+",
+      value: stats?.performanceScore || "A",
       icon: TrendingUp,
-      trend: "Peak",
-      trendUp: true,
+      trend: stats?.performanceTrend || "STABLE",
+      trendUp: stats?.performanceTrend?.includes("+"),
       color: "orange",
     },
   ];
@@ -110,21 +110,21 @@ const ManagerSalesAnalyticsPage = () => {
               className="p-5 bg-card/30 backdrop-blur-xl border border-border/50 rounded-2xl hover:border-primary/30 transition-all duration-500 group shadow-lg shadow-black/5"
             >
               <div className="flex justify-between items-start mb-4">
-                <div className={`p-3 rounded-xl bg-primary/5 border border-primary/10`}>
-                  <card.icon className={`h-4 w-4 text-primary`} />
+                <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                  <card.icon className="h-4 w-4 text-primary" />
                 </div>
                 <div
                   className={cn(
                     "flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-background/50 border border-border/50 text-[8px] font-black uppercase tracking-widest transition-colors",
-                    card.trendUp ? "text-emerald-400 border-emerald-500/20" : "text-rose-400 border-rose-500/20"
+                    card.trendUp ? "text-emerald-400 border-emerald-500/20" : card.trend === "STABLE" ? "text-muted-foreground border-border/50" : "text-rose-400 border-rose-500/20"
                   )}
                 >
                   {card.trend}
-                  {card.trendUp ? (
+                  {card.trend !== "STABLE" && (card.trendUp ? (
                     <ArrowUpRight className="h-3 w-3" />
                   ) : (
                     <ArrowDownRight className="h-3 w-3" />
-                  )}
+                  ))}
                 </div>
               </div>
               <div>

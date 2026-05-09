@@ -42,6 +42,14 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: payoutDetails } = useQuery({
+    queryKey: ["admin-payout-details"],
+    queryFn: async () => {
+      const { data } = await api.get("/manager/payout-details");
+      return data;
+    },
+  });
+
   const avgDailyRevenue = analytics?.revenueHistory?.length 
     ? analytics.revenueHistory.reduce((acc: number, curr: any) => acc + curr.amount, 0) / analytics.revenueHistory.length
     : 0;
@@ -170,12 +178,16 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               <p className="text-[9px] font-black uppercase text-muted-foreground">Avg Daily</p>
               <p className="text-lg font-black italic">
-                {analyticsLoading ? "—" : `₹${avgDailyRevenue.toLocaleString()}`}
+                {analyticsLoading ? "—" : `₹${Math.round(avgDailyRevenue).toLocaleString()}`}
               </p>
             </div>
             <div className="space-y-1 text-center">
               <p className="text-[9px] font-black uppercase text-muted-foreground">Fee</p>
-              <p className="text-lg font-black text-primary italic">10%</p>
+              <p className="text-lg font-black text-primary italic">
+                {payoutDetails?.commissionType === "percentage" 
+                  ? `${payoutDetails.commissionValue}%` 
+                  : `₹${payoutDetails?.commissionValue || 0}`}
+              </p>
             </div>
             <div className="space-y-1 text-right">
               <p className="text-[9px] font-black uppercase text-muted-foreground">Total</p>
@@ -200,7 +212,7 @@ const AdminDashboard = () => {
           }
         >
           <div className="space-y-2 flex-1">
-            {stats?.topManagers?.length === 0 && (
+            {(!stats?.topManagers || stats.topManagers.length === 0) && (
               <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest py-3 text-center">No data yet</p>
             )}
             {stats?.topManagers?.map((m: any, idx: number) => (

@@ -4263,3 +4263,28 @@
 {"level":"info","message":"Ping successful: 200 - 2026-05-09T11:05:01.154Z"}
 {"level":"info","message":"Running external service ping..."}
 {"level":"info","message":"Ping successful: 200 - 2026-05-09T11:10:01.108Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-09T11:15:00.820Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T12:10:10.022Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T13:50:10.022Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T14:40:10.468Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T15:30:12.503Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T17:20:10.025Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-05-10T00:00:00.078Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-05-09T18:30:10.026Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-09T18:35:01.190Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-09T18:40:01.179Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-09T18:45:01.334Z"}
