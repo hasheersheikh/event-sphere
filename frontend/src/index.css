@@ -109,8 +109,8 @@
   }
 
   ::selection {
-    background: rgba(255, 255, 255, 0.2);
-    color: inherit;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
   }
 
   h1, h2, h3, h4, .brand-font {
