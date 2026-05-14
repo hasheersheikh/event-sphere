@@ -1,12 +1,22 @@
 import { motion } from "framer-motion";
-import { Calendar, MapPin, Share2, Download, X } from "lucide-react";
+import { Calendar, MapPin, Share2, Download, X, MessageCircle, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRef, useState } from "react";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
 
+interface Event {
+  title: string;
+  date: string;
+  location: {
+    venueName?: string;
+    address: string;
+  };
+  image?: string;
+}
+
 interface ShareSnippetProps {
-  event: any;
+  event: Event;
   onClose: () => void;
 }
 
@@ -40,6 +50,26 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
     } finally {
       setIsCapturing(false);
     }
+  };
+
+  const handleWhatsAppShare = async () => {
+    const shareText = `I'm going to "${event.title}"! 🎉\n\n📅 ${new Date(event.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}\n📍 ${event.location.venueName || event.location.address}\n\nCheck it out on Event Sphere!`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success("Opening WhatsApp...");
+  };
+
+  const handleInstagramShare = async () => {
+    const shareText = `I'm going to "${event.title}"! 🎉\n\n📅 ${new Date(event.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}\n📍 ${event.location.venueName || event.location.address}\n\nCheck it out on Event Sphere!`;
+    const shareUrl = window.location.href;
+
+    // Copy to clipboard since Instagram doesn't have a direct share API
+    await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+    toast.success("Copied to clipboard! Paste in your Instagram post or story.");
+
+    // Try to open Instagram app
+    const instagramUrl = `https://www.instagram.com/`;
+    window.open(instagramUrl, '_blank');
   };
 
   return (
@@ -114,7 +144,7 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
           </div>
         </div>
 
-        <div className="p-4 bg-card border-t border-border/30">
+        <div className="p-4 bg-card border-t border-border/30 space-y-3">
           <Button
             onClick={handleDownload}
             disabled={isCapturing}
@@ -128,6 +158,23 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
               </>
             )}
           </Button>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Button
+              onClick={handleWhatsAppShare}
+              variant="outline"
+              className="gap-2 h-11 text-sm rounded-xl border-green-500/50 hover:bg-green-500/10 hover:border-green-500 text-green-600"
+            >
+              <MessageCircle className="h-4 w-4" /> WhatsApp
+            </Button>
+            <Button
+              onClick={handleInstagramShare}
+              variant="outline"
+              className="gap-2 h-11 text-sm rounded-xl border-pink-500/50 hover:bg-pink-500/10 hover:border-pink-500 text-pink-600"
+            >
+              <Instagram className="h-4 w-4" /> Instagram
+            </Button>
+          </div>
         </div>
       </motion.div>
     </div>

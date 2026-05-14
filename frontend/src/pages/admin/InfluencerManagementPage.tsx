@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,13 @@ import {
   Star,
   Loader2,
   Upload,
+  ImageIcon,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { motion } from "framer-motion";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 interface Influencer {
   _id: string;
@@ -51,6 +53,49 @@ const InfluencerManagementPage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState(BLANK_FORM);
+  const [uploading, setUploading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      imageInputRef.current?.click();
+      return;
+    }
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: false,
+        cropping: true,
+        croppingAspectRatio: 1,
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          setForm((f) => ({ ...f, image: result.info.secure_url }));
+          toast.success("Image uploaded.");
+        }
+      },
+    );
+    widget.open();
+  };
+
+  const handleLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImageToBackend(file);
+      setForm((f) => ({ ...f, image: url }));
+      toast.success("Image uploaded.");
+    } catch {
+      toast.error("Upload failed. Try again.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const { data: influencers = [], isLoading } = useQuery<Influencer[]>({
     queryKey: ["influencers", "admin"],
@@ -121,6 +166,10 @@ const InfluencerManagementPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.image) {
+      toast.error("Please upload a profile image.");
+      return;
+    }
     if (editingId) {
       updateMutation.mutate({ id: editingId, payload: form });
     } else {
@@ -289,14 +338,40 @@ const InfluencerManagementPage = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Profile Image URL</label>
-              <Input 
-                value={form.image} 
-                onChange={(e) => setForm({...form, image: e.target.value})}
-                placeholder="Unsplash or Direct Link"
-                className="bg-muted/50 border-border rounded-xl h-12 text-[11px] font-black uppercase tracking-widest italic focus-visible:ring-primary"
-                required
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Profile Image</label>
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleLocalImageUpload}
               />
+              <div className="flex items-center gap-3">
+                {/* Preview */}
+                <div className="h-16 w-16 rounded-full border-2 border-dashed border-border bg-muted/30 flex items-center justify-center shrink-0 overflow-hidden">
+                  {form.image ? (
+                    <img src={form.image} alt="preview" className="h-full w-full object-cover rounded-full" />
+                  ) : (
+                    <ImageIcon className="h-5 w-5 text-muted-foreground/40" />
+                  )}
+                </div>
+                {/* Upload button */}
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={uploading}
+                  className="flex-1 h-12 border border-dashed border-border rounded-xl bg-muted/30 flex items-center justify-center gap-2 hover:bg-muted/60 hover:border-primary/50 transition-all group"
+                >
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Upload className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  )}
+                  <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                    {uploading ? "Uploading..." : form.image ? "Change Photo" : "Upload Photo"}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -326,12 +401,12 @@ const InfluencerManagementPage = () => {
               <span className="text-[10px] font-black uppercase italic tracking-widest text-muted-foreground">Active in engine</span>
             </div>
 
-            <Button 
+            <Button
               type="submit"
-              disabled={createMutation.isPending || updateMutation.isPending}
+              disabled={createMutation.isPending || updateMutation.isPending || uploading}
               className="w-full bg-primary text-primary-foreground h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] italic shadow-2xl transition-all"
             >
-              {(createMutation.isPending || updateMutation.isPending) ? "Processing..." : (editingId ? "Update Creator" : "Confirm Addition")}
+              {(createMutation.isPending || updateMutation.isPending) ? "Processing..." : uploading ? "Uploading image..." : (editingId ? "Update Creator" : "Confirm Addition")}
             </Button>
           </form>
         </DialogContent>

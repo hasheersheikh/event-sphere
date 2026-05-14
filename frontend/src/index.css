@@ -67,6 +67,11 @@
     --border-subtle: hsl(var(--border) / 0.3);
     --border-default: hsl(var(--border) / 0.5);
     --border-strong: hsl(var(--border));
+    --neon-pink: 320 100% 60%;
+    --neon-cyan: 180 100% 50%;
+    --neon-purple: 280 100% 65%;
+    --neon-lime: 71 100% 47%;
+    --neon-orange: 25 100% 55%;
   }
 
   .dark {
@@ -93,6 +98,11 @@
     --glass-bg: rgba(255, 255, 255, 0.04);
     --glass-border: rgba(255, 255, 255, 0.08);
     --shadow-primary: 0 8px 24px -8px rgba(255, 255, 255, 0.12);
+    --neon-pink: 320 100% 60%;
+    --neon-cyan: 180 100% 50%;
+    --neon-purple: 280 100% 65%;
+    --neon-lime: 71 100% 47%;
+    --neon-orange: 25 100% 55%;
   }
 }
 
@@ -207,6 +217,65 @@
 
   .animate-float-gentle {
     animation: float-gentle 6s ease-in-out infinite;
+  }
+
+  .text-neon-pink {
+    color: hsl(var(--neon-pink));
+  }
+
+  .text-neon-cyan {
+    color: hsl(var(--neon-cyan));
+  }
+
+  .text-neon-purple {
+    color: hsl(var(--neon-purple));
+  }
+
+  .text-neon-lime {
+    color: hsl(var(--neon-lime));
+  }
+
+  .text-neon-orange {
+    color: hsl(var(--neon-orange));
+  }
+
+  .bg-neon-pink {
+    background-color: hsl(var(--neon-pink));
+    box-shadow: 0 0 10px hsl(var(--neon-pink) / 0.5),
+                0 0 20px hsl(var(--neon-pink) / 0.3),
+                0 0 30px hsl(var(--neon-pink) / 0.2);
+  }
+
+  .bg-neon-cyan {
+    background-color: hsl(var(--neon-cyan));
+    box-shadow: 0 0 10px hsl(var(--neon-cyan) / 0.5),
+                0 0 20px hsl(var(--neon-cyan) / 0.3),
+                0 0 30px hsl(var(--neon-cyan) / 0.2);
+  }
+
+  .bg-neon-lime {
+    background-color: hsl(var(--neon-lime));
+    box-shadow: 0 0 10px hsl(var(--neon-lime) / 0.5),
+                0 0 20px hsl(var(--neon-lime) / 0.3),
+                0 0 30px hsl(var(--neon-lime) / 0.2);
+  }
+
+  .border-neon-pink {
+    border-color: hsl(var(--neon-pink));
+    box-shadow: 0 0 5px hsl(var(--neon-pink) / 0.3),
+                inset 0 0 5px hsl(var(--neon-pink) / 0.1);
+  }
+
+  .border-neon-cyan {
+    border-color: hsl(var(--neon-cyan));
+    box-shadow: 0 0 5px hsl(var(--neon-cyan) / 0.3),
+                inset 0 0 5px hsl(var(--neon-cyan) / 0.1);
+  }
+
+  .border-neon-lime {
+    border-color: hsl(var(--neon-lime));
+    box-shadow: 0 0 5px hsl(var(--neon-lime) / 0.3),
+                inset 0 0 5px hsl(var(--neon-lime) / 0.1);
   }
 
   @keyframes pulse-ring {

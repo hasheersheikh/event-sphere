@@ -101,8 +101,7 @@ const STRATEGIES = [
 const SHOWCASE_REELS = [
   "DSrwiaUDZEQ", // User requested: GulNaz Gull recap
   "C9tV3lYiRwL", // Viral: Tomorrowland 2024 Alesso Recap
-  "C9vTMylsR8I", // Viral: Tomorrowland Symphony of Unity
-  "C7z9Z8xW7yY"  // Popular: High-energy festival vibe
+  "C9vTMylsR8I"  // Viral: Tomorrowland Symphony of Unity
 ];
 
 const BoostMarketingPage = () => {
@@ -137,7 +136,7 @@ const BoostMarketingPage = () => {
   return (
     <div className="bg-background min-h-screen">
       <Navbar />
-      <div className="p-4 md:p-6 space-y-32 md:space-y-48 max-w-7xl mx-auto pb-48 pt-20">
+      <div className="p-4 md:p-6 space-y-32 md:space-y-48 max-w-[1440px] mx-auto pb-48 pt-20">
         {/* Public Landing Header */}
         <section className="pt-24 pb-6 space-y-8 text-center">
             <motion.div
@@ -158,7 +157,7 @@ const BoostMarketingPage = () => {
             </div>
             <div className="flex justify-center pt-8">
                <Link to={`/boost/request${selectedPlan ? `?plan=${selectedPlan}` : ""}`}>
-                <Button className="bg-[#C4F000] text-black h-16 px-12 rounded-2xl font-black uppercase tracking-widest text-[11px] italic flex items-center gap-3 shadow-2xl hover:bg-[#A3C800] hover:scale-105 transition-all">
+                <Button className="bg-neon-lime text-black h-16 px-12 rounded-2xl font-black uppercase tracking-widest text-[11px] italic flex items-center gap-3 shadow-2xl hover:bg-neon-lime/90 hover:scale-105 transition-all">
                   Start Marketing Now <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -295,7 +294,7 @@ const BoostMarketingPage = () => {
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] text-center">Tap any reel to see the magic in action</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-12 px-4">
             {SHOWCASE_REELS.map((reelId, idx) => (
               <motion.div
                 key={idx}
@@ -303,24 +302,25 @@ const BoostMarketingPage = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="flex justify-center"
+                className="flex justify-center w-full"
               >
-                <blockquote 
-                  className="instagram-media" 
-                  data-instgrm-permalink={`https://www.instagram.com/reel/${reelId}/?utm_source=ig_embed&utm_campaign=loading`} 
-                  data-instgrm-version="14" 
-                  style={{ 
-                    background: "#FFF", 
-                    border: "0", 
-                    borderRadius: "24px", 
-                    boxShadow: "0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)", 
-                    margin: "1px", 
-                    maxWidth: "326px", 
-                    minWidth: "326px", 
-                    padding: "0", 
-                    width: "100%"
-                  }}
-                >
+                <div className="w-full max-w-[400px] flex justify-center">
+                  <blockquote 
+                    className="instagram-media" 
+                    data-instgrm-permalink={`https://www.instagram.com/reel/${reelId}/?utm_source=ig_embed&utm_campaign=loading`} 
+                    data-instgrm-version="14" 
+                    style={{ 
+                      background: "#FFF", 
+                      border: "0", 
+                      borderRadius: "24px", 
+                      boxShadow: "0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15)", 
+                      margin: "1px", 
+                      maxWidth: "400px", 
+                      minWidth: "326px", 
+                      padding: "0", 
+                      width: "100%"
+                    }}
+                  >
                   <div style={{ padding: "16px" }}>
                     <a 
                       href={`https://www.instagram.com/reel/${reelId}/?utm_source=ig_embed&utm_campaign=loading`} 
@@ -384,6 +384,7 @@ const BoostMarketingPage = () => {
                     </p>
                   </div>
                 </blockquote>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -476,7 +477,7 @@ const BoostMarketingPage = () => {
 
         {/* Call to Action Section */}
         <section className="max-w-5xl mx-auto">
-          <div className="bg-[#C4F000] rounded-[3.5rem] p-16 text-black relative overflow-hidden group">
+          <div className="bg-neon-lime rounded-[3.5rem] p-16 text-black relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-16 opacity-10 rotate-12 transition-transform group-hover:rotate-0">
               <Rocket size={250} />
             </div>

@@ -14,6 +14,11 @@ import {
   Star,
   Shield,
   Target,
+  RefreshCcw,
+  Headphones,
+  Building2,
+  BarChart3,
+  QrCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -63,6 +68,51 @@ const AboutPage = () => {
       value: "99.9%",
       icon: ShieldCheck,
       color: "text-amber-500",
+    },
+  ];
+
+  const features = [
+    {
+      icon: RefreshCcw,
+      title: "Cash Flow in 48 Hours",
+      description:
+        "Forget waiting weeks. Get your ticket revenue within 48 hours post event, straight to your account.",
+      color: "text-lime-500",
+    },
+    {
+      icon: Zap,
+      title: "Go Live in Under 5 Minutes",
+      description:
+        "List your event, set up tickets, and start selling, all in less time than your coffee takes to brew.",
+      color: "text-yellow-500",
+    },
+    {
+      icon: Headphones,
+      title: "24/7 Human Support",
+      description:
+        "Real people, real-time help. No bots. Our team is available day and night to support your events.",
+      color: "text-blue-500",
+    },
+    {
+      icon: Building2,
+      title: "Ticketing at Any Scale",
+      description:
+        "From pop ups to packed festivals, CitiPulse handles it all, no limits, no glitches.",
+      color: "text-purple-500",
+    },
+    {
+      icon: BarChart3,
+      title: "Advanced Analytics & Insights",
+      description:
+        "Track sales, identify booking trends, and know your audience like never before, all from a simple dashboard.",
+      color: "text-pink-500",
+    },
+    {
+      icon: QrCode,
+      title: "Simplest Gate Management Ever",
+      description:
+        "QR-based check-in, real-time attendee data, and entry control, all in one app.",
+      color: "text-orange-500",
     },
   ];
 
@@ -166,6 +216,52 @@ const AboutPage = () => {
                   </h3>
                   <p className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">
                     {stat.label}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="py-24 container relative">
+          <div className="text-center space-y-4 mb-16">
+            <Badge
+              variant="secondary"
+              className="bg-primary/20 text-primary border-primary/30 rounded-xl px-4 py-1.5 font-bold uppercase tracking-widest text-[9px]"
+            >
+              Everything You Need
+            </Badge>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tighter uppercase leading-none">
+              Everything <span className="text-primary italic">You Need.</span>
+            </h2>
+            <p className="text-muted-foreground text-base md:text-lg font-medium italic max-w-2xl mx-auto">
+              CitiPulse provides all the tools you need to create, manage, and
+              scale your events with ease.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="p-8 rounded-[2.5rem] bg-card/30 border border-border/50 backdrop-blur-sm hover:border-primary/30 transition-all duration-500 group space-y-6"
+              >
+                <div
+                  className={`h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ${feature.color}`}
+                >
+                  <feature.icon className="h-7 w-7" />
+                </div>
+                <div className="space-y-3">
+                  <h3 className="text-xl font-black tracking-tighter uppercase italic leading-tight">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground font-medium leading-relaxed italic">
+                    {feature.description}
                   </p>
                 </div>
               </motion.div>

@@ -9,25 +9,22 @@ import {
   CalendarDays,
   Users,
   Globe,
-  Music,
-  Camera,
-  Cpu,
-  Sparkles,
-  Zap,
-  TrendingUp,
   Store,
+  Zap,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import GoLocalSection from "@/components/home/GoLocalSection";
 import { useCity } from "@/contexts/CityContext";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
 import { cn } from "@/lib/utils";
+import TrendingVenues from "@/components/home/TrendingVenues";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -35,19 +32,40 @@ const fadeUp = (delay = 0) => ({
   transition: { delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] },
 });
 
-const CATEGORIES = [
-  { label: "Music", icon: Music, href: "/events?category=Music" },
-  { label: "Arts", icon: Camera, href: "/events?category=Arts" },
-  { label: "Technology", icon: Cpu, href: "/events?category=Technology" },
-  { label: "Meetups", icon: Sparkles, href: "/events?category=Meetups" },
-  { label: "Sports", icon: Zap, href: "/events?category=Sports" },
-  { label: "Business", icon: TrendingUp, href: "/events?category=Business" },
-];
+const DATE_FILTERS = [
+  { id: "all", label: "All Events" },
+  { id: "today", label: "Today" },
+  { id: "week", label: "This Week" },
+  { id: "month", label: "This Month" },
+] as const;
+
+type DateFilterId = (typeof DATE_FILTERS)[number]["id"];
+
+function filterByDate(events: Event[], filter: DateFilterId): Event[] {
+  if (filter === "all") return events;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return events.filter((e) => {
+    const eventDate = new Date(e.date);
+    const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    if (filter === "today") return eventDay.getTime() === today.getTime();
+    if (filter === "week") {
+      const end = new Date(today); end.setDate(today.getDate() + 7);
+      return eventDay >= today && eventDay <= end;
+    }
+    if (filter === "month") {
+      const end = new Date(today); end.setDate(today.getDate() + 30);
+      return eventDay >= today && eventDay <= end;
+    }
+    return true;
+  });
+}
 
 
 const Index = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
   const { selectedCity } = useCity();
   const shouldReduce = useReducedMotion();
 
@@ -60,6 +78,42 @@ const Index = () => {
       return data;
     },
   });
+
+  const filteredEvents = useMemo(() => {
+    if (!upcomingEvents) return [];
+    return filterByDate(upcomingEvents, dateFilter);
+  }, [upcomingEvents, dateFilter]);
+
+  const { data: mostViewedEvents } = useQuery({
+    queryKey: ["mostViewedEvents", selectedCity],
+    queryFn: async () => {
+      const params = new URLSearchParams({ limit: "5", sort: "-viewCount" });
+      if (selectedCity) params.set("city", selectedCity);
+      const { data } = await api.get(`/events?${params.toString()}`);
+      return data as Event[];
+    },
+  });
+
+  const youMayLikeRef = useRef<HTMLDivElement>(null);
+  const [youMayCanLeft, setYouMayCanLeft] = useState(false);
+  const [youMayCanRight, setYouMayCanRight] = useState(false);
+
+  useEffect(() => {
+    const el = youMayLikeRef.current;
+    if (!el) return;
+    const check = () => {
+      setYouMayCanLeft(el.scrollLeft > 0);
+      setYouMayCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+    };
+    check();
+    el.addEventListener("scroll", check);
+    window.addEventListener("resize", check);
+    return () => { el.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
+  }, [mostViewedEvents]);
+
+  const scrollYouMayLike = (dir: "left" | "right") => {
+    youMayLikeRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
+  };
 
   const { data: heroAssets } = useQuery({
     queryKey: ["heroAssets"],
@@ -144,7 +198,7 @@ const Index = () => {
 
         {/* ── MOBILE HERO ── */}
         {hasHeroAssets && (
-          <section className="lg:hidden mt-14 p-4 relative overflow-hidden bg-background">
+          <section className="lg:hidden mt-14 relative overflow-hidden bg-background">
             <HeroGallery assets={filteredHeroAssets} />
           </section>
         )}
@@ -156,18 +210,10 @@ const Index = () => {
         )}>
           {/* ── VIDEO BOX ── */}
           {hasHeroAssets && (
-            <div className="hidden lg:flex lg:order-2 lg:col-span-5 items-center justify-center lg:pr-12 relative overflow-hidden">
-              {/* Background motion gradient blob behind video */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 aspect-square bg-primary/20 blur-[100px] rounded-full animate-pulse pointer-events-none" />
-
-              <motion.div
-                className="w-full lg:max-w-md relative z-10"
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1.3 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              >
+            <div className="hidden lg:flex lg:order-2 lg:col-span-5 items-center justify-center lg:pt-8 lg:pr-8 lg:pb-8">
+              <div className="w-[97%] h-full">
                 <HeroGallery assets={filteredHeroAssets} />
-              </motion.div>
+              </div>
             </div>
           )}
 
@@ -192,7 +238,7 @@ const Index = () => {
                 className="font-display font-black leading-[0.85] tracking-tighter text-[clamp(2.8rem,8vw,5.5rem)] mb-6"
                 {...fadeUp(0.05)}
               >
-                Catch the<br />City Pulse.
+                Catch the<br /> <span>City Pulse</span>.
               </motion.h1>
 
               <motion.p
@@ -239,9 +285,9 @@ const Index = () => {
                   </Button>
                 </Link>
                 <Link to="/local-stores">
-                  <Button variant="outline" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] border-border hover:bg-foreground hover:text-background transition-all gap-2">
+                  <Button variant="default" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-neon-lime text-black hover:bg-[#D4FF00] hover:shadow-[0_8px_24px_rgba(180,255,0,0.4)] transition-all gap-2">
                     <Store className="h-4 w-4" />
-                    Local Stores
+                    Unique Stores
                   </Button>
                 </Link>
               </motion.div>
@@ -270,50 +316,34 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══ CATEGORY PILLS ═══ */}
-        <section className="hidden lg:block border-t border-border/20 py-5">
-          <div className="container">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
-              {CATEGORIES.map((cat, i) => (
-                <motion.div
-                  key={cat.label}
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.04, duration: 0.35 }}
-                  className="shrink-0"
-                >
-                  <Link
-                    to={cat.href}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-full border border-border/50 bg-card hover:border-foreground/40 hover:bg-foreground/5 hover:text-foreground transition-all duration-200 text-[11px] font-bold uppercase tracking-widest text-foreground/50 whitespace-nowrap"
-                  >
-                    <cat.icon className="h-3.5 w-3.5" />
-                    {cat.label}
-                  </Link>
-                </motion.div>
-              ))}
-              <div className="shrink-0 ml-1">
-                <Link
-                  to="/events"
-                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-full border border-foreground/25 bg-foreground/5 text-foreground text-[11px] font-bold uppercase tracking-widest whitespace-nowrap hover:bg-foreground/10 transition-all"
-                >
-                  All Events <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
         <section className="border-t border-border/20 py-8">
-          <div className="container mb-4 flex items-center justify-between">
+          <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-foreground animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-pink animate-pulse" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em]">Upcoming</h2>
             </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+              {DATE_FILTERS.map((f) => (
+                <button
+                  key={f.id}
+                  onClick={() => setDateFilter(f.id)}
+                  className={cn(
+                    "whitespace-nowrap px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-150 shrink-0",
+                    dateFilter === f.id
+                      ? "bg-neon-lime text-black"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
             <Link
               to="/events"
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group"
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group shrink-0"
             >
               View All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
             </Link>
@@ -333,10 +363,10 @@ const Index = () => {
                   </div>
                 ))}
               </div>
-            ) : upcomingEvents?.length > 0 ? (
+            ) : filteredEvents?.length > 0 ? (
               <MarqueeCarousel
-                events={upcomingEvents}
-                speed={30}
+                events={filteredEvents}
+                speed={300}
                 direction="left"
                 pauseOnHover={true}
               />
@@ -345,7 +375,7 @@ const Index = () => {
                 <div className="text-center space-y-3 border border-dashed border-border rounded-xl px-12 py-8">
                   <CalendarDays className="h-8 w-8 text-muted-foreground/25 mx-auto" />
                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
-                    No events yet
+                    No events for this period
                   </p>
                 </div>
               </div>
@@ -353,42 +383,69 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══ FEATURED EVENTS GRID ═══ */}
-        {upcomingEvents && upcomingEvents.length > 0 && (
+        {/* ═══ YOU MAY ALSO LIKE ═══ */}
+        {mostViewedEvents && mostViewedEvents.length > 0 && (
           <section className="border-t border-border/20 py-12">
-            <div className="container">
-              <div className="flex items-end justify-between mb-8">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-2">
-                    Don't miss
-                  </p>
-                  <h2 className="text-2xl md:text-3xl font-black tracking-tighter">
-                    Featured Events
-                  </h2>
-                </div>
-                <Link
-                  to="/events"
-                  className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group"
-                >
-                  See All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
+            <div className="container mb-6 flex items-end justify-between">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-2">
+                  Most Viewed
+                </p>
+                <h2 className="text-2xl md:text-3xl font-black tracking-tighter">
+                  You May Also Like
+                </h2>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
-                {upcomingEvents.slice(0, 8).map((event: Event, i: number) => (
+              <Link
+                to="/events"
+                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group shrink-0"
+              >
+                See All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+            </div>
+
+            <div className="container relative">
+              <div
+                ref={youMayLikeRef}
+                className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+              >
+                {mostViewedEvents.map((event, i) => (
                   <motion.div
                     key={event._id}
+                    className="flex-shrink-0 w-64 sm:w-72 md:w-80"
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: i * 0.04, duration: 0.4 }}
+                    transition={{ delay: i * 0.06, duration: 0.4 }}
                   >
                     <EventCard event={event} index={i} />
                   </motion.div>
                 ))}
               </div>
+
+              {youMayCanLeft && (
+                <button
+                  onClick={() => scrollYouMayLike("left")}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:border-neon-lime/50 hover:text-neon-lime transition-all z-10"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+              )}
+              {youMayCanRight && (
+                <button
+                  onClick={() => scrollYouMayLike("right")}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:border-neon-lime/50 hover:text-neon-lime transition-all z-10"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              )}
             </div>
           </section>
         )}
+
+        {/* ═══ TRENDING VENUES ═══ */}
+        <TrendingVenues />
 
         {/* ═══ GO LOCAL ═══ */}
         <GoLocalSection />
@@ -424,7 +481,7 @@ const Index = () => {
                   </Link>
                   <Link to="/boost">
                     <Button variant="outline" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all gap-2">
-                      <TrendingUp className="h-4 w-4" />
+                      <Zap className="h-4 w-4" />
                       Boost Event
                     </Button>
                   </Link>

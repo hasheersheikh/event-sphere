@@ -168,6 +168,105 @@ export const getEventBookings = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
+  try {
+    const { eventId, tickets, contactName, email, phoneNumber, note } = req.body;
+
+    if (!eventId || !tickets || !Array.isArray(tickets) || tickets.length === 0) {
+      return res.status(400).json({ message: 'eventId and tickets are required' });
+    }
+    if (!contactName) {
+      return res.status(400).json({ message: 'Attendee name is required' });
+    }
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    // Only the event creator or an admin may issue offline tickets
+    const isCreator = event.creator.toString() === req.user?._id.toString();
+    const isAdmin = req.user?.role === 'admin';
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'Not authorized to issue offline tickets for this event' });
+    }
+
+    const enrichedTickets = [];
+    let totalAmount = 0;
+
+    for (const item of tickets) {
+      const ticketType = event.ticketTypes.find((t) => t.name === item.type);
+      if (!ticketType) {
+        return res.status(400).json({ message: `Ticket type "${item.type}" not found` });
+      }
+      const available = ticketType.capacity - ticketType.sold;
+      if (available < item.quantity) {
+        return res.status(400).json({ message: `Only ${available} tickets available for "${item.type}"` });
+      }
+
+      ticketType.sold += item.quantity;
+      const price = ticketType.price;
+      totalAmount += price * item.quantity;
+
+      enrichedTickets.push({
+        type: item.type,
+        quantity: item.quantity,
+        price,
+        selectedDays: [],
+        isFullPass: false,
+      });
+    }
+
+    // Find or create user record so booking has a valid user reference
+    let userId = req.user?._id;
+    if (!userId && email) {
+      let existingUser = await User.findOne({ email });
+      if (!existingUser) {
+        existingUser = await User.create({ name: contactName, email, phoneNumber: phoneNumber || '' });
+      }
+      userId = existingUser._id;
+    }
+    if (!userId) {
+      // Fall back to the issuing manager's ID as placeholder
+      userId = req.user?._id;
+    }
+
+    const booking = await Booking.create({
+      user: userId,
+      event: eventId,
+      tickets: enrichedTickets,
+      totalAmount,
+      email: email || '',
+      phoneNumber: phoneNumber || '',
+      contactName,
+      status: 'confirmed',
+      paymentId: 'OFFLINE',
+      isOffline: true,
+      offlineNote: note || '',
+    });
+
+    await event.save();
+
+    // Send ticket via email / WhatsApp if contact details provided (non-blocking)
+    if (email || phoneNumber) {
+      (async () => {
+        try {
+          const pdfBuffer = await generateTicketPDF(booking, event as any);
+          if (email) await sendTicketEmail(email, contactName, event, pdfBuffer);
+          if (phoneNumber) {
+            const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
+            await sendTicketWhatsApp(phoneNumber, contactName, event, pdfBuffer);
+          }
+        } catch (err) {
+          console.error('Offline ticket delivery failed:', err);
+        }
+      })();
+    }
+
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 export const checkInBooking = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;

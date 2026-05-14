@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Tag } from "lucide-react";
 import api from "@/lib/api";
 import StoreCard from "@/components/stores/StoreCard";
+import StoreSlider from "@/components/stores/StoreSlider";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 interface Product {
@@ -45,7 +46,7 @@ const GoLocalSection = () => {
           pillText="Nearby Gems"
           title={
             <>
-              Go <span className="text-primary">Local.</span>
+              Discover Unique Stores
             </>
           }
           subtitle="Discover handpicked local stores around you — fresh produce, artisan crafts, neighbourhood favourites."
@@ -54,22 +55,18 @@ const GoLocalSection = () => {
         />
 
         {isLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex gap-6 overflow-hidden">
             {Array(3)
               .fill(0)
               .map((_, i) => (
                 <div
                   key={i}
-                  className="h-80 rounded-3xl bg-muted animate-pulse"
+                  className="h-80 w-80 rounded-3xl bg-muted animate-pulse flex-shrink-0"
                 />
               ))}
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stores?.map((store) => (
-              <StoreCard key={store._id} store={store} showProducts={false} />
-            ))}
-          </div>
+          <StoreSlider stores={stores || []} showProducts={false} />
         )}
       </div>
     </section>

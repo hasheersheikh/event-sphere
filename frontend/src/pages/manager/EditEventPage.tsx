@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LayoutGrid,
   MapPin,
+  Users,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -70,6 +71,12 @@ const eventSchema = z.object({
   image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
   videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
   reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
+  lineup: z.array(z.object({
+    name: z.string().min(1, "Name is required"),
+    role: z.string().optional(),
+    instagramUrl: z.string().url("Please enter a valid Instagram URL").or(z.literal("")).optional(),
+    image: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+  })).optional(),
   ageRestriction: z.string().optional().default("All Ages"),
 
   // ── Schedule ──────────────────────────────────────────────────────────────
@@ -112,9 +119,12 @@ const eventSchema = z.object({
   }),
 
   coordinator: z.object({
-    name: z.string().min(1, "Coordinator name is required"),
-    phone: z.string().regex(/^\+91\d{10}$/, "Phone number must start with +91 and be 13 digits"),
-  }),
+    name: z.string().optional().default(""),
+    phone: z.string().refine(
+      (val) => !val || /^\+91\d{10}$/.test(val),
+      "Phone number must start with +91 and be 13 digits"
+    ).optional().default(""),
+  }).optional(),
 
   // ── Tickets & vouchers ────────────────────────────────────────────────────
   ticketTypes: z.array(z.object({
@@ -220,6 +230,7 @@ const EditEventPage = () => {
       days: [],
       ticketTypes: [],
       vouchers: [],
+      lineup: [],
     },
   });
 
@@ -227,6 +238,7 @@ const EditEventPage = () => {
   const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
   const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
   const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
+  const { fields: lineupFields, append: appendLineup, remove: removeLineup } = useFieldArray({ name: "lineup", control: form.control });
 
   const scheduleType = form.watch("scheduleType");
   const recurrenceFreq = form.watch("recurrence.frequency");
@@ -297,6 +309,7 @@ const EditEventPage = () => {
         })) || [],
         ticketTypes: event.ticketTypes || [],
         vouchers: event.vouchers || [],
+        lineup: event.lineup || [],
         ageRestriction: event.ageRestriction || "All Ages",
       });
     }
@@ -367,13 +380,15 @@ const EditEventPage = () => {
       fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
     }
     if (currentStep === 2) {
-      fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
+      fieldsToValidate.push("location.address", "city");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
       else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
-      else if (scheduleType === "multi_day") fieldsToValidate.push("days");
+      // coordinator is optional — only validate phone format if user filled it
+      const coordPhone = form.getValues("coordinator.phone");
+      if (coordPhone) fieldsToValidate.push("coordinator.phone");
     }
-    const isValid = await form.trigger(fieldsToValidate);
+    const isValid = await form.trigger(fieldsToValidate as any);
     if (isValid) {
       if (currentStep === 2) {
         if (scheduleType === "multi_slot") {
@@ -386,11 +401,27 @@ const EditEventPage = () => {
             return;
           }
         }
+        if (scheduleType === "multi_day") {
+          if (dayFields.length === 0) {
+            toast.error("Please select at least one day on the calendar.");
+            return;
+          }
+        }
+        if (scheduleType === "recurring") {
+          const freq = form.getValues("recurrence.frequency");
+          if (freq === "weekly") {
+            const days = form.getValues("recurrence.daysOfWeek") || [];
+            if (days.length === 0) {
+              toast.error("Please select at least one day of the week for the recurring event.");
+              return;
+            }
+          }
+        }
       }
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
     } else {
-      toast.error("Please resolve the issues in the current stage.");
+      toast.error("Please fill in all required fields before continuing.");
     }
   };
 
@@ -400,6 +431,25 @@ const EditEventPage = () => {
     if (currentStep === 3) {
       mutation.mutate(values);
     }
+  };
+
+  const handleFinalSubmit = async () => {
+    if (ticketFields.length === 0) {
+      toast.error("Please add at least one ticket type before saving.");
+      return;
+    }
+    const ticketFieldNames = ticketFields.flatMap((_, i) => [
+      `ticketTypes.${i}.name`,
+      `ticketTypes.${i}.price`,
+      `ticketTypes.${i}.capacity`,
+    ]);
+    const isValid = await form.trigger(ticketFieldNames as any);
+    if (!isValid) {
+      toast.error("Please fill in all required ticket fields.");
+      return;
+    }
+    const values = form.getValues();
+    mutation.mutate(values as any);
   };
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -615,24 +665,31 @@ const EditEventPage = () => {
                           )}
                         />
 
-                        <div className="space-y-3">
-                          <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
-                            Event Banner
-                          </FormLabel>
-                          <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
-                          <button
-                            type="button"
-                            onClick={handleUpload}
-                            className="w-full h-11 bg-background/50 border border-dashed border-white/20 rounded-lg flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
-                          >
-                            <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
-                              {form.watch("image")
-                                ? "Change Image"
-                                : "Upload Image"}
-                            </span>
-                          </button>
-                        </div>
+                        <FormField
+                          control={form.control}
+                          name="image"
+                          render={() => (
+                            <FormItem>
+                              <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
+                                Event Banner
+                              </FormLabel>
+                              <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
+                              <button
+                                type="button"
+                                onClick={handleUpload}
+                                className="w-full h-11 bg-background/50 border border-dashed border-white/20 rounded-lg flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
+                              >
+                                <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                                  {form.watch("image")
+                                    ? "Change Image"
+                                    : "Upload Image"}
+                                </span>
+                              </button>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
 
                       <FormField
@@ -702,56 +759,116 @@ const EditEventPage = () => {
                       </div>
 
                       <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-primary/10 rounded-lg"><Users className="h-3.5 w-3.5 text-primary" /></div>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary block">Event Lineup (Influencers & Hosts)</FormLabel>
+                        </div>
+                        <div className="space-y-3">
+                          {lineupFields.map((_, index) => (
+                            <div key={index} className="p-4 border border-white/5 rounded-xl bg-muted/10 space-y-3 glass-card">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Person {index + 1}</span>
+                                <button type="button" onClick={() => removeLineup(index)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                              <div className="grid md:grid-cols-2 gap-3">
+                                <FormField control={form.control} name={`lineup.${index}.name`} render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Name</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="e.g. Shah Rukh Khan" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <FormField control={form.control} name={`lineup.${index}.role`} render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Role</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="e.g. Host, DJ, Guest" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <FormField control={form.control} name={`lineup.${index}.instagramUrl`} render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Instagram Profile URL</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="https://instagram.com/username" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                                <FormField control={form.control} name={`lineup.${index}.image`} render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Profile Image URL</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Profile image URL" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                              </div>
+                            </div>
+                          ))}
+                          <Button type="button" variant="outline" onClick={() => appendLineup({ name: "", role: "", instagramUrl: "", image: "" })} className="w-full h-11 rounded-xl border-dashed border-white/20 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5 hover:border-primary">
+                            <Plus className="h-3 w-3" /> Add Person to Lineup
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
                         <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
                           YouTube Shorts
                         </FormLabel>
-                          <div className="space-y-3">
-                            {form.watch("reels")?.map((_, index) => (
-                              <div key={index} className="flex gap-2">
-                                <Input
-                                  className="h-12 bg-background/40 border-white/5 rounded-xl font-black shadow-inner text-xs"
-                                  placeholder="https://youtube.com/shorts/..."
-                                  value={form.watch(`reels.${index}`)}
-                                  onChange={(e) => {
-                                    const newReels = [
-                                      ...(form.getValues("reels") || []),
-                                    ];
-                                    newReels[index] = e.target.value;
-                                    form.setValue("reels", newReels);
-                                  }}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  onClick={() => {
-                                    const newReels = [
-                                      ...(form.getValues("reels") || []),
-                                    ];
-                                    newReels.splice(index, 1);
-                                    form.setValue("reels", newReels);
-                                  }}
-                                  className="hover:bg-destructive/10 hover:text-destructive h-12 w-12 rounded-xl"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ))}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                form.setValue("reels", [
-                                  ...(form.getValues("reels") || []),
-                                  "",
-                                ])
-                              }
-                              className="w-full h-12 rounded-xl border-dashed border-white/20 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5 hover:border-primary/50"
-                            >
-                              <Plus className="h-3 w-3" /> Add YouTube Short
-                            </Button>
-                          </div>
+                        <div className="space-y-3">
+                          {form.watch("reels")?.map((_, index) => (
+                            <div key={index} className="flex gap-2">
+                              <Input
+                                className="h-12 bg-background/40 border-white/5 rounded-xl font-black shadow-inner text-xs"
+                                placeholder="https://youtube.com/shorts/..."
+                                value={form.watch(`reels.${index}`)}
+                                onChange={(e) => {
+                                  const newReels = [
+                                    ...(form.getValues("reels") || []),
+                                  ];
+                                  newReels[index] = e.target.value;
+                                  form.setValue("reels", newReels);
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => {
+                                  const newReels = [
+                                    ...(form.getValues("reels") || []),
+                                  ];
+                                  newReels.splice(index, 1);
+                                  form.setValue("reels", newReels);
+                                }}
+                                className="hover:bg-destructive/10 hover:text-destructive h-12 w-12 rounded-xl"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() =>
+                              form.setValue("reels", [
+                                ...(form.getValues("reels") || []),
+                                "",
+                              ])
+                            }
+                            className="w-full h-12 rounded-xl border-dashed border-white/20 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5 hover:border-primary/50"
+                          >
+                            <Plus className="h-3 w-3" /> Add YouTube Short
+                          </Button>
                         </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -964,9 +1081,9 @@ const EditEventPage = () => {
                                 {(["daily", "weekly"] as const).map((freq) => (
                                   <button key={freq} type="button"
                                     onClick={() => {
-                                  form.setValue("recurrence.frequency", freq);
-                                  if (freq === "daily") form.setValue("recurrence.daysOfWeek", []);
-                                }}
+                                      form.setValue("recurrence.frequency", freq);
+                                      if (freq === "daily") form.setValue("recurrence.daysOfWeek", []);
+                                    }}
                                     className={cn("flex-1 h-11 rounded-xl border-2 text-[11px] font-black uppercase tracking-wider transition-all",
                                       recurrenceFreq === freq ? "bg-primary text-primary-foreground border-primary" : "border-border/50 hover:border-primary/40"
                                     )}>
@@ -1117,37 +1234,37 @@ const EditEventPage = () => {
                                 .map((field) => {
                                   const index = field.originalIndex;
                                   return (
-                                  <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 glass-card">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-                                        {field.date ? format(new Date(field.date as unknown as Date), "EEE, MMM d") : `Day ${index + 1}`}
-                                      </span>
-                                    </div>
-                                    <div className="grid md:grid-cols-4 gap-4">
-                                      <div className="md:col-span-2">
-                                        <FormField control={form.control} name={`days.${index}.title`} render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Day Title</FormLabel>
-                                            <FormControl><Input placeholder="Keynote" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
-                                          </FormItem>
-                                        )} />
+                                    <div key={field.id} className="p-4 border border-white/5 rounded-xl bg-muted/10 glass-card">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                                          {field.date ? format(new Date(field.date as unknown as Date), "EEE, MMM d") : `Day ${index + 1}`}
+                                        </span>
                                       </div>
-                                      <div className="grid grid-cols-2 gap-2 md:col-span-2">
-                                        <FormField control={form.control} name={`days.${index}.startTime`} render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start</FormLabel>
-                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
-                                          </FormItem>
-                                        )} />
-                                        <FormField control={form.control} name={`days.${index}.endTime`} render={({ field }) => (
-                                          <FormItem>
-                                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">End</FormLabel>
-                                            <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
-                                          </FormItem>
-                                        )} />
+                                      <div className="grid md:grid-cols-4 gap-4">
+                                        <div className="md:col-span-2">
+                                          <FormField control={form.control} name={`days.${index}.title`} render={({ field }) => (
+                                            <FormItem>
+                                              <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Day Title</FormLabel>
+                                              <FormControl><Input placeholder="Keynote" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                            </FormItem>
+                                          )} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 md:col-span-2">
+                                          <FormField control={form.control} name={`days.${index}.startTime`} render={({ field }) => (
+                                            <FormItem>
+                                              <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start</FormLabel>
+                                              <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
+                                            </FormItem>
+                                          )} />
+                                          <FormField control={form.control} name={`days.${index}.endTime`} render={({ field }) => (
+                                            <FormItem>
+                                              <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">End</FormLabel>
+                                              <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-[10px] font-bold px-2" {...field} /></FormControl>
+                                            </FormItem>
+                                          )} />
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
                                   );
                                 })}
                             </div>
@@ -1454,11 +1571,11 @@ const EditEventPage = () => {
                                           <FormControl>
                                             <div className="relative">
                                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-primary">₹</span>
-                                              <Input 
-                                                type="number" 
-                                                placeholder="Full Pass Cost" 
-                                                className="h-10 pl-7 bg-primary/10 border-primary/20 rounded-xl font-black text-xs text-primary shadow-inner" 
-                                                {...field} 
+                                              <Input
+                                                type="number"
+                                                placeholder="Full Pass Cost"
+                                                className="h-10 pl-7 bg-primary/10 border-primary/20 rounded-xl font-black text-xs text-primary shadow-inner"
+                                                {...field}
                                               />
                                             </div>
                                           </FormControl>
@@ -1494,7 +1611,7 @@ const EditEventPage = () => {
                                             onChange={(e) => {
                                               const currentPrices = form.getValues(`ticketTypes.${index}.dayWisePrices`) || [];
                                               const existingIndex = currentPrices.findIndex(p => p.dayIndex === dayIndex);
-                                              
+
                                               if (existingIndex > -1) {
                                                 currentPrices[existingIndex].price = Number(e.target.value);
                                               } else {
@@ -1646,7 +1763,7 @@ const EditEventPage = () => {
               ) : (
                 <Button
                   type="button"
-                  onClick={() => form.handleSubmit(onSubmit)()}
+                  onClick={handleFinalSubmit}
                   disabled={mutation.isPending}
                   className="h-10 flex-[2] rounded-lg font-black uppercase tracking-[0.3em] text-[10px] transition-all shadow-2xl bg-emerald-500 text-black hover:bg-emerald-400"
                 >

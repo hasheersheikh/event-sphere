@@ -64,6 +64,8 @@ export default {
           black: "#080808",
           white: "#FFFFFF",
         },
+        "neon-lime": "hsl(var(--neon-lime))",
+        "neon-green": "hsl(var(--neon-lime))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

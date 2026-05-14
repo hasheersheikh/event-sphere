@@ -74,6 +74,7 @@ import ScrollToTop from "./components/layout/ScrollToTop";
 import HeroManagementPage from "./pages/admin/HeroManagementPage";
 import RefundManagementPage from "./pages/admin/RefundManagementPage";
 import InfluencerManagementPage from "./pages/admin/InfluencerManagementPage";
+import TrendingVenueManagementPage from "./pages/admin/TrendingVenueManagementPage";
 import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
 import BoostRequestPage from "./pages/manager/BoostRequestPage";
 import { FEATURES } from "./config/features";
@@ -290,6 +291,7 @@ const AppContent = () => {
                   <Route path="admin/local-stores/:id/edit" element={<CreateStorePage />} />
                   <Route path="admin/store-orders" element={<StoreOrdersPage />} />
                   <Route path="admin/hero" element={<HeroManagementPage />} />
+                  <Route path="admin/trending-venues" element={<TrendingVenueManagementPage />} />
                   <Route path="admin/refunds" element={<RefundManagementPage />} />
                   <Route path="admin/influencers" element={<InfluencerManagementPage />} />
                   <Route path="manager" element={<ManagerDashboard />} />

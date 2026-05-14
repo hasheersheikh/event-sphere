@@ -69,6 +69,17 @@ const eventSchema = z.object({
   image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
   videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
   reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
+  artist: z.object({
+    name: z.string().optional(),
+    instagramHandle: z.string().optional(),
+    profileImage: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+  }).optional(),
+  lineup: z.array(z.object({
+    name: z.string().min(1, "Name is required"),
+    role: z.string().optional(),
+    instagramUrl: z.string().url("Please enter a valid Instagram URL").or(z.literal("")).optional(),
+    image: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+  })).optional(),
   ageRestriction: z.string().optional().default("All Ages"),
 
   // ── Schedule ──────────────────────────────────────────────────────────────
@@ -207,6 +218,7 @@ const CreateEventPage = () => {
       coordinator: { name: "", phone: "" },
       ticketTypes: [{ name: "General Admission", price: 0, capacity: 100, isSoldOut: false, isFullPass: false, dayWisePrices: [] }],
       vouchers: [],
+      lineup: [],
     },
   });
 
@@ -219,6 +231,7 @@ const CreateEventPage = () => {
   const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
   const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
   const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
+  const { fields: lineupFields, append: appendLineup, remove: removeLineup } = useFieldArray({ name: "lineup", control: form.control });
 
   // ── Schedule type change — clears stale type-specific data ───────────────
   const handleScheduleTypeChange = (newType: EventFormValues["scheduleType"]) => {
@@ -484,22 +497,120 @@ const CreateEventPage = () => {
                       )} />
 
                       <div className="grid md:grid-cols-2 gap-6">
-                        <FormField control={form.control} name="ageRestriction" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className={labelCls}>Age Requirement</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger className={cn(inputCls, "h-12")}><SelectValue placeholder="Select Age" /></SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {["All Ages", "13+", "16+", "18+", "21+"].map((age) => (<SelectItem key={age} value={age} className="font-medium">{age}</SelectItem>))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        
-                        <FormField control={form.control} name="videoUrl" render={({ field }) => (
+                         <FormField control={form.control} name="ageRestriction" render={({ field }) => (
+                           <FormItem>
+                             <FormLabel className={labelCls}>Age Requirement</FormLabel>
+                             <Select onValueChange={field.onChange} defaultValue={field.value}>
+                               <FormControl>
+                                 <SelectTrigger className={cn(inputCls, "h-12")}><SelectValue placeholder="Select Age" /></SelectTrigger>
+                               </FormControl>
+                               <SelectContent>
+                                 {["All Ages", "13+", "16+", "18+", "21+"].map((age) => (<SelectItem key={age} value={age} className="font-medium">{age}</SelectItem>))}
+                               </SelectContent>
+                             </Select>
+                             <FormMessage />
+                           </FormItem>
+                         )} />
+
+                       {/* Artist Information */}
+                       <div className="md:col-span-2 space-y-4 pt-4 border-t border-border/30">
+                         <div className="flex items-center gap-2">
+                           <div className="p-1.5 bg-neon-lime/10 rounded-lg"><Users className="h-3.5 w-3.5 text-neon-lime" /></div>
+                           <Label className="text-[10px] font-black uppercase tracking-widest text-neon-lime">Artist Information (Optional)</Label>
+                         </div>
+                         <div className="grid md:grid-cols-3 gap-4">
+                           <FormField control={form.control} name="artist.name" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel className={labelCls}>Artist Name</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="Artist name" className={cn(inputCls, "h-11")} {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )} />
+                           <FormField control={form.control} name="artist.instagramHandle" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel className={labelCls}>Instagram Handle</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="@username" className={cn(inputCls, "h-11")} {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )} />
+                           <FormField control={form.control} name="artist.profileImage" render={({ field }) => (
+                             <FormItem>
+                               <FormLabel className={labelCls}>Artist Profile Image</FormLabel>
+                               <FormControl>
+                                 <Input placeholder="Profile image URL" className={cn(inputCls, "h-11")} {...field} />
+                               </FormControl>
+                               <FormMessage />
+                             </FormItem>
+                           )} />
+                          </div>
+                        </div>
+
+                        {/* Lineup */}
+                        <div className="md:col-span-2 space-y-4 pt-4 border-t border-border/30">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1.5 bg-primary/10 rounded-lg"><Users className="h-3.5 w-3.5 text-primary" /></div>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-primary">Event Lineup (Influencers & Hosts)</Label>
+                          </div>
+                          <div className="space-y-3">
+                            {lineupFields.map((_, index) => (
+                              <div key={index} className="p-4 border border-border/40 rounded-xl bg-muted/10 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className={labelCls}>Person {index + 1}</span>
+                                  <button type="button" onClick={() => removeLineup(index)} className="text-muted-foreground hover:text-destructive transition-colors">
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-3">
+                                  <FormField control={form.control} name={`lineup.${index}.name`} render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Name</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="e.g. Shah Rukh Khan" className={cn(inputCls, "h-10 text-xs")} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={form.control} name={`lineup.${index}.role`} render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Role</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="e.g. Host, DJ, Guest" className={cn(inputCls, "h-10 text-xs")} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={form.control} name={`lineup.${index}.instagramUrl`} render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Instagram Profile URL</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="https://instagram.com/username" className={cn(inputCls, "h-10 text-xs")} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                  <FormField control={form.control} name={`lineup.${index}.image`} render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Profile Image URL</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="Profile image URL" className={cn(inputCls, "h-10 text-xs")} {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )} />
+                                </div>
+                              </div>
+                            ))}
+                            <Button type="button" variant="outline" onClick={() => appendLineup({ name: "", role: "", instagramUrl: "", image: "" })} className="w-full h-10 rounded-xl border-dashed border-border/50 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/5">
+                              <Plus className="h-3 w-3" /> Add Person to Lineup
+                            </Button>
+                          </div>
+                        </div>
+
+                         <FormField control={form.control} name="videoUrl" render={({ field }) => (
                           <FormItem>
                             <FormLabel className={labelCls}>Main Video URL (YouTube)</FormLabel>
                             <FormControl><Input placeholder="https://youtube.com/watch?v=..." className={inputCls} {...field} /></FormControl>

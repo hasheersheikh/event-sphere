@@ -12,13 +12,12 @@ const Footer = () => {
       { label: "Local Stores", href: "/local-stores" },
       { label: "Boost Event", href: "/boost" },
       ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", href: "/blog" }] : []),
-      { label: "About", href: "/about" },
+
     ],
     Support: [
       { label: "Contact", href: "/contact" },
       { label: "Help Centre", href: "/help" },
-      { label: "Privacy", href: "/privacy" },
-      { label: "Terms", href: "/terms" },
+      { label: "About", href: "/about" },
     ],
   };
 
@@ -89,11 +88,11 @@ const Footer = () => {
             © {currentYear} City Pulse
           </p>
           <div className="flex gap-6">
-            <Link to="/privacy" onClick={scrollToTop} className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50 hover:text-foreground transition-colors">
+            <Link to="/privacy" onClick={scrollToTop} className="text-[10px] font-bold uppercase tracking-[0.25em] text-neon-purple hover:text-neon-purple/80 transition-colors">
               Privacy
             </Link>
-            <Link to="/terms" onClick={scrollToTop} className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground/50 hover:text-foreground transition-colors">
-              Terms
+            <Link to="/terms" onClick={scrollToTop} className="text-[10px] font-bold uppercase tracking-[0.25em] text-neon-purple hover:text-neon-purple/80 transition-colors">
+              Terms and Conditions
             </Link>
           </div>
         </div>

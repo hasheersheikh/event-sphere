@@ -35,6 +35,7 @@ const Sidebar = () => {
     { label: "Store Orders", icon: CheckCircle, href: "/portal/admin/store-orders" },
     ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", icon: BookOpen, href: "/portal/admin/blog" }] : []),
     { label: "Hero Gallery", icon: LayoutDashboard, href: "/portal/admin/hero" },
+    { label: "Trending Venues", icon: TrendingUp, href: "/portal/admin/trending-venues" },
     { label: "Influencer Net", icon: Users, href: "/portal/admin/influencers" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },

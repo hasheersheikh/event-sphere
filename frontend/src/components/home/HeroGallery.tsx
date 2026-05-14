@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
-import { useQuery } from "@tanstack/react-query";
-import api from "@/lib/api";
+interface HeroAsset {
+  _id: string;
+  type: "image" | "video";
+  url: string;
+  isActive: boolean;
+  targetDevice: "all" | "mobile" | "desktop";
+  duration?: number;
+}
 
 interface HeroGalleryProps {
-  assets: any[];
+  assets: HeroAsset[];
 }
 
 const HeroGallery = ({ assets }: HeroGalleryProps) => {
@@ -21,7 +26,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
 
   useEffect(() => {
     if (HERO_ASSETS.length === 0) return;
-    
+
     const currentAsset = HERO_ASSETS[currentIndex];
 
     if (currentAsset.type === "image") {
@@ -35,6 +40,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
         clearTimeout(timeoutRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentIndex, HERO_ASSETS]);
 
   const handleVideoEnded = () => {
@@ -44,16 +50,8 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
   if (HERO_ASSETS.length === 0) return null;
 
   return (
-    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-2xl lg:rounded-3xl border border-border shadow-lg lg:shadow-2xl bg-muted rotate-0 lg:rotate-2 lg:hover:rotate-0 transition-transform duration-500">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute inset-0 w-full h-full"
-        >
+    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="absolute inset-0 w-full h-full">
           {HERO_ASSETS[currentIndex].type === "image" ? (
             <img
               src={HERO_ASSETS[currentIndex].url}
@@ -72,8 +70,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
               <source src={HERO_ASSETS[currentIndex].url} type="video/mp4" />
             </video>
           )}
-        </motion.div>
-      </AnimatePresence>
+      </div>
       
       {/* subtle bottom gradient for readability if text overlaps */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />

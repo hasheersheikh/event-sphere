@@ -26,10 +26,31 @@ import {
   Zap,
   Activity,
   AlertTriangle,
+  ClipboardList,
+  Plus,
+  Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,12 +67,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const defaultOfflineForm = {
+  contactName: "",
+  email: "",
+  phoneNumber: "",
+  ticketType: "",
+  quantity: 1,
+  note: "",
+};
+
 const ManageEventPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
+  const [offlineOpen, setOfflineOpen] = useState(false);
+  const [offlineForm, setOfflineForm] = useState(defaultOfflineForm);
 
   const toggleSoldOutMutation = useMutation({
     mutationFn: async (ticketIndex: number) => {
@@ -82,6 +114,46 @@ const ManageEventPage = () => {
       toast.error(error.response?.data?.message || "Cancellation failed.");
     },
   });
+
+  const issueOfflineMutation = useMutation({
+    mutationFn: async (form: typeof defaultOfflineForm) => {
+      const { data } = await api.post("/bookings/offline", {
+        eventId: id,
+        tickets: [{ type: form.ticketType, quantity: form.quantity }],
+        contactName: form.contactName,
+        email: form.email || undefined,
+        phoneNumber: form.phoneNumber || undefined,
+        note: form.note || undefined,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Offline ticket issued successfully.");
+      setOfflineOpen(false);
+      setOfflineForm(defaultOfflineForm);
+      fetchDetails();
+      queryClient.invalidateQueries({ queryKey: ["event", id] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to issue ticket.");
+    },
+  });
+
+  const handleOfflineSubmit = () => {
+    if (!offlineForm.contactName.trim()) {
+      toast.error("Attendee name is required.");
+      return;
+    }
+    if (!offlineForm.ticketType) {
+      toast.error("Please select a ticket type.");
+      return;
+    }
+    if (offlineForm.quantity < 1) {
+      toast.error("Quantity must be at least 1.");
+      return;
+    }
+    issueOfflineMutation.mutate(offlineForm);
+  };
 
   useEffect(() => {
     fetchDetails();
@@ -352,7 +424,15 @@ const ManageEventPage = () => {
                       Manage Volunteers
                     </Button>
                   </Link>
-                  
+
+                  <Button
+                    onClick={() => setOfflineOpen(true)}
+                    className="w-full h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white text-[9px] font-black uppercase tracking-widest shadow-sm italic transition-all gap-2"
+                  >
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    Issue Offline Ticket
+                  </Button>
+
                   {event.status !== 'cancelled' && event.status !== 'past' && (new Date(event.date) > new Date()) && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -568,6 +648,129 @@ const ManageEventPage = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Offline Ticket Dialog */}
+      <Dialog open={offlineOpen} onOpenChange={setOfflineOpen}>
+        <DialogContent className="bg-card border-border rounded-2xl max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-black uppercase italic tracking-tight flex items-center gap-3">
+              <ClipboardList className="h-5 w-5 text-blue-400" />
+              Issue Offline Ticket
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold italic opacity-60 leading-relaxed">
+              Manually create a confirmed booking for walk-ins or cash payments. A ticket will be sent via email/WhatsApp if contact details are provided.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Attendee Name <span className="text-rose-500">*</span>
+              </Label>
+              <Input
+                className="h-11 bg-background/50 border-white/10 rounded-lg font-bold text-sm"
+                placeholder="Full name"
+                value={offlineForm.contactName}
+                onChange={(e) => setOfflineForm((f) => ({ ...f, contactName: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
+                <Input
+                  type="email"
+                  className="h-11 bg-background/50 border-white/10 rounded-lg font-bold text-sm"
+                  placeholder="Optional"
+                  value={offlineForm.email}
+                  onChange={(e) => setOfflineForm((f) => ({ ...f, email: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
+                <Input
+                  type="tel"
+                  className="h-11 bg-background/50 border-white/10 rounded-lg font-bold text-sm"
+                  placeholder="+91..."
+                  value={offlineForm.phoneNumber}
+                  onChange={(e) => setOfflineForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                Ticket Type <span className="text-rose-500">*</span>
+              </Label>
+              <Select
+                value={offlineForm.ticketType}
+                onValueChange={(v) => setOfflineForm((f) => ({ ...f, ticketType: v }))}
+              >
+                <SelectTrigger className="h-11 bg-background/50 border-white/10 rounded-lg font-bold text-sm">
+                  <SelectValue placeholder="Select ticket type" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  {(event?.ticketTypes || [])
+                    .filter((tt: any) => !tt.isSoldOut && tt.capacity - tt.sold > 0)
+                    .map((tt: any) => (
+                      <SelectItem key={tt.name} value={tt.name} className="font-bold text-sm">
+                        {tt.name} — ₹{tt.price.toLocaleString()} ({tt.capacity - tt.sold} left)
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Quantity</Label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setOfflineForm((f) => ({ ...f, quantity: Math.max(1, f.quantity - 1) }))}
+                  className="h-11 w-11 rounded-lg border border-white/10 bg-background/50 flex items-center justify-center hover:bg-muted transition-colors"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="flex-1 text-center font-black text-xl tabular-nums">{offlineForm.quantity}</span>
+                <button
+                  type="button"
+                  onClick={() => setOfflineForm((f) => ({ ...f, quantity: f.quantity + 1 }))}
+                  className="h-11 w-11 rounded-lg border border-white/10 bg-background/50 flex items-center justify-center hover:bg-muted transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Internal Note</Label>
+              <Textarea
+                className="min-h-[72px] bg-background/50 border-white/10 rounded-lg font-bold text-sm resize-none"
+                placeholder="e.g. Paid cash at gate, press pass, complimentary..."
+                value={offlineForm.note}
+                onChange={(e) => setOfflineForm((f) => ({ ...f, note: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="gap-3 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => { setOfflineOpen(false); setOfflineForm(defaultOfflineForm); }}
+              className="h-10 rounded-xl font-black uppercase tracking-widest text-[10px] border-border italic flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleOfflineSubmit}
+              disabled={issueOfflineMutation.isPending}
+              className="h-10 rounded-xl bg-blue-500 text-white hover:bg-blue-400 font-black uppercase tracking-widest text-[10px] border-none italic flex-1"
+            >
+              {issueOfflineMutation.isPending ? "Issuing..." : "Issue Ticket"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

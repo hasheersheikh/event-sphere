@@ -158,11 +158,11 @@ const LocalStoreCartDrawer = () => {
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                 )}
-                <div className="h-10 w-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                <div className="h-10 w-10 rounded-2xl bg-neon-lime/10 flex items-center justify-center">
                   {step === "success" ? (
                     <CheckCircle2 className="h-5 w-5 text-emerald-500" />
                   ) : (
-                    <ShoppingCart className="h-5 w-5 text-amber-500" />
+                    <ShoppingCart className="h-5 w-5 text-neon-lime" />
                   )}
                 </div>
                 <div>
@@ -207,7 +207,7 @@ const LocalStoreCartDrawer = () => {
                     Object.entries(byStore).map(([storeId, storeItems]) => (
                       <div key={storeId}>
                         <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-                          <span className="h-1 w-4 bg-amber-400 rounded-full inline-block" />
+                          <span className="h-1 w-4 bg-neon-lime rounded-full inline-block" />
                           {storeItems[0].storeName}
                         </p>
                         <div className="space-y-3">
@@ -227,7 +227,7 @@ const LocalStoreCartDrawer = () => {
                                 )}
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-black truncate">{item.name}</p>
-                                  <p className="text-xs text-amber-500 font-black">
+                                  <p className="text-xs text-neon-lime font-black">
                                     ₹{(finalPrice * item.quantity).toFixed(0)}
                                   </p>
                                 </div>
@@ -256,7 +256,7 @@ const LocalStoreCartDrawer = () => {
                   <div className="p-6 border-t border-border bg-muted/20 space-y-4 shrink-0">
                     <div className="flex justify-between items-center">
                       <span className="text-sm font-black uppercase tracking-widest text-muted-foreground">Total</span>
-                      <span className="text-xl font-black text-amber-500">₹{totalPrice.toFixed(0)}</span>
+                      <span className="text-xl font-black text-neon-lime">₹{totalPrice.toFixed(0)}</span>
                     </div>
                     <Button
                       type="button"
@@ -264,7 +264,7 @@ const LocalStoreCartDrawer = () => {
                         setForm((f) => ({ ...f, name: user?.name || "", email: user?.email || "", phone: user?.phoneNumber || "" }));
                         setStep("details");
                       }}
-                      className="w-full h-14 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] bg-amber-500 hover:bg-amber-400 text-black shadow-lg"
+                      className="w-full h-14 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] bg-neon-lime hover:bg-neon-lime text-black shadow-lg"
                     >
                       Proceed to Checkout
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -287,12 +287,12 @@ const LocalStoreCartDrawer = () => {
                     {items.map((i) => (
                       <div key={i.productId} className="flex justify-between text-xs">
                         <span className="truncate flex-1">{i.name} × {i.quantity}</span>
-                        <span className="font-black ml-4 text-amber-500">₹{(i.price * (1 - (i.discountPercent || 0) / 100) * i.quantity).toFixed(0)}</span>
+                        <span className="font-black ml-4 text-neon-lime">₹{(i.price * (1 - (i.discountPercent || 0) / 100) * i.quantity).toFixed(0)}</span>
                       </div>
                     ))}
                     <div className="border-t border-border/40 pt-2 flex justify-between font-black text-sm">
                       <span>Total</span>
-                      <span className="text-amber-500">₹{totalPrice.toFixed(0)}</span>
+                      <span className="text-neon-lime">₹{totalPrice.toFixed(0)}</span>
                     </div>
                   </div>
 
@@ -344,7 +344,7 @@ const LocalStoreCartDrawer = () => {
                           value={form.address}
                           onChange={(e) => field("address", e.target.value)}
                           rows={2}
-                          className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 placeholder:text-muted-foreground/50"
+                          className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-neon-lime/30 placeholder:text-muted-foreground/50"
                         />
                       </div>
                       
@@ -392,8 +392,8 @@ const LocalStoreCartDrawer = () => {
                         onClick={() => field("paymentMethod", "cod")}
                         className={`h-20 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all ${
                           form.paymentMethod === "cod"
-                            ? "bg-amber-500 border-amber-500 text-black"
-                            : "bg-muted/20 border-border text-muted-foreground hover:border-amber-500/40"
+                            ? "bg-neon-lime border-neon-lime text-black"
+                            : "bg-muted/20 border-border text-muted-foreground hover:border-neon-lime/40"
                         }`}
                       >
                         <Banknote className="h-5 w-5" />
@@ -404,8 +404,8 @@ const LocalStoreCartDrawer = () => {
                         onClick={() => field("paymentMethod", "online")}
                         className={`h-20 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all ${
                           form.paymentMethod === "online"
-                            ? "bg-amber-500 border-amber-500 text-black"
-                            : "bg-muted/20 border-border text-muted-foreground hover:border-amber-500/40"
+                            ? "bg-neon-lime border-neon-lime text-black"
+                            : "bg-muted/20 border-border text-muted-foreground hover:border-neon-lime/40"
                         }`}
                       >
                         <CreditCard className="h-5 w-5" />
@@ -427,7 +427,7 @@ const LocalStoreCartDrawer = () => {
                       value={form.notes}
                       onChange={(e) => field("notes", e.target.value)}
                       rows={2}
-                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-amber-500/30 placeholder:text-muted-foreground/50"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted/20 border border-border text-sm font-bold resize-none focus:outline-none focus:ring-2 focus:ring-neon-lime/30 placeholder:text-muted-foreground/50"
                     />
                   </div>
                 </div>
@@ -436,7 +436,7 @@ const LocalStoreCartDrawer = () => {
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full h-14 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] bg-amber-500 hover:bg-amber-400 text-black shadow-lg disabled:opacity-60"
+                    className="w-full h-14 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] bg-neon-lime hover:bg-neon-lime text-black shadow-lg disabled:opacity-60"
                   >
                     {isSubmitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -465,7 +465,7 @@ const LocalStoreCartDrawer = () => {
                 <Button
                   type="button"
                   onClick={() => handleOpen(false)}
-                  className="mt-4 h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-amber-500 hover:bg-amber-400 text-black"
+                  className="mt-4 h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-neon-lime hover:bg-neon-lime text-black"
                 >
                   Continue Shopping
                 </Button>

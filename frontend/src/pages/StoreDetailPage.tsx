@@ -55,7 +55,7 @@ const StoreDetailPage = () => {
         <Navbar />
         <main className="flex-1 container py-24 text-center">
           <h2 className="text-4xl font-black uppercase italic">Store not found</h2>
-          <Link to="/local-stores" className="mt-8 inline-block text-amber-500 font-black uppercase tracking-widest text-xs hover:underline">
+          <Link to="/local-stores" className="mt-8 inline-block text-neon-lime font-black uppercase tracking-widest text-xs hover:underline">
             Back to Stores
           </Link>
         </main>
@@ -71,8 +71,8 @@ const StoreDetailPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-neon-lime/5 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
+      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-neon-lime/5 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
       <Navbar />
 
@@ -86,8 +86,8 @@ const StoreDetailPage = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-amber-500/10 via-muted/30 to-background flex items-center justify-center">
-              <Store className="h-24 w-24 text-amber-500/10" />
+            <div className="w-full h-full bg-gradient-to-br from-neon-lime/10 via-muted/30 to-background flex items-center justify-center">
+              <Store className="h-24 w-24 text-neon-lime/10" />
             </div>
           )}
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
@@ -96,7 +96,7 @@ const StoreDetailPage = () => {
           <div className="absolute top-6 left-0 right-0 container">
             <Link
               to="/local-stores"
-              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-background/60 backdrop-blur-md border border-border/50 text-foreground hover:text-amber-500 px-4 py-2 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-background/60 backdrop-blur-md border border-border/50 text-foreground hover:text-neon-lime px-4 py-2 rounded-xl transition-colors"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
               Back to Local Gems
@@ -108,7 +108,7 @@ const StoreDetailPage = () => {
         <div className="container -mt-16 relative z-10 mb-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div className="space-y-3">
-              <Badge className="bg-amber-500 text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg">
+              <Badge className="bg-neon-lime text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg">
                 {store.category}
               </Badge>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic uppercase">
@@ -116,18 +116,18 @@ const StoreDetailPage = () => {
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
                 <span className="flex items-center gap-1.5 italic">
-                  <MapPin className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <MapPin className="h-3.5 w-3.5 text-neon-lime shrink-0" />
                   {store.address}
                 </span>
                 {store.openingHours && (
                   <span className="flex items-center gap-1.5 italic">
-                    <Clock className="h-3.5 w-3.5 text-amber-500" />
+                    <Clock className="h-3.5 w-3.5 text-neon-lime" />
                     {store.openingHours}
                   </span>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2 text-amber-500 bg-amber-500/10 px-4 py-2 rounded-xl border border-amber-500/20 shrink-0 self-start md:self-auto">
+            <div className="flex items-center gap-2 text-neon-lime bg-neon-lime/10 px-4 py-2 rounded-xl border border-neon-lime/20 shrink-0 self-start md:self-auto">
               <Sparkles className="h-4 w-4" />
               <span className="text-[9px] font-black uppercase tracking-widest">Premium Partner</span>
             </div>
@@ -163,7 +163,7 @@ const StoreDetailPage = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between border-b border-border/50 pb-5 mb-8">
                 <h2 className="text-2xl font-black tracking-tighter uppercase italic">
-                  The <span className="text-amber-500">Collection</span>
+                  The <span className="text-neon-lime">Collection</span>
                 </h2>
                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                   {store.products?.length || 0} items
@@ -200,16 +200,16 @@ const StoreDetailPage = () => {
                       {store.contactPhone && (
                         <ContactRow
                           href={`tel:${store.contactPhone}`}
-                          icon={<Phone className="h-4 w-4 text-amber-500" />}
-                          bg="bg-amber-500/10 hover:bg-amber-500/20"
+                          icon={<Phone className="h-4 w-4 text-neon-lime" />}
+                          bg="bg-neon-lime/10 hover:bg-neon-lime/20"
                           label={store.contactPhone}
                         />
                       )}
                       {store.contactEmail && (
                         <ContactRow
                           href={`mailto:${store.contactEmail}`}
-                          icon={<Mail className="h-4 w-4 text-amber-500" />}
-                          bg="bg-amber-500/10 hover:bg-amber-500/20"
+                          icon={<Mail className="h-4 w-4 text-neon-lime" />}
+                          bg="bg-neon-lime/10 hover:bg-neon-lime/20"
                           label={store.contactEmail}
                         />
                       )}
@@ -224,8 +224,8 @@ const StoreDetailPage = () => {
                       )}
                       {store.openingHours && (
                         <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <Clock className="h-4 w-4 text-amber-500" />
+                          <div className="h-8 w-8 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0">
+                            <Clock className="h-4 w-4 text-neon-lime" />
                           </div>
                           <span className="font-medium text-xs">{store.openingHours}</span>
                         </div>
@@ -284,8 +284,8 @@ const StoreDetailPage = () => {
                     <div className="space-y-3">
                       {store.paymentMethods?.map((m: string) => (
                         <div key={m} className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
-                            <CreditCard className="h-4 w-4 text-amber-500" />
+                          <div className="h-8 w-8 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0">
+                            <CreditCard className="h-4 w-4 text-neon-lime" />
                           </div>
                           <span className="text-sm font-bold">{PAYMENT_LABELS[m] || m}</span>
                         </div>
@@ -293,7 +293,7 @@ const StoreDetailPage = () => {
                       {store.upiId && (
                         <div className="mt-2 p-3 bg-muted/40 rounded-xl">
                           <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">UPI ID</p>
-                          <p className="text-sm font-black text-amber-500">{store.upiId}</p>
+                          <p className="text-sm font-black text-neon-lime">{store.upiId}</p>
                         </div>
                       )}
                       {store.bankDetails?.accountNumber && (
@@ -301,7 +301,7 @@ const StoreDetailPage = () => {
                           <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Bank Details</p>
                           {store.bankDetails.accountHolder && <p className="text-xs font-bold">{store.bankDetails.accountHolder}</p>}
                           {store.bankDetails.bankName && <p className="text-xs text-muted-foreground">{store.bankDetails.bankName}</p>}
-                          <p className="text-xs font-black text-amber-500">{store.bankDetails.accountNumber}</p>
+                          <p className="text-xs font-black text-neon-lime">{store.bankDetails.accountNumber}</p>
                           {store.bankDetails.ifscCode && <p className="text-xs text-muted-foreground">IFSC: {store.bankDetails.ifscCode}</p>}
                         </div>
                       )}
@@ -324,7 +324,7 @@ const StoreDetailPage = () => {
 const InfoCard = ({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) => (
   <div className="bg-card/40 border border-border/50 rounded-2xl p-6 space-y-4">
     <h3 className="text-sm font-black tracking-tighter uppercase italic">
-      {title} <span className="text-amber-500">{accent}</span>
+      {title} <span className="text-neon-lime">{accent}</span>
     </h3>
     {children}
   </div>
@@ -372,7 +372,7 @@ const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: s
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group relative bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-amber-500/30 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300 flex flex-col"
+      className="group relative bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-neon-lime/30 hover:shadow-lg hover:shadow-neon-lime/5 transition-all duration-300 flex flex-col"
     >
       {/* Image */}
       <div className="h-48 relative overflow-hidden bg-muted">
@@ -417,7 +417,7 @@ const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: s
 
         <div className="flex items-center justify-between pt-2 mt-auto border-t border-border/40">
           <div className="flex items-baseline gap-2">
-            <span className="text-base font-black text-amber-500">₹{finalPrice.toFixed(0)}</span>
+            <span className="text-base font-black text-neon-lime">₹{finalPrice.toFixed(0)}</span>
             {product.discountPercent > 0 && (
               <span className="text-xs text-muted-foreground line-through">₹{product.price}</span>
             )}
@@ -426,7 +426,7 @@ const ProductCard = ({ product, storeId, storeName }: { product: any; storeId: s
             type="button"
             onClick={handleAdd}
             disabled={!product.isAvailable}
-            className="h-8 w-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow"
+            className="h-8 w-8 rounded-lg bg-neon-lime hover:bg-neon-lime text-black flex items-center justify-center transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>

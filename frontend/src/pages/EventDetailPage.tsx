@@ -7,7 +7,6 @@ import {
   Clock,
   Users,
   Share2,
-  Heart,
   ChevronLeft,
   Ticket,
   Trash2,
@@ -18,6 +17,7 @@ import {
   Plus,
   Minus,
   Eye,
+  Instagram,
   Building2,
   ChevronDown,
   Check,
@@ -26,6 +26,7 @@ import {
   ExternalLink,
   Play,
   Zap,
+  Headphones,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -57,7 +58,7 @@ const EventDetailPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showShareSnippet, setShowShareSnippet] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
+  const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number; hasStarted: boolean } | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [showAllReels, setShowAllReels] = useState(false);
 
@@ -68,6 +69,21 @@ const EventDetailPage = () => {
       return data;
     },
     enabled: !!id,
+  });
+
+  const { data: similarEvents } = useQuery({
+    queryKey: ["similarEvents", id, event?.category],
+    queryFn: async () => {
+      const { data } = await api.get("/events", {
+        params: {
+          category: event?.category,
+          limit: 4,
+          exclude: id,
+        },
+      });
+      return data;
+    },
+    enabled: !!event?.category,
   });
 
   const getTimeRemaining = () => {
@@ -244,11 +260,8 @@ const EventDetailPage = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
 
-                {/* Heart & Share Buttons Overlay */}
+                {/* Share Button Overlay */}
                 <div className="absolute bottom-4 right-4 flex gap-2">
-                  <button className="h-11 w-11 rounded-full bg-background/60 backdrop-blur-md border border-border/20 flex items-center justify-center hover:bg-background/80 transition-all shadow-lg">
-                    <Heart className="h-5 w-5 text-foreground" />
-                  </button>
                   <button
                     onClick={() => setShowShareSnippet(true)}
                     className="h-11 w-11 rounded-full bg-background/60 backdrop-blur-md border border-border/20 flex items-center justify-center hover:bg-background/80 transition-all shadow-lg"
@@ -335,37 +348,69 @@ const EventDetailPage = () => {
             {/* Right Column: Content */}
             <div className="w-full md:w-[60%] space-y-10">
 
-              {/* Header */}
-              <div className="space-y-5">
-                <div className="flex flex-wrap items-center gap-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-[0.15em]">
-                    {event.category}
-                  </span>
-                  {event.isActive && timeLeft ? (
-                    <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">
-                        {timeLeft.hasStarted
-                          ? `Ends in ${timeLeft.hours}h ${timeLeft.minutes}m`
-                          : `Starts in ${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m`}
-                      </span>
-                    </div>
-                  ) : (
-                    event.isActive === false && (
-                      <div className="flex items-center gap-2 bg-rose-500/10 px-3 py-1 rounded-full text-rose-500">
-                        <Clock className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
-                          This event has ended
-                        </span>
-                      </div>
-                    )
-                  )}
-                </div>
+               {/* Header */}
+               <div className="space-y-5">
+                 <div className="flex flex-wrap items-center gap-4">
+                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-[0.15em]">
+                     {event.category}
+                   </span>
+                   {event.isActive && timeLeft ? (
+                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
+                       <Clock className="h-3.5 w-3.5" />
+                       <span className="text-[10px] font-black uppercase tracking-widest">
+                         {timeLeft.hasStarted
+                           ? `Ends in ${timeLeft.hours}h ${timeLeft.minutes}m`
+                           : `Starts in ${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m`}
+                       </span>
+                     </div>
+                   ) : (
+                     event.isActive === false && (
+                       <div className="flex items-center gap-2 bg-rose-500/10 px-3 py-1 rounded-full text-rose-500">
+                         <Clock className="h-3.5 w-3.5" />
+                         <span className="text-[10px] font-black uppercase tracking-widest">
+                           This event has ended
+                         </span>
+                       </div>
+                     )
+                   )}
+                 </div>
 
-                <h1 className="font-display font-black text-5xl lg:text-7xl leading-[0.95] tracking-tight uppercase break-words">
-                  {event.title}
-                </h1>
-                <div className="space-y-2.5">
+                 <h1 className="font-display font-black text-5xl lg:text-7xl leading-[0.95] tracking-tight uppercase break-words">
+                   {event.title}
+                 </h1>
+
+                 {/* Artist Information */}
+                 {event.artist && event.artist.name && (
+                   <div className="flex items-center gap-4 py-4 border-t border-b border-border/30">
+                     {event.artist.profileImage ? (
+                       <img
+                         src={event.artist.profileImage}
+                         alt={event.artist.name}
+                         className="w-16 h-16 rounded-full object-cover border-2 border-neon-lime/30"
+                       />
+                     ) : (
+                       <div className="w-16 h-16 rounded-full bg-neon-lime/10 flex items-center justify-center border-2 border-neon-lime/30">
+                         <Users className="h-8 w-8 text-neon-lime" />
+                       </div>
+                     )}
+                     <div className="flex-1">
+                       <p className="text-[10px] font-black uppercase tracking-widest text-neon-lime mb-1">Artist</p>
+                       <p className="text-xl font-black">{event.artist.name}</p>
+                       {event.artist.instagramHandle && (
+                         <a
+                           href={`https://instagram.com/${event.artist.instagramHandle.replace('@', '')}`}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="inline-flex items-center gap-2 text-sm font-bold text-neon-lime hover:text-neon-lime/80 transition-colors mt-1"
+                         >
+                           @{event.artist.instagramHandle.replace('@', '')} <ExternalLink className="h-3.5 w-3.5" />
+                         </a>
+                       )}
+                      </div>
+                    </div>
+                  )}
+
+                 <div className="space-y-2.5">
                   <p className="text-2xl font-bold text-muted-foreground tracking-tight">{event.location.venueName || "Venue"}</p>
                   <p className="text-2xl font-black text-[#C4F000] tracking-tight">
                     {event.scheduleType === "recurring"
@@ -426,6 +471,47 @@ const EventDetailPage = () => {
                 </Button>
               </div>
 
+              {/* Lineup Section */}
+              {event.lineup && event.lineup.length > 0 && (
+                <div className="space-y-5">
+                  <h3 className="text-2xl font-black uppercase tracking-tight">Event Lineup</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {event.lineup.map((person: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
+                        {person.image ? (
+                          <img
+                            src={person.image}
+                            alt={person.name}
+                            className="w-14 h-14 rounded-full object-cover border-2 border-border/20 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center border-2 border-primary/20 shrink-0">
+                            <Users className="h-7 w-7 text-primary" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-base font-black break-words">{person.name}</p>
+                          {person.role && (
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{person.role}</p>
+                          )}
+                        </div>
+                        {person.instagramUrl && (
+                          <a
+                            href={person.instagramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="shrink-0 h-10 w-10 rounded-full bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                          >
+                            <Instagram className="h-5 w-5 text-primary" />
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* About Section */}
               <div className="space-y-6">
                 <h3 className="text-2xl font-black uppercase tracking-tight">About</h3>
@@ -476,6 +562,37 @@ const EventDetailPage = () => {
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Doors open</p>
                     <p className="text-lg font-black text-foreground mt-1.5">{event.time} IST</p>
                   </div>
+                </div>
+
+                {/* Offline Tickets / Call Support Section */}
+                <div className="grid sm:grid-cols-2 gap-4 pt-6">
+                  <a
+                    href={`tel:${event.coordinator?.phone || "+919999999999"}`}
+                    className="flex items-center gap-4 p-4 rounded-xl border border-neon-lime/30 hover:border-neon-lime/60 bg-neon-lime/5 hover:bg-neon-lime/10 transition-all group"
+                  >
+                    <div className="h-12 w-12 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0 group-hover:bg-neon-lime/20 transition-colors">
+                      <Phone className="h-6 w-6 text-neon-lime" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Call Support</p>
+                      <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Offline Tickets Available</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime group-hover:translate-x-1 transition-all" />
+                  </a>
+
+                  <Link
+                    to="/contact"
+                    className="flex items-center gap-4 p-4 rounded-xl border border-neon-lime/30 hover:border-neon-lime/60 bg-neon-lime/5 hover:bg-neon-lime/10 transition-all group"
+                  >
+                    <div className="h-12 w-12 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0 group-hover:bg-neon-lime/20 transition-colors">
+                      <Headphones className="h-6 w-6 text-neon-lime" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Need Help?</p>
+                      <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Contact Support</p>
+                    </div>
+                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime group-hover:translate-x-1 transition-all" />
+                  </Link>
                 </div>
               </div>
 
@@ -610,6 +727,44 @@ const EventDetailPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* You may also like section */}
+              {similarEvents && similarEvents.length > 0 && (
+                <div className="pt-10 border-t border-border">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-2xl font-black uppercase tracking-tight">You may also like</h3>
+                      <span className="text-sm font-bold text-neon-lime">{similarEvents.length} Events</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      {similarEvents.map((similarEvent: any, idx: number) => (
+                        <motion.div
+                          key={similarEvent._id}
+                          initial={{ opacity: 0, y: 16 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.1, duration: 0.4 }}
+                        >
+                          <Link to={`/events/${similarEvent._id}`} className="block group">
+                            <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
+                              <img
+                                src={similarEvent.image || getCategoryImage(similarEvent.category)}
+                                alt={similarEvent.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              <div className="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                                <p className="text-sm font-black text-white line-clamp-2">{similarEvent.title}</p>
+                              </div>
+                            </div>
+                          </Link>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>

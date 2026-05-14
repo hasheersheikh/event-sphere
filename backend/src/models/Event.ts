@@ -48,7 +48,7 @@ export interface IEvent extends Document {
   title: string;
   description: string;
   /**
-   * scheduleType controls how the event's timing is interpreted:
+   * scheduleType controls how event's timing is interpreted:
    *  'single'     – single date + time  (legacy default)
    *  'multi_slot' – same date, N time-slots (slots[])
    *  'recurring'  – repeating via recurrence rule
@@ -73,6 +73,17 @@ export interface IEvent extends Document {
   image?: string;
   videoUrl?: string;
   reels?: string[];
+  artist?: {
+    name: string;
+    instagramHandle?: string;
+    profileImage?: string;
+  };
+  lineup?: {
+    name: string;
+    role?: string;
+    instagramUrl?: string;
+    image?: string;
+  }[];
   creator: mongoose.Types.ObjectId;
   coordinator?: {
     name: string;
@@ -151,6 +162,19 @@ const EventSchema: Schema = new Schema(
     image: { type: String },
     videoUrl: { type: String },
     reels: [{ type: String }],
+    artist: {
+      name: { type: String },
+      instagramHandle: { type: String },
+      profileImage: { type: String },
+    },
+    lineup: [
+      {
+        name: { type: String, required: true },
+        role: { type: String },
+        instagramUrl: { type: String },
+        image: { type: String },
+      },
+    ],
     ageRestriction: { type: String, default: "All Ages" },
     creator: { type: Schema.Types.ObjectId, ref: 'EventManager', required: true },
     coordinator: {

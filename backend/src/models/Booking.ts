@@ -17,6 +17,8 @@ export interface IBooking extends Document {
   contactName?: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'refunded' | 'expired';
   paymentId?: string;
+  isOffline?: boolean;
+  offlineNote?: string;
   reminderSent: boolean;
   reviewEmailSent: boolean;
   createdAt: Date;
@@ -47,6 +49,8 @@ const BookingSchema: Schema = new Schema(
       default: 'confirmed',
     },
     paymentId: { type: String },
+    isOffline: { type: Boolean, default: false },
+    offlineNote: { type: String },
     reminderSent: { type: Boolean, default: false },
     reviewEmailSent: { type: Boolean, default: false },
   },

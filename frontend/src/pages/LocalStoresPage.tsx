@@ -58,11 +58,11 @@ const LocalStoresPage = () => {
               transition={{ duration: 0.4 }}
               className="mb-6"
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-primary mb-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
                 Community
               </p>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
-                Local Stores
+                Discover <span className="text-neon-lime">Unique Stores</span>
                 {stores?.length > 0 && (
                   <span className="text-muted-foreground/50 ml-3 text-2xl md:text-3xl font-bold">
                     {stores.length}

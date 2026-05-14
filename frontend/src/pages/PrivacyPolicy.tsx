@@ -1,86 +1,291 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { motion } from "framer-motion";
+import { Shield, Lock, Eye, Users, Database, Cookie, Settings, RefreshCw, CheckCircle2, AlertTriangle } from "lucide-react";
 
 const PrivacyPolicy = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      <main className="flex-1 container py-12 md:py-20 max-w-4xl">
+      <main className="flex-1 relative overflow-hidden">
+        {/* Background Decoration */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neon-lime/5 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 left-0 w-80 h-80 bg-neon-lime/10 blur-[100px] rounded-full" />
+          <div className="absolute top-1/3 left-1/2 w-72 h-72 bg-neon-lime/5 blur-[80px] rounded-full" />
+        </div>
+
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 container py-16 md:py-24 max-w-5xl"
         >
-          <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-          <p className="text-muted-foreground mb-8 text-lg">Last Updated: January 18, 2026</p>
-
-          <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
-            <section>
-              <h2 className="text-2xl font-bold mb-4">1. Information We Collect</h2>
-              <p>
-                We collect information you provide directly to us when you create an account, purchase tickets, or create an event. This may include:
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <div className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-neon-lime/10 border-2 border-neon-lime/30 rounded-2xl mb-6">
+                <Shield className="h-12 w-12 text-neon-lime" />
+                <h1 className="text-4xl md:text-6xl font-black tracking-tight">
+                  Privacy <span className="text-neon-lime">Policy</span>
+                </h1>
+              </div>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Your Data, Your Rights. We take your privacy seriously.
               </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Name and contact information (email, phone number)</li>
-                <li>Profile information</li>
-                <li>Payment details (processed securely by our partners)</li>
-                <li>Event details (for organizers)</li>
-              </ul>
-            </section>
+            </motion.div>
+          </div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">2. How We Use Your Information</h2>
-              <p>
-                We use the information we collect to:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Provide, maintain, and improve our services</li>
-                <li>Process transactions and send related information</li>
-                <li>Communicate with you about events and updates</li>
-                <li>Monitor and analyze trends and usage</li>
-              </ul>
-            </section>
+          {/* Last Updated Badge */}
+          <div className="flex justify-center mb-12">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-muted/50 border border-border/40 rounded-full text-sm text-muted-foreground">
+              <RefreshCw className="h-4 w-4" />
+              Last Updated: January 18, 2026
+            </span>
+          </div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">3. Information Sharing</h2>
-              <p>
-                We do not share your personal information with third parties except:
-              </p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>With event organizers (limited to details needed for the event)</li>
-                <li>To comply with legal obligations</li>
-                <li>With service providers who perform work on our behalf</li>
-              </ul>
-            </section>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 gap-6 lg:gap-8 max-w-4xl mx-auto">
+            {/* Column - Data Privacy Info */}
+            <div className="space-y-5 md:space-y-6">
+              {/* What We Collect */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="relative overflow-hidden rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/50 transition-all duration-300 group"
+              >
+                <div className="absolute top-0 right-0 p-4">
+                  <Database className="h-8 w-8 text-neon-lime/50 group-hover:scale-110 transition-transform" />
+                </div>
+                <h3 className="text-xl font-black mb-3 md:pr-10 text-center md:text-left">What We Collect</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Personal & contact info</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Profile & preferences</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Payment & ticket details</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Event participation data</span>
+                  </li>
+                </ul>
+              </motion.div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">4. Data Security</h2>
-              <p>
-                We take reasonable measures to help protect information about you from loss, theft, misuse, and unauthorized access.
-              </p>
-            </section>
+              {/* How We Use */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="relative overflow-hidden rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/50 transition-all duration-300 group"
+              >
+                <div className="absolute top-0 right-0 p-4">
+                  <Users className="h-8 w-8 text-neon-lime/50 group-hover:scale-110 transition-transform" />
+                </div>
+                <h3 className="text-xl font-black mb-3 md:pr-10 text-center md:text-left">How We Use Data</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Service improvement & delivery</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Transaction processing</span>
+                  </li>
+                  <li className="flex items-start gap-3 text-center md:text-left">
+                    <CheckCircle2 className="h-5 w-5 text-neon-lime flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-foreground/90">Communication & updates</span>
+                  </li>
+                </ul>
+              </motion.div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">5. Your Choices</h2>
-              <p>
-                You may update your account information at any time by logging into your account settings. You can also request deletion of your account and data by contacting support.
-              </p>
-            </section>
+              {/* Data Sharing */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/50 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/40">
+                  <Eye className="h-6 w-6 text-neon-lime" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight">
+                    Data <span className="text-neon-lime">Sharing</span>
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed text-center md:text-left">
+                    We only share your personal information when necessary for service delivery or when required by law. Your data is never sold to third parties.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    {[
+                      { icon: Shield, label: "Limited", desc: "Event organizers only" },
+                      { icon: Lock, label: "Secure", desc: "Legal compliance" },
+                      { icon: Database, label: "Partners", desc: "Service providers" },
+                    ].map((item, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: idx * 0.1 + 0.4, duration: 0.3 }}
+                        className="flex-1 px-4 py-3 bg-muted/50 border border-border/40 rounded-lg text-center hover:bg-neon-lime/10 transition-all"
+                      >
+                        <item.icon className="h-5 w-5 text-neon-lime/70 mx-auto mb-2" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-neon-lime mb-1">{item.label}</p>
+                        <p className="text-xs text-foreground/90">{item.desc}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">6. Cookies</h2>
-              <p>
-                We use cookies to enhance your experience and collect usage data. You can control cookie settings through your browser.
-              </p>
-            </section>
+              {/* Cookies Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/30 transition-all duration-300"
+              >
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/40">
+                  <Cookie className="h-6 w-6 text-neon-lime" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-center md:text-left">
+                    <span className="text-neon-lime">Cookies</span>
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed text-center md:text-left">
+                    We use cookies and similar technologies to enhance your experience, analyze usage, and store your preferences. You can control cookie settings in your browser.
+                  </p>
+                  <div className="mt-6 pt-6 border-t border-border/40">
+                    <button className="w-full px-6 py-3 bg-neon-lime/10 border border-neon-lime/30 rounded-lg text-neon-lime font-bold hover:bg-neon-lime/20 transition-all">
+                      <Settings className="h-5 w-5 inline mr-2" />
+                      Manage Cookie Settings
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
 
-            <section>
-              <h2 className="text-2xl font-bold mb-4">7. Updates to this Policy</h2>
-              <p>
-                We may update this Privacy Policy from time to time. If we make changes, we will notify you by revising the date at the top of the policy.
-              </p>
-            </section>
+              {/* Your Rights */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/50 transition-all duration-300 group"
+              >
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border/40">
+                  <Users className="h-6 w-6 text-neon-lime" />
+                  <h3 className="text-2xl font-black uppercase tracking-tight text-center md:text-left">
+                    Your <span className="text-neon-lime">Rights</span>
+                  </h3>
+                </div>
+                <div className="space-y-4">
+                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed text-center md:text-left">
+                    You have the right to access, update, or delete your personal information at any time. We provide tools for account management and data control.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    {[
+                      { icon: Eye, label: "Access & Control", desc: "Access your personal data" },
+                      { icon: Database, label: "Data Portability", desc: "Download your information" },
+                      { icon: RefreshCw, label: "Account Deletion", desc: "Permanently remove account" },
+                    ].map((right, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, x: -10 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: idx * 0.08 + 0.45, duration: 0.3 }}
+                        className="flex-1 px-4 py-3 bg-muted/50 border border-border/40 rounded-lg text-center hover:bg-neon-lime/10 transition-all"
+                      >
+                        <right.icon className="h-5 w-5 text-neon-lime/70 mx-auto mb-2" />
+                        <p className="text-xs font-bold text-neon-lime mb-1">{right.label}</p>
+                        <p className="text-xs text-foreground/90">{right.desc}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Updates Notice */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="rounded-2xl bg-card border border-border/40 p-6 hover:border-neon-lime/30 transition-all duration-300"
+              >
+                <div className="space-y-4">
+                  <p className="text-sm text-foreground/80 mb-4 leading-relaxed text-center md:text-left">
+                    We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements. Check back periodically for the latest version.
+                  </p>
+                  <div className="mt-6 pt-6 border-t border-border/40">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-neon-lime mb-3 text-center md:text-left">Stay Informed</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { icon: CheckCircle2, label: "Check our blog for updates" },
+                        { icon: Shield, label: "Subscribe to newsletter" },
+                      ].map((item, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: idx * 0.1 + 0.55, duration: 0.3 }}
+                          className="flex-1 px-4 py-3 bg-neon-lime/10 border border-neon-lime/30 rounded-lg text-center hover:bg-neon-lime/20 transition-all"
+                        >
+                          <item.icon className="h-5 w-5 text-neon-lime mx-auto mb-2" />
+                          <p className="text-xs font-bold">{item.label}</p>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Contact Support Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+                className="rounded-2xl bg-gradient-to-br from-neon-lime/10 via-transparent to-transparent border-2 border-neon-lime/20 p-6"
+              >
+                <div className="flex flex-col md:flex-row items-start gap-4 mb-6">
+                  <AlertTriangle className="h-6 w-6 text-neon-lime flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-neon-lime mb-2">Have Questions?</h4>
+                    <p className="text-sm text-foreground/80 leading-relaxed mb-4">
+                      Our privacy team is here to help. Contact us for any questions about your data, our privacy practices, or your rights.
+                    </p>
+                    <div className="mt-6 pt-6 border-t border-border/40">
+                      <a
+                        href="mailto:privacy@citypulse.com"
+                        className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-neon-lime text-black font-bold rounded-lg hover:bg-neon-lime/80 transition-all md:w-auto w-full"
+                        aria-label="Contact Privacy Team via Email"
+                      >
+                        <Users aria-hidden="true" className="h-5 w-5" />
+                        Contact Privacy Team
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </motion.div>
       </main>
