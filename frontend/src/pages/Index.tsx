@@ -11,6 +11,7 @@ import {
   Globe,
   Store,
   Zap,
+  MapPin,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
@@ -316,6 +317,64 @@ const Index = () => {
           </div>
         </section>
 
+        {/* ═══════════════════════════════════════════════════════
+            MOBILE CATEGORY NAV + SEARCH
+        ═══════════════════════════════════════════════════════ */}
+        <section className="lg:hidden pt-4 pb-2">
+          <div className="container">
+            {/* Category nav strip */}
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pb-3">
+              {[
+                { label: "For you", icon: "✨", active: false },
+                { label: "Dining", icon: "🍽️", active: false },
+                { label: "Movies", icon: "🎬", active: false },
+                { label: "Events", icon: "🎉", active: true },
+                { label: "IPL", icon: "🏏", active: false },
+              ].map((item) => (
+                <button
+                  key={item.label}
+                  className={cn(
+                    "flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold whitespace-nowrap transition-all shrink-0",
+                    item.active
+                      ? "bg-yellow-100 text-black"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  )}
+                >
+                  <span className="text-[15px]">{item.icon}</span>
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Location tag */}
+            <div className="flex items-center gap-1.5 mb-2">
+              <MapPin className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-[13px] font-semibold text-gray-500">
+                {selectedCity || "Nagpur"}, Maharashtra
+              </span>
+            </div>
+
+            {/* Search bar */}
+            <form onSubmit={handleSearch} className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search for events, movies and restaurants"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="h-11 pl-10 bg-gray-50 border-gray-200 rounded-xl text-[14px] placeholder:text-gray-400"
+                />
+              </div>
+            </form>
+
+            {/* Featured Events header */}
+            <h2 className="text-[18px] font-bold text-[#1E1E1E] tracking-tight mb-1">
+              Featured Events
+            </h2>
+          </div>
+        </section>
+
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
         <section className="border-t border-border/20 py-8">
           <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -324,7 +383,7 @@ const Index = () => {
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em]">Upcoming</h2>
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="hidden md:flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
               {DATE_FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -343,7 +402,7 @@ const Index = () => {
 
             <Link
               to="/events"
-              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group shrink-0"
+              className="hidden md:flex text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground items-center gap-1 transition-colors group shrink-0"
             >
               View All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
             </Link>
@@ -380,6 +439,16 @@ const Index = () => {
                 </div>
               </div>
             )}
+
+            {/* Mobile "Explore Events" link */}
+            <div className="lg:hidden container mt-4">
+              <Link
+                to="/events"
+                className="text-[16px] font-bold text-primary underline underline-offset-4 inline-flex items-center gap-1"
+              >
+                Explore Events <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
 

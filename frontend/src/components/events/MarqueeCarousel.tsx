@@ -205,42 +205,45 @@ const MarqueeCarousel = ({
     }
   };
 
+  const cardWidth = isMobile ? 300 : 320;
+  const gap = 12;
+
   return (
     <div className="relative select-none">
-      {/* Left arrow — snap to previous card boundary */}
+      {/* Left arrow — snap to previous card boundary — hidden on mobile */}
       <button
         onClick={() => {
-          const itemWidth = (isMobile ? 260 : 320) + 12;
+          const itemWidth = cardWidth + gap;
           const absPos = -positionRef.current;
           const prevIndex = Math.ceil(absPos / itemWidth) - 1;
           let newPos = -(prevIndex * itemWidth);
           if (newPos > 0) newPos -= totalWidthRef.current;
           doJump(newPos);
         }}
-        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full border border-border/60 bg-background/80 backdrop-blur-sm flex items-center justify-center hover:border-neon-lime/60 hover:text-neon-lime transition-all shadow-md"
+        className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full border border-border/60 bg-background/80 backdrop-blur-sm items-center justify-center hover:border-neon-lime/60 hover:text-neon-lime transition-all shadow-md"
         aria-label="Previous"
       >
         <ChevronLeft className="h-4 w-4" />
       </button>
 
-      {/* Right arrow — snap to next card boundary */}
+      {/* Right arrow — snap to next card boundary — hidden on mobile */}
       <button
         onClick={() => {
-          const itemWidth = (isMobile ? 260 : 320) + 12;
+          const itemWidth = cardWidth + gap;
           const absPos = -positionRef.current;
           const nextIndex = Math.floor(absPos / itemWidth) + 1;
           let newPos = -(nextIndex * itemWidth);
           if (newPos <= -totalWidthRef.current) newPos += totalWidthRef.current;
           doJump(newPos);
         }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full border border-border/60 bg-background/80 backdrop-blur-sm flex items-center justify-center hover:border-neon-lime/60 hover:text-neon-lime transition-all shadow-md"
+        className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-10 h-9 w-9 rounded-full border border-border/60 bg-background/80 backdrop-blur-sm items-center justify-center hover:border-neon-lime/60 hover:text-neon-lime transition-all shadow-md"
         aria-label="Next"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
 
       <div
-        className="overflow-hidden cursor-grab active:cursor-grabbing"
+        className={cn("overflow-hidden cursor-grab active:cursor-grabbing", isMobile && "px-4")}
         ref={containerRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -263,11 +266,12 @@ const MarqueeCarousel = ({
             <div
               key={`${event._id}-${index}`}
               className={cn(
-                "flex-shrink-0 w-[260px] md:w-80",
+                "flex-shrink-0",
                 isDragging && "pointer-events-none"
               )}
+              style={{ width: cardWidth }}
             >
-              <EventCard event={event} index={index} imageRatio="3/4" />
+              <EventCard event={event} index={index} imageRatio="3/4" mobile={isMobile} />
             </div>
           ))}
         </div>

@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Layers,
   AlertCircle,
+  Users,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";

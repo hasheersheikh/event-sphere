@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { MapPin, ImageIcon, Calendar, Phone } from "lucide-react";
-import { Event, ITicketType } from "@/types/event";
+import { Event } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
+import { cn } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
   index?: number;
   imageRatio?: string;
+  mobile?: boolean;
 }
 
-const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => {
+const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const formatDate = (dateString: string, nextOccurrence?: string) => {
@@ -21,20 +23,6 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
       month: "short",
       day: "numeric",
     });
-  };
-
-  const formatPrice = (ticketTypes: ITicketType[]) => {
-    if (!ticketTypes || ticketTypes.length === 0) return "Free";
-    const minPrice = Math.min(...ticketTypes.map((t) => t.price));
-    if (minPrice === 0) return "Free";
-    return (
-      new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(minPrice) + " onwards"
-    );
   };
 
   const totalCapacity =
@@ -69,7 +57,6 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
   const isAlmostSoldOut =
     availableTickets <= totalCapacity * 0.1 && availableTickets > 0;
 
-  const priceLabel = formatPrice(event.ticketTypes || []);
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
   const isPast = event.isActive === false || event.status === 'past';
 
@@ -82,7 +69,12 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
     >
       <Link
         to={`/events/${event._id}`}
-        className="block h-full rounded-2xl overflow-hidden bg-card border border-border/30 hover:border-border hover:shadow-lg transition-all duration-300 ease-out-expo"
+        className={cn(
+          "block h-full overflow-hidden transition-all duration-300 ease-out-expo",
+          mobile
+            ? "rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+            : "rounded-2xl bg-card border border-border/30 hover:border-border hover:shadow-lg"
+        )}
       >
         <article className="h-full flex flex-col">
           <div
@@ -134,27 +126,44 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4" }: EventCardProps) => 
           </div>
 
           <div className="p-3.5 flex flex-col gap-2 flex-1">
-            <h3 className="text-[13px] font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2">
+            <h3 className={cn(
+              "font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2",
+              mobile ? "text-[16px]" : "text-[13px]"
+            )}>
               {event.title}
             </h3>
 
             <div className="flex items-center justify-between gap-2 mt-0.5">
-              <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-[0.1em] flex items-center gap-1">
-                <Calendar className="h-3 w-3 text-primary/60" />
-                {formatDate(event.date, event.nextOccurrence)}
-              </p>
-              <span className="text-foreground font-black text-[11px] tracking-tight">
-                {priceLabel}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-1 text-muted-foreground mt-auto pt-1 border-t border-border/10">
-              <MapPin className="h-2.5 w-2.5 shrink-0" />
-              <p className="text-[10px] font-medium line-clamp-1">
+              <p className={cn(
+                "text-muted-foreground font-bold flex items-center gap-1",
+                mobile ? "text-[14px]" : "text-[10px] uppercase tracking-[0.1em]"
+              )}>
+                {mobile ? null : <Calendar className="h-3 w-3 text-primary/60" />}
                 {typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||
-                    event.location?.address?.split(",")[0]}
+                    event.location?.address?.split(",")[0] || "Nagpur"}
+              </p>
+              <span className={cn(
+                "font-black tracking-tight",
+                mobile ? "text-[#2E7D32] text-[15px]" : "text-foreground text-[11px]"
+              )}>
+                {"₹" + (event.ticketTypes?.length
+                  ? Math.min(...event.ticketTypes.map(t => t.price))
+                  : 0) + (event.ticketTypes?.length ? " onwards" : "")}
+              </span>
+            </div>
+
+            <div className={cn(
+              "flex items-center gap-1 text-muted-foreground mt-auto",
+              mobile ? "pt-2" : "pt-1 border-t border-border/10"
+            )}>
+              <MapPin className={cn("shrink-0", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
+              <p className={cn("font-medium line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
+                {formatDate(event.date, event.nextOccurrence)} | {typeof event.location === "string"
+                  ? event.location
+                  : event.location?.venueName ||
+                    event.location?.address?.split(",")[0] || "Nagpur"}
               </p>
             </div>
 
