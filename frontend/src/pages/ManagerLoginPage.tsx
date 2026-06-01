@@ -123,7 +123,7 @@ const ManagerLoginPage = () => {
                 <span className="text-primary">Dashboard.</span>
               </h1>
               <p className="text-base text-zinc-400 font-light leading-relaxed max-w-xs">
-                Precision tools for world-class organizers. Host your vision with Event Sphere.
+                Precision tools for world-class organizers. Host your vision with City Pulse.
               </p>
             </motion.div>
           </div>

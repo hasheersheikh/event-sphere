@@ -374,7 +374,6 @@ const Index = () => {
             </h2>
           </div>
         </section>
-
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
         <section className="border-t border-border/20 py-8">
           <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">

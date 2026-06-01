@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, ImageIcon, Calendar, Phone } from "lucide-react";
+import { MapPin, ImageIcon, Calendar, Phone, Eye } from "lucide-react";
 import { Event } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,14 @@ interface EventCardProps {
   imageRatio?: string;
   mobile?: boolean;
 }
+
+const formatViews = (viewCount?: number) => {
+  const baseViews = 200 + (viewCount || 0);
+  if (baseViews >= 1000) {
+    return `${(baseViews / 1000).toFixed(1)} K`;
+  }
+  return baseViews.toString();
+};
 
 const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -122,6 +130,12 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: Eve
                   Almost Gone
                 </span>
               )}
+            </div>
+
+            {/* Views Badge */}
+            <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/65 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white border border-white/10 shadow-sm z-20">
+              <Eye className="h-3 w-3 text-neon-lime" />
+              <span>{formatViews(event.viewCount)} Views</span>
             </div>
           </div>
 

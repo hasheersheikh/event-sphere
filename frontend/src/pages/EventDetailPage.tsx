@@ -27,6 +27,7 @@ import {
   Play,
   Zap,
   Headphones,
+  MessageCircle,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -52,6 +53,14 @@ import ShareSnippet from "@/components/events/ShareSnippet";
 import SafeImage from "@/components/ui/SafeImage";
 import BookingModal from "@/components/events/BookingModal";
 import TermsAndConditions from "@/components/events/TermsAndConditions";
+
+const formatViews = (viewCount?: number) => {
+  const baseViews = 200 + (viewCount || 0);
+  if (baseViews >= 1000) {
+    return `${(baseViews / 1000).toFixed(1)} K`;
+  }
+  return baseViews.toString();
+};
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -85,6 +94,11 @@ const EventDetailPage = () => {
     },
     enabled: !!event?.category,
   });
+
+  const filteredSimilarEvents = similarEvents?.filter(
+    (similarEvent: any) => similarEvent._id !== event?._id && similarEvent._id !== id
+  ) || [];
+
 
   const getTimeRemaining = () => {
     if (!event?.nextOccurrence || !event?.isActive) return null;
@@ -246,14 +260,14 @@ const EventDetailPage = () => {
     <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20">
       <Navbar />
 
-      <main className="flex-1 pt-12 pb-24 relative z-10">
+      <main className="flex-1 pt-12 pb-32 md:pb-24 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
           <div className="flex flex-col md:flex-row gap-12 lg:gap-16 items-start">
 
             {/* Left Column: Image & Protection Info */}
             <div className="w-full md:w-[40%] space-y-6">
-              <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-muted shadow-xl group border border-border/50">
+              <div className="relative aspect-[4/3] sm:aspect-square w-full rounded-2xl overflow-hidden bg-muted shadow-xl group border border-border/50">
                 <SafeImage
                   src={event.image || getCategoryImage(event.category)}
                   alt={event.title}
@@ -261,12 +275,14 @@ const EventDetailPage = () => {
                 />
 
                 {/* Share Button Overlay */}
-                <div className="absolute bottom-4 right-4 flex gap-2">
+                <div className="absolute top-4 right-4 z-20">
                   <button
                     onClick={() => setShowShareSnippet(true)}
-                    className="h-11 w-11 rounded-full bg-background/60 backdrop-blur-md border border-border/20 flex items-center justify-center hover:bg-background/80 transition-all shadow-lg"
+                    className="h-10 px-4 rounded-full bg-slate-950/70 backdrop-blur-md border border-white/10 flex items-center gap-2 hover:bg-slate-900/90 text-white transition-all shadow-lg text-xs font-black uppercase tracking-wider group"
+                    title="Share Event"
                   >
-                    <Share2 className="h-5 w-5 text-foreground" />
+                    <Share2 className="h-3.5 w-3.5 group-hover:scale-110 transition-transform" />
+                    <span>Share</span>
                   </button>
                 </div>
               </div>
@@ -279,7 +295,7 @@ const EventDetailPage = () => {
                 {videoId && (
                   <div className="pt-4 space-y-4">
                     <div className="flex items-center justify-between border-b border-border pb-3">
-                      <h3 className="text-xl font-black uppercase tracking-tight">Main Video</h3>
+                      <h3 className="text-2xl font-black tracking-tighter">Main Video</h3>
                     </div>
                     <div className="relative aspect-video rounded-2xl overflow-hidden bg-zinc-900 shadow-xl border border-border/30">
                       <iframe
@@ -297,7 +313,7 @@ const EventDetailPage = () => {
                 {displayReels.length > 0 && (
                   <div className="pt-10 space-y-6">
                     <div className="flex items-center justify-between border-b border-border pb-3">
-                      <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
+                      <h3 className="text-2xl font-black tracking-tighter">Event Reels</h3>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
                     </div>
 
@@ -430,7 +446,7 @@ const EventDetailPage = () => {
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">
                       <Eye className="h-3.5 w-3.5" />
-                      {event.viewCount || 0} Views
+                      {formatViews(event.viewCount)} Views
                     </div>
                   </div>
                 </div>
@@ -457,24 +473,34 @@ const EventDetailPage = () => {
               )}
 
               {/* Ticket Card */}
-              <div className="bg-card rounded-2xl p-8 border border-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors">
+              <div className="bg-card rounded-2xl p-5 sm:p-8 border border-border shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors">
                 <div className="space-y-1 text-center sm:text-left">
-                  <p className="text-2xl font-black uppercase tracking-tight">Book Tickets</p>
+                  <p className="text-2xl font-black tracking-tighter">Book Tickets</p>
                   <p className="text-muted-foreground text-xs font-medium">The price you'll pay. No surprises later.</p>
                 </div>
-                <Button
-                  onClick={() => setIsBookingModalOpen(true)}
-                  disabled={allSoldOut || event.isActive === false || event.status === 'past'}
-                  className="h-14 px-10 rounded-full font-black uppercase tracking-widest text-sm bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_8px_20px_rgba(196,240,0,0.3)] hover:shadow-[0_12px_24px_rgba(196,240,0,0.4)] border-none"
-                >
-                  {event.isActive === false || event.status === 'past' ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
-                </Button>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <Button
+                    onClick={() => setIsBookingModalOpen(true)}
+                    disabled={allSoldOut || event.isActive === false || event.status === 'past'}
+                    className="flex-1 sm:flex-initial h-14 px-10 rounded-full font-black uppercase tracking-widest text-sm bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_8px_20px_rgba(196,240,0,0.3)] hover:shadow-[0_12px_24px_rgba(196,240,0,0.4)] border-none"
+                  >
+                    {event.isActive === false || event.status === 'past' ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
+                  </Button>
+                  <Button
+                    onClick={() => setShowShareSnippet(true)}
+                    variant="outline"
+                    className="h-14 w-14 rounded-full border border-border bg-muted/20 hover:bg-muted/40 transition-all flex items-center justify-center shrink-0"
+                    title="Share Event Details"
+                  >
+                    <Share2 className="h-5 w-5 text-foreground" />
+                  </Button>
+                </div>
               </div>
 
               {/* Lineup Section */}
               {event.lineup && event.lineup.length > 0 && (
                 <div className="space-y-5">
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Event Lineup</h3>
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tighter">Event Lineup</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {event.lineup.map((person: any, idx: number) => (
                       <div key={idx} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors group">
@@ -514,9 +540,9 @@ const EventDetailPage = () => {
 
               {/* About Section */}
               <div className="space-y-6">
-                <h3 className="text-2xl font-black uppercase tracking-tight">About</h3>
+                <h3 className="text-2xl md:text-3xl font-black tracking-tighter">About</h3>
                 <div className="space-y-5">
-                  <p className="text-lg text-foreground/80 leading-relaxed whitespace-pre-wrap selection:bg-primary/30">
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed italic font-medium whitespace-pre-wrap selection:bg-primary/30 max-w-3xl">
                     {event.description}
                   </p>
                   {event.description.length > 300 && (
@@ -544,7 +570,7 @@ const EventDetailPage = () => {
 
               {/* Venue Section */}
               <div className="space-y-8 pt-10 border-t border-border">
-                <h3 className="text-2xl font-black uppercase tracking-tight">Venue</h3>
+                <h3 className="text-2xl md:text-3xl font-black tracking-tighter">Venue</h3>
                 <div className="space-y-5">
                   <div className="space-y-1.5">
                     <p className="text-xl font-bold">{event.location.venueName || "Venue"}</p>
@@ -564,7 +590,7 @@ const EventDetailPage = () => {
                   </div>
                 </div>
 
-                {/* Offline Tickets / Call Support Section */}
+                {/* Offline Tickets / Coordinator Contact Section */}
                 <div className="grid sm:grid-cols-2 gap-4 pt-6">
                   <a
                     href={`tel:${event.coordinator?.phone || "+919999999999"}`}
@@ -574,8 +600,8 @@ const EventDetailPage = () => {
                       <Phone className="h-6 w-6 text-neon-lime" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Call Support</p>
-                      <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Offline Tickets Available</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Offline Tickets</p>
+                      <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Call Coordinator</p>
                     </div>
                     <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime group-hover:translate-x-1 transition-all" />
                   </a>
@@ -599,7 +625,7 @@ const EventDetailPage = () => {
               {/* Coordinator Section */}
               {event.coordinator && (event.coordinator.name || event.coordinator.phone) && (
                 <div className="space-y-8 pt-10 border-t border-border">
-                  <h3 className="text-2xl font-black uppercase tracking-tight">Contact Coordinator</h3>
+                  <h3 className="text-2xl md:text-3xl font-black tracking-tighter">Contact Coordinator</h3>
                   <div className="space-y-5">
                     {event.coordinator.name && (
                       <div className="flex items-center gap-4">
@@ -663,7 +689,7 @@ const EventDetailPage = () => {
                 {videoId && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between border-b border-border pb-3">
-                      <h3 className="text-xl font-black uppercase tracking-tight">Main Video</h3>
+                      <h3 className="text-2xl font-black tracking-tighter">Main Video</h3>
                     </div>
                     <div className="relative aspect-video rounded-2xl overflow-hidden bg-zinc-900 shadow-xl border border-border/30">
                       <iframe
@@ -681,7 +707,7 @@ const EventDetailPage = () => {
                 {displayReels.length > 0 && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between border-b border-border pb-3">
-                      <h3 className="text-xl font-black uppercase tracking-tight">Event Reels</h3>
+                      <h3 className="text-2xl font-black tracking-tighter">Event Reels</h3>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{displayReels.length} Clips</p>
                     </div>
 
@@ -729,16 +755,16 @@ const EventDetailPage = () => {
               </div>
 
               {/* You may also like section */}
-              {similarEvents && similarEvents.length > 0 && (
+              {filteredSimilarEvents.length > 0 && (
                 <div className="pt-10 border-t border-border">
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-2xl font-black uppercase tracking-tight">You may also like</h3>
-                      <span className="text-sm font-bold text-neon-lime">{similarEvents.length} Events</span>
+                      <h3 className="text-2xl md:text-3xl font-black tracking-tighter">You May Also Like</h3>
+                      <span className="text-sm font-bold text-neon-lime">{filteredSimilarEvents.length} Events</span>
                     </div>
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      {similarEvents.map((similarEvent: any, idx: number) => (
+                      {filteredSimilarEvents.map((similarEvent: any, idx: number) => (
                         <motion.div
                           key={similarEvent._id}
                           initial={{ opacity: 0, y: 16 }}
@@ -773,6 +799,32 @@ const EventDetailPage = () => {
 
       {showShareSnippet && <ShareSnippet event={event} onClose={() => setShowShareSnippet(false)} />}
       {event && <BookingModal isOpen={isBookingModalOpen} onClose={() => setIsBookingModalOpen(false)} event={event} />}
+
+      {/* Sticky Bottom Booking Bar (Mobile Only) */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-lg border-t border-border shadow-[0_-8px_30px_rgba(0,0,0,0.12)] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] flex items-center justify-between gap-4">
+        <div className="space-y-0.5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Price starts at</p>
+          <p className="text-lg font-black text-[#C4F000]">{formatPrice(minPrice)}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setShowShareSnippet(true)}
+            variant="outline"
+            className="h-12 w-12 rounded-full border border-border bg-muted/20 hover:bg-muted/40 transition-all flex items-center justify-center shrink-0"
+            title="Share Event Details"
+          >
+            <Share2 className="h-4.5 w-4.5 text-foreground" />
+          </Button>
+          <Button
+            onClick={() => setIsBookingModalOpen(true)}
+            disabled={allSoldOut || event.isActive === false || event.status === 'past'}
+            className="h-12 px-6 rounded-full font-black uppercase tracking-widest text-[11px] bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_6px_15px_rgba(196,240,0,0.25)] border-none"
+          >
+            {event.isActive === false || event.status === 'past' ? "Ended" : allSoldOut ? "Sold Out" : "Book Now"}
+          </Button>
+        </div>
+      </div>
+
       <Footer />
     </div>
   );

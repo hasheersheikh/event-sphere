@@ -115,7 +115,7 @@ const MaintenancePage = () => {
           className="mt-12 text-center"
         >
           <p className="text-slate-500 text-sm">
-            &copy; {new Date().getFullYear()} Event Sphere. Built for Excellence.
+            &copy; {new Date().getFullYear()} City Pulse. Built for Excellence.
           </p>
         </motion.div>
       </motion.div>

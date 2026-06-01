@@ -1,6 +1,6 @@
-import React from "react";
-import { Shield, Info, AlertTriangle, CheckCircle2 } from "lucide-react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { Shield, AlertTriangle, ChevronDown, ChevronUp } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_TERMS = [
@@ -18,35 +18,70 @@ const DEFAULT_TERMS = [
 ];
 
 const TermsAndConditions = ({ className, customTerms }: { className?: string; customTerms?: string[] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const terms = customTerms && customTerms.length > 0 ? customTerms : DEFAULT_TERMS;
+  const visibleTerms = isExpanded ? terms : terms.slice(0, 1);
+  const hiddenCount = terms.length - 1;
 
   return (
     <div className={cn("space-y-8", className)}>
       <div className="space-y-6">
-        <div className="flex items-center gap-3 border-b border-border pb-4">
-          <Shield className="h-6 w-6 text-neon-lime" />
-          <h3 className="text-2xl font-black uppercase tracking-tight">Terms & Conditions</h3>
+        <div className="flex items-center justify-between border-b border-border pb-4">
+          <div className="flex items-center gap-3">
+            <Shield className="h-6 w-6 text-neon-lime" />
+            <h3 className="text-2xl font-black uppercase tracking-tight">Terms & Conditions</h3>
+          </div>
+          {terms.length > 1 && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-[10px] font-black uppercase tracking-widest text-neon-lime hover:text-neon-lime/80 transition-colors flex items-center gap-1 bg-neon-lime/10 px-3 py-1 rounded-full border border-neon-lime/20"
+            >
+              {isExpanded ? (
+                <>
+                  <span>Show Less</span>
+                  <ChevronUp className="h-3 w-3" />
+                </>
+              ) : (
+                <>
+                  <span>+{hiddenCount} More</span>
+                  <ChevronDown className="h-3 w-3" />
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         <div className="grid gap-3">
-          {terms.map((term, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: -10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.03 }}
-              className="flex gap-3 p-3 rounded-lg bg-muted/20 border border-border/40 hover:bg-muted/30 hover:border-neon-lime/30 transition-all duration-200 group"
-            >
-              <div className="shrink-0 mt-0.5">
-                <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground group-hover:text-neon-lime transition-colors" />
-              </div>
-              <p className="text-xs font-medium leading-relaxed text-foreground/70 group-hover:text-foreground transition-colors">
-                {term}
-              </p>
-            </motion.div>
-          ))}
+          <AnimatePresence initial={false}>
+            {visibleTerms.map((term, idx) => (
+              <motion.div
+                key={idx}
+                initial={isExpanded ? { opacity: 0, height: 0, y: -10 } : { opacity: 1, height: "auto", y: 0 }}
+                animate={{ opacity: 1, height: "auto", y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="flex gap-3 p-3 rounded-lg bg-muted/20 border border-border/40 hover:bg-muted/30 hover:border-neon-lime/30 transition-all duration-200 group overflow-hidden"
+              >
+                <div className="shrink-0 mt-0.5">
+                  <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground group-hover:text-neon-lime transition-colors" />
+                </div>
+                <p className="text-xs font-medium leading-relaxed text-foreground/70 group-hover:text-foreground transition-colors">
+                  {term}
+                </p>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
+
+        {terms.length > 1 && !isExpanded && (
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="w-full py-3 rounded-xl border border-dashed border-border hover:border-neon-lime/50 bg-muted/5 hover:bg-muted/10 transition-all text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime flex items-center justify-center gap-2 group animate-pulse"
+          >
+            <span>Show +{hiddenCount} more terms</span>
+            <ChevronDown className="h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
+          </button>
+        )}
       </div>
     </div>
   );

@@ -71,8 +71,6 @@ const StoreDetailPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground relative overflow-hidden">
       <div className="fixed inset-0 mesh-bg opacity-30 z-0" />
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-neon-lime/5 rounded-full blur-[140px] pointer-events-none -translate-y-1/2 translate-x-1/2" />
-      <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-neon-lime/5 rounded-full blur-[140px] pointer-events-none translate-y-1/2 -translate-x-1/2" />
 
       <Navbar />
 
@@ -90,7 +88,6 @@ const StoreDetailPage = () => {
               <Store className="h-24 w-24 text-neon-lime/10" />
             </div>
           )}
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
 
           {/* Back button overlaid on hero */}
           <div className="absolute top-6 left-0 right-0 container">
@@ -104,40 +101,45 @@ const StoreDetailPage = () => {
           </div>
         </div>
 
-        {/* Store Identity — sits below hero, overlapping slightly */}
-        <div className="container -mt-16 relative z-10 mb-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div className="space-y-3">
-              <Badge className="bg-neon-lime text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg">
-                {store.category}
-              </Badge>
-              <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic uppercase">
-                {store.name}
-              </h1>
-              <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
-                <span className="flex items-center gap-1.5 italic">
-                  <MapPin className="h-3.5 w-3.5 text-neon-lime shrink-0" />
-                  {store.address}
-                </span>
-                {store.openingHours && (
+        {/* Store Identity — sits below hero, overlapping the hero image */}
+        <div className="container -mt-20 relative z-10 mb-10">
+          <div className="bg-card/80 backdrop-blur-lg border border-border/60 rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden">
+            {/* Ambient background glow */}
+            <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-neon-lime/10 blur-[80px] pointer-events-none" />
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+              <div className="space-y-4">
+                <Badge className="bg-neon-lime text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg w-fit">
+                  {store.category}
+                </Badge>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-none italic uppercase">
+                  {store.name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-4 text-muted-foreground font-bold text-[10px] uppercase tracking-widest">
                   <span className="flex items-center gap-1.5 italic">
-                    <Clock className="h-3.5 w-3.5 text-neon-lime" />
-                    {store.openingHours}
+                    <MapPin className="h-3.5 w-3.5 text-neon-lime shrink-0" />
+                    {store.address}
                   </span>
-                )}
+                  {store.openingHours && (
+                    <span className="flex items-center gap-1.5 italic">
+                      <Clock className="h-3.5 w-3.5 text-neon-lime shrink-0" />
+                      {store.openingHours}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-neon-lime bg-neon-lime/10 px-4 py-2.5 rounded-xl border border-neon-lime/20 shrink-0 self-start md:self-auto shadow-sm">
+                <Sparkles className="h-4 w-4" />
+                <span className="text-[9px] font-black uppercase tracking-widest">Premium Partner</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-neon-lime bg-neon-lime/10 px-4 py-2 rounded-xl border border-neon-lime/20 shrink-0 self-start md:self-auto">
-              <Sparkles className="h-4 w-4" />
-              <span className="text-[9px] font-black uppercase tracking-widest">Premium Partner</span>
-            </div>
-          </div>
 
-          {store.description && (
-            <p className="mt-5 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed italic font-medium opacity-90">
-              {store.description}
-            </p>
-          )}
+            {store.description && (
+              <p className="mt-6 text-sm md:text-base text-muted-foreground max-w-3xl leading-relaxed italic font-medium opacity-90 border-t border-border/30 pt-4 relative z-10">
+                {store.description}
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Photo Strip (if multiple photos) */}

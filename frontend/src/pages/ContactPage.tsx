@@ -25,7 +25,7 @@ const ContactPage = () => {
 
   const contactInfo = [
     { icon: Mail, label: "Email Support", value: "support@citypulse.com" },
-    { icon: Phone, label: "Call Us", value: "+91 1800-EVENT-SPHERE" },
+    { icon: Phone, label: "Call Us", value: "+91 1800-CITY-PULSE" },
     {
       icon: MapPin,
       label: "Office",

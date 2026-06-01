@@ -323,16 +323,24 @@ const LocalStoreCartDrawer = () => {
                       />
                     </div>
 
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-                      <Input
-                        required
-                        type="tel"
-                        placeholder="Phone number"
-                        value={form.phone}
-                        onChange={(e) => field("phone", e.target.value)}
-                        className="pl-11 h-12 rounded-xl bg-muted/20 border-border text-sm font-bold"
-                      />
+                    <div className="flex gap-2 items-center">
+                      <div className="h-12 px-3 flex items-center justify-center rounded-xl bg-muted/20 border border-border text-xs font-black text-foreground shrink-0 select-none">
+                        +91
+                      </div>
+                      <div className="relative flex-1">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                        <Input
+                          required
+                          type="tel"
+                          placeholder="9876543210"
+                          value={form.phone ? form.phone.replace(/^\+91/, "") : ""}
+                          onChange={(e) => {
+                            const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                            field("phone", digits ? "+91" + digits : "");
+                          }}
+                          className="pl-11 h-12 rounded-xl bg-muted/20 border-border text-sm font-bold"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-3">

@@ -169,7 +169,7 @@ function isEventActive(event: any): boolean {
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const { q, category, location, city, date, sort, limit } = req.query;
+    const { q, category, location, city, date, sort, limit, exclude } = req.query;
 
     const secondarySort = sort ? (sort as string).split(',').join(' ') : '';
     const sortOption: any = { isSponsored: -1 };
@@ -202,6 +202,9 @@ export const getEvents = async (req: Request, res: Response) => {
       additionalFilters.city = { $regex: city as string, $options: 'i' };
     } else if (city === '') {
       delete additionalFilters.city;
+    }
+    if (exclude && mongoose.Types.ObjectId.isValid(exclude as string)) {
+      additionalFilters._id = { $ne: new mongoose.Types.ObjectId(exclude as string) };
     }
 
     const baseQuery = {

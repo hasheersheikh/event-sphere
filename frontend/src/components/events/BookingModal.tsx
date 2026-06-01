@@ -579,7 +579,21 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                   <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 ml-1">
                     <Phone className="h-3.5 w-3.5" /> Phone Number
                   </Label>
-                  <Input type="tel" placeholder="+1 234 567 890" value={guestPhone} onChange={(e) => setGuestPhone(e.target.value)} className="h-14 rounded-2xl bg-muted/30 border-border/50 text-base px-4 focus-visible:ring-primary/50 focus-visible:border-primary transition-all" />
+                  <div className="flex gap-2 items-center">
+                    <div className="h-14 px-4 flex items-center justify-center rounded-2xl bg-muted/30 border border-border/50 text-sm font-black text-foreground shrink-0 select-none">
+                      +91
+                    </div>
+                    <Input
+                      type="tel"
+                      placeholder="9876543210"
+                      value={guestPhone ? guestPhone.replace(/^\+91/, "") : ""}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setGuestPhone(digits ? "+91" + digits : "");
+                      }}
+                      className="h-14 rounded-2xl bg-muted/30 border-border/50 text-base px-4 focus-visible:ring-primary/50 focus-visible:border-primary transition-all flex-1"
+                    />
+                  </div>
                 </div>
               </div>
 

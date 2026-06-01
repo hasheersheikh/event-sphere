@@ -1397,14 +1397,23 @@ const EditEventPage = () => {
                               <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                                 Contact Number
                               </FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="+919876543210"
-                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <p className="text-[10px] text-muted-foreground ml-1">Must start with +91 followed by 10 digits (e.g., +919876543210)</p>
+                              <div className="flex gap-2 items-center">
+                                <div className="h-14 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-white/10 text-sm font-black text-foreground shrink-0 select-none">
+                                  +91
+                                </div>
+                                <FormControl>
+                                  <Input
+                                    placeholder="9876543210"
+                                    className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner flex-1"
+                                    value={field.value ? field.value.replace(/^\+91/, "") : ""}
+                                    onChange={(e) => {
+                                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                      field.onChange(digits ? "+91" + digits : "");
+                                    }}
+                                  />
+                                </FormControl>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground ml-1">Enter the 10-digit phone number (e.g., 9876543210)</p>
                               <FormMessage />
                             </FormItem>
                           )}

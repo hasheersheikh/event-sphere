@@ -6486,3 +6486,168 @@
 {"level":"info","message":"Cron jobs initialized"}
 {"level":"info","message":"Running external service ping..."}
 {"level":"info","message":"Ping successful: 200 - 2026-05-31T17:25:01.164Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T17:35:00.802Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T19:35:01.413Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T19:40:00.872Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T19:45:01.140Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T19:50:01.174Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T19:55:00.886Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:00:01.130Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:05:01.073Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:10:00.806Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:15:00.826Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:20:06.352Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:25:01.092Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-01T02:00:00.072Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:30:01.090Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:35:00.841Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:40:00.870Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:45:00.746Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:50:01.108Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T20:55:01.130Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:00:00.739Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:05:00.845Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:15:01.143Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:20:00.829Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:25:00.856Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-01T03:00:00.036Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T21:30:00.711Z"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T22:25:01.175Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-05-31T23:20:00.783Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T00:05:10.030Z"}
+{"level":"info","message":"Running cleanup job at 2026-06-01T07:00:00.026Z (IST)"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T01:33:58.263Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T02:35:10.012Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T03:15:10.026Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-01T10:00:00.278Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T04:30:10.179Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T05:25:10.025Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T05:55:10.078Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T07:07:12.573Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T07:10:01.178Z"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-01T13:00:00.046Z (IST)"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T07:30:10.056Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T07:58:42.682Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T08:25:10.027Z"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-01T14:00:00.031Z (IST)"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T08:30:01.193Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T10:55:10.019Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T12:05:10.025Z"}
+{"level":"info","message":"Running cleanup job at 2026-06-01T18:00:00.230Z (IST)"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T12:30:10.291Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T13:35:10.082Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T14:15:10.038Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T14:35:10.037Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T16:25:01.212Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T17:45:10.075Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T17:50:00.949Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T18:30:12.494Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-01T19:20:10.016Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:25:01.105Z"}
+{"level":"info","message":"Running cleanup job at 2026-06-02T01:00:00.050Z (IST)"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:30:00.784Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:35:01.108Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:40:00.777Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:45:00.753Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:50:01.107Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T19:55:00.712Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T20:00:00.737Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T20:05:01.100Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-01T20:10:01.078Z"}

@@ -1115,8 +1115,23 @@ const CreateEventPage = () => {
                         <FormField control={form.control} name="coordinator.phone" render={({ field }) => (
                           <FormItem>
                             <FormLabel className={labelCls}>Contact Number</FormLabel>
-                            <FormControl><Input placeholder="+919876543210" className={inputCls} {...field} /></FormControl>
-                            <FormDescription className="text-[10px] text-muted-foreground">Must start with +91 followed by 10 digits (e.g., +919876543210)</FormDescription>
+                            <div className="flex gap-2 items-center">
+                              <div className="h-12 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-border/50 text-sm font-black text-foreground shrink-0 select-none">
+                                +91
+                              </div>
+                              <FormControl>
+                                <Input
+                                  placeholder="9876543210"
+                                  className={cn(inputCls, "flex-1")}
+                                  value={field.value ? field.value.replace(/^\+91/, "") : ""}
+                                  onChange={(e) => {
+                                    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                    field.onChange(digits ? "+91" + digits : "");
+                                  }}
+                                />
+                              </FormControl>
+                            </div>
+                            <FormDescription className="text-[10px] text-muted-foreground">Enter the 10-digit phone number (e.g., 9876543210)</FormDescription>
                             <FormMessage />
                           </FormItem>
                         )} />

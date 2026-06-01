@@ -208,6 +208,22 @@ const MarqueeCarousel = ({
   const cardWidth = isMobile ? 300 : 320;
   const gap = 12;
 
+  if (events.length <= 3) {
+    return (
+      <div className="flex flex-wrap gap-4 justify-center md:justify-start px-4 md:px-0">
+        {events.map((event, index) => (
+          <div
+            key={event._id}
+            className="flex-shrink-0"
+            style={{ width: cardWidth }}
+          >
+            <EventCard event={event} index={index} imageRatio="3/4" mobile={isMobile} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="relative select-none">
       {/* Left arrow — snap to previous card boundary — hidden on mobile */}

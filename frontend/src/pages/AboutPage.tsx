@@ -140,7 +140,7 @@ const AboutPage = () => {
                   <span className="text-primary italic">The Pulse.</span>
                 </>
               }
-              subtitle="Event Sphere is a decentralized ecosystem for extraordinary live experiences, syncing human connection across the globe."
+              subtitle="City Pulse is a decentralized ecosystem for extraordinary live experiences, syncing human connection across the globe."
               themeColor="primary"
             />
           </div>
