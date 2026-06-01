@@ -258,7 +258,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
               </button>
             )}
             <div>
-              <h2 className="text-lg font-black tracking-tight">{event.title}</h2>
+              <h2 className="text-lg font-extrabold tracking-tight">{event.title}</h2>
               <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
                 <Calendar className="h-3 w-3" /> {formatDate(event.date)}
               </p>
@@ -285,14 +285,14 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                   )}
                   <div className="flex flex-col items-center gap-2 min-w-[60px]">
                     <div className={cn(
-                      "h-8 w-8 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 border-2",
+                      "h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 border-2",
                       isActive ? "bg-primary border-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)] scale-110" : 
                       isPast ? "bg-primary border-primary text-primary-foreground" : "bg-card border-muted-foreground/30 text-muted-foreground"
                     )}>
                       {isPast ? <Check className="h-4 w-4" /> : null}
                     </div>
                     <span className={cn(
-                      "text-[9px] font-black uppercase tracking-[0.2em] transition-colors duration-300 hidden sm:block",
+                      "text-[9px] font-bold uppercase tracking-[0.2em] transition-colors duration-300 hidden sm:block",
                       isActive ? "text-primary" : 
                       isPast ? "text-foreground" : "text-muted-foreground"
                     )}>
@@ -427,7 +427,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                     <div className="grid gap-3">
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Pick a Slot</p>
-                        <button onClick={() => setSessionStep(0)} className="text-[10px] font-black uppercase text-primary hover:underline">Change Date</button>
+                        <button onClick={() => setSessionStep(0)} className="text-[10px] font-bold uppercase text-primary hover:underline">Change Date</button>
                       </div>
                       {event.slots?.map((slot, idx) => {
                         const isSelected = selectedSlotIndex === idx;
@@ -466,7 +466,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {/* STEP 1: NUMBER OF PEOPLE */}
           {step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-              <h3 className="font-display font-black text-2xl tracking-tight">How many people?</h3>
+              <h3 className="font-display font-extrabold text-2xl tracking-tighter">How many people?</h3>
               
               <div className="flex items-center justify-center gap-6 py-8">
                 <button
@@ -477,8 +477,8 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                   <Minus className="h-6 w-6" />
                 </button>
                 <div className="text-center min-w-[120px]">
-                  <p className="font-display font-black text-5xl tracking-tight">{numberOfPeople}</p>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">
+                  <p className="font-display font-extrabold text-5xl tracking-tighter">{numberOfPeople}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-2">
                     {numberOfPeople === 1 ? "Person" : "People"}
                   </p>
                 </div>
@@ -496,7 +496,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {/* STEP 2: TICKET TIER SELECTION */}
           {step === 2 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
-              <h3 className="font-display font-black text-2xl tracking-tight mb-6">Select Ticket Type</h3>
+              <h3 className="font-display font-extrabold text-2xl tracking-tighter mb-6">Select Ticket Type</h3>
               
               <div className="space-y-4">
                 {event.ticketTypes.map((ticket: any) => {
@@ -511,7 +511,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                       className={cn(
                         "relative p-5 rounded-2xl transition-all duration-300 border-2 overflow-hidden group cursor-pointer",
                         isSoldOut ? "opacity-50 grayscale bg-muted/30 border-border/20 cursor-not-allowed" : 
-                        isSelected ? "border-primary bg-primary/5 shadow-md" : "border-border/40 bg-card hover:border-primary/50 hover:shadow-lg"
+                        isSelected ? "border-neon-lime bg-neon-lime/[0.04] dark:bg-neon-lime/[0.02] shadow-[0_0_20px_hsl(var(--neon-lime)/0.25)]" : "border-border/40 bg-card hover:border-neon-lime/30 hover:shadow-lg"
                       )}
                       onClick={() => {
                         if (isSoldOut) return;
@@ -526,26 +526,41 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                         <div className="flex-1">
                           <div className="flex items-center gap-3">
                             <div className={cn(
-                              "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all",
-                              isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30"
+                              "h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                              isSelected ? "bg-neon-lime border-neon-lime text-black" : "border-muted-foreground/30"
                             )}>
-                              {isSelected && <Check className="h-3 w-3" />}
+                              {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
                             </div>
-                            <span className="font-display font-black text-lg tracking-tight">{ticket.name}</span>
+                            <span className={cn(
+                              "font-display font-extrabold text-lg tracking-tighter transition-colors",
+                              isSelected ? "text-green-700 dark:text-neon-lime" : "text-foreground"
+                            )}>
+                              {ticket.name}
+                            </span>
+                            {isSelected && (
+                              <span className="text-[9px] font-bold uppercase tracking-widest bg-neon-lime/15 text-green-700 dark:text-neon-lime px-2 py-0.5 rounded-full border border-neon-lime/30 animate-pulse">
+                                Selected
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] block mt-2 ml-8">{ticket.description}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="font-display font-black text-2xl tracking-tight">{formatPrice(price)}</span>
+                          <span className={cn(
+                            "font-display font-extrabold text-2xl tracking-tighter transition-colors",
+                            isSelected ? "text-green-700 dark:text-neon-lime" : "text-foreground"
+                          )}>
+                            {formatPrice(price)}
+                          </span>
                         </div>
                       </div>
 
                       {!isSoldOut && (
                         <div className="flex items-center justify-between mt-4 ml-8 pt-3 border-t border-border/30">
-                          <span className={cn("text-[10px] font-bold uppercase tracking-widest", isSelected ? "text-primary" : "text-muted-foreground")}>
+                          <span className={cn("text-[10px] font-bold uppercase tracking-widest", isSelected ? "text-green-600 dark:text-neon-lime font-bold" : "text-muted-foreground")}>
                             {maxQty} remaining
                           </span>
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          <span className={cn("text-[10px] font-bold uppercase tracking-widest", isSelected ? "text-foreground font-bold" : "text-muted-foreground")}>
                             {formatPrice(price)} × {numberOfPeople} = {formatPrice(price * numberOfPeople)}
                           </span>
                         </div>
@@ -560,7 +575,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {/* STEP 3: CHECKOUT DETAILS */}
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-              <h3 className="font-display font-black text-2xl tracking-tight">Contact Details</h3>
+              <h3 className="font-display font-extrabold text-2xl tracking-tighter">Contact Details</h3>
               
               <div className="space-y-5">
                 <div className="space-y-2">
@@ -580,7 +595,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                     <Phone className="h-3.5 w-3.5" /> Phone Number
                   </Label>
                   <div className="flex gap-2 items-center">
-                    <div className="h-14 px-4 flex items-center justify-center rounded-2xl bg-muted/30 border border-border/50 text-sm font-black text-foreground shrink-0 select-none">
+                    <div className="h-14 px-4 flex items-center justify-center rounded-2xl bg-muted/30 border border-border/50 text-sm font-bold text-foreground shrink-0 select-none">
                       +91
                     </div>
                     <Input
@@ -637,7 +652,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
 
           {step === 0 && (
             <Button 
-              className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
+              className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
               disabled={!canProceedFromSession()}
               onClick={() => {
                 if (event.scheduleType === "recurring" && event.slots && event.slots.length > 0 && sessionStep === 0) {
@@ -653,7 +668,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
 
           {step === 1 && (
             <Button 
-              className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
+              className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
               onClick={() => setStep(2)}
             >
               Continue <ArrowRight className="h-4 w-4 ml-2" />
@@ -664,10 +679,10 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             <div className="flex items-center justify-between gap-4 relative z-10">
               <div className="flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">Total</p>
-                <p className="font-display font-black text-3xl leading-none tracking-tight">{formatPrice(total)}</p>
+                <p className="font-display font-extrabold text-3xl leading-none tracking-tighter">{formatPrice(total)}</p>
               </div>
               <Button 
-                className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-xs shrink-0 shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
+                className="h-14 px-8 rounded-2xl font-extrabold uppercase tracking-widest text-xs shrink-0 shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
                 disabled={!selectedTicketType}
                 onClick={() => setStep(3)}
               >
@@ -692,14 +707,14 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                       <span className="font-bold text-sm">-{formatPrice(discount)}</span>
                     </div>
                     <div className="pt-2 border-t border-border/50 flex justify-between items-center">
-                      <span className="text-xs font-black uppercase tracking-widest">Total Payable</span>
-                      <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(total)}</span>
+                      <span className="text-xs font-bold uppercase tracking-widest">Total Payable</span>
+                      <span className="font-display font-extrabold text-2xl tracking-tighter text-primary">{formatPrice(total)}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
                     <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
-                    <span className="font-display font-black text-2xl tracking-tight text-primary">{formatPrice(total)}</span>
+                    <span className="font-display font-extrabold text-2xl tracking-tighter text-primary">{formatPrice(total)}</span>
                   </div>
                 )}
                 <div className="px-1 text-center">
@@ -708,7 +723,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                   </p>
                 </div>
                 <Button 
-                  className="w-full h-14 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
+                  className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-sm shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none"
                   disabled={!guestEmail || !guestPhone || bookingMutation.isPending}
                   onClick={handleCheckout}
                 >

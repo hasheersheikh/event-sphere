@@ -484,7 +484,15 @@ const EventDetailPage = () => {
                     disabled={allSoldOut || event.isActive === false || event.status === 'past'}
                     className="flex-1 sm:flex-initial h-14 px-10 rounded-full font-black uppercase tracking-widest text-sm bg-[#C4F000] text-black hover:bg-[#A3C800] transition-all shadow-[0_8px_20px_rgba(196,240,0,0.3)] hover:shadow-[0_12px_24px_rgba(196,240,0,0.4)] border-none"
                   >
-                    {event.isActive === false || event.status === 'past' ? "Event Ended" : allSoldOut ? "Sold Out" : `Get Tickets · ${formatPrice(minPrice)}`}
+                    {event.isActive === false || event.status === 'past' ? (
+                      "Event Ended"
+                    ) : allSoldOut ? (
+                      "Sold Out"
+                    ) : (
+                      <span className="flex items-center gap-2">
+                      Starting  <span className="text-lg font-black tracking-normal">{formatPrice(minPrice)}</span>
+                      </span>
+                    )}
                   </Button>
                   <Button
                     onClick={() => setShowShareSnippet(true)}
