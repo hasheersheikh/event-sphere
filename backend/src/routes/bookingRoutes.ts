@@ -5,12 +5,15 @@ import {
   getEventBookings,
   checkInBooking,
   issueOfflineTicket,
+  getTaxRate,
 } from '../controllers/bookingController.js';
 import { protect, authorize, optionalProtect } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.route('/').post(optionalProtect, createBooking).get(protect, getMyBookings);
+
+router.route('/tax-rate').get(getTaxRate);
 
 router.route('/offline').post(protect, authorize('event_manager', 'admin'), issueOfflineTicket);
 

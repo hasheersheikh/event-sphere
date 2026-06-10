@@ -61,6 +61,9 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
 
 function getNextOccurrence(event: any): Date | null {
   const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istNow = new Date(now.getTime() + istOffset);
+
   const eventDate = new Date(event.date);
   const eventTime = event.time || '00:00';
   const [startHours, startMinutes] = eventTime.split(':').map(Number);
@@ -106,24 +109,50 @@ function getNextOccurrence(event: any): Date | null {
   }
 
   if (event.scheduleType === 'recurring' && event.recurrence && event.recurrence.isActive) {
-    if (event.recurrence.endDate && new Date(event.recurrence.endDate) < now) {
-      return null;
+    const recurrenceEndDate = event.recurrence.endDate ? new Date(event.recurrence.endDate) : null;
+    if (recurrenceEndDate) {
+      const endIST = Date.UTC(
+        recurrenceEndDate.getUTCFullYear(),
+        recurrenceEndDate.getUTCMonth(),
+        recurrenceEndDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999
+      );
+      if (endIST < istNow.getTime()) {
+        return null;
+      }
     }
 
     const daysOfWeek = event.recurrence.daysOfWeek || [];
     if (daysOfWeek.length === 0) return null;
 
-    const currentDay = now.getUTCDay();
-    const today = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const currentDay = istNow.getUTCDay();
+    const today = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()));
 
     let daysUntilNext = null;
-
     const sortedDays = [...daysOfWeek].sort((a, b) => a - b);
 
     for (const day of sortedDays) {
       if (day > currentDay) {
         daysUntilNext = day - currentDay;
         break;
+      }
+      if (day === currentDay) {
+        const todayStartIST = Date.UTC(
+          istNow.getUTCFullYear(),
+          istNow.getUTCMonth(),
+          istNow.getUTCDate(),
+          startHours,
+          startMinutes,
+          0,
+          0
+        );
+        if (todayStartIST > istNow.getTime()) {
+          daysUntilNext = 0;
+          break;
+        }
       }
     }
 
@@ -136,7 +165,7 @@ function getNextOccurrence(event: any): Date | null {
 
     if (daysUntilNext !== null && daysUntilNext >= 0) {
       const nextDate = new Date(today);
-      nextDate.setDate(today.getDate() + daysUntilNext);
+      nextDate.setUTCDate(today.getUTCDate() + daysUntilNext);
       const result = createUTCDate(nextDate, startHours, startMinutes);
       return result;
     }
@@ -148,13 +177,13 @@ function getNextOccurrence(event: any): Date | null {
 }
 
 function isEventActive(event: any): boolean {
-  const now = new Date();
   const nextOccurrence = getNextOccurrence(event);
   if (!nextOccurrence) return false;
 
   const endTime = event.endTime || event.time || '23:59';
   const [endHours, endMinutes] = endTime.split(':').map(Number);
-  const endDateTime = new Date(Date.UTC(
+
+  const eventEndIST = Date.UTC(
     nextOccurrence.getUTCFullYear(),
     nextOccurrence.getUTCMonth(),
     nextOccurrence.getUTCDate(),
@@ -162,9 +191,11 @@ function isEventActive(event: any): boolean {
     endMinutes,
     0,
     0
-  ));
+  );
 
-  return endDateTime > now;
+  const nowIST = Date.now() + (5.5 * 60 * 60 * 1000);
+
+  return eventEndIST > nowIST;
 }
 
 export const getEvents = async (req: Request, res: Response) => {
@@ -560,3 +591,32 @@ export const cancelEvent = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Server error', error });
   }
 };
+
+export const getPublicStats = async (req: Request, res: Response) => {
+  try {
+    const baseEvents = parseInt(process.env.STATS_BASE_EVENTS || '10000', 10);
+    const baseAttendees = parseInt(process.env.STATS_BASE_ATTENDEES || '500000', 10);
+    const baseCities = parseInt(process.env.STATS_BASE_CITIES || '200', 10);
+    const attendeesMultiplier = parseInt(process.env.STATS_ATTENDEES_MULTIPLIER || '50', 10);
+
+    const actualEvents = await Event.countDocuments({ status: 'published', isApproved: true });
+    const actualBookings = await Booking.countDocuments({ status: 'confirmed' });
+    
+    const uniqueCities = await Event.distinct('city', { status: 'published', isApproved: true });
+    const actualCities = uniqueCities.filter(Boolean).length;
+
+    const eventsCount = baseEvents + actualEvents;
+    const attendeesCount = baseAttendees + (actualBookings * attendeesMultiplier);
+    const citiesCount = baseCities + Math.max(actualCities - 3, 0);
+
+    res.json({
+      events: eventsCount,
+      attendees: attendeesCount,
+      cities: citiesCount,
+    });
+  } catch (error: any) {
+    console.error('Error in getPublicStats:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+

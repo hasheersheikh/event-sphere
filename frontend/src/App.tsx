@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import Index from "./pages/Index";
 import EventsPage from "./pages/EventsPage";
+import VenuesPage from "./pages/VenuesPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
@@ -124,6 +125,7 @@ const AppContent = () => {
                       <main className="main-content pt-16 md:pt-20 min-h-screen">
                         <Routes>
                           <Route path="events" element={<EventsPage />} />
+                          <Route path="venues" element={<VenuesPage />} />
                           <Route
                             path="local-stores"
                             element={<LocalStoresPage />}

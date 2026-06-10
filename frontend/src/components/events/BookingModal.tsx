@@ -39,6 +39,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
+  const [taxRate, setTaxRate] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
@@ -56,6 +57,11 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
       setNumberOfPeople(1);
       setAppliedVoucher(null);
       setVoucherCode("");
+      
+      // Fetch global tax rate
+      api.get("/bookings/tax-rate")
+        .then(({ data }) => setTaxRate(data.taxRate || 0))
+        .catch(() => setTaxRate(0));
     }
   }, [isOpen, event.scheduleType]);
 
@@ -126,9 +132,9 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
   };
 
   const calculateBookingAmounts = () => {
-    if (!selectedTicketType) return { subtotal: 0, discount: 0, total: 0 };
+    if (!selectedTicketType) return { subtotal: 0, discount: 0, taxAmount: 0, total: 0 };
     const ticket = event.ticketTypes.find((t: any) => t.name === selectedTicketType);
-    if (!ticket) return { subtotal: 0, discount: 0, total: 0 };
+    if (!ticket) return { subtotal: 0, discount: 0, taxAmount: 0, total: 0 };
     
     const subtotal = getTicketPrice(ticket) * numberOfPeople;
     let discount = 0;
@@ -141,11 +147,14 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
       }
     }
     
-    const total = Math.max(0, subtotal - discount);
-    return { subtotal, discount, total };
+    const netAmount = Math.max(0, subtotal - discount);
+    const taxAmount = Math.round(netAmount * (taxRate / 100));
+    const total = netAmount + taxAmount;
+    
+    return { subtotal, discount, taxAmount, total };
   };
 
-  const { subtotal, discount, total } = calculateBookingAmounts();
+  const { subtotal, discount, taxAmount, total } = calculateBookingAmounts();
 
   const handleCheckout = () => {
     if (!guestEmail || !guestPhone) {
@@ -694,29 +703,35 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {step === 3 && (
             <div className="space-y-5 relative z-10">
               <div className="space-y-5 relative z-10">
-                {appliedVoucher ? (
-                  <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 space-y-3 shadow-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
-                      <span className="font-bold text-sm">{formatPrice(subtotal)}</span>
-                    </div>
+                <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 space-y-3 shadow-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Subtotal</span>
+                    <span className="font-bold text-sm">{formatPrice(subtotal)}</span>
+                  </div>
+                  
+                  {discount > 0 && (
                     <div className="flex justify-between items-center text-primary">
                       <span className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                        <Check className="h-3 w-3" /> Discount ({appliedVoucher.code})
+                        <Check className="h-3 w-3" /> Discount ({appliedVoucher?.code})
                       </span>
                       <span className="font-bold text-sm">-{formatPrice(discount)}</span>
                     </div>
-                    <div className="pt-2 border-t border-border/50 flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-widest">Total Payable</span>
-                      <span className="font-display font-extrabold text-2xl tracking-tighter text-primary">{formatPrice(total)}</span>
+                  )}
+
+                  {taxAmount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Tax ({taxRate}%)
+                      </span>
+                      <span className="font-bold text-sm">{formatPrice(taxAmount)}</span>
                     </div>
-                  </div>
-                ) : (
-                  <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 flex justify-between items-center shadow-sm">
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Amount to pay</span>
+                  )}
+
+                  <div className="pt-2 border-t border-border/50 flex justify-between items-center">
+                    <span className="text-xs font-bold uppercase tracking-widest">Total Payable</span>
                     <span className="font-display font-extrabold text-2xl tracking-tighter text-primary">{formatPrice(total)}</span>
                   </div>
-                )}
+                </div>
                 <div className="px-1 text-center">
                   <p className="text-[10px] text-muted-foreground font-medium leading-relaxed">
                     By clicking "Pay Securely", you agree to the <span className="text-foreground font-bold cursor-help border-b border-dotted border-muted-foreground/50">Terms & Conditions</span> of this event and our platform.

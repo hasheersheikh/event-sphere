@@ -138,7 +138,38 @@ const CreateStorePage = () => {
     );
   };
 
-  const handlePhotoUpload = () => {
+  const handleBannerUpload = () => {
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: false,
+        cropping: true,
+        croppingAspectRatio: 2.5,
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          const current = form.getValues("photos") || [];
+          const updated = [...current];
+          updated[0] = result.info.secure_url;
+          form.setValue("photos", updated);
+          toast.success("Banner image uploaded!");
+        }
+      },
+    );
+    widget.open();
+  };
+
+  const handleGalleryUpload = () => {
+    const currentCount = form.getValues("photos")?.length || 0;
+    const maxAllowed = Math.max(0, 6 - currentCount);
+    if (maxAllowed === 0) {
+      toast.error("Maximum of 6 photos allowed (1 banner + 5 gallery).");
+      return;
+    }
+
     // @ts-ignore
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -146,7 +177,7 @@ const CreateStorePage = () => {
         uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
         sources: ["local", "url", "camera"],
         multiple: true,
-        maxFiles: 6,
+        maxFiles: maxAllowed,
       },
       (error: any, result: any) => {
         if (!error && result && result.event === "success") {
@@ -156,6 +187,7 @@ const CreateStorePage = () => {
     );
     widget.open();
   };
+
 
   const mutation = useMutation({
     mutationFn: async (values: StoreFormValues) => {
@@ -538,33 +570,87 @@ const CreateStorePage = () => {
                         <div className="p-1.5 bg-primary/10 rounded-lg">
                           <ImageIcon className="h-3.5 w-3.5 text-primary" />
                         </div>
-                        Gallery
+                        Store Visuals
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-4 space-y-3">
-                      {photoFields.length > 0 && (
-                        <div className="grid grid-cols-3 gap-3">
-                          {photoFields.map((f, i) => (
-                            <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
-                              <img src={form.watch(`photos.${i}` as any)} alt="" className="w-full h-full object-cover" />
+                    <CardContent className="p-4 space-y-6">
+                      
+                      {/* Banner Image Section */}
+                      <div className="space-y-2.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                          Store Banner (Hero Image)
+                        </label>
+                        {form.watch("photos.0") ? (
+                          <div className="relative aspect-[2.5/1] rounded-xl overflow-hidden bg-muted border border-border group">
+                            <img src={form.watch("photos.0")} alt="Banner" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                               <button
                                 type="button"
-                                onClick={() => removePhoto(i)}
-                                className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={handleBannerUpload}
+                                className="px-4 py-2 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[9px] rounded-lg hover:scale-105 transition-all shadow-lg"
                               >
-                                <X className="h-3 w-3" />
+                                Replace Banner
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => removePhoto(0)}
+                                className="px-4 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-[9px] rounded-lg hover:scale-105 transition-all shadow-lg"
+                              >
+                                Remove
                               </button>
                             </div>
-                          ))}
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={handlePhotoUpload}
-                        className="w-full h-14 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
-                      >
-                        <Upload className="h-4 w-4" /> Upload Photos via Cloudinary
-                      </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleBannerUpload}
+                            className="w-full h-28 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex flex-col items-center justify-center gap-2 transition-all hover:border-primary/40 group"
+                          >
+                            <Upload className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <span className="group-hover:text-primary transition-colors">Upload Banner (2.5:1 ratio)</span>
+                          </button>
+                        )}
+                        <p className="text-[10px] text-muted-foreground/80 italic font-medium ml-1">
+                          This image will be cropped to a 2.5:1 aspect ratio and displayed at the top of the store page.
+                        </p>
+                      </div>
+
+                      {/* Gallery Images Section */}
+                      <div className="space-y-2.5 pt-4 border-t border-border/40">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                          Additional Gallery Photos ({Math.max(0, photoFields.length - 1)} / 5)
+                        </label>
+                        
+                        {photoFields.length > 1 && (
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                            {photoFields.slice(1).map((f, index) => {
+                              const actualIndex = index + 1;
+                              return (
+                                <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
+                                  <img src={form.watch(`photos.${actualIndex}` as any)} alt="" className="w-full h-full object-cover" />
+                                  <button
+                                    type="button"
+                                    onClick={() => removePhoto(actualIndex)}
+                                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        <button
+                          type="button"
+                          onClick={handleGalleryUpload}
+                          disabled={photoFields.length >= 6}
+                          className="w-full h-14 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 disabled:opacity-50 disabled:hover:bg-muted/20 disabled:cursor-not-allowed text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+                        >
+                          <Upload className="h-4 w-4" /> Upload Gallery Photos via Cloudinary
+                        </button>
+                      </div>
+
                     </CardContent>
                   </Card>
 

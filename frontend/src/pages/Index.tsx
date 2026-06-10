@@ -25,7 +25,7 @@ import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
 import { cn } from "@/lib/utils";
 import TrendingVenues from "@/components/home/TrendingVenues";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -85,36 +85,7 @@ const Index = () => {
     return filterByDate(upcomingEvents, dateFilter);
   }, [upcomingEvents, dateFilter]);
 
-  const { data: mostViewedEvents } = useQuery({
-    queryKey: ["mostViewedEvents", selectedCity],
-    queryFn: async () => {
-      const params = new URLSearchParams({ limit: "5", sort: "-viewCount" });
-      if (selectedCity) params.set("city", selectedCity);
-      const { data } = await api.get(`/events?${params.toString()}`);
-      return data as Event[];
-    },
-  });
 
-  const youMayLikeRef = useRef<HTMLDivElement>(null);
-  const [youMayCanLeft, setYouMayCanLeft] = useState(false);
-  const [youMayCanRight, setYouMayCanRight] = useState(false);
-
-  useEffect(() => {
-    const el = youMayLikeRef.current;
-    if (!el) return;
-    const check = () => {
-      setYouMayCanLeft(el.scrollLeft > 0);
-      setYouMayCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
-    };
-    check();
-    el.addEventListener("scroll", check);
-    window.addEventListener("resize", check);
-    return () => { el.removeEventListener("scroll", check); window.removeEventListener("resize", check); };
-  }, [mostViewedEvents]);
-
-  const scrollYouMayLike = (dir: "left" | "right") => {
-    youMayLikeRef.current?.scrollBy({ left: dir === "left" ? -320 : 320, behavior: "smooth" });
-  };
 
   const { data: heroAssets } = useQuery({
     queryKey: ["heroAssets"],
@@ -451,66 +422,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* ═══ YOU MAY ALSO LIKE ═══ */}
-        {mostViewedEvents && mostViewedEvents.length > 0 && (
-          <section className="border-t border-border/20 py-12">
-            <div className="container mb-6 flex items-end justify-between">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground mb-2">
-                  Most Viewed
-                </p>
-                <h2 className="text-2xl md:text-3xl font-black tracking-tighter">
-                  You May Also Like
-                </h2>
-              </div>
-              <Link
-                to="/events"
-                className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors group shrink-0"
-              >
-                See All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </div>
 
-            <div className="container relative">
-              <div
-                ref={youMayLikeRef}
-                className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-              >
-                {mostViewedEvents.map((event, i) => (
-                  <motion.div
-                    key={event._id}
-                    className="flex-shrink-0 w-64 sm:w-72 md:w-80"
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.06, duration: 0.4 }}
-                  >
-                    <EventCard event={event} index={i} />
-                  </motion.div>
-                ))}
-              </div>
-
-              {youMayCanLeft && (
-                <button
-                  onClick={() => scrollYouMayLike("left")}
-                  className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:border-neon-lime/50 hover:text-neon-lime transition-all z-10"
-                  aria-label="Scroll left"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-              )}
-              {youMayCanRight && (
-                <button
-                  onClick={() => scrollYouMayLike("right")}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:border-neon-lime/50 hover:text-neon-lime transition-all z-10"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              )}
-            </div>
-          </section>
-        )}
 
         {/* ═══ TRENDING VENUES ═══ */}
         <TrendingVenues />

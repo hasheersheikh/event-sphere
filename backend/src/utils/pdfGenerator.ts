@@ -51,6 +51,46 @@ export const generateTicketPDF = async (booking: IBooking, event: IEvent): Promi
         yPos += 20;
       });
 
+      // --- Financial Breakdown ---
+      yPos += 10;
+      doc.moveTo(50, yPos).lineTo(545, yPos).stroke('#e2e8f0');
+      yPos += 15;
+
+      const subtotal = booking.subtotal !== undefined && booking.subtotal !== 0
+        ? booking.subtotal 
+        : booking.tickets.reduce((sum, t) => sum + t.price * t.quantity, 0);
+      const discount = booking.discount || 0;
+      const taxRate = booking.taxRate || 0;
+      const taxAmount = booking.taxAmount || 0;
+      const totalAmount = booking.totalAmount;
+
+      doc.font('Helvetica').fontSize(10).fillColor('#64748b');
+
+      // Subtotal
+      doc.text('Subtotal:', 300, yPos, { align: 'right', width: 100 });
+      doc.font('Helvetica-Bold').fillColor('#1e293b').text(`₹${subtotal}`, 410, yPos, { align: 'right', width: 135 });
+      yPos += 15;
+
+      // Discount (if any)
+      if (discount > 0) {
+        doc.font('Helvetica').fillColor('#64748b').text('Discount:', 300, yPos, { align: 'right', width: 100 });
+        doc.font('Helvetica-Bold').fillColor('#10b981').text(`-₹${discount}`, 410, yPos, { align: 'right', width: 135 });
+        yPos += 15;
+      }
+
+      // Tax (if any)
+      if (taxAmount > 0 || taxRate > 0) {
+        doc.font('Helvetica').fillColor('#64748b').text(`Tax (${taxRate}%):`, 300, yPos, { align: 'right', width: 100 });
+        doc.font('Helvetica-Bold').fillColor('#1e293b').text(`₹${taxAmount}`, 410, yPos, { align: 'right', width: 135 });
+        yPos += 15;
+      }
+
+      // Total Paid
+      doc.moveTo(350, yPos).lineTo(545, yPos).stroke('#e2e8f0');
+      yPos += 10;
+      doc.font('Helvetica-Bold').fontSize(11).fillColor('#1e293b').text('Total Paid:', 300, yPos, { align: 'right', width: 100 });
+      doc.fontSize(13).fillColor('#4f46e5').text(`₹${totalAmount}`, 410, yPos, { align: 'right', width: 135 });
+
       // --- QR Code ---
       const qrData = `eventsphere://ticket/${booking._id}`;
       const qrImageBuffer = await QRCode.toBuffer(qrData, { 

@@ -20,7 +20,9 @@ import {
   toggleSponsoredEvent,
   getAllVolunteers,
   adminAddVolunteer,
-  adminRemoveVolunteer
+  adminRemoveVolunteer,
+  getSystemSettings,
+  updateSystemSettings
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
@@ -47,6 +49,10 @@ router.delete('/events/:id', deleteEvent);
 router.patch('/users/:id/approve', approveManager);
 router.get('/stats', getAdminStats);
 router.get('/analytics', getAnalytics);
+
+// Platform Global Settings
+router.get('/settings', getSystemSettings);
+router.put('/settings', updateSystemSettings);
 
 // Volunteer Management (Global)
 router.get('/volunteers', getAllVolunteers);

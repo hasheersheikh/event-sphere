@@ -11,12 +11,14 @@ import {
   stopRecurrence,
   addRecurrenceException,
   cancelEvent,
+  getPublicStats,
 } from '../controllers/eventController.js';
 import { protect, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
 router.route('/').get(getEvents).post(protect, authorize('event_manager', 'admin'), createEvent);
+router.route('/stats').get(getPublicStats);
 router.route('/my').get(protect, authorize('event_manager', 'admin'), getMyEvents);
 
 router

@@ -126,7 +126,7 @@ const Navbar = () => {
                 size="sm"
                 className="h-8 px-4 text-[10px] font-black uppercase tracking-widest rounded-lg"
               >
-                Sign In
+                Login / Signup
               </Button>
             </Link>
           )}
@@ -224,7 +224,7 @@ const Navbar = () => {
                 ) : (
                   <Link to="/auth">
                     <Button variant="default" className="h-9 px-5 font-black uppercase tracking-widest text-[10px] rounded-xl">
-                      Sign In
+                      Login / Signup
                     </Button>
                   </Link>
                 )}

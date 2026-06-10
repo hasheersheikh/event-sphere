@@ -55,6 +55,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CITIES } from "@/contexts/CityContext";
+import { CityCombobox } from "@/components/events/CityCombobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -1058,12 +1059,16 @@ const CreateEventPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-5 p-6">
                       <FormField control={form.control} name="city" render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                           <FormLabel className={labelCls}>City</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl><SelectTrigger className={inputCls}><SelectValue placeholder="Select city" /></SelectTrigger></FormControl>
-                            <SelectContent>{CITIES.map((city) => (<SelectItem key={city} value={city}>{city}</SelectItem>))}</SelectContent>
-                          </Select>
+                          <FormControl>
+                            <CityCombobox
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="Select city"
+                              triggerClassName={inputCls}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />

@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import CircularWorkflowSection from "@/components/shared/CircularWorkflowSection";
 
 const AboutPage = () => {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
@@ -317,34 +318,8 @@ const AboutPage = () => {
           </div>
         </section>
 
-        {/* Call to Connect - Reused from Index but simplified */}
-        <section className="py-24 container text-center">
-          <div className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter uppercase leading-none italic">
-              Ready to <br />
-              <span className="text-primary">Sync?</span>
-            </h2>
-            <p className="text-muted-foreground text-base md:text-lg font-medium italic max-w-xl mx-auto">
-              Whether you're an organizer with a vision or a fan seeking the
-              next memory, the Pulse is waiting for your signature.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/auth">
-                <Button className="h-12 px-10 rounded-xl font-black uppercase tracking-widest text-[9px] shadow-button">
-                  Get Started
-                </Button>
-              </Link>
-              <Link to="/events">
-                <Button
-                  variant="outline"
-                  className="h-12 px-10 rounded-xl font-black uppercase tracking-widest text-[9px] border border-primary text-primary hover:bg-primary/10"
-                >
-                  Explore Pulses
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* Circular Bottom Section */}
+        <CircularWorkflowSection />
       </main>
 
       <Footer />

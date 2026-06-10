@@ -29,6 +29,10 @@ import {
   ClipboardList,
   Plus,
   Minus,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  FileCode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +70,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { jsPDF } from "jspdf";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const defaultOfflineForm = {
   contactName: "",
@@ -153,6 +164,150 @@ const ManageEventPage = () => {
       return;
     }
     issueOfflineMutation.mutate(offlineForm);
+  };
+
+  const downloadCSV = () => {
+    if (!data || !data.recentBookings) return;
+    
+    const headers = [
+      "Attendee Name", 
+      "Email", 
+      "Phone", 
+      "Ticket Details", 
+      "Total Tickets", 
+      "Amount Paid", 
+      "Booking Date"
+    ];
+    
+    const rows = data.recentBookings.map((booking: any) => [
+      booking.userName || "Anonymous",
+      booking.userEmail || "",
+      booking.userPhone || "",
+      booking.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join('; '),
+      booking.tickets.reduce((sum: number, t: any) => sum + t.quantity, 0),
+      `INR ${booking.totalAmount || 0}`,
+      new Date(booking.createdAt).toLocaleDateString()
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map((row: any) => row.map((val: any) => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const eventNameClean = event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
+    link.setAttribute("download", `attendees_${eventNameClean}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV file downloaded successfully!");
+  };
+
+  const downloadPDF = () => {
+    if (!data || !data.recentBookings) return;
+    
+    try {
+      const doc = new jsPDF();
+      
+      doc.setProperties({
+        title: `Attendees - ${event?.title || "Event"}`,
+        subject: "Event Attendees Registry",
+        author: "EventSphere",
+        creator: "Manager Portal",
+      });
+
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text(`Attendee Registry`, 14, 20);
+      
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "italic");
+      doc.text(event?.title || "Event Details", 14, 28);
+      
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Date: ${new Date(event?.date).toLocaleDateString()} | Venue: ${event?.location?.venueName || "Venue Unspecified"}`, 14, 35);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 40);
+      
+      doc.setLineWidth(0.5);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(14, 44, 196, 44);
+      
+      const columns = ["Attendee", "Email", "Phone", "Ticket(s)", "Paid"];
+      const colX = [14, 52, 92, 132, 175];
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      
+      columns.forEach((col, idx) => {
+        doc.text(col, colX[idx], 50);
+      });
+      
+      doc.line(14, 53, 196, 53);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      
+      let y = 60;
+      data.recentBookings.forEach((booking: any) => {
+        if (y > 275) {
+          doc.addPage();
+          doc.setFont("helvetica", "bold");
+          columns.forEach((col, idx) => {
+            doc.text(col, colX[idx], 20);
+          });
+          doc.line(14, 23, 196, 23);
+          doc.setFont("helvetica", "normal");
+          y = 30;
+        }
+        
+        const name = booking.userName || "Anonymous";
+        const nameTruncated = name.length > 20 ? name.substring(0, 18) + ".." : name;
+        doc.text(nameTruncated, colX[0], y);
+        
+        const email = booking.userEmail || "—";
+        const emailTruncated = email.length > 22 ? email.substring(0, 20) + ".." : email;
+        doc.text(emailTruncated, colX[1], y);
+        
+        const phone = booking.userPhone || "—";
+        doc.text(phone, colX[2], y);
+        
+        const ticketSummary = booking.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join(', ');
+        const ticketTruncated = ticketSummary.length > 22 ? ticketSummary.substring(0, 20) + ".." : ticketSummary;
+        doc.text(ticketTruncated, colX[3], y);
+        
+        doc.text(`INR ${booking.totalAmount?.toLocaleString()}`, colX[4], y);
+        
+        y += 8;
+      });
+      
+      const eventNameClean = event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
+      doc.save(`attendees_${eventNameClean}.pdf`);
+      toast.success("PDF file downloaded successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to generate PDF file.");
+    }
+  };
+
+  const downloadJSON = () => {
+    if (!data || !data.recentBookings) return;
+    
+    try {
+      const dataStr = JSON.stringify(data.recentBookings, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `attendees_${event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event"}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      toast.success("JSON file downloaded successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to download JSON file.");
+    }
   };
 
   useEffect(() => {
@@ -528,14 +683,40 @@ const ManageEventPage = () => {
              <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
                   <Users className="h-4 w-4 text-primary" />
-                  Recent Bookings
+                  Attendee List
                 </h3>
+                {data.recentBookings && data.recentBookings.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="h-8 px-4 rounded-lg bg-foreground text-background hover:bg-primary hover:text-primary-foreground text-[8px] font-black uppercase tracking-widest transition-all gap-2 border-none">
+                        <Download className="h-3.5 w-3.5" />
+                        Export Attendees
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="bg-popover border-border" align="end">
+                      <DropdownMenuItem onClick={downloadCSV} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                        <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+                        Download CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={downloadPDF} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                        <FileText className="h-4 w-4 text-rose-500" />
+                        Download PDF Document
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={downloadJSON} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                        <FileCode className="h-4 w-4 text-blue-500" />
+                        Download JSON Data
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
              </div>
              <div className="overflow-x-auto">
                <table className="w-full text-left border-collapse">
                  <thead>
                    <tr className="bg-muted/10 text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] border-b border-border italic">
                      <th className="px-4 py-3">Attendee</th>
+                     <th className="px-4 py-3">Email</th>
+                     <th className="px-4 py-3">Phone</th>
                      <th className="px-4 py-3">Ticket Type</th>
                      <th className="px-4 py-3">Qty</th>
                      <th className="px-4 py-3 text-right">Amount</th>
@@ -548,13 +729,16 @@ const ManageEventPage = () => {
                          <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                                <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary font-black text-[10px]">
-                                  {booking.userName.charAt(0)}
+                                  {(booking.userName || 'Anonymous').charAt(0)}
                                </div>
-                               <div>
-                                  <p className="font-black text-[11px] uppercase tracking-tight text-foreground italic">{booking.userName}</p>
-                                  <p className="text-[8px] text-muted-foreground font-black italic opacity-60">{booking.userEmail}</p>
-                               </div>
+                               <p className="font-black text-[11px] uppercase tracking-tight text-foreground italic">{booking.userName || 'Anonymous'}</p>
                             </div>
+                         </td>
+                         <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
+                            {booking.userEmail || "—"}
+                         </td>
+                         <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
+                            {booking.userPhone || "—"}
                          </td>
                          <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
                             {booking.tickets.map((t: any) => `${t.quantity}X ${t.type}`).join(', ')}
@@ -569,7 +753,7 @@ const ManageEventPage = () => {
                      ))
                    ) : (
                      <tr>
-                        <td colSpan={4} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground italic">
+                        <td colSpan={6} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground italic">
                            No bookings yet.
                         </td>
                      </tr>

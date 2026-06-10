@@ -5,6 +5,7 @@ export interface ITrendingVenue extends Document {
   location: string;
   description?: string;
   image?: string;
+  images?: string[];
   order: number;
   isActive: boolean;
   createdAt: Date;
@@ -17,6 +18,7 @@ const TrendingVenueSchema: Schema = new Schema(
     location: { type: String, required: true },
     description: { type: String },
     image: { type: String },
+    images: { type: [String], default: [] },
     order: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
   },

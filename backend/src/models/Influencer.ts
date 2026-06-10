@@ -13,6 +13,11 @@ const influencerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  category: {
+    type: String,
+    required: true,
+    default: 'Other',
+  },
   reach: {
     type: String,
     required: true,

@@ -103,7 +103,9 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       return;
     }
 
-    const bookings = await Booking.find({ event: id, status: 'confirmed' }).populate('user', 'name email');
+    const bookings = await Booking.find({ event: id, status: 'confirmed' })
+      .sort({ createdAt: -1 })
+      .populate('user', 'name email');
     
     const grossRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
     const totalTicketsSold = bookings.reduce((acc, b) => {
@@ -166,10 +168,11 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       ticketStats,
       salesHistory: last7Days,
       volunteers,
-      recentBookings: bookings.slice(-5).map(b => ({
+      recentBookings: bookings.map(b => ({
         _id: b._id,
-        userName: (b.user as any)?.name || 'Anonymous',
-        userEmail: (b.user as any)?.email || '',
+        userName: b.contactName || (b.user as any)?.name || 'Anonymous',
+        userEmail: b.email || (b.user as any)?.email || '',
+        userPhone: b.phoneNumber || '',
         totalAmount: b.totalAmount,
         tickets: b.tickets,
         createdAt: b.createdAt

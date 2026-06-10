@@ -24,7 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/api";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 
 const PLANS = [
@@ -40,7 +40,13 @@ const PLANS = [
       "City-specific Tagging"
     ],
     icon: AtSign,
-    color: "from-blue-500/20 to-cyan-500/20"
+    color: "from-cyan-500/20 to-blue-500/20",
+    glowClass: "shadow-[0_0_30px_rgba(6,182,212,0.08)] hover:border-cyan-500/30",
+    selectedGlowClass: "border-neon-cyan shadow-[0_0_40px_rgba(6,182,212,0.25)]",
+    spotlightColor: "rgba(6, 182, 212, 0.1)",
+    accentColor: "text-cyan-500",
+    badgeColor: "bg-cyan-500/10 text-cyan-500 border border-cyan-500/20",
+    btnSelected: "bg-cyan-500 text-white hover:bg-cyan-600 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
   },
   {
     id: "velocity",
@@ -55,8 +61,14 @@ const PLANS = [
       "Detailed Engagement Analysis"
     ],
     icon: Zap,
-    color: "from-purple-500/20 to-pink-500/20",
-    popular: true
+    color: "from-pink-500/20 to-purple-500/20",
+    popular: true,
+    glowClass: "shadow-[0_0_30px_rgba(236,72,153,0.08)] hover:border-pink-500/30",
+    selectedGlowClass: "border-neon-pink shadow-[0_0_40px_rgba(236,72,153,0.3)]",
+    spotlightColor: "rgba(236, 72, 153, 0.15)",
+    accentColor: "text-pink-500",
+    badgeColor: "bg-neon-pink text-black font-extrabold",
+    btnSelected: "bg-neon-pink text-black hover:bg-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
   },
   {
     id: "elite",
@@ -71,7 +83,13 @@ const PLANS = [
       "White-glove Marketing Support"
     ],
     icon: Rocket,
-    color: "from-amber-500/20 to-orange-500/20"
+    color: "from-orange-500/20 to-amber-500/20",
+    glowClass: "shadow-[0_0_30px_rgba(249,115,22,0.08)] hover:border-orange-500/30",
+    selectedGlowClass: "border-neon-orange shadow-[0_0_40px_rgba(249,115,22,0.25)]",
+    spotlightColor: "rgba(249, 115, 22, 0.1)",
+    accentColor: "text-orange-500",
+    badgeColor: "bg-orange-500/10 text-orange-500 border border-orange-500/20",
+    btnSelected: "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_0_15px_rgba(249,115,22,0.4)]"
   }
 ];
 
@@ -104,10 +122,166 @@ const SHOWCASE_REELS = [
   "C9vTMylsR8I"  // Viral: Tomorrowland Symphony of Unity
 ];
 
+interface PlanCardProps {
+  plan: typeof PLANS[0];
+  isSelected: boolean;
+  onClick: () => void;
+  idx: number;
+}
+
+const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+    const { left, top } = currentTarget.getBoundingClientRect();
+    mouseX.set(clientX - left);
+    mouseY.set(clientY - top);
+  }
+
+  const iconVariants = {
+    initial: { y: 0 },
+    animate: {
+      y: [0, -6, 0],
+      transition: {
+        duration: 4 + idx,
+        repeat: Infinity,
+        ease: "easeInOut",
+      },
+    },
+  };
+
+  const checkVariants = {
+    hovered: { scale: 1.15, rotate: 5, transition: { type: "spring", stiffness: 300 } },
+    normal: { scale: 1, rotate: 0 },
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.6, 
+        delay: idx * 0.1,
+        ease: [0.16, 1, 0.3, 1]
+      }}
+      whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      className={`relative group cursor-pointer rounded-[2.5rem] border-2 p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/40 ${
+        isSelected 
+          ? plan.selectedGlowClass 
+          : `border-border/60 hover:border-transparent hover:shadow-2xl ${plan.glowClass}`
+      }`}
+    >
+      <motion.div
+        className="absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0"
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(
+              350px circle at ${mouseX}px ${mouseY}px,
+              ${plan.spotlightColor},
+              transparent 80%
+            )
+          `
+        }}
+      />
+
+      <div className={`absolute -right-12 -top-12 h-32 w-32 rounded-full blur-[60px] opacity-20 transition-all duration-700 group-hover:scale-125 pointer-events-none z-0 bg-gradient-to-br ${plan.color}`} />
+
+      {plan.popular && (
+        <motion.div 
+          animate={{ scale: [1, 1.03, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className={`absolute top-5 right-6 text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg z-10 flex items-center gap-1.5 ${plan.badgeColor}`}
+        >
+          <Sparkles className="h-3 w-3 animate-pulse" />
+          Recommended
+        </motion.div>
+      )}
+
+      <div className="relative z-10 flex flex-col flex-1">
+        <motion.div 
+          variants={iconVariants}
+          initial="initial"
+          animate="animate"
+          className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-8 shadow-inner border border-white/5 relative overflow-hidden`}
+        >
+          <div className="absolute inset-0 bg-white/5 hover:bg-white/10 transition-colors" />
+          <plan.icon className={`h-6 w-6 relative z-10 transition-colors duration-300 ${isSelected ? plan.accentColor : "text-muted-foreground group-hover:text-foreground"}`} />
+        </motion.div>
+
+        <h3 className="text-2xl font-black brand-font uppercase tracking-tighter italic mb-2 group-hover:text-primary transition-colors">
+          {plan.name}
+        </h3>
+        
+        <div className="flex items-baseline gap-1.5 mb-6">
+          <span className="text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+            {plan.price}
+          </span>
+          {plan.price !== "Custom" && (
+            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider">
+              / Event
+            </span>
+          )}
+        </div>
+
+        <p className="text-[12px] font-medium text-muted-foreground leading-relaxed mb-8 min-h-[36px]">
+          {plan.description}
+        </p>
+
+        <div className="h-[1px] w-full bg-border/40 mb-8" />
+
+        <ul className="space-y-4 mb-10 flex-1">
+          {plan.features.map((feature, fIdx) => (
+            <motion.li 
+              key={fIdx} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.1 + fIdx * 0.08, ease: "easeOut" }}
+              className="flex items-start gap-3 text-[10px] font-bold uppercase tracking-wide text-foreground/80 leading-tight group/item"
+            >
+              <motion.div 
+                variants={checkVariants}
+                animate="normal"
+                whileHover="hovered"
+                className="shrink-0 mt-0.5"
+              >
+                <CheckCircle2 className={`h-4 w-4 shrink-0 transition-colors duration-300 ${isSelected ? plan.accentColor : "text-primary"}`} />
+              </motion.div>
+              <span className="transition-colors duration-300 group-hover/item:text-foreground">
+                {feature}
+              </span>
+            </motion.li>
+          ))}
+        </ul>
+
+        <motion.div 
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className={`w-full rounded-2xl h-14 flex items-center justify-center border-2 font-black uppercase tracking-widest text-[11px] italic transition-all duration-300 select-none ${
+            isSelected 
+              ? `${plan.btnSelected} border-transparent` 
+              : "border-border/80 hover:border-foreground/20 hover:bg-foreground/5 bg-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          {isSelected ? (
+            <span className="flex items-center gap-2">
+              Selected Plan <CheckCircle2 className="h-4 w-4" />
+            </span>
+          ) : (
+            "Select Plan"
+          )}
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
 const BoostMarketingPage = () => {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
-  const { data: influencers = [], isLoading: influencersLoading } = useQuery({
+  const { data: influencers = [], isLoading: influencersLoading } = useQuery<any[]>({
     queryKey: ["influencers", "public"],
     queryFn: async () => {
       const { data } = await api.get("/influencers");
@@ -172,57 +346,13 @@ const BoostMarketingPage = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {PLANS.map((plan, idx) => (
-              <motion.div
+              <PlanCard
                 key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
+                plan={plan}
+                isSelected={selectedPlan === plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
-                className={`relative group cursor-pointer rounded-3xl border-2 transition-all duration-500 p-8 flex flex-col ${
-                  selectedPlan === plan.id 
-                    ? "border-primary bg-primary/5 shadow-2xl shadow-primary/10 scale-[1.02]" 
-                    : "border-border bg-card hover:border-primary/40 hover:bg-muted/30"
-                }`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-xl">
-                    Recommended
-                  </div>
-                )}
-
-                <div className={`h-14 w-14 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-8 shadow-inner`}>
-                  <plan.icon className={`h-7 w-7 ${selectedPlan === plan.id ? "text-primary" : "text-muted-foreground"}`} />
-                </div>
-
-                <h3 className="text-xl font-black brand-font uppercase tracking-tighter italic mb-1">
-                  {plan.name}
-                </h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-3xl font-black italic">{plan.price}</span>
-                  {plan.price !== "Custom" && <span className="text-[10px] font-black text-muted-foreground uppercase">/ Event</span>}
-                </div>
-
-                <p className="text-[12px] font-medium text-muted-foreground leading-relaxed mb-8">
-                  {plan.description}
-                </p>
-
-                <ul className="space-y-4 mb-10 flex-1">
-                  {plan.features.map((feature, fIdx) => (
-                    <li key={fIdx} className="flex items-start gap-3 text-[10px] font-bold uppercase tracking-wide text-foreground/80 leading-tight">
-                      <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <div 
-                  className={`w-full rounded-2xl h-12 flex items-center justify-center border-2 font-black uppercase tracking-widest text-[10px] italic transition-all ${
-                    selectedPlan === plan.id ? "bg-primary text-primary-foreground border-primary" : "border-border"
-                  }`}
-                >
-                  {selectedPlan === plan.id ? "Selected Plan" : "Select Plan"}
-                </div>
-              </motion.div>
+                idx={idx}
+              />
             ))}
           </div>
         </section>
@@ -234,9 +364,9 @@ const BoostMarketingPage = () => {
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] text-center">Work with influencers who dominate your event's niche</p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-10 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 px-6 max-w-7xl mx-auto">
             {influencersLoading ? (
-              <div className="flex flex-col items-center gap-4 py-10">
+              <div className="col-span-full flex flex-col items-center gap-4 py-10">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Syncing with creators...</p>
               </div>
@@ -244,45 +374,92 @@ const BoostMarketingPage = () => {
               influencers.map((inf: any, idx: number) => (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="flex flex-col items-center group"
+                  transition={{ delay: idx * 0.05, duration: 0.4 }}
+                  whileHover={{ y: -8 }}
+                  className="relative group bg-card/40 backdrop-blur-md border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-primary/40 flex flex-col h-full"
                 >
-                  <div className="relative mb-4">
-                    <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  {/* Card Image Cover */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted/20">
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent z-10" />
+                    
                     <img 
                       src={inf.image} 
                       alt={inf.name} 
-                      className="h-24 w-24 rounded-full object-cover transition-all duration-700 border-2 border-border group-hover:border-primary relative z-10 p-1 bg-background"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    <div className="absolute -bottom-1 -right-1 bg-primary text-black h-8 w-8 rounded-full flex items-center justify-center shadow-2xl z-20 border-4 border-background">
-                      <Star className="h-4 w-4 fill-black" />
+
+                    {/* Category Badge */}
+                    <div className="absolute top-4 left-4 z-20">
+                      <Badge className="bg-primary text-primary-foreground font-extrabold uppercase text-[8px] tracking-[0.15em] px-3 py-1.5 rounded-full border border-primary/20 shadow-md">
+                        {inf.category || 'Other'}
+                      </Badge>
+                    </div>
+
+                    {/* Reach Badge */}
+                    <div className="absolute top-4 right-4 z-20">
+                      <Badge variant="outline" className="bg-background/80 backdrop-blur-md text-foreground font-black uppercase text-[8px] tracking-[0.1em] px-3 py-1.5 rounded-full border border-border/50 shadow-md">
+                        {inf.reach} REACH
+                      </Badge>
+                    </div>
+
+                    {/* Star overlay badge */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-black h-12 w-12 rounded-full flex items-center justify-center shadow-2xl z-20 border-4 border-background opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500">
+                      <Star className="h-5 w-5 fill-black" />
+                    </div>
+
+                    {/* Text overlay on image bottom */}
+                    <div className="absolute bottom-4 left-5 right-5 z-20">
+                      <h4 className="text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">
+                        {inf.name}
+                      </h4>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">
+                          {inf.handle}
+                        </p>
+                        {inf.instagramUrl && (
+                          <a 
+                            href={inf.instagramUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                            title="View Instagram"
+                          >
+                            <Instagram className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <h4 className="text-[11px] font-black uppercase tracking-tight italic mb-1">{inf.name}</h4>
-                  <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{inf.handle}</p>
+
+                  {/* Card bottom details */}
+                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-black text-muted-foreground uppercase tracking-widest">Niche</span>
+                      <span className="font-extrabold text-foreground uppercase tracking-tight italic bg-muted/60 px-3 py-1 rounded-lg">
+                        {inf.niche}
+                      </span>
+                    </div>
+
                     {inf.instagramUrl && (
                       <a 
                         href={inf.instagramUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-muted-foreground hover:text-primary transition-colors"
-                        title="View Profile"
+                        className="flex items-center justify-center gap-2 w-full h-10 rounded-xl bg-muted/40 hover:bg-primary border border-border/50 hover:border-transparent text-muted-foreground hover:text-primary-foreground transition-all text-[9px] font-black uppercase tracking-widest duration-300"
                       >
-                        <Instagram className="h-3 w-3" />
+                        Instagram Profile <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
                   </div>
-                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 border-border text-muted-foreground bg-background mt-2">
-                    {inf.reach} REACH
-                  </Badge>
                 </motion.div>
               ))
             ) : (
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic py-10">No creators in network yet.</p>
+              <div className="col-span-full py-16 text-center bg-card/20 rounded-[2rem] border-2 border-dashed border-border/50">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">No creators in network yet.</p>
+              </div>
             )}
           </div>
         </section>

@@ -135,6 +135,29 @@ const STORES = [
       { name: 'Crochet Earrings', description: 'Lightweight hand-crocheted hoops in earthy tones', price: 380, discountPercent: 10, isAvailable: true, image: 'https://images.unsplash.com/photo-1630498197116-b3aa43c0c15a?w=600&q=80' },
     ],
   },
+  {
+    name: 'The Clay Studio',
+    address: '18, Lavelle Road, Shanthala Nagar, Bengaluru',
+    description: 'Handmade earthenware, studio pottery, and ceramic tableware designed to bring a touch of earthy elegance to your home.',
+    category: 'Crafts & Art',
+    photos: [
+      'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=1200&q=80',
+    ],
+    contactPhone: '+91 93210 98765',
+    contactEmail: 'hello@theclaystudio.in',
+    whatsapp: '+919321098765',
+    openingHours: 'Mon-Sat 10:30 AM – 7:30 PM',
+    paymentMethods: ['cash', 'upi', 'card'],
+    upiId: 'claystudio@paytm',
+    instagram: '@theclaystudio.in',
+    owner: { name: 'Kabeer Sen', email: 'kabeer@theclaystudio.in', password: 'ClayStudio@123' },
+    products: [
+      { name: 'Ceramic Coffee Mug', description: 'Hand-thrown stoneware mug with a rustic speckled glaze', price: 450, isAvailable: true, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=80' },
+      { name: 'Terracotta Planter', description: 'Breathable clay pot perfect for indoor and outdoor plants', price: 350, isAvailable: true, image: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&q=80' },
+      { name: 'Earthen Serving Bowl', description: 'Large ceramic serving bowl, oven-safe and microwave-friendly', price: 850, discountPercent: 15, isAvailable: true, image: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=600&q=80' },
+      { name: 'Hand-painted Vase', description: 'Minimalist stoneware vase with hand-carved details', price: 1200, isAvailable: true, image: 'https://images.unsplash.com/photo-1578500494198-246f612d3b3d?w=600&q=80' },
+    ],
+  },
 ];
 
 // ─── Seed ─────────────────────────────────────────────────────────────────────

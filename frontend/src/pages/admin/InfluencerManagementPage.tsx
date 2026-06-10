@@ -25,12 +25,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { motion } from "framer-motion";
-import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { uploadImageToBackend } from "@/lib/localUpload";
 
 interface Influencer {
   _id: string;
   name: string;
   handle: string;
+  category?: string;
   niche: string;
   reach: string;
   image: string;
@@ -41,6 +42,7 @@ interface Influencer {
 const BLANK_FORM = {
   name: "",
   handle: "",
+  category: "Other",
   niche: "",
   reach: "",
   image: "",
@@ -57,28 +59,7 @@ const InfluencerManagementPage = () => {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = () => {
-    if (USE_LOCAL_STORAGE) {
-      imageInputRef.current?.click();
-      return;
-    }
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-        sources: ["local", "url", "camera"],
-        multiple: false,
-        cropping: true,
-        croppingAspectRatio: 1,
-      },
-      (error: any, result: any) => {
-        if (!error && result && result.event === "success") {
-          setForm((f) => ({ ...f, image: result.info.secure_url }));
-          toast.success("Image uploaded.");
-        }
-      },
-    );
-    widget.open();
+    imageInputRef.current?.click();
   };
 
   const handleLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +67,23 @@ const InfluencerManagementPage = () => {
     if (!file) return;
     setUploading(true);
     try {
-      const url = await uploadImageToBackend(file);
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+      let url: string;
+      if (cloudName && uploadPreset) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", uploadPreset);
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (!data.secure_url) throw new Error("Upload failed");
+        url = data.secure_url;
+      } else {
+        url = await uploadImageToBackend(file);
+      }
       setForm((f) => ({ ...f, image: url }));
       toast.success("Image uploaded.");
     } catch {
@@ -145,6 +142,7 @@ const InfluencerManagementPage = () => {
       setForm({
         name: inf.name,
         handle: inf.handle,
+        category: inf.category || "Other",
         niche: inf.niche,
         reach: inf.reach,
         image: inf.image,
@@ -206,7 +204,7 @@ const InfluencerManagementPage = () => {
               key={inf._id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-card border border-border rounded-[2rem] p-6 relative group overflow-hidden"
+              className="bg-card border border-border rounded-2xl p-6 relative group overflow-hidden"
             >
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="relative">
@@ -237,11 +235,16 @@ const InfluencerManagementPage = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-2">
+                  <div className="flex justify-center gap-1.5 flex-wrap">
+                    <Badge className="bg-primary/10 text-primary border border-primary/20 text-[8px] font-black uppercase tracking-widest">
+                      {inf.category || "Other"}
+                    </Badge>
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-border/50">
+                      {inf.reach} REACH
+                    </Badge>
+                  </div>
                   <p className="text-[9px] font-bold text-muted-foreground uppercase">{inf.niche}</p>
-                  <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-border/50">
-                    {inf.reach} REACH
-                  </Badge>
                 </div>
 
                 <div className="flex gap-2 pt-2">
@@ -316,6 +319,22 @@ const InfluencerManagementPage = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({...form, category: e.target.value})}
+                  className="bg-muted/50 border border-border rounded-xl h-12 w-full text-[11px] font-black uppercase tracking-widest italic px-3 focus-visible:ring-primary focus:outline-none"
+                  required
+                >
+                  <option value="Food">Food</option>
+                  <option value="Event">Event</option>
+                  <option value="Music">Music</option>
+                  <option value="Fashion">Fashion</option>
+                  <option value="Lifestyle">Lifestyle</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Niche/Genre</label>
                 <Input 
                   value={form.niche} 
@@ -325,14 +344,26 @@ const InfluencerManagementPage = () => {
                   required
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 text-right block">Total Reach</label>
+                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Total Reach</label>
                 <Input 
                   value={form.reach} 
                   onChange={(e) => setForm({...form, reach: e.target.value})}
                   placeholder="e.g. 500K+"
                   className="bg-muted/50 border-border rounded-xl h-12 text-[11px] font-black uppercase tracking-widest italic focus-visible:ring-primary"
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Instagram Profile URL</label>
+                <Input 
+                  value={form.instagramUrl} 
+                  onChange={(e) => setForm({...form, instagramUrl: e.target.value})}
+                  placeholder="https://instagram.com/handle"
+                  className="bg-muted/50 border-border rounded-xl h-12 text-[11px] font-black uppercase tracking-widest italic focus-visible:ring-primary"
                 />
               </div>
             </div>
@@ -358,7 +389,7 @@ const InfluencerManagementPage = () => {
                 {/* Upload button */}
                 <button
                   type="button"
-                  onClick={() => imageInputRef.current?.click()}
+                  onClick={handleImageUpload}
                   disabled={uploading}
                   className="flex-1 h-12 border border-dashed border-border rounded-xl bg-muted/30 flex items-center justify-center gap-2 hover:bg-muted/60 hover:border-primary/50 transition-all group"
                 >
@@ -372,16 +403,6 @@ const InfluencerManagementPage = () => {
                   </span>
                 </button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Instagram Profile URL</label>
-              <Input 
-                value={form.instagramUrl} 
-                onChange={(e) => setForm({...form, instagramUrl: e.target.value})}
-                placeholder="https://instagram.com/handle"
-                className="bg-muted/50 border-border rounded-xl h-12 text-[11px] font-black uppercase tracking-widest italic focus-visible:ring-primary"
-              />
             </div>
 
             <div className="flex items-center gap-3 pt-2">

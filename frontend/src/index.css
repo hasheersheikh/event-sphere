@@ -253,6 +253,13 @@
                 0 0 30px hsl(var(--neon-lime) / 0.2);
   }
 
+  .bg-neon-orange {
+    background-color: hsl(var(--neon-orange));
+    box-shadow: 0 0 10px hsl(var(--neon-orange) / 0.5),
+                0 0 20px hsl(var(--neon-orange) / 0.3),
+                0 0 30px hsl(var(--neon-orange) / 0.2);
+  }
+
   .border-neon-pink {
     border-color: hsl(var(--neon-pink));
     box-shadow: 0 0 5px hsl(var(--neon-pink) / 0.3),
@@ -269,6 +276,12 @@
     border-color: hsl(var(--neon-lime));
     box-shadow: 0 0 5px hsl(var(--neon-lime) / 0.3),
                 inset 0 0 5px hsl(var(--neon-lime) / 0.1);
+  }
+
+  .border-neon-orange {
+    border-color: hsl(var(--neon-orange));
+    box-shadow: 0 0 5px hsl(var(--neon-orange) / 0.3),
+                inset 0 0 5px hsl(var(--neon-orange) / 0.1);
   }
 
   @keyframes pulse-ring {

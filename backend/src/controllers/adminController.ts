@@ -8,6 +8,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import { deleteEventAssets } from '../utils/cloudinaryService.js';
 import Payout from '../models/Payout.js';
 import Volunteer from '../models/Volunteer.js';
+import SystemSettings from '../models/SystemSettings.js';
 import { createRazorpayContact, createRazorpayFundAccount, initiateRazorpayPayout } from '../utils/razorpayPayouts.js';
 
 export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
@@ -845,6 +846,43 @@ export const adminRemoveVolunteer: RequestHandler = async (req: AuthRequest, res
     const { id } = req.params;
     await Volunteer.findByIdAndDelete(id);
     res.json({ message: 'Volunteer removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getSystemSettings: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = await SystemSettings.create({ taxRate: 0 });
+    }
+    res.json(settings);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const updateSystemSettings: RequestHandler = async (req: AuthRequest, res: Response) => {
+  try {
+    const { taxRate } = req.body;
+    
+    if (taxRate === undefined || typeof taxRate !== 'number' || taxRate < 0 || taxRate > 100) {
+      res.status(400).json({ message: 'Invalid tax rate. Must be a percentage between 0 and 100.' });
+      return;
+    }
+
+    let settings = await SystemSettings.findOne();
+    if (!settings) {
+      settings = new SystemSettings({ taxRate });
+    } else {
+      settings.taxRate = taxRate;
+    }
+    
+    settings.updatedBy = req.user?._id;
+    await settings.save();
+    
+    res.json(settings);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

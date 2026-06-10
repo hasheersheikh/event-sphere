@@ -11,6 +11,10 @@ export interface IBooking extends Document {
     isFullPass?: boolean;
     checkedInCount?: number;
   }[];
+  subtotal: number;
+  discount: number;
+  taxRate: number;
+  taxAmount: number;
   totalAmount: number;
   email: string;
   phoneNumber: string;
@@ -39,6 +43,10 @@ const BookingSchema: Schema = new Schema(
         checkedInCount: { type: Number, default: 0 },
       },
     ],
+    subtotal: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
+    taxRate: { type: Number, default: 0 },
+    taxAmount: { type: Number, default: 0 },
     totalAmount: { type: Number, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: true },

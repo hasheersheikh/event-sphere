@@ -549,12 +549,12 @@ const EventDetailPage = () => {
               {/* About Section */}
               <div className="space-y-6">
                 <h3 className="text-2xl md:text-3xl font-black tracking-tighter">About</h3>
-                <div className="space-y-5">
-                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed italic font-medium whitespace-pre-wrap selection:bg-primary/30 max-w-3xl">
+                <div className="space-y-4">
+                  <p className="text-base md:text-lg font-medium text-foreground leading-relaxed whitespace-pre-wrap max-w-3xl">
                     {event.description}
                   </p>
                   {event.description.length > 300 && (
-                    <button className="text-sm font-black uppercase tracking-widest text-foreground border-b-2 border-border pb-1 hover:border-foreground transition-all">
+                    <button className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4">
                       Read more
                     </button>
                   )}

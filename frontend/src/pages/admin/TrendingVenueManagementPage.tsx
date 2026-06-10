@@ -22,7 +22,10 @@ import {
   Check,
   MapPin,
   Edit,
+  X,
+  Image as ImageIcon,
 } from "lucide-react";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,6 +35,7 @@ interface TrendingVenue {
   location: string;
   description?: string;
   image?: string;
+  images?: string[];
   order: number;
   isActive: boolean;
 }
@@ -43,6 +47,7 @@ const BLANK_FORM = {
   location: "",
   description: "",
   image: "",
+  images: [] as string[],
   order: 0,
   isActive: true,
 };
@@ -54,6 +59,8 @@ const TrendingVenueManagementPage = () => {
 
   // Cloudinary widget
   const widgetRef = useRef<any>(null);
+  const primaryFileInputRef = useRef<HTMLInputElement>(null);
+  const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isCloudinaryOpen, setIsCloudinaryOpen] = useState(false);
@@ -133,6 +140,7 @@ const TrendingVenueManagementPage = () => {
       location: venue.location,
       description: venue.description || "",
       image: venue.image || "",
+      images: venue.images || [],
       order: venue.order,
       isActive: venue.isActive,
     });
@@ -152,7 +160,92 @@ const TrendingVenueManagementPage = () => {
     setDialogOpen(false);
   };
 
-  // ── Cloudinary upload widget ──────────────────────────────────────────────
+  const handlePrimaryUploadClick = () => {
+    if (USE_LOCAL_STORAGE) {
+      primaryFileInputRef.current?.click();
+    } else {
+      openUploadWidget();
+    }
+  };
+
+  const handleLocalPrimaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const url = await uploadImageToBackend(file);
+      setForm((prev) => ({ ...prev, image: url }));
+      toast({ title: "Primary image uploaded" });
+    } catch (err) {
+      toast({ title: "Upload failed", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleGalleryUploadClick = () => {
+    if (USE_LOCAL_STORAGE) {
+      galleryFileInputRef.current?.click();
+    } else {
+      openGalleryUploadWidget();
+    }
+  };
+
+  const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    try {
+      setUploading(true);
+      const urls: string[] = [];
+      for (const file of files) {
+        const url = await uploadImageToBackend(file);
+        urls.push(url);
+      }
+      setForm((prev) => ({
+        ...prev,
+        images: [...(prev.images || []), ...urls],
+      }));
+      toast({ title: `${files.length} gallery image(s) uploaded` });
+    } catch (err) {
+      toast({ title: "Gallery upload failed", variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const openGalleryUploadWidget = () => {
+    // @ts-ignore
+    if (!window.cloudinary) {
+      toast({
+        title: "Upload widget unavailable",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // @ts-ignore
+    const widget = window.cloudinary.createUploadWidget(
+      {
+        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
+        sources: ["local", "url", "camera"],
+        multiple: true,
+        resourceType: "image",
+        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
+        maxFileSize: 10_000_000,
+        styles: { zIndex: 99999 },
+      },
+      (error: any, result: any) => {
+        if (!error && result && result.event === "success") {
+          setForm((prev) => ({
+            ...prev,
+            images: [...(prev.images || []), result.info.secure_url],
+          }));
+        }
+      }
+    );
+    widget.open();
+  };
 
   const openUploadWidget = () => {
     // @ts-ignore
@@ -289,9 +382,25 @@ const TrendingVenueManagementPage = () => {
           </DialogHeader>
 
           <div className="space-y-4 pt-2">
+            <input
+              ref={primaryFileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleLocalPrimaryUpload}
+            />
+            <input
+              ref={galleryFileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleLocalGalleryUpload}
+            />
+
             <button
               type="button"
-              onClick={openUploadWidget}
+              onClick={handlePrimaryUploadClick}
               disabled={uploading}
               className={cn(
                 "relative w-full aspect-[4/3] rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2",
@@ -314,6 +423,45 @@ const TrendingVenueManagementPage = () => {
                 </>
               )}
             </button>
+
+            {/* Gallery Images Section */}
+            <div className="space-y-2">
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                Venue Gallery (Multiple Photos)
+              </label>
+              
+              {form.images && form.images.length > 0 && (
+                <div className="grid grid-cols-4 gap-2 border border-border/40 rounded-xl p-2 bg-muted/10">
+                  {form.images.map((imgUrl, i) => (
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden group border border-border/60">
+                      <img src={imgUrl} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setForm((prev) => ({
+                            ...prev,
+                            images: prev.images.filter((_, idx) => idx !== i),
+                          }));
+                        }}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive-foreground bg-destructive/80 p-1 rounded-full" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleGalleryUploadClick}
+                disabled={uploading}
+                className="w-full h-9 rounded-xl border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-1.5 transition-colors italic"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload Gallery Images
+              </button>
+            </div>
 
             <div className="space-y-3">
               <div className="space-y-1">

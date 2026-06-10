@@ -63,6 +63,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
 import { CITIES } from "@/contexts/CityContext";
+import { CityCombobox } from "@/components/events/CityCombobox";
 
 const eventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -1278,20 +1279,16 @@ const EditEventPage = () => {
                         control={form.control}
                         name="city"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="flex flex-col">
                             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner">
-                                  <SelectValue placeholder="Select city" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {CITIES.map((city) => (
-                                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <FormControl>
+                              <CityCombobox
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Select city"
+                                triggerClassName="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}

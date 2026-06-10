@@ -25,7 +25,7 @@ export const getAllTrendingVenues = async (_req: AuthRequest, res: Response) => 
 // Admin — create a new trending venue
 export const createTrendingVenue = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, location, description, image, order, isActive } = req.body;
+    const { name, location, description, image, images, order, isActive } = req.body;
 
     if (!name || !location) {
       res.status(400).json({ message: 'name and location are required' });
@@ -37,6 +37,7 @@ export const createTrendingVenue = async (req: AuthRequest, res: Response) => {
       location,
       description,
       image,
+      images: images ?? [],
       order: order ?? 0,
       isActive: isActive ?? true,
     });

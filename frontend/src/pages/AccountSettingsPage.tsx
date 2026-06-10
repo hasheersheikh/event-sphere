@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,37 @@ const AccountSettingsPage = () => {
     newPassword: "",
     confirmPassword: "",
   });
+  
+  const [taxRateInput, setTaxRateInput] = useState("0");
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false);
+
+  useEffect(() => {
+    if (user?.role === "admin") {
+      fetchPlatformSettings();
+    }
+  }, [user]);
+
+  const fetchPlatformSettings = async () => {
+    try {
+      const { data } = await api.get("/admin/settings");
+      setTaxRateInput(data.taxRate.toString());
+    } catch (error) {
+      toast.error("Failed to load platform settings");
+    }
+  };
+
+  const handleUpdatePlatformSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSettingsLoading(true);
+    try {
+      await api.put("/admin/settings", { taxRate: parseFloat(taxRateInput) });
+      toast.success("Platform settings updated successfully");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update platform settings");
+    } finally {
+      setIsSettingsLoading(false);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -223,6 +254,56 @@ const AccountSettingsPage = () => {
               </form>
             </div>
           </section>
+
+          {/* Global Platform Settings (Admin Only) */}
+          {user?.role === "admin" && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary border border-primary/20">
+                  <Settings className="h-4 w-4" />
+                </div>
+                <h2 className="text-sm font-black italic uppercase tracking-tight brand-font">
+                  Platform Settings <span className="text-primary">Protocol.</span>
+                </h2>
+              </div>
+
+              <div className="p-4 md:p-6 bg-card border border-border/60 rounded-2xl shadow-xl backdrop-blur-sm">
+                <form onSubmit={handleUpdatePlatformSettings} className="space-y-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Transactional Tax Rate (%)
+                    </label>
+                    <div className="relative flex gap-3">
+                      <div className="relative flex-1">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-primary opacity-60 ml-4">%</span>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={taxRateInput}
+                          onChange={(e) => setTaxRateInput(e.target.value)}
+                          className="h-10 pl-11 bg-muted/20 border-border/60 focus:border-primary rounded-xl font-bold transition-all text-xs"
+                          required
+                          placeholder="Enter tax percentage (e.g., 2.0)"
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        disabled={isSettingsLoading}
+                        className="h-10 px-6 bg-[#C4F000] hover:bg-[#A3C800] text-black rounded-xl font-black uppercase tracking-widest text-[10px] italic shadow-lg shadow-primary/10 transition-all hover:scale-105 border-none"
+                      >
+                        {isSettingsLoading ? "Updating..." : "Save Config"}
+                      </Button>
+                    </div>
+                    <p className="text-[9px] text-muted-foreground font-medium italic mt-1.5 ml-1">
+                      This rate will be dynamically calculated and added to the subtotal amount at event checkout.
+                    </p>
+                  </div>
+                </form>
+              </div>
+            </section>
+          )}
 
           {/* Logic/Safety Note */}
           <div className="p-4 bg-muted/20 border border-dashed border-border/60 rounded-xl flex items-start gap-3">

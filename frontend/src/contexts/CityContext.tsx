@@ -1,16 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
-export const CITIES = [
-  "Nagpur",
-  "Pune",
-  "Mumbai",
-  "Delhi",
-  "Hyderabad",
-  "Chennai",
-  "Bangalore",
-] as const;
+import { CITIES, City } from "@/data/cities";
 
-export type City = (typeof CITIES)[number];
+export { CITIES };
+export type { City };
 
 interface CityContextValue {
   selectedCity: City | null;

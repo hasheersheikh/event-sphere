@@ -3,6 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, X, Navigation, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { CITIES, City, useCity } from "@/contexts/CityContext";
 
+const POPULAR_CITIES = [
+  "Nagpur",
+  "Pune",
+  "Mumbai",
+  "Delhi",
+  "Hyderabad",
+  "Chennai",
+  "Bangalore",
+] as const;
+
 const CitySelectModal = () => {
   const { showCityModal, setShowCityModal, setSelectedCity, selectedCity } = useCity();
   const [detectedCityName, setDetectedCityName] = useState<string | null>(null);
@@ -53,12 +63,12 @@ const CitySelectModal = () => {
             if (detectedCity) {
               setDetectedCityName(detectedCity);
 
-              // Check if matched in standard CITIES
-              const matchedCity = CITIES.find(
+              // Check if matched in standard POPULAR_CITIES
+              const matchedCity = POPULAR_CITIES.find(
                 (c) => c.toLowerCase() === detectedCity.toLowerCase()
               );
               if (matchedCity) {
-                setSelectedCity(matchedCity);
+                setSelectedCity(matchedCity as unknown as City);
               } else {
                 setSelectedCity(null);
               }
@@ -168,7 +178,7 @@ const CitySelectModal = () => {
                       </div>
 
                       {/* Coverage indicator */}
-                      {CITIES.some((c) => c.toLowerCase() === detectedCityName.toLowerCase()) ? (
+                       {POPULAR_CITIES.some((c) => c.toLowerCase() === detectedCityName.toLowerCase()) ? (
                         <span className="text-[9px] font-black text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
                           Supported
                         </span>
@@ -212,12 +222,12 @@ const CitySelectModal = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {CITIES.map((city) => {
+                   {POPULAR_CITIES.map((city) => {
                     const isActive = selectedCity === city;
                     return (
                       <button
                         key={city}
-                        onClick={() => handleSelect(city)}
+                        onClick={() => handleSelect(city as unknown as City)}
                         className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 ${
                           isActive
                             ? "bg-primary/10 border-primary/30 text-primary shadow-sm"

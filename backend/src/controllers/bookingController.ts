@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
 import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailService.js';
 import User from '../models/User.js';
+import SystemSettings from '../models/SystemSettings.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
@@ -16,8 +17,8 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Check availability and calculate total
-    let totalAmount = 0;
+    // Check availability and calculate subtotal
+    let subtotal = 0;
     const enrichedTickets = [];
 
     for (const ticketItem of tickets) {
@@ -41,7 +42,7 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
         }
       }
 
-      totalAmount += price * ticketItem.quantity;
+      subtotal += price * ticketItem.quantity;
       ticketType.sold += ticketItem.quantity;
 
       enrichedTickets.push({
@@ -53,19 +54,28 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    let discount = 0;
     // Apply voucher discount if provided
-    if (voucherCode && totalAmount > 0) {
+    if (voucherCode && subtotal > 0) {
       const voucher = event.vouchers?.find(
         (v: any) => v.code.toUpperCase() === voucherCode.toUpperCase() && v.isActive
       );
       if (voucher) {
         if (voucher.discountType === 'percentage') {
-          totalAmount = Math.round(totalAmount * (1 - voucher.discountAmount / 100));
+          discount = Math.round(subtotal * (voucher.discountAmount / 100));
         } else {
-          totalAmount = Math.max(0, totalAmount - voucher.discountAmount);
+          discount = Math.min(subtotal, voucher.discountAmount);
         }
       }
     }
+
+    const netAmount = Math.max(0, subtotal - discount);
+
+    // Fetch tax settings
+    const settings = await SystemSettings.findOne();
+    const taxRate = settings ? settings.taxRate : 0;
+    const taxAmount = Math.round(netAmount * (taxRate / 100));
+    const totalAmount = netAmount + taxAmount;
 
     // Find or create user if not logged in
     let userId = req.user?._id;
@@ -104,6 +114,10 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       user: userId,
       event: eventId,
       tickets: enrichedTickets,
+      subtotal,
+      discount,
+      taxRate,
+      taxAmount,
       totalAmount,
       email,
       phoneNumber,
@@ -190,7 +204,7 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
     }
 
     const enrichedTickets = [];
-    let totalAmount = 0;
+    let subtotal = 0;
 
     for (const item of tickets) {
       const ticketType = event.ticketTypes.find((t) => t.name === item.type);
@@ -204,7 +218,7 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
 
       ticketType.sold += item.quantity;
       const price = ticketType.price;
-      totalAmount += price * item.quantity;
+      subtotal += price * item.quantity;
 
       enrichedTickets.push({
         type: item.type,
@@ -214,6 +228,11 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
         isFullPass: false,
       });
     }
+
+    const settings = await SystemSettings.findOne();
+    const taxRate = settings ? settings.taxRate : 0;
+    const taxAmount = Math.round(subtotal * (taxRate / 100));
+    const totalAmount = subtotal + taxAmount;
 
     // Find or create user record so booking has a valid user reference
     let userId = req.user?._id;
@@ -233,6 +252,10 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
       user: userId,
       event: eventId,
       tickets: enrichedTickets,
+      subtotal,
+      discount: 0,
+      taxRate,
+      taxAmount,
       totalAmount,
       email: email || '',
       phoneNumber: phoneNumber || '',
@@ -315,6 +338,16 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
         totalQuantity: ticket.quantity
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+export const getTaxRate = async (req: any, res: any) => {
+  try {
+    const settings = await SystemSettings.findOne();
+    const taxRate = settings ? settings.taxRate : 0;
+    res.json({ taxRate });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

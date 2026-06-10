@@ -580,15 +580,40 @@ const AdminStoreDetailPage = () => {
                       Visual <span className="text-rose-500">Assets.</span>
                     </h3>
                     {store.photos?.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {store.photos.map((photo: string, i: number) => (
-                          <div key={i} className="aspect-[4/5] rounded-xl overflow-hidden bg-muted group/photo border border-border relative">
-                            <img src={photo} alt="" className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-500" />
-                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
-                              <ImageIcon className="h-5 w-5 text-white" />
+                      <div className="space-y-4">
+                        {/* Banner Preview */}
+                        {store.photos[0] && (
+                          <div className="space-y-1.5">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                              Store Banner (Hero)
+                            </span>
+                            <div className="aspect-[2.5/1] rounded-xl overflow-hidden bg-muted border border-border relative group/banner">
+                              <img src={store.photos[0]} alt="Store Banner" className="w-full h-full object-cover group-hover/banner:scale-105 transition-transform duration-500" />
+                              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/banner:opacity-100 transition-opacity flex items-center justify-center">
+                                <ImageIcon className="h-6 w-6 text-white" />
+                              </div>
                             </div>
                           </div>
-                        ))}
+                        )}
+
+                        {/* Gallery Preview */}
+                        {store.photos.length > 1 && (
+                          <div className="space-y-1.5">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                              Gallery Photos ({store.photos.length - 1})
+                            </span>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                              {store.photos.slice(1).map((photo: string, i: number) => (
+                                <div key={i} className="aspect-square rounded-xl overflow-hidden bg-muted group/photo border border-border relative">
+                                  <img src={photo} alt="" className="w-full h-full object-cover group-hover/photo:scale-110 transition-transform duration-500" />
+                                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                    <ImageIcon className="h-5 w-5 text-white" />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="py-12 text-center border-2 border-dashed border-border rounded-xl bg-muted/10 opacity-50">
