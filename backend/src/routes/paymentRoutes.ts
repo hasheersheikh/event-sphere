@@ -83,10 +83,11 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
       try {
         const event: any = booking.event;
         const pdfBuffer = await generateTicketPDF(booking, event);
-        if (booking.email) await sendTicketEmail(booking.email, (booking as any).user?.name || 'Guest', event, pdfBuffer);
+        const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
+        if (booking.email) await sendTicketEmail(booking.email, recipientName, event, pdfBuffer);
         if (booking.phoneNumber) {
           const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
-          await sendTicketWhatsApp(booking.phoneNumber, booking.phoneNumber, event, pdfBuffer);
+          await sendTicketWhatsApp(booking.phoneNumber, recipientName, event, pdfBuffer);
         }
       } catch (err) {
         console.error('Failed to send confirmation after payment link:', err);

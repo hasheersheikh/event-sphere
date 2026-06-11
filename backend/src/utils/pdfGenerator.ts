@@ -13,12 +13,13 @@ export const generateTicketPDF = async (booking: IBooking, event: IEvent): Promi
       doc.on('end', () => resolve(Buffer.concat(buffers)));
 
       // --- Brand Header ---
-      doc.rect(0, 0, 595.28, 120).fill('#4f46e5'); // Indigo Header
-      doc.fillColor('#ffffff')
+      doc.rect(0, 0, 595.28, 120).fill('#080808');
+      doc.fillColor('#D4FF00')
          .fontSize(32)
          .font('Helvetica-Bold')
-         .text('Event Sphere', 50, 40);
-      doc.fontSize(12)
+         .text('City Pulse', 50, 40);
+      doc.fillColor('#ffffff')
+         .fontSize(12)
          .font('Helvetica')
          .text('Official Admission Ticket', 50, 80);
 
@@ -92,11 +93,13 @@ export const generateTicketPDF = async (booking: IBooking, event: IEvent): Promi
       doc.fontSize(13).fillColor('#4f46e5').text(`₹${totalAmount}`, 410, yPos, { align: 'right', width: 135 });
 
       // --- QR Code ---
-      const qrData = `eventsphere://ticket/${booking._id}`;
-      const qrImageBuffer = await QRCode.toBuffer(qrData, { 
-        margin: 1, 
+      // Encodes the booking ID as a web URL so the scanner page can resolve it directly
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+      const qrData = `${frontendUrl}/scanner?ticket=${booking._id}`;
+      const qrImageBuffer = await QRCode.toBuffer(qrData, {
+        margin: 1,
         width: 150,
-        color: { dark: '#1e293b', light: '#ffffff' }
+        color: { dark: '#080808', light: '#ffffff' },
       });
       doc.image(qrImageBuffer, 400, 180, { width: 140 });
       doc.fontSize(8).fillColor('#94a3b8').text('SCAN AT ENTRY', 435, 325);
@@ -105,7 +108,7 @@ export const generateTicketPDF = async (booking: IBooking, event: IEvent): Promi
       doc.fontSize(10)
          .fillColor('#94a3b8')
          .text('This ticket is digitally signed and valid for one-time admission only.', 50, 750, { align: 'center' });
-      doc.text('Event Sphere © 2026', 50, 765, { align: 'center' });
+      doc.text('City Pulse © 2026', 50, 765, { align: 'center' });
 
       doc.end();
     } catch (err) {

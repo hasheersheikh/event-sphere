@@ -120,6 +120,8 @@ const eventSchema = z.object({
     googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   }),
 
+  offlineTicketsAvailable: z.boolean().optional().default(false),
+
   coordinator: z.object({
     name: z.string().optional(),
     phone: z.string().optional().refine(
@@ -218,6 +220,7 @@ const CreateEventPage = () => {
       days: [],
       city: "",
       location: { address: "", venueName: "", googleMapUrl: "" },
+      offlineTicketsAvailable: false,
       coordinator: { name: "", phone: "" },
       ticketTypes: [{ name: "General Admission", price: 0, capacity: 100, isSoldOut: false, isFullPass: false, dayWisePrices: [] }],
       vouchers: [],
@@ -1134,45 +1137,74 @@ const CreateEventPage = () => {
 
                   <Card className="border border-border/40 shadow-sm bg-card">
                     <CardHeader className="pb-4 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
-                        Coordinator Details (optional)
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6 space-y-5">
-                      <div className="grid md:grid-cols-2 gap-5">
-                        <FormField control={form.control} name="coordinator.name" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className={labelCls}>Coordinator Name</FormLabel>
-                            <FormControl><Input placeholder="e.g. John Doe" className={inputCls} {...field} /></FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
-                        <FormField control={form.control} name="coordinator.phone" render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className={labelCls}>Contact Number</FormLabel>
-                            <div className="flex gap-2 items-center">
-                              <div className="h-12 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-border/50 text-sm font-black text-foreground shrink-0 select-none">
-                                +91
-                              </div>
-                              <FormControl>
-                                <Input
-                                  placeholder="9876543210"
-                                  className={cn(inputCls, "flex-1")}
-                                  value={field.value ? field.value.replace(/^\+91/, "") : ""}
-                                  onChange={(e) => {
-                                    const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
-                                    field.onChange(digits ? "+91" + digits : "");
-                                  }}
-                                />
-                              </FormControl>
-                            </div>
-                            <FormDescription className="text-[10px] text-muted-foreground">Enter the 10-digit phone number (e.g., 9876543210)</FormDescription>
-                            <FormMessage />
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-3 font-black">
+                          <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
+                          Offline Tickets
+                        </CardTitle>
+                        <FormField control={form.control} name="offlineTicketsAvailable" render={({ field }) => (
+                          <FormItem className="flex items-center gap-3 space-y-0">
+                            <FormLabel className={cn(labelCls, "text-[9px]")}>Available</FormLabel>
+                            <FormControl>
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={!!field.value}
+                                onClick={() => field.onChange(!field.value)}
+                                className={cn(
+                                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none",
+                                  field.value ? "bg-neon-lime" : "bg-muted"
+                                )}
+                              >
+                                <span className={cn(
+                                  "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition-transform",
+                                  field.value ? "translate-x-5" : "translate-x-0"
+                                )} />
+                              </button>
+                            </FormControl>
                           </FormItem>
                         )} />
                       </div>
-                    </CardContent>
+                      <p className="text-[10px] text-muted-foreground mt-1 ml-11">
+                        When enabled, attendees will see a "Call Coordinator" option on the event page to purchase tickets offline.
+                      </p>
+                    </CardHeader>
+                    {form.watch("offlineTicketsAvailable") && (
+                      <CardContent className="pt-6 space-y-5">
+                        <div className="grid md:grid-cols-2 gap-5">
+                          <FormField control={form.control} name="coordinator.name" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className={labelCls}>Coordinator Name</FormLabel>
+                              <FormControl><Input placeholder="e.g. John Doe" className={inputCls} {...field} /></FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="coordinator.phone" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className={labelCls}>Contact Number <span className="text-destructive">*</span></FormLabel>
+                              <div className="flex gap-2 items-center">
+                                <div className="h-12 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-border/50 text-sm font-black text-foreground shrink-0 select-none">
+                                  +91
+                                </div>
+                                <FormControl>
+                                  <Input
+                                    placeholder="9876543210"
+                                    className={cn(inputCls, "flex-1")}
+                                    value={field.value ? field.value.replace(/^\+91/, "") : ""}
+                                    onChange={(e) => {
+                                      const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                                      field.onChange(digits ? "+91" + digits : "");
+                                    }}
+                                  />
+                                </FormControl>
+                              </div>
+                              <FormDescription className="text-[10px] text-muted-foreground">Enter the 10-digit phone number (e.g., 9876543210)</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
                 </motion.div>
               )}

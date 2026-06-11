@@ -89,6 +89,7 @@ export interface IEvent extends Document {
     name: string;
     phone: string;
   };
+  offlineTicketsAvailable?: boolean;
   ticketTypes: ITicketType[];
   vouchers?: {
     code: string;
@@ -181,6 +182,7 @@ const EventSchema: Schema = new Schema(
       name: { type: String },
       phone: { type: String },
     },
+    offlineTicketsAvailable: { type: Boolean, default: false },
     ticketTypes: [
       {
         name: { type: String, required: true },

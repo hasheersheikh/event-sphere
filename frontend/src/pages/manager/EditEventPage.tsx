@@ -30,6 +30,7 @@ import {
   CalendarDays,
   Layers,
   AlertCircle,
+  XCircle,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,8 @@ const eventSchema = z.object({
     googleMapUrl: z.string().url("Must be a valid URL").or(z.literal("")).optional(),
   }),
 
+  offlineTicketsAvailable: z.boolean().optional().default(false),
+
   coordinator: z.object({
     name: z.string().optional().default(""),
     phone: z.string().refine(
@@ -185,6 +188,31 @@ const SCHEDULE_TYPES = [
   },
 ];
 
+// Flatten nested RHF error objects into [{field, message}] pairs
+const flattenErrors = (errors: any, path = ""): { field: string; message: string }[] => {
+  const out: { field: string; message: string }[] = [];
+  for (const key in errors) {
+    const err = errors[key];
+    const fullPath = path ? `${path}.${key}` : key;
+    if (err?.message && typeof err.message === "string") {
+      out.push({ field: fullPath, message: err.message });
+    } else if (Array.isArray(err)) {
+      err.forEach((item: any, i: number) => {
+        out.push(...flattenErrors(item, `${fullPath}[${i}]`));
+      });
+    } else if (err && typeof err === "object") {
+      out.push(...flattenErrors(err, fullPath));
+    }
+  }
+  return out;
+};
+
+const STEP_FIELDS: Record<number, string[]> = {
+  1: ["title", "description", "category", "image", "ageRestriction", "lineup", "artist", "videoUrl", "reels"],
+  2: ["location", "city", "date", "time", "endTime", "slots", "days", "recurrence", "coordinator", "offlineTicketsAvailable"],
+  3: ["ticketTypes", "vouchers"],
+};
+
 const EditEventPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -220,6 +248,7 @@ const EditEventPage = () => {
         venueName: "",
         googleMapUrl: "",
       },
+      offlineTicketsAvailable: false,
       coordinator: {
         name: "",
         phone: "",
@@ -296,6 +325,7 @@ const EditEventPage = () => {
           venueName: event.location?.venueName || "",
           googleMapUrl: event.location?.googleMapUrl || "",
         },
+        offlineTicketsAvailable: event.offlineTicketsAvailable || false,
         coordinator: {
           name: event.coordinator?.name || "",
           phone: event.coordinator?.phone || "",
@@ -378,13 +408,14 @@ const EditEventPage = () => {
     const fieldsToValidate: any[] = [];
     if (currentStep === 1) {
       fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
+      lineupFields.forEach((_, i) => fieldsToValidate.push(`lineup.${i}.name`));
     }
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
       else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
-      // coordinator is optional — only validate phone format if user filled it
+      else if (scheduleType === "multi_day") fieldsToValidate.push("days");
       const coordPhone = form.getValues("coordinator.phone");
       if (coordPhone) fieldsToValidate.push("coordinator.phone");
     }
@@ -392,45 +423,32 @@ const EditEventPage = () => {
     if (isValid) {
       if (currentStep === 2) {
         if (scheduleType === "multi_slot") {
-          if (slotFields.length === 0) {
-            toast.error("Please add at least one time slot.");
-            return;
-          }
-          if (hasSlotOverlap()) {
-            toast.error("Please resolve time slot overlaps.");
-            return;
-          }
+          if (slotFields.length === 0) { toast.error("Please add at least one time slot."); return; }
+          if (hasSlotOverlap()) { toast.error("Please resolve time slot overlaps."); return; }
         }
-        if (scheduleType === "multi_day") {
-          if (dayFields.length === 0) {
-            toast.error("Please select at least one day on the calendar.");
-            return;
-          }
+        if (scheduleType === "multi_day" && dayFields.length === 0) {
+          toast.error("Please select at least one day on the calendar."); return;
         }
         if (scheduleType === "recurring") {
           const freq = form.getValues("recurrence.frequency");
-          if (freq === "weekly") {
-            const days = form.getValues("recurrence.daysOfWeek") || [];
-            if (days.length === 0) {
-              toast.error("Please select at least one day of the week for the recurring event.");
-              return;
-            }
+          if (freq === "weekly" && (form.getValues("recurrence.daysOfWeek") || []).length === 0) {
+            toast.error("Please select at least one day of the week for the recurring event."); return;
           }
         }
       }
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
     } else {
-      toast.error("Please fill in all required fields before continuing.");
+      // Show the first specific error message so the user knows exactly what to fix
+      const errs = flattenErrors(form.formState.errors);
+      toast.error(errs[0]?.message || "Please fix the highlighted fields before continuing.");
     }
   };
 
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
   const onSubmit = (values: EventFormValues) => {
-    if (currentStep === 3) {
-      mutation.mutate(values);
-    }
+    if (currentStep === 3) mutation.mutate(values);
   };
 
   const handleFinalSubmit = async () => {
@@ -441,19 +459,23 @@ const EditEventPage = () => {
     const isValid = await form.trigger();
     if (!isValid) {
       const errors = form.formState.errors;
-      const step1Keys = ["title", "description", "category", "image", "lineup"] as const;
-      const step2Keys = ["location", "city", "date", "time", "slots", "days", "recurrence"] as const;
-      if (step1Keys.some((k) => errors[k])) {
-        setCurrentStep(1); window.scrollTo(0, 0);
-        toast.error("Please fix the errors in Step 1 — Basics.");
-        return;
+      // Find which step owns the first error and navigate there
+      for (let step = 1; step <= 3; step++) {
+        const stepFieldKeys = STEP_FIELDS[step];
+        if (stepFieldKeys.some((k) => errors[k as keyof typeof errors])) {
+          setCurrentStep(step); window.scrollTo(0, 0);
+          const errs = flattenErrors(
+            Object.fromEntries(
+              stepFieldKeys.filter((k) => errors[k as keyof typeof errors]).map((k) => [k, errors[k as keyof typeof errors]])
+            )
+          );
+          const firstMsg = errs[0]?.message;
+          const stepName = ["Basics", "Logistics", "Inventory"][step - 1];
+          toast.error(`Step ${step} (${stepName}): ${firstMsg || "Please fix the highlighted fields."}`);
+          return;
+        }
       }
-      if (step2Keys.some((k) => errors[k])) {
-        setCurrentStep(2); window.scrollTo(0, 0);
-        toast.error("Please fix the errors in Step 2 — Logistics.");
-        return;
-      }
-      toast.error("Please fill in all required fields.");
+      toast.error("Please fix all errors before submitting.");
       return;
     }
     form.handleSubmit(onSubmit)();
@@ -612,6 +634,18 @@ const EditEventPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
+                  {/* Inline error summary — only appears after a failed submit attempt */}
+                  {STEP_FIELDS[1].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before continuing</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[1].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
                     <CardHeader className="pb-3 bg-muted/20 border-b">
                       <CardTitle className="text-base flex items-center gap-3 font-black text-foreground">
@@ -894,6 +928,17 @@ const EditEventPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
+                  {STEP_FIELDS[2].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before continuing</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[2].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
                     <CardHeader className="pb-3 bg-muted/20 border-b">
                       <CardTitle className="text-base flex items-center gap-3 font-black text-foreground">
@@ -1369,45 +1414,57 @@ const EditEventPage = () => {
 
                   <Card className="border border-border/40 shadow-sm bg-card">
                     <CardHeader className="pb-4 border-b border-border/30">
-                      <CardTitle className="text-base flex items-center gap-3 font-black">
-                        <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
-                        Coordinator Details (optional)
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base flex items-center gap-3 font-black">
+                          <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-4 w-4 text-primary" /></div>
+                          Offline Tickets
+                        </CardTitle>
+                        <FormField control={form.control} name="offlineTicketsAvailable" render={({ field }) => (
+                          <FormItem className="flex items-center gap-3 space-y-0">
+                            <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Available</FormLabel>
+                            <FormControl>
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={!!field.value}
+                                onClick={() => field.onChange(!field.value)}
+                                className={cn(
+                                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                                  field.value ? "bg-neon-lime" : "bg-muted"
+                                )}
+                              >
+                                <span className={cn(
+                                  "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-lg transform transition-transform",
+                                  field.value ? "translate-x-5" : "translate-x-0"
+                                )} />
+                              </button>
+                            </FormControl>
+                          </FormItem>
+                        )} />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1 ml-11">
+                        When enabled, attendees will see a "Call Coordinator" option on the event page to purchase tickets offline.
+                      </p>
                     </CardHeader>
-                    <CardContent className="pt-6 space-y-5">
-                      <div className="grid md:grid-cols-2 gap-6">
-                        <FormField
-                          control={form.control}
-                          name="coordinator.name"
-                          render={({ field }) => (
+                    {form.watch("offlineTicketsAvailable") && (
+                      <CardContent className="pt-6 space-y-5">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <FormField control={form.control} name="coordinator.name" render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Coordinator Name
-                              </FormLabel>
+                              <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Coordinator Name</FormLabel>
                               <FormControl>
-                                <Input
-                                  placeholder="e.g. John Doe"
-                                  className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner"
-                                  {...field}
-                                />
+                                <Input placeholder="e.g. John Doe" className="h-14 bg-background/50 border-white/10 rounded-xl font-black shadow-inner" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="coordinator.phone"
-                          render={({ field }) => (
+                          )} />
+                          <FormField control={form.control} name="coordinator.phone" render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Contact Number
+                                Contact Number <span className="text-destructive">*</span>
                               </FormLabel>
                               <div className="flex gap-2 items-center">
-                                <div className="h-14 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-white/10 text-sm font-black text-foreground shrink-0 select-none">
-                                  +91
-                                </div>
+                                <div className="h-14 px-4 flex items-center justify-center rounded-xl bg-background/50 border border-white/10 text-sm font-black text-foreground shrink-0 select-none">+91</div>
                                 <FormControl>
                                   <Input
                                     placeholder="9876543210"
@@ -1423,10 +1480,10 @@ const EditEventPage = () => {
                               <p className="text-[10px] text-muted-foreground ml-1">Enter the 10-digit phone number (e.g., 9876543210)</p>
                               <FormMessage />
                             </FormItem>
-                          )}
-                        />
-                      </div>
-                    </CardContent>
+                          )} />
+                        </div>
+                      </CardContent>
+                    )}
                   </Card>
                 </motion.div>
               )}
@@ -1440,6 +1497,17 @@ const EditEventPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
+                  {STEP_FIELDS[3].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before saving</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[3].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border-none shadow-xl glass-card overflow-hidden">
                     <CardHeader className="pb-4 bg-muted/20 border-b">
                       <div className="flex justify-between items-center">

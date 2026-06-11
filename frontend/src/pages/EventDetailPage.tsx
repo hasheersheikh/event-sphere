@@ -617,20 +617,25 @@ const EventDetailPage = () => {
                 </div>
 
                 {/* Offline Tickets / Coordinator Contact Section */}
-                <div className="grid sm:grid-cols-2 gap-4 pt-6">
-                  <a
-                    href={`tel:${event.coordinator?.phone || "+919999999999"}`}
-                    className="flex items-center gap-4 p-4 rounded-xl border border-neon-lime/30 hover:border-neon-lime/60 bg-neon-lime/5 hover:bg-neon-lime/10 transition-all group"
-                  >
-                    <div className="h-12 w-12 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0 group-hover:bg-neon-lime/20 transition-colors">
-                      <Phone className="h-6 w-6 text-neon-lime" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Offline Tickets</p>
-                      <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Call Coordinator</p>
-                    </div>
-                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime group-hover:translate-x-1 transition-all" />
-                  </a>
+                <div className={cn("grid gap-4 pt-6", event.offlineTicketsAvailable ? "sm:grid-cols-2" : "grid-cols-1")}>
+                  {event.offlineTicketsAvailable && event.coordinator?.phone && (
+                    <a
+                      href={`tel:${event.coordinator.phone}`}
+                      className="flex items-center gap-4 p-4 rounded-xl border border-neon-lime/30 hover:border-neon-lime/60 bg-neon-lime/5 hover:bg-neon-lime/10 transition-all group"
+                    >
+                      <div className="h-12 w-12 rounded-lg bg-neon-lime/10 flex items-center justify-center shrink-0 group-hover:bg-neon-lime/20 transition-colors">
+                        <Phone className="h-6 w-6 text-neon-lime" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-black uppercase tracking-widest text-neon-lime mb-1">Offline Tickets</p>
+                        <p className="text-sm font-bold text-foreground/80 group-hover:text-foreground">Call Coordinator</p>
+                        {event.coordinator.name && (
+                          <p className="text-xs text-muted-foreground mt-0.5">{event.coordinator.name} · {event.coordinator.phone}</p>
+                        )}
+                      </div>
+                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime group-hover:translate-x-1 transition-all" />
+                    </a>
+                  )}
 
                   <Link
                     to="/contact"
@@ -648,8 +653,8 @@ const EventDetailPage = () => {
                 </div>
               </div>
 
-              {/* Coordinator Section */}
-              {event.coordinator && (event.coordinator.name || event.coordinator.phone) && (
+              {/* Coordinator Section — only shown when manager has enabled offline tickets */}
+              {event.offlineTicketsAvailable && event.coordinator && (event.coordinator.name || event.coordinator.phone) && (
                 <div className="space-y-8 pt-10 border-t border-border">
                   <h3 className="text-2xl md:text-3xl font-black tracking-tighter">Contact Coordinator</h3>
                   <div className="space-y-5">

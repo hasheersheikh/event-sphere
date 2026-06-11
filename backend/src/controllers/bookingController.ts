@@ -127,27 +127,29 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     await event.save();
 
-    // Trigger Email & WhatsApp Journey (Non-blocking)
-    (async () => {
-      try {
-        const pdfBuffer = await generateTicketPDF(booking, event as any);
-        // Use guest details first, fallback to user details
-        const recipientEmail = booking.email || (req.user as any)?.email;
-        const recipientName = (req.user as any)?.name || 'Guest';
-        const recipientPhone = booking.phoneNumber || (req.user as any)?.phoneNumber;
+    // Only send ticket notifications for bookings that are immediately confirmed (free tickets).
+    // Paid bookings remain 'pending' here — notifications fire from verifyPaymentLink after payment.
+    if (booking.status === 'confirmed') {
+      (async () => {
+        try {
+          const pdfBuffer = await generateTicketPDF(booking, event as any);
+          // Prefer contactName from request body, then logged-in user name, then fallback
+          const recipientName = contactName || (req.user as any)?.name || 'Guest';
+          const recipientEmail = booking.email || (req.user as any)?.email;
+          const recipientPhone = booking.phoneNumber || (req.user as any)?.phoneNumber;
 
-        if (recipientEmail) {
-          await sendTicketEmail(recipientEmail, recipientName, event, pdfBuffer);
+          if (recipientEmail) {
+            await sendTicketEmail(recipientEmail, recipientName, event, pdfBuffer);
+          }
+          if (recipientPhone) {
+            const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
+            await sendTicketWhatsApp(recipientPhone, recipientName, event, pdfBuffer);
+          }
+        } catch (err) {
+          console.error('Failed to send free-ticket confirmation:', err);
         }
-        
-        if (recipientPhone) {
-          const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
-          await sendTicketWhatsApp(recipientPhone, recipientName, event, pdfBuffer);
-        }
-      } catch (err) {
-        console.error('Failed to send confirmation journey:', err);
-      }
-    })();
+      })();
+    }
 
     res.status(201).json(booking);
   } catch (error) {
