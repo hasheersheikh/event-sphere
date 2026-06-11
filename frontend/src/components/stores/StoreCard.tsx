@@ -42,7 +42,7 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
         <article className="h-full flex flex-col bg-card border border-border/40 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300">
 
           {/* ── image ── */}
-          <div className="relative h-44 overflow-hidden bg-muted shrink-0">
+          <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted shrink-0">
             <AnimatedShimmer visible={!imageLoaded} />
 
             <motion.div

@@ -78,6 +78,7 @@ import InfluencerManagementPage from "./pages/admin/InfluencerManagementPage";
 import TrendingVenueManagementPage from "./pages/admin/TrendingVenueManagementPage";
 import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
 import BoostRequestPage from "./pages/manager/BoostRequestPage";
+import ListYourEventPage from "./pages/ListYourEventPage";
 import { FEATURES } from "./config/features";
 
 
@@ -147,6 +148,7 @@ const AppContent = () => {
                           <Route path="events/:id" element={<EventDetailPage />} />
                           <Route path="boost" element={<BoostMarketingPage />} />
                           <Route path="boost/request" element={<BoostRequestPage />} />
+                          <Route path="list-your-event" element={<ListYourEventPage />} />
                           <Route
                             path="events/:id/success"
                             element={<EventPendingPage />}

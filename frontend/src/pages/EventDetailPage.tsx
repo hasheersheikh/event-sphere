@@ -186,6 +186,19 @@ const EventDetailPage = () => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
+  const formatDuration = (start: string, end?: string): string | null => {
+    if (!end) return null;
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let mins = (eh * 60 + em) - (sh * 60 + sm);
+    if (mins <= 0) mins += 24 * 60;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    if (h === 0) return `${m} min`;
+    if (m === 0) return `${h} hr${h > 1 ? "s" : ""}`;
+    return `${h} hr${h > 1 ? "s" : ""} ${m} min`;
+  };
+
   const formatPrice = (price: number) => {
     if (price === 0) return "Free";
     return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(price);
@@ -550,7 +563,7 @@ const EventDetailPage = () => {
               <div className="space-y-6">
                 <h3 className="text-2xl md:text-3xl font-black tracking-tighter">About</h3>
                 <div className="space-y-4">
-                  <p className="text-base md:text-lg font-medium text-foreground leading-relaxed whitespace-pre-wrap max-w-3xl">
+                  <p className="font-display font-black tracking-tighter text-base md:text-lg text-foreground leading-snug whitespace-pre-wrap max-w-3xl">
                     {event.description}
                   </p>
                   {event.description.length > 300 && (
@@ -595,6 +608,11 @@ const EventDetailPage = () => {
                   <div className="pt-6 border-t border-border/40">
                     <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">Doors open</p>
                     <p className="text-lg font-black text-foreground mt-1.5">{event.time} IST</p>
+                    {formatDuration(event.time, event.endTime) && (
+                      <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">
+                        Duration · {formatDuration(event.time, event.endTime)}
+                      </p>
+                    )}
                   </div>
                 </div>
 

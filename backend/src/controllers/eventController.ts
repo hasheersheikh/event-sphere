@@ -374,7 +374,40 @@ export const getMyEvents: RequestHandler = async (req: AuthRequest, res: Respons
   try {
     const total = await Event.countDocuments({ creator: req.user?._id });
     const events = await Event.find({ creator: req.user?._id }).sort({ date: 1 }).skip(skip).limit(limit);
-    res.json({ data: events, pagination: { total, page, limit, pages: Math.ceil(total / limit) } });
+
+    // Aggregate confirmed bookings (online + offline) per event to compute revenue and tickets sold
+    const eventIds = events.map(e => e._id);
+    const bookingStats = await Booking.aggregate([
+      { $match: { event: { $in: eventIds }, status: 'confirmed' } },
+      {
+        $group: {
+          _id: '$event',
+          totalRevenue: { $sum: '$totalAmount' },
+          totalSold: {
+            $sum: {
+              $reduce: {
+                input: '$tickets',
+                initialValue: 0,
+                in: { $add: ['$$value', '$$this.quantity'] },
+              },
+            },
+          },
+        },
+      },
+    ]);
+
+    const statsMap = new Map(bookingStats.map((s: any) => [s._id.toString(), s]));
+
+    const enriched = events.map(e => {
+      const stat = statsMap.get(e._id.toString());
+      return {
+        ...e.toObject(),
+        totalRevenue: stat?.totalRevenue || 0,
+        totalSold: stat?.totalSold || 0,
+      };
+    });
+
+    res.json({ data: enriched, pagination: { total, page, limit, pages: Math.ceil(total / limit) } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

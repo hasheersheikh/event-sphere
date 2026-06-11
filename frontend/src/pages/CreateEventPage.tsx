@@ -16,7 +16,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Tag,
-  Clock,
   LayoutGrid,
   RefreshCw,
   CalendarDays,
@@ -54,12 +53,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CITIES } from "@/contexts/CityContext";
 import { CityCombobox } from "@/components/events/CityCombobox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
 
 // ─── Zod schema ─────────────────────────────────────────────────────────────
@@ -69,18 +66,18 @@ const eventSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
   image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
-  videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
-  reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
+  videoUrl: z.string().optional(),
+  reels: z.array(z.string()).optional(),
   artist: z.object({
     name: z.string().optional(),
     instagramHandle: z.string().optional(),
-    profileImage: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+    profileImage: z.string().optional(),
   }).optional(),
   lineup: z.array(z.object({
     name: z.string().min(1, "Name is required"),
     role: z.string().optional(),
-    instagramUrl: z.string().url("Please enter a valid Instagram URL").or(z.literal("")).optional(),
-    image: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+    instagramUrl: z.string().optional(),
+    image: z.string().optional(),
   })).optional(),
   ageRestriction: z.string().optional().default("All Ages"),
 
@@ -124,9 +121,12 @@ const eventSchema = z.object({
   }),
 
   coordinator: z.object({
-    name: z.string().min(1, "Coordinator name is required"),
-    phone: z.string().regex(/^\+91\d{10}$/, "Phone number must start with +91 and be 13 digits"),
-  }),
+    name: z.string().optional(),
+    phone: z.string().optional().refine(
+      (val) => !val || /^\+91\d{10}$/.test(val),
+      "Phone number must start with +91 and be 13 digits"
+    ),
+  }).optional(),
 
   // ── Tickets & vouchers ────────────────────────────────────────────────────
   ticketTypes: z.array(z.object({
@@ -207,6 +207,7 @@ const CreateEventPage = () => {
       image: "",
       videoUrl: "",
       reels: [],
+      artist: { name: "", instagramHandle: "", profileImage: "" },
       ageRestriction: "All Ages",
       scheduleType: "single",
       date: undefined,
@@ -230,7 +231,7 @@ const CreateEventPage = () => {
 
   // Field arrays
   const { fields: slotFields, append: appendSlot, remove: removeSlot } = useFieldArray({ name: "slots", control: form.control });
-  const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
+  const { fields: dayFields, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
   const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
   const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
   const { fields: lineupFields, append: appendLineup, remove: removeLineup } = useFieldArray({ name: "lineup", control: form.control });
@@ -326,9 +327,10 @@ const CreateEventPage = () => {
     const fieldsToValidate: any[] = [];
     if (currentStep === 1) {
       fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
+      lineupFields.forEach((_, i) => fieldsToValidate.push(`lineup.${i}.name`));
     }
     if (currentStep === 2) {
-      fieldsToValidate.push("location.address", "city", "coordinator.name", "coordinator.phone");
+      fieldsToValidate.push("location.address", "city");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
       else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
       else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
@@ -338,25 +340,44 @@ const CreateEventPage = () => {
     if (isValid) {
       if (currentStep === 2) {
         if (scheduleType === "multi_slot") {
-          if (slotFields.length === 0) {
-            toast.error("Please add at least one time slot.");
-            return;
-          }
-          if (hasSlotOverlap()) {
-            toast.error("Please resolve time slot overlaps.");
-            return;
-          }
+          if (slotFields.length === 0) { toast.error("Please add at least one time slot."); return; }
+          if (hasSlotOverlap()) { toast.error("Please resolve time slot overlaps."); return; }
+        }
+        if (scheduleType === "multi_day" && dayFields.length === 0) {
+          toast.error("Please select at least one event day."); return;
         }
       }
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
     } else {
-      toast.error("Please resolve the issues in the current stage.");
+      toast.error("Please fix the highlighted fields before proceeding.");
     }
   };
 
   const prevStep = () => setCurrentStep((p) => Math.max(p - 1, 1));
-  const onSubmit = (values: EventFormValues) => { if (currentStep === 3) mutation.mutate(values); };
+  const onSubmit = (values: EventFormValues) => { mutation.mutate(values); };
+
+  const handleFinalSubmit = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      const errors = form.formState.errors;
+      const step1Keys = ["title", "description", "category", "image", "lineup", "artist"] as const;
+      const step2Keys = ["location", "city", "date", "time", "slots", "days", "recurrence"] as const;
+      if (step1Keys.some((k) => errors[k])) {
+        setCurrentStep(1); window.scrollTo(0, 0);
+        toast.error("Please fix the errors in Step 1 — Basics.");
+        return;
+      }
+      if (step2Keys.some((k) => errors[k])) {
+        setCurrentStep(2); window.scrollTo(0, 0);
+        toast.error("Please fix the errors in Step 2 — When & Where.");
+        return;
+      }
+      toast.error("Please fix all errors before submitting.");
+      return;
+    }
+    form.handleSubmit(onSubmit)();
+  };
 
   const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Other"];
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -426,6 +447,10 @@ const CreateEventPage = () => {
             })}
           </div>
 
+          <p className="mt-4 text-center text-[10px] text-muted-foreground font-medium">
+            Fields marked <span className="text-destructive font-black">*</span> are required
+          </p>
+
           {isUnapprovedManager && (
             <div className="mt-8 mx-auto max-w-2xl p-5 bg-orange-500/5 border border-orange-500/20 rounded-2xl flex items-center gap-4">
               <ShieldCheck className="h-6 w-6 text-orange-500 shrink-0" />
@@ -456,7 +481,7 @@ const CreateEventPage = () => {
                     <CardContent className="space-y-6 p-6">
                       <FormField control={form.control} name="title" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className={labelCls}>Event Title</FormLabel>
+                          <FormLabel className={labelCls}>Event Title <span className="text-destructive">*</span></FormLabel>
                           <FormControl><Input placeholder="e.g. Modern Web Summit 2025" className={cn(inputCls, "h-14 text-base font-bold")} {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -465,7 +490,7 @@ const CreateEventPage = () => {
                       <div className="grid md:grid-cols-2 gap-6">
                         <FormField control={form.control} name="category" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={labelCls}>Category</FormLabel>
+                            <FormLabel className={labelCls}>Category <span className="text-destructive">*</span></FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger className={cn(inputCls, "h-12")}><SelectValue placeholder="Select Category" /></SelectTrigger>
@@ -479,20 +504,26 @@ const CreateEventPage = () => {
                         )} />
 
                         <div className="space-y-2">
-                          <Label className={labelCls}>Event Banner</Label>
+                          <Label className={labelCls}>Event Banner <span className="text-destructive">*</span></Label>
                           <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
-                          <button type="button" onClick={handleUpload} className="w-full h-12 bg-background/50 border border-dashed border-border/50 rounded-xl flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group">
-                            <ImageIcon className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary">
+                          <button type="button" onClick={handleUpload} className={cn(
+                            "w-full h-12 bg-background/50 border border-dashed rounded-xl flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group",
+                            form.formState.errors.image ? "border-destructive/60" : "border-border/50"
+                          )}>
+                            <ImageIcon className={cn("h-4 w-4", form.formState.errors.image ? "text-destructive" : "text-muted-foreground group-hover:text-primary")} />
+                            <span className={cn("text-[10px] font-black uppercase tracking-widest", form.formState.errors.image ? "text-destructive" : "text-muted-foreground group-hover:text-primary")}>
                               {form.watch("image") ? "Change Image" : "Upload Image"}
                             </span>
                           </button>
+                          {form.formState.errors.image && (
+                            <p className="text-[11px] text-destructive font-medium">{form.formState.errors.image.message}</p>
+                          )}
                         </div>
                       </div>
 
                       <FormField control={form.control} name="description" render={({ field }) => (
                         <FormItem>
-                          <FormLabel className={labelCls}>Description</FormLabel>
+                          <FormLabel className={labelCls}>Description <span className="text-destructive">*</span></FormLabel>
                           <FormControl><Textarea placeholder="Describe the event..." className="min-h-[120px] bg-background/50 border-border/50 rounded-xl font-medium text-sm resize-none" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
@@ -569,7 +600,7 @@ const CreateEventPage = () => {
                                 <div className="grid md:grid-cols-2 gap-3">
                                   <FormField control={form.control} name={`lineup.${index}.name`} render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Name</FormLabel>
+                                      <FormLabel className={cn(labelCls, "text-[9px]")}>Name <span className="text-destructive">*</span></FormLabel>
                                       <FormControl>
                                         <Input placeholder="e.g. Shah Rukh Khan" className={cn(inputCls, "h-10 text-xs")} {...field} />
                                       </FormControl>
@@ -692,7 +723,7 @@ const CreateEventPage = () => {
                         <div className="grid md:grid-cols-3 gap-5">
                           <FormField control={form.control} name="date" render={({ field }) => (
                             <FormItem className="flex flex-col">
-                              <FormLabel className={labelCls}>Date</FormLabel>
+                              <FormLabel className={labelCls}>Date <span className="text-destructive">*</span></FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -711,7 +742,7 @@ const CreateEventPage = () => {
                           )} />
                           <FormField control={form.control} name="time" render={({ field }) => (
                             <FormItem>
-                              <FormLabel className={labelCls}>Start Time</FormLabel>
+                              <FormLabel className={labelCls}>Start Time <span className="text-destructive">*</span></FormLabel>
                               <FormControl><Input type="time" className={inputCls} {...field} /></FormControl>
                               <FormMessage />
                             </FormItem>
@@ -731,7 +762,7 @@ const CreateEventPage = () => {
                         <div className="space-y-5">
                           <FormField control={form.control} name="date" render={({ field }) => (
                             <FormItem className="flex flex-col max-w-xs">
-                              <FormLabel className={labelCls}>Event Date</FormLabel>
+                              <FormLabel className={labelCls}>Event Date <span className="text-destructive">*</span></FormLabel>
                               <Popover>
                                 <PopoverTrigger asChild>
                                   <FormControl>
@@ -808,7 +839,7 @@ const CreateEventPage = () => {
                           <div className="grid md:grid-cols-3 gap-5">
                             <FormField control={form.control} name="date" render={({ field }) => (
                               <FormItem className="flex flex-col">
-                                <FormLabel className={labelCls}>Start Date</FormLabel>
+                                <FormLabel className={labelCls}>Start Date <span className="text-destructive">*</span></FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
@@ -827,7 +858,7 @@ const CreateEventPage = () => {
                             )} />
                             <FormField control={form.control} name="time" render={({ field }) => (
                               <FormItem>
-                                <FormLabel className={labelCls}>Time</FormLabel>
+                                <FormLabel className={labelCls}>Time <span className="text-destructive">*</span></FormLabel>
                                 <FormControl><Input type="time" className={inputCls} {...field} /></FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -1060,7 +1091,7 @@ const CreateEventPage = () => {
                     <CardContent className="space-y-5 p-6">
                       <FormField control={form.control} name="city" render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel className={labelCls}>City</FormLabel>
+                          <FormLabel className={labelCls}>City <span className="text-destructive">*</span></FormLabel>
                           <FormControl>
                             <CityCombobox
                               value={field.value}
@@ -1083,7 +1114,7 @@ const CreateEventPage = () => {
                         )} />
                         <FormField control={form.control} name="location.address" render={({ field }) => (
                           <FormItem>
-                            <FormLabel className={labelCls}>Address</FormLabel>
+                            <FormLabel className={labelCls}>Address <span className="text-destructive">*</span></FormLabel>
                             <FormControl><Input placeholder="Full Address" className={inputCls} {...field} /></FormControl>
                             <FormMessage />
                           </FormItem>
@@ -1179,21 +1210,21 @@ const CreateEventPage = () => {
                             <div className="grid md:grid-cols-3 gap-4">
                               <FormField control={form.control} name={`ticketTypes.${index}.name`} render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Tier Name</FormLabel>
+                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Tier Name <span className="text-destructive">*</span></FormLabel>
                                   <FormControl><Input className={cn(inputCls, "h-11")} {...field} /></FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )} />
                               <FormField control={form.control} name={`ticketTypes.${index}.price`} render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Base Price (₹)</FormLabel>
+                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Base Price (₹) <span className="text-destructive">*</span></FormLabel>
                                   <FormControl><Input type="number" className={cn(inputCls, "h-11")} {...field} /></FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )} />
                               <FormField control={form.control} name={`ticketTypes.${index}.capacity`} render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Total Capacity</FormLabel>
+                                  <FormLabel className={cn(labelCls, "text-[9px]")}>Total Capacity <span className="text-destructive">*</span></FormLabel>
                                   <FormControl><Input type="number" className={cn(inputCls, "h-11")} {...field} /></FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1320,7 +1351,7 @@ const CreateEventPage = () => {
                   Next <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button type="button" onClick={() => form.handleSubmit(onSubmit)()} disabled={mutation.isPending || isUnapprovedManager}
+                <Button type="button" onClick={handleFinalSubmit} disabled={mutation.isPending || isUnapprovedManager}
                   className="h-14 flex-[2] rounded-xl font-black uppercase tracking-[0.3em] text-[10px] bg-primary text-primary-foreground hover:bg-primary/90">
                   {mutation.isPending ? "Creating…" : "Create Event"}
                 </Button>

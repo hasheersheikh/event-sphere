@@ -75,21 +75,20 @@ const StoreDetailPage = () => {
       <Navbar />
 
       <main className="flex-1 relative z-10">
-        {/* Hero Banner */}
-        <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
+        {/* Hero image — full, no crop */}
+        <div className="relative w-full">
           {store.photos?.[0] ? (
             <img
               src={store.photos[0]}
               alt={store.name}
-              className="w-full h-full object-cover"
+              className="w-full h-auto block"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-neon-lime/10 via-muted/30 to-background flex items-center justify-center">
+            <div className="w-full h-64 bg-gradient-to-br from-neon-lime/10 via-muted/30 to-background flex items-center justify-center">
               <Store className="h-24 w-24 text-neon-lime/10" />
             </div>
           )}
-
-          {/* Back button overlaid on hero */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
           <div className="absolute top-6 left-0 right-0 container">
             <Link
               to="/local-stores"
@@ -101,12 +100,10 @@ const StoreDetailPage = () => {
           </div>
         </div>
 
-        {/* Store Identity — sits below hero, overlapping the hero image */}
-        <div className="container -mt-20 relative z-10 mb-10">
+        {/* Store Identity — pulled up 30% into the image via negative margin */}
+        <div className="container -mt-[50%] relative z-20 pb-4">
           <div className="bg-card/80 backdrop-blur-lg border border-border/60 rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden">
-            {/* Ambient background glow */}
             <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-neon-lime/10 blur-[80px] pointer-events-none" />
-            
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
               <div className="space-y-4">
                 <Badge className="bg-neon-lime text-black px-3 py-1 rounded-lg font-black uppercase tracking-[0.2em] text-[8px] border-none shadow-lg w-fit">
@@ -133,7 +130,6 @@ const StoreDetailPage = () => {
                 <span className="text-[9px] font-black uppercase tracking-widest">Premium Partner</span>
               </div>
             </div>
-
             {store.description && (
               <p className="mt-6 text-sm md:text-base text-muted-foreground max-w-3xl leading-relaxed italic font-medium opacity-90 border-t border-border/30 pt-4 relative z-10">
                 {store.description}
@@ -142,59 +138,60 @@ const StoreDetailPage = () => {
           </div>
         </div>
 
-        {/* Photo Strip (if multiple photos) */}
-        {store.photos?.length > 1 && (
-          <div className="container mb-10">
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-              {store.photos.slice(1).map((photo: string, i: number) => (
-                <img
-                  key={i}
-                  src={photo}
-                  alt={`${store.name} photo ${i + 2}`}
-                  className="h-28 w-44 object-cover rounded-2xl border border-border/50 shrink-0"
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        {/* All content below — single continuous box, standard gap from identity card */}
+        <div className="container pb-24 relative z-10">
+          <div className="bg-card/80 backdrop-blur-lg border border-border/60 rounded-[2rem] p-6 md:p-8 shadow-xl space-y-10">
 
-        {/* Main Content */}
-        <div className="container pb-24">
-          <div className={`flex flex-col ${hasSidebar ? "lg:flex-row" : ""} gap-10`}>
-            {/* Products Section */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between border-b border-border/50 pb-5 mb-8">
-                <h2 className="text-2xl font-black tracking-tighter uppercase italic">
-                  The <span className="text-neon-lime">Collection</span>
-                </h2>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-                  {store.products?.length || 0} items
-                </span>
+            {/* Photo Strip */}
+            {store.photos?.length > 1 && (
+              <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+                {store.photos.slice(1).map((photo: string, i: number) => (
+                  <img
+                    key={i}
+                    src={photo}
+                    alt={`${store.name} photo ${i + 2}`}
+                    className="h-28 w-44 object-cover rounded-2xl border border-border/50 shrink-0"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Collection + Sidebar */}
+            <div className={`flex flex-col ${hasSidebar ? "lg:flex-row" : ""} gap-10`}>
+              {/* Products Section */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between border-b border-border/50 pb-5 mb-8">
+                  <h2 className="text-2xl font-black tracking-tighter uppercase italic">
+                    The <span className="text-neon-lime">Collection</span>
+                  </h2>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                    {store.products?.length || 0} items
+                  </span>
+                </div>
+
+                {store.products?.length ? (
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {store.products.map((product: any) => (
+                      <ProductCard
+                        key={product._id}
+                        product={product}
+                        storeId={store._id}
+                        storeName={store.name}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center bg-card/20 rounded-[2rem] border border-dashed border-border/50">
+                    <ShoppingBag className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
+                    <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">No products yet.</p>
+                    <p className="text-xs text-muted-foreground/60 italic mt-1">New items coming soon.</p>
+                  </div>
+                )}
               </div>
 
-              {store.products?.length ? (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {store.products.map((product: any) => (
-                    <ProductCard
-                      key={product._id}
-                      product={product}
-                      storeId={store._id}
-                      storeName={store.name}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="py-20 text-center bg-card/20 rounded-[2rem] border border-dashed border-border/50">
-                  <ShoppingBag className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">No products yet.</p>
-                  <p className="text-xs text-muted-foreground/60 italic mt-1">New items coming soon.</p>
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            {hasSidebar && (
-              <aside className="lg:w-80 xl:w-96 space-y-5 shrink-0">
+              {/* Sidebar */}
+              {hasSidebar && (
+                <aside className="lg:w-80 xl:w-96 space-y-5 shrink-0">
                 {/* Contact */}
                 {hasContact && (
                   <InfoCard title="Contact" accent="Us">
@@ -312,8 +309,10 @@ const StoreDetailPage = () => {
                 )}
               </aside>
             )}
-          </div>
-        </div>
+            </div>{/* end Collection + Sidebar */}
+
+          </div>{/* end content box */}
+        </div>{/* end container */}
       </main>
 
       <Footer />

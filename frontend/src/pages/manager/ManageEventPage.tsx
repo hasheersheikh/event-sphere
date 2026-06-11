@@ -95,6 +95,7 @@ const ManageEventPage = () => {
   const queryClient = useQueryClient();
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [offlineForm, setOfflineForm] = useState(defaultOfflineForm);
+  const [attendeeSearch, setAttendeeSearch] = useState("");
 
   const toggleSoldOutMutation = useMutation({
     mutationFn: async (ticketIndex: number) => {
@@ -166,147 +167,109 @@ const ManageEventPage = () => {
     issueOfflineMutation.mutate(offlineForm);
   };
 
-  const downloadCSV = () => {
-    if (!data || !data.recentBookings) return;
-    
-    const headers = [
-      "Attendee Name", 
-      "Email", 
-      "Phone", 
-      "Ticket Details", 
-      "Total Tickets", 
-      "Amount Paid", 
-      "Booking Date"
-    ];
-    
-    const rows = data.recentBookings.map((booking: any) => [
-      booking.userName || "Anonymous",
-      booking.userEmail || "",
-      booking.userPhone || "",
-      booking.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join('; '),
-      booking.tickets.reduce((sum: number, t: any) => sum + t.quantity, 0),
-      `INR ${booking.totalAmount || 0}`,
-      new Date(booking.createdAt).toLocaleDateString()
-    ]);
+  const getEventSlug = () =>
+    data?.event?.title ? data.event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(","), ...rows.map((row: any) => row.map((val: any) => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
+  const downloadCSV = () => {
+    if (!data?.recentBookings) return;
+    const headers = [
+      "Booking ID", "Attendee Name", "Email", "Phone",
+      "Ticket Details", "Total Tickets", "Amount Paid (INR)",
+      "Source", "Booking Date",
+    ];
+    const rows = data.recentBookings.map((b: any) => [
+      String(b._id),
+      b.userName || "Anonymous",
+      b.userEmail || "",
+      b.userPhone || "",
+      b.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join("; "),
+      b.tickets.reduce((s: number, t: any) => s + t.quantity, 0),
+      b.totalAmount || 0,
+      b.isOffline ? "Offline / Walk-in" : "Online",
+      new Date(b.createdAt).toLocaleString(),
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    const eventNameClean = event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
-    link.setAttribute("download", `attendees_${eventNameClean}.csv`);
+    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+    link.download = `attendees_${getEventSlug()}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("CSV file downloaded successfully!");
+    toast.success("CSV downloaded — " + data.recentBookings.length + " attendees.");
   };
 
   const downloadPDF = () => {
-    if (!data || !data.recentBookings) return;
-    
+    if (!data?.recentBookings) return;
     try {
-      const doc = new jsPDF();
-      
-      doc.setProperties({
-        title: `Attendees - ${event?.title || "Event"}`,
-        subject: "Event Attendees Registry",
-        author: "EventSphere",
-        creator: "Manager Portal",
-      });
+      const doc = new jsPDF({ orientation: "landscape" });
+      const ev = data.event;
+      doc.setProperties({ title: `Attendees — ${ev?.title || "Event"}`, author: "City Pulse" });
 
-      doc.setFontSize(18);
-      doc.setFont("helvetica", "bold");
-      doc.text(`Attendee Registry`, 14, 20);
-      
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "italic");
-      doc.text(event?.title || "Event Details", 14, 28);
-      
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Date: ${new Date(event?.date).toLocaleDateString()} | Venue: ${event?.location?.venueName || "Venue Unspecified"}`, 14, 35);
-      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 40);
-      
-      doc.setLineWidth(0.5);
-      doc.setDrawColor(200, 200, 200);
-      doc.line(14, 44, 196, 44);
-      
-      const columns = ["Attendee", "Email", "Phone", "Ticket(s)", "Paid"];
-      const colX = [14, 52, 92, 132, 175];
-      
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      
-      columns.forEach((col, idx) => {
-        doc.text(col, colX[idx], 50);
-      });
-      
-      doc.line(14, 53, 196, 53);
-      
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(8);
-      
-      let y = 60;
-      data.recentBookings.forEach((booking: any) => {
-        if (y > 275) {
+      doc.setFontSize(16); doc.setFont("helvetica", "bold");
+      doc.text("Attendee Registry", 14, 18);
+      doc.setFontSize(11); doc.setFont("helvetica", "italic");
+      doc.text(ev?.title || "", 14, 25);
+      doc.setFontSize(8); doc.setFont("helvetica", "normal");
+      doc.text(`Venue: ${ev?.location?.venueName || "—"}  |  Event Date: ${ev?.date ? new Date(ev.date).toLocaleDateString() : "—"}  |  Generated: ${new Date().toLocaleString()}`, 14, 31);
+      doc.setDrawColor(200, 200, 200); doc.line(14, 34, 283, 34);
+
+      const cols   = ["Booking ID",  "Attendee",     "Email",         "Phone",       "Ticket(s)",     "Qty", "Paid (₹)",  "Source",   "Date"];
+      const colX   = [14,            42,              90,              148,           188,             225,   240,         258,        272];
+      const colW   = [28,            48,              58,              40,            37,              15,    18,          14,         24];
+
+      doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+      cols.forEach((c, i) => doc.text(c, colX[i], 40));
+      doc.line(14, 42, 283, 42);
+
+      doc.setFont("helvetica", "normal"); doc.setFontSize(7);
+      let y = 48;
+      data.recentBookings.forEach((b: any) => {
+        if (y > 195) {
           doc.addPage();
           doc.setFont("helvetica", "bold");
-          columns.forEach((col, idx) => {
-            doc.text(col, colX[idx], 20);
-          });
-          doc.line(14, 23, 196, 23);
+          cols.forEach((c, i) => doc.text(c, colX[i], 14));
+          doc.line(14, 16, 283, 16);
           doc.setFont("helvetica", "normal");
-          y = 30;
+          y = 22;
         }
-        
-        const name = booking.userName || "Anonymous";
-        const nameTruncated = name.length > 20 ? name.substring(0, 18) + ".." : name;
-        doc.text(nameTruncated, colX[0], y);
-        
-        const email = booking.userEmail || "—";
-        const emailTruncated = email.length > 22 ? email.substring(0, 20) + ".." : email;
-        doc.text(emailTruncated, colX[1], y);
-        
-        const phone = booking.userPhone || "—";
-        doc.text(phone, colX[2], y);
-        
-        const ticketSummary = booking.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join(', ');
-        const ticketTruncated = ticketSummary.length > 22 ? ticketSummary.substring(0, 20) + ".." : ticketSummary;
-        doc.text(ticketTruncated, colX[3], y);
-        
-        doc.text(`INR ${booking.totalAmount?.toLocaleString()}`, colX[4], y);
-        
-        y += 8;
+        const trunc = (s: string, w: number) => s.length > w ? s.slice(0, w - 1) + "…" : s;
+        doc.text(trunc(String(b._id).slice(-8), 10), colX[0], y);
+        doc.text(trunc(b.userName || "Anonymous", 20), colX[1], y);
+        doc.text(trunc(b.userEmail || "—", 28), colX[2], y);
+        doc.text(trunc(b.userPhone || "—", 18), colX[3], y);
+        const tix = b.tickets.map((t: any) => `${t.quantity}×${t.type}`).join(", ");
+        doc.text(trunc(tix, 18), colX[4], y);
+        doc.text(String(b.tickets.reduce((s: number, t: any) => s + t.quantity, 0)), colX[5], y);
+        doc.text(String((b.totalAmount || 0).toLocaleString()), colX[6], y);
+        doc.text(b.isOffline ? "Offline" : "Online", colX[7], y);
+        doc.text(new Date(b.createdAt).toLocaleDateString(), colX[8], y);
+        y += 7;
       });
-      
-      const eventNameClean = event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
-      doc.save(`attendees_${eventNameClean}.pdf`);
-      toast.success("PDF file downloaded successfully!");
+
+      doc.setFontSize(7); doc.setTextColor(150);
+      doc.text(`Total attendees: ${data.recentBookings.length}`, 14, doc.internal.pageSize.height - 8);
+
+      doc.save(`attendees_${getEventSlug()}.pdf`);
+      toast.success("PDF downloaded.");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to generate PDF file.");
+      toast.error("Failed to generate PDF.");
     }
   };
 
   const downloadJSON = () => {
-    if (!data || !data.recentBookings) return;
-    
+    if (!data?.recentBookings) return;
     try {
-      const dataStr = JSON.stringify(data.recentBookings, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-      
-      const exportFileDefaultName = `attendees_${event?.title ? event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event"}.json`;
-      
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
-      linkElement.click();
-      toast.success("JSON file downloaded successfully!");
+      const blob = new Blob([JSON.stringify(data.recentBookings, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url; link.download = `attendees_${getEventSlug()}.json`;
+      link.click(); URL.revokeObjectURL(url);
+      toast.success("JSON downloaded.");
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to download JSON file.");
+      toast.error("Failed to download JSON.");
     }
   };
 
@@ -678,89 +641,168 @@ const ManageEventPage = () => {
           </div>
         </TabsContent>
 
-        <TabsContent value="attendees" className="outline-none">
+        <TabsContent value="attendees" className="outline-none space-y-4">
+          {/* Summary strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "Total Bookings", value: (data.recentBookings || []).length },
+              { label: "Total Tickets", value: (data.recentBookings || []).reduce((s: number, b: any) => s + b.tickets.reduce((ss: number, t: any) => ss + t.quantity, 0), 0) },
+              { label: "Online Bookings", value: (data.recentBookings || []).filter((b: any) => !b.isOffline).length },
+              { label: "Offline / Walk-in", value: (data.recentBookings || []).filter((b: any) => b.isOffline).length },
+            ].map((s) => (
+              <div key={s.label} className="p-3 bg-card border border-border rounded-xl">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">{s.label}</p>
+                <p className="text-xl font-black tabular-nums">{s.value}</p>
+              </div>
+            ))}
+          </div>
+
           <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl">
-             <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
-                <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-foreground">
-                  <Users className="h-4 w-4 text-primary" />
-                  Attendee List
-                </h3>
-                {data.recentBookings && data.recentBookings.length > 0 && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button className="h-8 px-4 rounded-lg bg-foreground text-background hover:bg-primary hover:text-primary-foreground text-[8px] font-black uppercase tracking-widest transition-all gap-2 border-none">
-                        <Download className="h-3.5 w-3.5" />
-                        Export Attendees
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-popover border-border" align="end">
-                      <DropdownMenuItem onClick={downloadCSV} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
-                        <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
-                        Download CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={downloadPDF} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
-                        <FileText className="h-4 w-4 text-rose-500" />
-                        Download PDF Document
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={downloadJSON} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
-                        <FileCode className="h-4 w-4 text-blue-500" />
-                        Download JSON Data
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-             </div>
-             <div className="overflow-x-auto">
-               <table className="w-full text-left border-collapse">
-                 <thead>
-                   <tr className="bg-muted/10 text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] border-b border-border italic">
-                     <th className="px-4 py-3">Attendee</th>
-                     <th className="px-4 py-3">Email</th>
-                     <th className="px-4 py-3">Phone</th>
-                     <th className="px-4 py-3">Ticket Type</th>
-                     <th className="px-4 py-3">Qty</th>
-                     <th className="px-4 py-3 text-right">Amount</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-border/30">
-                   {(data.recentBookings || []).length > 0 ? (
-                     data.recentBookings.map((booking: any) => (
-                       <tr key={booking._id} className="hover:bg-muted/10 transition-colors group">
-                         <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                               <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary font-black text-[10px]">
-                                  {(booking.userName || 'Anonymous').charAt(0)}
-                               </div>
-                               <p className="font-black text-[11px] uppercase tracking-tight text-foreground italic">{booking.userName || 'Anonymous'}</p>
-                            </div>
-                         </td>
-                         <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
-                            {booking.userEmail || "—"}
-                         </td>
-                         <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
-                            {booking.userPhone || "—"}
-                         </td>
-                         <td className="px-4 py-3 font-black text-[9px] text-muted-foreground italic">
-                            {booking.tickets.map((t: any) => `${t.quantity}X ${t.type}`).join(', ')}
-                         </td>
-                         <td className="px-4 py-3 font-black text-[11px] italic">
-                            {booking.tickets.reduce((sum: number, t: any) => sum + t.quantity, 0)} tickets
-                         </td>
-                         <td className="px-4 py-3 text-right font-black text-emerald-500 tabular-nums italic text-xs">
-                            ₹{booking.totalAmount?.toLocaleString()}
-                         </td>
-                       </tr>
-                     ))
-                   ) : (
-                     <tr>
-                        <td colSpan={6} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground italic">
-                           No bookings yet.
-                        </td>
-                     </tr>
-                   )}
-                 </tbody>
-               </table>
-             </div>
+            {/* Header: search + export */}
+            <div className="p-4 border-b border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+              <div className="flex items-center gap-3 flex-1 w-full sm:max-w-xs">
+                <Users className="h-4 w-4 text-primary shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email or phone…"
+                  value={attendeeSearch}
+                  onChange={(e) => setAttendeeSearch(e.target.value)}
+                  className="h-8 flex-1 bg-background border border-border/50 rounded-lg px-3 text-[11px] font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+              {data.recentBookings && data.recentBookings.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="h-8 px-4 rounded-lg bg-foreground text-background hover:bg-primary hover:text-primary-foreground text-[8px] font-black uppercase tracking-widest transition-all gap-2 border-none shrink-0">
+                      <Download className="h-3.5 w-3.5" />
+                      Export Attendees
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-popover border-border" align="end">
+                    <DropdownMenuItem onClick={downloadCSV} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-500" /> Download CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={downloadPDF} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                      <FileText className="h-4 w-4 text-rose-500" /> Download PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={downloadJSON} className="font-bold text-xs uppercase cursor-pointer gap-2 py-2">
+                      <FileCode className="h-4 w-4 text-blue-500" /> Download JSON
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              {(() => {
+                const q = attendeeSearch.toLowerCase();
+                const filtered = (data.recentBookings || []).filter((b: any) =>
+                  !q ||
+                  (b.userName || "").toLowerCase().includes(q) ||
+                  (b.userEmail || "").toLowerCase().includes(q) ||
+                  (b.userPhone || "").includes(q)
+                );
+                return (
+                  <table className="w-full text-left border-collapse min-w-[900px]">
+                    <thead>
+                      <tr className="bg-muted/10 text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] border-b border-border italic">
+                        <th className="px-4 py-3">#</th>
+                        <th className="px-4 py-3">Attendee</th>
+                        <th className="px-4 py-3">Email</th>
+                        <th className="px-4 py-3">Phone</th>
+                        <th className="px-4 py-3">Ticket(s)</th>
+                        <th className="px-4 py-3 text-center">Qty</th>
+                        <th className="px-4 py-3 text-right">Amount</th>
+                        <th className="px-4 py-3 text-center">Source</th>
+                        <th className="px-4 py-3">Booked On</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/30">
+                      {filtered.length > 0 ? (
+                        filtered.map((booking: any, idx: number) => (
+                          <tr key={booking._id} className="hover:bg-muted/10 transition-colors">
+                            <td className="px-4 py-3 font-black text-[9px] text-muted-foreground/50 tabular-nums italic">
+                              {idx + 1}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2.5">
+                                <div className="h-7 w-7 rounded-md bg-primary/10 flex items-center justify-center text-primary font-black text-[10px] shrink-0">
+                                  {(booking.userName || "A").charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-black text-[11px] uppercase tracking-tight text-foreground italic leading-none">
+                                    {booking.userName || "Anonymous"}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground/50 font-mono mt-0.5">
+                                    {String(booking._id).slice(-8)}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 font-medium text-[11px] text-muted-foreground">
+                              {booking.userEmail || <span className="text-muted-foreground/30">—</span>}
+                            </td>
+                            <td className="px-4 py-3 font-medium text-[11px] text-muted-foreground">
+                              {booking.userPhone || <span className="text-muted-foreground/30">—</span>}
+                            </td>
+                            <td className="px-4 py-3 font-medium text-[11px] text-muted-foreground italic">
+                              {booking.tickets.map((t: any) => `${t.quantity}× ${t.type}`).join(", ")}
+                            </td>
+                            <td className="px-4 py-3 text-center font-black text-[11px]">
+                              {booking.tickets.reduce((s: number, t: any) => s + t.quantity, 0)}
+                            </td>
+                            <td className="px-4 py-3 text-right font-black text-emerald-500 tabular-nums italic text-xs">
+                              ₹{(booking.totalAmount || 0).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-center">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                                booking.isOffline
+                                  ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
+                                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                              }`}>
+                                {booking.isOffline ? "Offline" : "Online"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                              {new Date(booking.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                              <span className="block text-[9px] text-muted-foreground/50">
+                                {new Date(booking.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={9} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground/50 italic">
+                            {attendeeSearch ? "No attendees match your search." : "No bookings yet."}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                );
+              })()}
+            </div>
+            {data.recentBookings?.length > 0 && (
+              <div className="px-4 py-3 border-t border-border/30 bg-muted/10 flex items-center justify-between">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
+                  Showing {(() => {
+                    const q = attendeeSearch.toLowerCase();
+                    return q
+                      ? (data.recentBookings || []).filter((b: any) =>
+                          (b.userName || "").toLowerCase().includes(q) ||
+                          (b.userEmail || "").toLowerCase().includes(q) ||
+                          (b.userPhone || "").includes(q)
+                        ).length + " of " + data.recentBookings.length
+                      : data.recentBookings.length;
+                  })()} attendees
+                </p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
+                  Confirmed bookings only
+                </p>
+              </div>
+            )}
           </div>
         </TabsContent>
 

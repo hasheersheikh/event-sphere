@@ -175,7 +175,9 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
         userPhone: b.phoneNumber || '',
         totalAmount: b.totalAmount,
         tickets: b.tickets,
-        createdAt: b.createdAt
+        createdAt: b.createdAt,
+        status: b.status,
+        isOffline: b.isOffline || false,
       }))
     });
   } catch (error) {

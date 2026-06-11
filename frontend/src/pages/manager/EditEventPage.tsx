@@ -62,7 +62,6 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
-import { CITIES } from "@/contexts/CityContext";
 import { CityCombobox } from "@/components/events/CityCombobox";
 
 const eventSchema = z.object({
@@ -70,13 +69,13 @@ const eventSchema = z.object({
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
   image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
-  videoUrl: z.string().url("Please enter a valid YouTube URL").or(z.literal("")).optional(),
-  reels: z.array(z.string().url("Please enter a valid Reels URL").or(z.literal(""))).optional(),
+  videoUrl: z.string().optional(),
+  reels: z.array(z.string()).optional(),
   lineup: z.array(z.object({
     name: z.string().min(1, "Name is required"),
     role: z.string().optional(),
-    instagramUrl: z.string().url("Please enter a valid Instagram URL").or(z.literal("")).optional(),
-    image: z.string().url("Please enter a valid image URL").or(z.literal("")).optional(),
+    instagramUrl: z.string().optional(),
+    image: z.string().optional(),
   })).optional(),
   ageRestriction: z.string().optional().default("All Ages"),
 
@@ -236,7 +235,7 @@ const EditEventPage = () => {
   });
 
   const { fields: slotFields, append: appendSlot, remove: removeSlot } = useFieldArray({ name: "slots", control: form.control });
-  const { fields: dayFields, append: appendDay, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
+  const { fields: dayFields, remove: removeDay } = useFieldArray({ name: "days", control: form.control });
   const { fields: ticketFields, append: appendTicket, remove: removeTicket } = useFieldArray({ name: "ticketTypes", control: form.control });
   const { fields: voucherFields, append: appendVoucher, remove: removeVoucher } = useFieldArray({ name: "vouchers", control: form.control });
   const { fields: lineupFields, append: appendLineup, remove: removeLineup } = useFieldArray({ name: "lineup", control: form.control });
@@ -439,18 +438,25 @@ const EditEventPage = () => {
       toast.error("Please add at least one ticket type before saving.");
       return;
     }
-    const ticketFieldNames = ticketFields.flatMap((_, i) => [
-      `ticketTypes.${i}.name`,
-      `ticketTypes.${i}.price`,
-      `ticketTypes.${i}.capacity`,
-    ]);
-    const isValid = await form.trigger(ticketFieldNames as any);
+    const isValid = await form.trigger();
     if (!isValid) {
-      toast.error("Please fill in all required ticket fields.");
+      const errors = form.formState.errors;
+      const step1Keys = ["title", "description", "category", "image", "lineup"] as const;
+      const step2Keys = ["location", "city", "date", "time", "slots", "days", "recurrence"] as const;
+      if (step1Keys.some((k) => errors[k])) {
+        setCurrentStep(1); window.scrollTo(0, 0);
+        toast.error("Please fix the errors in Step 1 — Basics.");
+        return;
+      }
+      if (step2Keys.some((k) => errors[k])) {
+        setCurrentStep(2); window.scrollTo(0, 0);
+        toast.error("Please fix the errors in Step 2 — Logistics.");
+        return;
+      }
+      toast.error("Please fill in all required fields.");
       return;
     }
-    const values = form.getValues();
-    mutation.mutate(values as any);
+    form.handleSubmit(onSubmit)();
   };
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -540,6 +546,10 @@ const EditEventPage = () => {
             Edit <span className="text-gradient">Event.</span>
           </h1>
 
+          <p className="mt-3 text-[10px] text-muted-foreground font-medium">
+            Fields marked <span className="text-destructive font-black">*</span> are required
+          </p>
+
           {/* Stepper Indicator */}
           <div className="mt-8 flex items-center justify-center max-w-2xl mx-auto">
             {steps.map((s, i) => {
@@ -618,7 +628,7 @@ const EditEventPage = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                              Event Title
+                              Event Title <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
                               <Input
@@ -638,7 +648,7 @@ const EditEventPage = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Category
+                                Category <span className="text-destructive">*</span>
                               </FormLabel>
                               <Select
                                 onValueChange={field.onChange}
@@ -672,7 +682,7 @@ const EditEventPage = () => {
                           render={() => (
                             <FormItem>
                               <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
-                                Event Banner
+                                Event Banner <span className="text-destructive">*</span>
                               </FormLabel>
                               <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
                               <button
@@ -699,7 +709,7 @@ const EditEventPage = () => {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                              Description
+                              Description <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
                               <Textarea
@@ -776,7 +786,7 @@ const EditEventPage = () => {
                               <div className="grid md:grid-cols-2 gap-3">
                                 <FormField control={form.control} name={`lineup.${index}.name`} render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Name</FormLabel>
+                                    <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Name <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                       <Input placeholder="e.g. Shah Rukh Khan" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
                                     </FormControl>
@@ -928,7 +938,7 @@ const EditEventPage = () => {
                           <div className="grid md:grid-cols-3 gap-5 animate-in fade-in slide-in-from-top-4 duration-500">
                             <FormField control={form.control} name="date" render={({ field }) => (
                               <FormItem className="flex flex-col">
-                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date</FormLabel>
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Date <span className="text-destructive">*</span></FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
@@ -947,7 +957,7 @@ const EditEventPage = () => {
                             )} />
                             <FormField control={form.control} name="time" render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time</FormLabel>
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Time <span className="text-destructive">*</span></FormLabel>
                                 <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -967,7 +977,7 @@ const EditEventPage = () => {
                           <div className="space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
                             <FormField control={form.control} name="date" render={({ field }) => (
                               <FormItem className="flex flex-col max-w-xs">
-                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Event Date</FormLabel>
+                                <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Event Date <span className="text-destructive">*</span></FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
@@ -1044,7 +1054,7 @@ const EditEventPage = () => {
                             <div className="grid md:grid-cols-3 gap-5">
                               <FormField control={form.control} name="date" render={({ field }) => (
                                 <FormItem className="flex flex-col">
-                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Date</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start Date <span className="text-destructive">*</span></FormLabel>
                                   <Popover>
                                     <PopoverTrigger asChild>
                                       <FormControl>
@@ -1063,7 +1073,7 @@ const EditEventPage = () => {
                               )} />
                               <FormField control={form.control} name="time" render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Time</FormLabel>
+                                  <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Time <span className="text-destructive">*</span></FormLabel>
                                   <FormControl><Input type="time" className="h-11 bg-background/50 border-white/10 rounded-lg font-black text-sm shadow-inner" {...field} /></FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -1280,7 +1290,7 @@ const EditEventPage = () => {
                         name="city"
                         render={({ field }) => (
                           <FormItem className="flex flex-col">
-                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City</FormLabel>
+                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">City <span className="text-destructive">*</span></FormLabel>
                             <FormControl>
                               <CityCombobox
                                 value={field.value}
@@ -1320,7 +1330,7 @@ const EditEventPage = () => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                                Address
+                                Address <span className="text-destructive">*</span>
                               </FormLabel>
                               <FormControl>
                                 <Input
@@ -1485,7 +1495,7 @@ const EditEventPage = () => {
                                 name={`ticketTypes.${index}.name`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tier Name</FormLabel>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tier Name <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                       <Input className="h-12 bg-background/40 border-white/5 rounded-xl font-bold text-xs" {...field} />
                                     </FormControl>
@@ -1498,7 +1508,7 @@ const EditEventPage = () => {
                                 name={`ticketTypes.${index}.price`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Base Cost (₹)</FormLabel>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Base Cost (₹) <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                       <Input type="number" className="h-12 bg-background/40 border-white/5 rounded-xl font-black text-xs" {...field} />
                                     </FormControl>
@@ -1511,7 +1521,7 @@ const EditEventPage = () => {
                                 name={`ticketTypes.${index}.capacity`}
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Total Capacity</FormLabel>
+                                    <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Total Capacity <span className="text-destructive">*</span></FormLabel>
                                     <FormControl>
                                       <Input type="number" className="h-12 bg-background/40 border-white/5 rounded-xl font-black text-xs" {...field} />
                                     </FormControl>

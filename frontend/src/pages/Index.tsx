@@ -220,7 +220,7 @@ const Index = () => {
                 )}
                 {...fadeUp(0.1)}
               >
-                Live Shows Local Gems, Adventure - everything worth showing up for
+                Incredible Shows - Trending Venues, Unique Stores , Sports & Adventure - City Pulse makes going out Easy
               </motion.p>
 
               {/* Search bar */}
@@ -454,9 +454,9 @@ const Index = () => {
                   Sell tickets, manage attendees, and grow your audience on City Pulse.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link to="/auth">
+                  <Link to="/list-your-event">
                     <Button variant="default" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto">
-                      Create Account <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      Start Exploring <ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   </Link>
                   <Link to="/boost">
