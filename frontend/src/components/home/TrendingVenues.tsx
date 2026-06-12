@@ -126,31 +126,55 @@ const TrendingVenues = () => {
                   onClick={() => setSelectedVenue(venue)}
                   className="block w-full text-left group focus:outline-none"
                 >
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
-                    {venue.image ? (
-                      <img
-                        src={venue.image}
-                        alt={venue.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
-                        <Building2 className="h-12 w-12 text-neon-lime/40" />
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-black text-white line-clamp-1 mb-1">
-                            {venue.name}
-                          </h3>
-                          <p className="text-[10px] font-medium text-white/70 line-clamp-1">
+                  <div className="rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
+                    {/* Image */}
+                    <div className="relative aspect-[4/3]">
+                      {venue.image ? (
+                        <img
+                          src={venue.image}
+                          alt={venue.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
+                          <Building2 className="h-12 w-12 text-neon-lime/40" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+
+                      {/* Photo count badge */}
+                      {(() => {
+                        const total = Array.from(new Set([venue.image, ...(venue.images || [])].filter(Boolean))).length;
+                        return total > 1 ? (
+                          <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full border border-white/10">
+                            <Eye className="h-3 w-3" />
+                            <span className="text-[9px] font-black">{total} photos</span>
+                          </div>
+                        ) : null;
+                      })()}
+
+                      {/* Name + location overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <h3 className="text-base font-black text-white line-clamp-1 mb-0.5">
+                          {venue.name}
+                        </h3>
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-neon-lime shrink-0" />
+                          <p className="text-[10px] font-medium text-white/80 line-clamp-1">
                             {venue.location}
                           </p>
                         </div>
                       </div>
                     </div>
+
+                    {/* Description strip */}
+                    {venue.description && (
+                      <div className="px-4 py-3 bg-card border-t border-border/30">
+                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                          {venue.description}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </button>
               </motion.div>

@@ -25,7 +25,7 @@ import {
   X,
   Image as ImageIcon,
 } from "lucide-react";
-import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { uploadImageToBackend } from "@/lib/localUpload";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -57,13 +57,10 @@ const BLANK_FORM = {
 const TrendingVenueManagementPage = () => {
   const queryClient = useQueryClient();
 
-  // Cloudinary widget
-  const widgetRef = useRef<any>(null);
   const primaryFileInputRef = useRef<HTMLInputElement>(null);
   const galleryFileInputRef = useRef<HTMLInputElement>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isCloudinaryOpen, setIsCloudinaryOpen] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -150,10 +147,6 @@ const TrendingVenueManagementPage = () => {
   };
 
   const closeDialog = () => {
-    if (widgetRef.current) {
-      widgetRef.current.destroy();
-      widgetRef.current = null;
-    }
     setForm(BLANK_FORM);
     setEditingId(null);
     setUploading(false);
@@ -161,11 +154,25 @@ const TrendingVenueManagementPage = () => {
   };
 
   const handlePrimaryUploadClick = () => {
-    if (USE_LOCAL_STORAGE) {
-      primaryFileInputRef.current?.click();
-    } else {
-      openUploadWidget();
+    primaryFileInputRef.current?.click();
+  };
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (cloudName && uploadPreset) {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", uploadPreset);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (!data.secure_url) throw new Error("Cloudinary upload failed");
+      return data.secure_url as string;
     }
+    return uploadImageToBackend(file);
   };
 
   const handleLocalPrimaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -173,22 +180,19 @@ const TrendingVenueManagementPage = () => {
     if (!file) return;
     try {
       setUploading(true);
-      const url = await uploadImageToBackend(file);
+      const url = await uploadToCloudinary(file);
       setForm((prev) => ({ ...prev, image: url }));
-      toast({ title: "Primary image uploaded" });
-    } catch (err) {
+      toast({ title: "Cover image uploaded" });
+    } catch {
       toast({ title: "Upload failed", variant: "destructive" });
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   };
 
   const handleGalleryUploadClick = () => {
-    if (USE_LOCAL_STORAGE) {
-      galleryFileInputRef.current?.click();
-    } else {
-      openGalleryUploadWidget();
-    }
+    galleryFileInputRef.current?.click();
   };
 
   const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,102 +202,17 @@ const TrendingVenueManagementPage = () => {
       setUploading(true);
       const urls: string[] = [];
       for (const file of files) {
-        const url = await uploadImageToBackend(file);
+        const url = await uploadToCloudinary(file);
         urls.push(url);
       }
-      setForm((prev) => ({
-        ...prev,
-        images: [...(prev.images || []), ...urls],
-      }));
-      toast({ title: `${files.length} gallery image(s) uploaded` });
-    } catch (err) {
+      setForm((prev) => ({ ...prev, images: [...(prev.images || []), ...urls] }));
+      toast({ title: `${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded` });
+    } catch {
       toast({ title: "Gallery upload failed", variant: "destructive" });
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
-  };
-
-  const openGalleryUploadWidget = () => {
-    // @ts-ignore
-    if (!window.cloudinary) {
-      toast({
-        title: "Upload widget unavailable",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-        sources: ["local", "url", "camera"],
-        multiple: true,
-        resourceType: "image",
-        clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
-        maxFileSize: 10_000_000,
-        styles: { zIndex: 99999 },
-      },
-      (error: any, result: any) => {
-        if (!error && result && result.event === "success") {
-          setForm((prev) => ({
-            ...prev,
-            images: [...(prev.images || []), result.info.secure_url],
-          }));
-        }
-      }
-    );
-    widget.open();
-  };
-
-  const openUploadWidget = () => {
-    // @ts-ignore
-    if (!window.cloudinary) {
-      toast({
-        title: "Upload widget unavailable",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!widgetRef.current) {
-      // @ts-ignore
-      widgetRef.current = window.cloudinary.createUploadWidget(
-        {
-          cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-          uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-          sources: ["local", "url", "camera"],
-          multiple: false,
-          resourceType: "image",
-          clientAllowedFormats: ["jpg", "jpeg", "png", "webp"],
-          maxFileSize: 10_000_000,
-          singleUploadAutoClose: true,
-          showCompletedButton: false,
-          styles: { zIndex: 99999 },
-        },
-        (error: any, result: any) => {
-          if (error) {
-            setUploading(false);
-            return;
-          }
-          if (result.event === "upload-added") setUploading(true);
-          if (result.event === "success") {
-            setForm((prev) => ({ ...prev, image: result.info.secure_url }));
-            setUploading(false);
-          }
-          if (result.event === "display-changed") {
-            if (result.info === "shown") setIsCloudinaryOpen(true);
-            if (result.info === "hidden") setIsCloudinaryOpen(false);
-          }
-          if (result.event === "close") {
-            setUploading(false);
-            setIsCloudinaryOpen(false);
-          }
-        }
-      );
-    }
-    widgetRef.current.open();
   };
 
   const handleSave = () => {
@@ -344,6 +263,16 @@ const TrendingVenueManagementPage = () => {
                     <Building2 className="h-12 w-12 text-primary/20" />
                   </div>
                 )}
+                {/* Photo count badge */}
+                {(() => {
+                  const total = Array.from(new Set([venue.image, ...(venue.images || [])].filter(Boolean))).length;
+                  return total > 1 ? (
+                    <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 text-white px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest">
+                      <ImageIcon className="h-2.5 w-2.5" />
+                      {total} photos
+                    </div>
+                  ) : null;
+                })()}
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button size="icon" variant="secondary" className="h-9 w-9 rounded-full" onClick={() => openEditDialog(venue)}>
                     <Edit className="h-4 w-4" />
@@ -361,27 +290,32 @@ const TrendingVenueManagementPage = () => {
                   </Button>
                 </div>
               </div>
-              <div className="p-4 space-y-1">
+              <div className="p-4 space-y-1.5">
                 <h3 className="text-base font-black uppercase italic tracking-tighter truncate">{venue.name}</h3>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
                   <MapPin className="h-3 w-3" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">{venue.location}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest truncate">{venue.location}</span>
                 </div>
+                {venue.description && (
+                  <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 pt-0.5">
+                    {venue.description}
+                  </p>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <Dialog modal={!isCloudinaryOpen} open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-black uppercase italic italic">
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
+        <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="font-black uppercase italic">
               {editingId ? "Edit Venue" : "Add Trending Venue"}
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 pt-2">
+          <div className="flex-1 overflow-y-auto space-y-4 pt-2 pr-1">
             <input
               ref={primaryFileInputRef}
               type="file"
@@ -514,12 +448,14 @@ const TrendingVenueManagementPage = () => {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
-              <Button variant="outline" onClick={closeDialog} className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] italic">Cancel</Button>
-              <Button onClick={handleSave} className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] italic" disabled={!form.name || !form.location || saveMutation.isPending}>
-                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editingId ? "Update" : "Save"}
-              </Button>
-            </div>
+          </div>
+
+          {/* Footer pinned outside scroll area */}
+          <div className="flex gap-3 pt-4 shrink-0 border-t border-border/30">
+            <Button variant="outline" onClick={closeDialog} className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] italic">Cancel</Button>
+            <Button onClick={handleSave} className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] italic" disabled={!form.name || !form.location || saveMutation.isPending}>
+              {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : editingId ? "Update" : "Save"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
