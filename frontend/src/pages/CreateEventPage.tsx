@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { uploadImageToBackend } from "@/lib/localUpload";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -338,14 +338,25 @@ const CreateEventPage = () => {
         delete payload.recurrence;
       }
 
+      console.group("🚀 CreateEvent — API payload");
+      console.log("Schedule type:", st);
+      console.log("Full payload:", JSON.parse(JSON.stringify(payload)));
+      console.groupEnd();
+
       const { data } = await api.post("/events", payload);
       return data;
     },
     onSuccess: (data) => {
+      console.log("✅ CreateEvent — success, event id:", data._id);
       toast.success("Event created successfully!");
       navigate(`/events/${data._id}/success`);
     },
     onError: (error: any) => {
+      console.group("❌ CreateEvent — API error");
+      console.log("Status:", error.response?.status);
+      console.log("Server message:", error.response?.data);
+      console.log("Full error:", error);
+      console.groupEnd();
       toast.error(error.response?.data?.message || "Something went wrong.");
     },
   });
@@ -365,6 +376,16 @@ const CreateEventPage = () => {
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
     }
     const isValid = await form.trigger(fieldsToValidate);
+
+    console.group(`🔍 CreateEvent — nextStep (step ${currentStep} → ${currentStep + 1})`);
+    console.log("Fields validated:", fieldsToValidate);
+    console.log("Valid:", isValid);
+    if (!isValid) {
+      console.log("Errors (flat):", flattenErrors(form.formState.errors));
+      console.log("Raw errors:", form.formState.errors);
+    }
+    console.groupEnd();
+
     if (isValid) {
       if (currentStep === 2) {
         if (scheduleType === "multi_slot") {
@@ -388,6 +409,15 @@ const CreateEventPage = () => {
 
   const handleFinalSubmit = async () => {
     const isValid = await form.trigger();
+
+    console.group("🔍 CreateEvent — handleFinalSubmit");
+    console.log("Form valid:", isValid);
+    console.log("Current form values:", JSON.parse(JSON.stringify(form.getValues())));
+    console.log("Schedule type:", form.getValues("scheduleType"));
+    console.log("All errors (flat):", flattenErrors(form.formState.errors));
+    console.log("Raw errors:", form.formState.errors);
+    console.groupEnd();
+
     if (!isValid) {
       const errors = form.formState.errors;
       for (let step = 1; step <= 3; step++) {
@@ -398,10 +428,12 @@ const CreateEventPage = () => {
             Object.fromEntries(keys.filter((k) => errors[k as keyof typeof errors]).map((k) => [k, errors[k as keyof typeof errors]]))
           );
           const stepName = ["Basics", "When & Where", "Tickets"][step - 1];
+          console.log(`❌ Step ${step} (${stepName}) errors:`, errs);
           toast.error(`Step ${step} (${stepName}): ${errs[0]?.message || "Please fix the highlighted fields."}`);
           return;
         }
       }
+      console.log("❌ Errors outside mapped steps:", flattenErrors(form.formState.errors));
       toast.error("Please fix all errors before submitting.");
       return;
     }
@@ -411,21 +443,35 @@ const CreateEventPage = () => {
   const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Other"];
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = () => {
-    if (USE_LOCAL_STORAGE) { bannerInputRef.current?.click(); return; }
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      { cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME, uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET, sources: ["local", "url", "camera"], multiple: false, cropping: true, croppingAspectRatio: 1.6 },
-      (error: any, result: any) => { if (!error && result && result.event === "success") { form.setValue("image", result.info.secure_url); toast.success("Image uploaded."); } }
-    );
-    widget.open();
+  // Direct Cloudinary REST upload — no widget/popup
+  const uploadToCloudinary = async (file: File, resourceType: "image" | "video" = "image"): Promise<string> => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (cloudName && uploadPreset) {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", uploadPreset);
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        { method: "POST", body: fd }
+      );
+      const data = await res.json();
+      if (!data.secure_url) throw new Error("Cloudinary upload failed");
+      return data.secure_url as string;
+    }
+    return uploadImageToBackend(file);
   };
+
+  const handleUpload = () => { bannerInputRef.current?.click(); };
 
   const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    try { const url = await uploadImageToBackend(file); form.setValue("image", url); toast.success("Image uploaded."); }
-    catch { toast.error("Upload failed."); }
+    try {
+      const url = await uploadToCloudinary(file, "image");
+      form.setValue("image", url);
+      toast.success("Banner uploaded.");
+    } catch { toast.error("Upload failed."); }
     e.target.value = "";
   };
 

@@ -23,7 +23,7 @@ import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { uploadImageToBackend } from "@/lib/localUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   RefreshCw,
@@ -69,7 +69,7 @@ const eventSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
-  image: z.string().min(1, "Banner image is required").url("Please enter a valid image URL"),
+  image: z.string().min(1, "Banner image is required"),
   videoUrl: z.string().optional(),
   reels: z.array(z.string()).optional(),
   lineup: z.array(z.object({
@@ -318,7 +318,14 @@ const EditEventPage = () => {
         time: event.time,
         endTime: event.endTime || "",
         slots: event.slots || [],
-        recurrence: event.recurrence || { frequency: "daily", daysOfWeek: [] },
+        // Always supply frequency — old events may have a recurrence object stored
+        // without frequency (e.g. multi_slot events). If frequency is missing, default to "daily"
+        // so the enum validator never fires "Required" on a non-recurring event.
+        recurrence: {
+          frequency: event.recurrence?.frequency || "daily",
+          daysOfWeek: event.recurrence?.daysOfWeek || [],
+          endDate: event.recurrence?.endDate || undefined,
+        },
         city: event.city || "",
         location: {
           address: event.location?.address || "",
@@ -339,7 +346,13 @@ const EditEventPage = () => {
         })) || [],
         ticketTypes: event.ticketTypes || [],
         vouchers: event.vouchers || [],
-        lineup: event.lineup || [],
+        // Normalise lineup — undefined fields from MongoDB become "" to avoid bare "Required" Zod errors
+        lineup: (event.lineup || []).map((l: any) => ({
+          name: l.name ?? "",
+          role: l.role ?? "",
+          instagramUrl: l.instagramUrl ?? "",
+          image: l.image ?? "",
+        })),
         ageRestriction: event.ageRestriction || "All Ages",
       });
     }
@@ -388,6 +401,11 @@ const EditEventPage = () => {
         delete payload.recurrence;
       }
 
+      console.group("🚀 EditEvent — API payload");
+      console.log("Schedule type:", st);
+      console.log("Full payload:", payload);
+      console.groupEnd();
+
       const { data } = await api.put(`/events/${id}`, payload);
       return data;
     },
@@ -400,6 +418,11 @@ const EditEventPage = () => {
       }
     },
     onError: (error: any) => {
+      console.group("❌ EditEvent — API error");
+      console.log("Status:", error.response?.status);
+      console.log("Server message:", error.response?.data);
+      console.log("Full error:", error);
+      console.groupEnd();
       toast.error(error.response?.data?.message || "Modification failed.");
     },
   });
@@ -457,9 +480,16 @@ const EditEventPage = () => {
       return;
     }
     const isValid = await form.trigger();
+
+    console.group("🔍 EditEvent — handleFinalSubmit");
+    console.log("Form valid:", isValid);
+    console.log("Current form values:", form.getValues());
+    console.log("Raw errors object:", form.formState.errors);
+    console.log("All errors (flat):", flattenErrors(form.formState.errors));
+    console.groupEnd();
+
     if (!isValid) {
       const errors = form.formState.errors;
-      // Find which step owns the first error and navigate there
       for (let step = 1; step <= 3; step++) {
         const stepFieldKeys = STEP_FIELDS[step];
         if (stepFieldKeys.some((k) => errors[k as keyof typeof errors])) {
@@ -471,10 +501,12 @@ const EditEventPage = () => {
           );
           const firstMsg = errs[0]?.message;
           const stepName = ["Basics", "Logistics", "Inventory"][step - 1];
+          console.log(`❌ Errors in Step ${step} (${stepName}):`, errs);
           toast.error(`Step ${step} (${stepName}): ${firstMsg || "Please fix the highlighted fields."}`);
           return;
         }
       }
+      console.log("❌ Errors not mapped to any step — full errors:", flattenErrors(form.formState.errors));
       toast.error("Please fix all errors before submitting.");
       return;
     }
@@ -483,38 +515,34 @@ const EditEventPage = () => {
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = () => {
-    if (USE_LOCAL_STORAGE) {
-      bannerInputRef.current?.click();
-      return;
+  // Direct Cloudinary REST upload — no widget, no local backend
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (cloudName && uploadPreset) {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", uploadPreset);
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        { method: "POST", body: fd }
+      );
+      const data = await res.json();
+      if (!data.secure_url) throw new Error("Cloudinary upload failed");
+      return data.secure_url as string;
     }
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-        sources: ["local", "url", "camera"],
-        multiple: false,
-        cropping: true,
-        croppingAspectRatio: 1.6,
-      },
-      (error: any, result: any) => {
-        if (!error && result && result.event === "success") {
-          form.setValue("image", result.info.secure_url);
-          toast.success("New asset captured.");
-        }
-      },
-    );
-    widget.open();
+    return uploadImageToBackend(file);
   };
+
+  const handleUpload = () => { bannerInputRef.current?.click(); };
 
   const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const url = await uploadImageToBackend(file);
+      const url = await uploadToCloudinary(file);
       form.setValue("image", url);
-      toast.success("New asset captured.");
+      toast.success("Banner uploaded.");
     } catch {
       toast.error("Upload failed.");
     }
@@ -950,32 +978,27 @@ const EditEventPage = () => {
                     </CardHeader>
                     <CardContent className="space-y-6 p-5">
                       <div className="space-y-8">
-                        {/* ── Schedule type selector ─────────────────────── */}
+                        {/* ── Schedule type — locked after creation ──────── */}
                         <div>
                           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-3">Event Type</p>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {SCHEDULE_TYPES.map((opt) => {
-                              const Icon = opt.icon;
-                              const active = scheduleType === opt.type;
-                              return (
-                                <button
-                                  key={opt.type}
-                                  type="button"
-                                  onClick={() => handleScheduleTypeChange(opt.type)}
-                                  className={cn(
-                                    "p-4 border-2 rounded-xl text-left transition-all duration-200",
-                                    active
-                                      ? "bg-primary text-primary-foreground border-primary"
-                                      : "bg-muted/20 border-border/40 hover:border-primary/40 hover:bg-muted/40"
-                                  )}
-                                >
-                                  <Icon className={cn("h-5 w-5 mb-2.5", active ? "text-primary-foreground" : "text-muted-foreground")} />
-                                  <p className="text-[11px] font-black uppercase tracking-wider">{opt.label}</p>
-                                  <p className={cn("text-[10px] mt-0.5 leading-snug", active ? "text-primary-foreground/70" : "text-muted-foreground")}>{opt.desc}</p>
-                                </button>
-                              );
-                            })}
-                          </div>
+                          {(() => {
+                            const current = SCHEDULE_TYPES.find((s) => s.type === scheduleType);
+                            const Icon = current?.icon || CalendarIcon;
+                            return (
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3 px-5 py-3.5 bg-primary text-primary-foreground border-2 border-primary rounded-xl">
+                                  <Icon className="h-5 w-5" />
+                                  <div>
+                                    <p className="text-[11px] font-black uppercase tracking-wider">{current?.label}</p>
+                                    <p className="text-[10px] text-primary-foreground/70 mt-0.5">{current?.desc}</p>
+                                  </div>
+                                </div>
+                                <p className="text-[10px] font-bold text-muted-foreground leading-relaxed max-w-xs">
+                                  Event type cannot be changed after creation to prevent data loss with existing bookings and schedule data.
+                                </p>
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         {/* ── Single Event ───────────────────────────────── */}
