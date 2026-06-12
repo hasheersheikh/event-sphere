@@ -22,6 +22,7 @@ import {
   Layers,
   AlertCircle,
   Users,
+  XCircle,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -191,6 +192,30 @@ const SCHEDULE_TYPES = [
   },
 ];
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const flattenErrors = (errors: any, path = ""): { field: string; message: string }[] => {
+  const out: { field: string; message: string }[] = [];
+  for (const key in errors) {
+    const err = errors[key];
+    const fullPath = path ? `${path}.${key}` : key;
+    if (err?.message && typeof err.message === "string") {
+      out.push({ field: fullPath, message: err.message });
+    } else if (Array.isArray(err)) {
+      err.forEach((item: any, i: number) => out.push(...flattenErrors(item, `${fullPath}[${i}]`)));
+    } else if (err && typeof err === "object") {
+      out.push(...flattenErrors(err, fullPath));
+    }
+  }
+  return out;
+};
+
+const STEP_FIELDS: Record<number, string[]> = {
+  1: ["title", "description", "category", "image", "ageRestriction", "lineup", "artist", "videoUrl", "reels"],
+  2: ["location", "city", "date", "time", "endTime", "slots", "days", "recurrence", "coordinator", "offlineTicketsAvailable"],
+  3: ["ticketTypes", "vouchers"],
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const CreateEventPage = () => {
@@ -353,7 +378,8 @@ const CreateEventPage = () => {
       setCurrentStep((p) => Math.min(p + 1, 3));
       window.scrollTo(0, 0);
     } else {
-      toast.error("Please fix the highlighted fields before proceeding.");
+      const errs = flattenErrors(form.formState.errors);
+      toast.error(errs[0]?.message || "Please fix the highlighted fields before proceeding.");
     }
   };
 
@@ -364,17 +390,17 @@ const CreateEventPage = () => {
     const isValid = await form.trigger();
     if (!isValid) {
       const errors = form.formState.errors;
-      const step1Keys = ["title", "description", "category", "image", "lineup", "artist"] as const;
-      const step2Keys = ["location", "city", "date", "time", "slots", "days", "recurrence"] as const;
-      if (step1Keys.some((k) => errors[k])) {
-        setCurrentStep(1); window.scrollTo(0, 0);
-        toast.error("Please fix the errors in Step 1 — Basics.");
-        return;
-      }
-      if (step2Keys.some((k) => errors[k])) {
-        setCurrentStep(2); window.scrollTo(0, 0);
-        toast.error("Please fix the errors in Step 2 — When & Where.");
-        return;
+      for (let step = 1; step <= 3; step++) {
+        const keys = STEP_FIELDS[step];
+        if (keys.some((k) => errors[k as keyof typeof errors])) {
+          setCurrentStep(step); window.scrollTo(0, 0);
+          const errs = flattenErrors(
+            Object.fromEntries(keys.filter((k) => errors[k as keyof typeof errors]).map((k) => [k, errors[k as keyof typeof errors]]))
+          );
+          const stepName = ["Basics", "When & Where", "Tickets"][step - 1];
+          toast.error(`Step ${step} (${stepName}): ${errs[0]?.message || "Please fix the highlighted fields."}`);
+          return;
+        }
       }
       toast.error("Please fix all errors before submitting.");
       return;
@@ -474,6 +500,17 @@ const CreateEventPage = () => {
               ═══════════════════════════════════════ */}
               {currentStep === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  {STEP_FIELDS[1].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before continuing</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[1].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border border-border/40 shadow-sm bg-card">
                     <CardHeader className="pb-4 border-b border-border/30">
                       <CardTitle className="text-base flex items-center gap-3 font-black">
@@ -684,6 +721,17 @@ const CreateEventPage = () => {
               ═══════════════════════════════════════ */}
               {currentStep === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  {STEP_FIELDS[2].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before continuing</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[2].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border border-border/40 shadow-sm bg-card">
                     <CardHeader className="pb-4 border-b border-border/30">
                       <CardTitle className="text-base flex items-center gap-3 font-black">
@@ -1214,6 +1262,17 @@ const CreateEventPage = () => {
               ═══════════════════════════════════════ */}
               {currentStep === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  {STEP_FIELDS[3].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
+                    <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
+                      <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-destructive">Fix these errors before submitting</p>
+                        {flattenErrors(Object.fromEntries(STEP_FIELDS[3].filter((k) => form.formState.errors[k as keyof typeof form.formState.errors]).map((k) => [k, form.formState.errors[k as keyof typeof form.formState.errors]]))).map((e, i) => (
+                          <p key={i} className="text-[11px] font-medium text-destructive/80">· {e.message}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <Card className="border border-border/40 shadow-sm bg-card">
                     <CardHeader className="pb-4 border-b border-border/30">
                       <div className="flex justify-between items-center">
