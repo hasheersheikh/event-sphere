@@ -82,10 +82,8 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            if (id.includes('lucide-react')) return 'lucide';
             if (id.includes('recharts')) return 'recharts';
             if (id.includes('framer-motion')) return 'framer-motion';
-            if (id.includes('@radix-ui')) return 'radix-ui';
             if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf-vendor';
             return 'vendor';
           }
