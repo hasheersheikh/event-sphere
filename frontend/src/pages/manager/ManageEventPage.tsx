@@ -417,7 +417,7 @@ const ManageEventPage = () => {
                     <TrendingUp className="h-3.5 w-3.5 text-blue-500" /> Occupancy
                   </p>
                   <div className="text-2xl font-black text-blue-500 italic uppercase tabular-nums">
-                    {((stats.totalTicketsSold / stats.capacity) * 100).toFixed(1)}%
+                    {stats.capacity > 0 ? ((stats.totalTicketsSold / stats.capacity) * 100).toFixed(1) : 0}%
                   </div>
                 </div>
               </div>

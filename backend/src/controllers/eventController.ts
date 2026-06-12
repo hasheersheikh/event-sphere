@@ -277,7 +277,10 @@ export const getEventById = async (req: Request, res: Response) => {
       { new: true },
     ).populate('creator', 'name email');
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    res.json(event);
+    const eventObj: any = event.toObject();
+    eventObj.isActive = isEventActive(event);
+    eventObj.nextOccurrence = getNextOccurrence(event);
+    res.json(eventObj);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

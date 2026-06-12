@@ -8,6 +8,7 @@ import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailService.js';
+import { claimGuestBookings } from './otpController.js';
 
 const generateToken = (id: string, role: string) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', {
@@ -98,6 +99,28 @@ export const register = async (req: Request, res: Response) => {
   const Model = getModelByRole(userRole);
 
   try {
+    // Check if a ghost user exists (created during guest checkout — no password, no googleId)
+    const ghostUser = userRole === 'user'
+      ? await User.findOne({ email, password: { $exists: false }, googleId: { $exists: false } })
+      : null;
+
+    if (ghostUser) {
+      // Upgrade ghost user to a real account instead of creating a duplicate
+      const salt = await bcrypt.genSalt(10);
+      ghostUser.password = await bcrypt.hash(password, salt);
+      if (name) ghostUser.name = name;
+      await ghostUser.save();
+      await claimGuestBookings(ghostUser._id.toString(), email, ghostUser.phoneNumber);
+      return res.status(201).json({
+        _id: ghostUser._id,
+        name: ghostUser.name,
+        email: ghostUser.email,
+        role: ghostUser.role,
+        isApproved: true,
+        token: generateToken(ghostUser._id.toString(), ghostUser.role),
+      });
+    }
+
     // Check all collections for email uniqueness across the platform
     const models = [User, Admin, EventManager];
     for (const M of models) {
@@ -171,6 +194,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     if (user && (await bcrypt.compare(password, user.password || ''))) {
+      claimGuestBookings(user._id.toString(), user.email, user.phoneNumber).catch(() => {});
       res.json({
         _id: user._id,
         name: user.name,
@@ -266,6 +290,8 @@ export const googleAuth = async (req: Request, res: Response) => {
       user = await User.create({ name, email: email.toLowerCase(), googleId, avatar, role: 'user' });
       sendWelcomeEmail(user.email, user.name).catch(() => {});
     }
+
+    claimGuestBookings(user._id.toString(), user.email, user.phoneNumber).catch(() => {});
 
     res.json({
       _id: user._id,

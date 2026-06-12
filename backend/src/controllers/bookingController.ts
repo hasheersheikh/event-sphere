@@ -233,8 +233,9 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
 
     const settings = await SystemSettings.findOne();
     const taxRate = settings ? settings.taxRate : 0;
-    const taxAmount = Math.round(subtotal * (taxRate / 100));
-    const totalAmount = subtotal + taxAmount;
+    const netAmount = subtotal; // offline tickets have no discount
+    const taxAmount = Math.round(netAmount * (taxRate / 100));
+    const totalAmount = netAmount + taxAmount;
 
     // Find or create user record so booking has a valid user reference
     let userId = req.user?._id;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, X, LayoutGrid, List, Calendar, MapPinIcon } from "lucide-react";
+import { Search, MapPin, X, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EventCard from "@/components/events/EventCard";
@@ -132,6 +132,8 @@ const EventsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
   const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
   const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
+  const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
+  const [sortOpen, setSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { selectedCity } = useCity();
 
@@ -140,6 +142,13 @@ const EventsPage = () => {
     setSearchQuery(searchParams.get("q") || "");
     setLocationFilter(searchParams.get("location") || "");
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!sortOpen) return;
+    const close = () => setSortOpen(false);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [sortOpen]);
 
   const { data: apiEvents, isLoading } = useQuery({
     queryKey: ["events", searchQuery, selectedCategory, locationFilter, selectedCity],
@@ -157,7 +166,15 @@ const EventsPage = () => {
   });
 
   const rawEvents: Event[] = apiEvents || [];
-  const displayEvents = filterByDate(rawEvents, dateFilter);
+  const dateFiltered = filterByDate(rawEvents, dateFilter);
+  const displayEvents = useMemo(() => {
+    if (sortBy === "default") return dateFiltered;
+    return [...dateFiltered].sort((a, b) => {
+      const minPrice = (e: Event) =>
+        e.ticketTypes?.length ? Math.min(...e.ticketTypes.map((t) => t.price)) : 0;
+      return sortBy === "price-asc" ? minPrice(a) - minPrice(b) : minPrice(b) - minPrice(a);
+    });
+  }, [dateFiltered, sortBy]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,10 +190,11 @@ const EventsPage = () => {
     setSelectedCategory("");
     setLocationFilter("");
     setDateFilter("all");
+    setSortBy("default");
     setSearchParams({});
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || locationFilter || dateFilter !== "all";
+  const hasActiveFilters = searchQuery || selectedCategory || locationFilter || dateFilter !== "all" || sortBy !== "default";
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -338,7 +356,44 @@ const EventsPage = () => {
               ))}
             </div>
 
-            {/* View toggle */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Sort by price */}
+              <div className="relative">
+                <button
+                  onClick={() => setSortOpen((v) => !v)}
+                  className={cn(
+                    "h-7 px-3 flex items-center gap-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-colors duration-150",
+                    sortBy !== "default"
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
+                  )}
+                >
+                  <ArrowUpDown className="h-3 w-3" />
+                  {sortBy === "price-asc" ? "Price ↑" : sortBy === "price-desc" ? "Price ↓" : "Sort"}
+                </button>
+                {sortOpen && (
+                  <div className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-border/60 bg-background shadow-xl overflow-hidden">
+                    {[
+                      { id: "default", label: "Default" },
+                      { id: "price-asc", label: "Price: Low to High" },
+                      { id: "price-desc", label: "Price: High to Low" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => { setSortBy(opt.id as typeof sortBy); setSortOpen(false); }}
+                        className={cn(
+                          "w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-colors",
+                          sortBy === opt.id ? "bg-foreground text-background" : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* View toggle */}
             <div className="flex items-center gap-0.5 border border-border/40 rounded-lg p-0.5 shrink-0">
               <button
                 onClick={() => setViewMode("grid")}
@@ -360,6 +415,7 @@ const EventsPage = () => {
               >
                 <List className="h-3.5 w-3.5" />
               </button>
+            </div>
             </div>
           </div>
         </section>
