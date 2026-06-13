@@ -143,6 +143,21 @@ export const checkAndSendReviewRequests = async () => {
   }
 };
 
+export const expirePendingBookings = async () => {
+  try {
+    const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 60 minutes
+    const result = await Booking.updateMany(
+      { status: 'pending', createdAt: { $lt: cutoff } },
+      { $set: { status: 'expired' } }
+    );
+    if (result.modifiedCount > 0) {
+      logger.info(`Expired ${result.modifiedCount} stale pending bookings (older than 60 min)`);
+    }
+  } catch (error) {
+    logger.error('Error expiring pending bookings:', error);
+  }
+};
+
 export const pingExternalService = async () => {
   const serviceUrl = 'https://mnkhan.onrender.com/api/services';
   try {
@@ -165,6 +180,11 @@ export const initCronJobs = () => {
     logger.info('Running hourly email journey cron...');
     checkAndSendReminders();
     checkAndSendReviewRequests();
+  });
+
+  // Expire pending bookings every 15 minutes
+  cron.schedule('*/15 * * * *', () => {
+    expirePendingBookings();
   });
 
   // Ping external service every 5 minutes

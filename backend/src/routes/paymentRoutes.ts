@@ -232,8 +232,100 @@ export const verifyStoreOrderPayment: RequestHandler = async (req: AuthRequest, 
   }
 };
 
+export const createOrder: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { bookingId, amount, currency = 'INR' } = req.body;
+  try {
+    const booking = await Booking.findById(bookingId);
+    if (!booking) { res.status(404).json({ message: 'Booking not found' }); return; }
+    if (booking.status !== 'pending') {
+      res.status(400).json({ message: `Cannot create order for booking with status: ${booking.status}` });
+      return;
+    }
+
+    const order = await (razorpay as any).orders.create({
+      amount: Math.round(amount * 100), // paise
+      currency,
+      receipt: `booking_${bookingId}`,
+    });
+
+    res.json({
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key: process.env.RAZORPAY_KEY_ID,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating Razorpay order', error });
+  }
+};
+
+export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
+
+  try {
+    const sign = `${razorpay_order_id}|${razorpay_payment_id}`;
+    const expectedSign = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
+      .update(sign)
+      .digest('hex');
+
+    if (razorpay_signature !== expectedSign) {
+      res.status(400).json({ success: false, message: 'Invalid payment signature' });
+      return;
+    }
+
+    const booking = await Booking.findById(bookingId).populate('event');
+    if (!booking) { res.status(404).json({ message: 'Booking not found' }); return; }
+
+    if (booking.status === 'confirmed') {
+      res.json({ success: true, message: 'Booking already confirmed' });
+      return;
+    }
+
+    if (booking.status !== 'pending') {
+      res.status(400).json({ success: false, message: `Cannot confirm booking with status: ${booking.status}` });
+      return;
+    }
+
+    booking.status = 'confirmed';
+    booking.paymentId = razorpay_payment_id;
+    await booking.save();
+
+    const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
+    if (eventDoc) {
+      for (const ticket of booking.tickets) {
+        const ticketType = eventDoc.ticketTypes.find(t => t.name === ticket.type);
+        if (ticketType) ticketType.sold += ticket.quantity;
+      }
+      await eventDoc.save();
+    }
+
+    // Send ticket confirmation (non-blocking)
+    (async () => {
+      try {
+        const event: any = booking.event;
+        const pdfBuffer = await generateTicketPDF(booking, event);
+        const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
+        if (booking.email) await sendTicketEmail(booking.email, recipientName, event, pdfBuffer);
+        if (booking.phoneNumber) {
+          const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
+          await sendTicketWhatsApp(booking.phoneNumber, recipientName, event, pdfBuffer);
+        }
+      } catch (err) {
+        console.error('Failed to send ticket after order payment:', err);
+      }
+    })();
+
+    res.json({ success: true, message: 'Payment verified and booking confirmed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Verification failed', error });
+  }
+};
+
 router.post('/create-payment-link', optionalProtect, createPaymentLink);
 router.post('/verify-link', optionalProtect, verifyPaymentLink);
+router.post('/create-order', optionalProtect, createOrder);
+router.post('/verify-order', optionalProtect, verifyOrder);
 router.post('/create-store-order-payment-link', optionalProtect, createStoreOrderPaymentLink);
 router.post('/verify-store-order', optionalProtect, verifyStoreOrderPayment);
 router.post('/webhook', handleRazorpayWebhook);

@@ -355,6 +355,43 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const cancelBooking = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const booking = await Booking.findById(id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    const event = await Event.findById(booking.event);
+    if (!event) return res.status(404).json({ message: 'Event not found' });
+
+    const isCreator = event.creator.toString() === req.user?._id?.toString();
+    const isAdmin = req.user?.role === 'admin';
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+    }
+
+    if (booking.status === 'cancelled' || booking.status === 'refunded') {
+      return res.status(400).json({ message: `Booking is already ${booking.status}` });
+    }
+
+    // Decrement sold counts for confirmed bookings (offline or otherwise)
+    if (booking.status === 'confirmed') {
+      for (const item of booking.tickets) {
+        const ticketType = event.ticketTypes.find(t => t.name === item.type);
+        if (ticketType) ticketType.sold = Math.max(0, ticketType.sold - item.quantity);
+      }
+      await event.save();
+    }
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    res.json({ message: 'Booking cancelled successfully', booking });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 export const getTaxRate = async (req: any, res: any) => {
   try {
     const settings = await SystemSettings.findOne();

@@ -5,6 +5,7 @@ import {
   getEventBookings,
   checkInBooking,
   issueOfflineTicket,
+  cancelBooking,
   getTaxRate,
 } from '../controllers/bookingController.js';
 import { protect, authorize, optionalProtect } from '../middleware/auth.js';
@@ -18,6 +19,7 @@ router.route('/tax-rate').get(getTaxRate);
 router.route('/offline').post(protect, authorize('event_manager', 'admin'), issueOfflineTicket);
 
 router.route('/:id/check-in').patch(protect, authorize('event_manager', 'admin'), checkInBooking);
+router.route('/:id/cancel').patch(protect, authorize('event_manager', 'admin'), cancelBooking);
 
 router.route('/event/:eventId').get(protect, authorize('event_manager', 'admin'), getEventBookings);
 

@@ -243,8 +243,16 @@ export const processEventPayout: RequestHandler = async (req: AuthRequest, res: 
       return;
     }
 
-    // platform_fee = 10%
-    const platformFee = totalCollected * 0.10;
+    // Use manager's configured commission instead of a hardcoded 10%
+    const totalTicketsSoldForEvent = bookings.reduce(
+      (acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0
+    );
+    let platformFee: number;
+    if (manager.commissionType === 'percentage') {
+      platformFee = (totalCollected * (manager.commissionValue ?? 10)) / 100;
+    } else {
+      platformFee = (manager.commissionValue ?? 10) * totalTicketsSoldForEvent;
+    }
     const payoutAmount = totalCollected - platformFee;
 
     // Razorpay Integration
@@ -306,9 +314,11 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
     const events = await Event.find({ creator: id });
     const eventIds = events.map(e => e._id);
     const bookings = await Booking.find({ event: { $in: eventIds }, status: 'confirmed' });
+    const pendingBookings = await Booking.find({ event: { $in: eventIds }, status: 'pending' });
 
     const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
     const totalTicketsSold = bookings.reduce((acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0);
+    const pendingRevenue = pendingBookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
 
     const commissionType = manager.commissionType || 'percentage';
     let totalCommission = 0;
@@ -324,7 +334,7 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
 
     if (payoutAmount > pendingBalance + 0.01) {
       res.status(400).json({
-        message: `Amount ₹${payoutAmount} exceeds available balance of ₹${Math.floor(pendingBalance)}.`
+        message: `Amount ₹${payoutAmount} exceeds available balance of ₹${Math.floor(pendingBalance)}. Note: ₹${Math.floor(pendingRevenue)} is still pending payment confirmation.`
       });
       return;
     }
@@ -359,6 +369,13 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
       message: 'Payout initiated via Razorpay. Funds will be transferred shortly.',
       payout,
       razorpayPayoutId: razorpayPayout.id,
+      balanceSummary: {
+        confirmedRevenue: totalRevenue,
+        pendingRevenue,
+        totalCommission,
+        totalSettled,
+        availableBalance: pendingBalance,
+      },
     });
   } catch (error: any) {
     console.error('processPayout error:', error);
@@ -539,6 +556,22 @@ export const updateManagerCommission: RequestHandler = async (req: AuthRequest, 
     if (!manager) {
       res.status(404).json({ message: 'Manager not found' });
       return;
+    }
+
+    const commissionChanged =
+      (commissionType && commissionType !== manager.commissionType) ||
+      (commissionValue !== undefined && commissionValue !== manager.commissionValue);
+
+    if (commissionChanged) {
+      if (!manager.commissionHistory) manager.commissionHistory = [];
+      manager.commissionHistory.push({
+        changedAt: new Date(),
+        changedBy: req.user?.email || req.user?._id?.toString() || 'admin',
+        oldType: manager.commissionType,
+        oldValue: manager.commissionValue,
+        newType: commissionType || manager.commissionType,
+        newValue: commissionValue !== undefined ? commissionValue : manager.commissionValue,
+      });
     }
 
     if (commissionType) manager.commissionType = commissionType;

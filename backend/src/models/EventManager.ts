@@ -9,6 +9,14 @@ export interface IEventManager extends Document {
   totalPaid: number;
   commissionType: 'flat' | 'percentage';
   commissionValue: number;
+  commissionHistory: Array<{
+    changedAt: Date;
+    changedBy: string;
+    oldType: string;
+    oldValue: number;
+    newType: string;
+    newValue: number;
+  }>;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   bankDetails?: {
@@ -47,8 +55,16 @@ const EventManagerSchema: Schema = new Schema(
     },
     commissionValue: {
       type: Number,
-      default: 10, // Default 10%
+      default: 10,
     },
+    commissionHistory: [{
+      changedAt: { type: Date, default: Date.now },
+      changedBy: { type: String },
+      oldType: { type: String },
+      oldValue: { type: Number },
+      newType: { type: String },
+      newValue: { type: Number },
+    }],
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     bankDetails: {

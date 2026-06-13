@@ -78,28 +78,92 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     }
   };
 
+  const loadRazorpayScript = (): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) { resolve(true); return; }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const openRazorpayPopup = async (booking: any) => {
+    const loaded = await loadRazorpayScript();
+    if (!loaded) {
+      toast.error("Failed to load payment gateway. Please try again.");
+      return;
+    }
+
+    try {
+      const { data: orderData } = await api.post("/payments/create-order", {
+        bookingId: booking._id,
+        amount: booking.totalAmount,
+        currency: "INR",
+      });
+
+      const options = {
+        key: orderData.key,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: "City Pulse",
+        description: `Booking for ${event.title}`,
+        prefill: {
+          name: guestName || "Guest",
+          email: guestEmail,
+          contact: guestPhone,
+        },
+        theme: { color: "#000000" },
+        modal: { ondismiss: () => toast.error("Payment cancelled. Your booking is held for 60 minutes.") },
+        handler: async (response: any) => {
+          try {
+            await api.post("/payments/verify-order", {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingId: booking._id,
+            });
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#ffffff", "#cccccc", "#888888"] });
+            toast.success("Payment successful! Your tickets are confirmed.");
+          } catch {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        },
+      };
+
+      // Close the Dialog BEFORE opening Razorpay — Radix UI sets
+      // pointer-events:none on <body> while any Dialog is mounted, which
+      // blocks all clicks inside the Razorpay iframe.
+      onClose();
+
+      // Wait one tick for Radix cleanup, then force-restore pointer-events
+      // in case the Dialog's unmount animation hasn't finished.
+      await new Promise(r => setTimeout(r, 80));
+      document.body.style.pointerEvents = "";
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch {
+      toast.error("Failed to initialize payment. Please try again.");
+    }
+  };
+
   const bookingMutation = useMutation({
     mutationFn: async (payload: any) => {
       const { data } = await api.post("/bookings", payload);
       return data;
     },
     onSuccess: async (booking) => {
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#ffffff", "#cccccc", "#888888"] });
-      
-      try {
-        const { data } = await api.post("/payments/create-payment-link", {
-          bookingId: booking._id,
-          amount: booking.totalAmount,
-          currency: "INR",
-          customerName: guestName || "Guest",
-          customerEmail: guestEmail,
-          customerPhone: guestPhone,
-          eventTitle: event.title,
-        });
-        window.location.href = data.payment_url;
-      } catch (error) {
-        toast.error("Failed to initialize payment gateway.");
+      if (booking.status === "confirmed") {
+        // Free ticket — already confirmed on the backend
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#ffffff", "#cccccc", "#888888"] });
+        toast.success("Booking confirmed! Your tickets are on their way.");
+        onClose();
+        return;
       }
+      await openRazorpayPopup(booking);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Booking failed.");
@@ -187,7 +251,6 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
       phoneNumber: guestPhone,
       contactName: guestName || undefined,
       voucherCode: appliedVoucher?.code || undefined,
-      status: "pending",
     });
   };
 

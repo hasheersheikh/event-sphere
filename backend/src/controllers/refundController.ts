@@ -26,6 +26,14 @@ export const processManualRefund = async (req: AuthRequest, res: Response) => {
     if (!request) return res.status(404).json({ message: 'Refund request not found' });
     if (request.status !== 'pending') return res.status(400).json({ message: 'Request already processed' });
 
+    // Validate refund amount does not exceed what was originally charged
+    const booking = await Booking.findById(request.booking);
+    if (booking && request.amount > booking.totalAmount) {
+      return res.status(400).json({
+        message: `Refund amount ₹${request.amount} exceeds original booking amount ₹${booking.totalAmount}.`
+      });
+    }
+
     try {
       // Attempt Razorpay refund again
       await razorpay.payments.refund(request.paymentId, {
