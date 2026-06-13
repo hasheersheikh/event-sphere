@@ -8203,3 +8203,97 @@
 {"level":"info","message":"Ping successful: 200 - 2026-06-12T16:55:01.302Z"}
 {"level":"info","message":"Running external service ping..."}
 {"level":"info","message":"Ping successful: 200 - 2026-06-12T17:00:00.900Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:05:01.539Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:10:01.651Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:15:00.950Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:20:01.203Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:25:01.013Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-12T23:00:00.122Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:30:01.205Z"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:35:02.421Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T17:40:01.691Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-12T18:50:10.028Z"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Cron jobs initialized"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T18:55:01.346Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:00:00.863Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:05:01.320Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:10:01.456Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:15:00.814Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:20:01.751Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:25:01.557Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running cleanup job at 2026-06-13T01:00:00.051Z (IST)"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:30:01.314Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-12T19:45:10.022Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T19:55:01.453Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-12T20:10:10.020Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T20:15:01.323Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T20:20:00.952Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-12T20:25:01.250Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running cleanup job at 2026-06-13T02:00:00.026Z (IST)"}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-12T20:30:10.017Z"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"address":"ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017","beforeHandshake":false,"cause":{"beforeHandshake":false,"errorLabelSet":{}},"errorLabelSet":{},"level":"error","message":"Error during cleanup job: Connection to ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017 interrupted due to server monitor timeout","stack":"PoolClearedOnNetworkError: Connection to ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017 interrupted due to server monitor timeout\n    at ConnectionPool.interruptInUseConnections (/Users/hashirsheikh/Documents/dev/event-sphere/backend/node_modules/mongodb/src/cmap/connection_pool.ts:478:28)\n    at <anonymous> (/Users/hashirsheikh/Documents/dev/event-sphere/backend/node_modules/mongodb/src/cmap/connection_pool.ts:464:35)\n    at processTicksAndRejections (node:internal/process/task_queues:85:11)\n    at runNextTicks (node:internal/process/task_queues:69:3)\n    at listOnTimeout (node:internal/timers:567:9)\n    at process.processTimers (node:internal/timers:541:7)"}
+{"address":"ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017","beforeHandshake":false,"cause":{"beforeHandshake":false,"errorLabelSet":{}},"errorLabelSet":{},"level":"error","message":"Error sending review requests: Connection to ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017 interrupted due to server monitor timeout","stack":"PoolClearedOnNetworkError: Connection to ac-ghzgoxq-shard-00-02.cqtywk8.mongodb.net:27017 interrupted due to server monitor timeout\n    at ConnectionPool.interruptInUseConnections (/Users/hashirsheikh/Documents/dev/event-sphere/backend/node_modules/mongodb/src/cmap/connection_pool.ts:478:28)\n    at <anonymous> (/Users/hashirsheikh/Documents/dev/event-sphere/backend/node_modules/mongodb/src/cmap/connection_pool.ts:464:35)\n    at processTicksAndRejections (node:internal/process/task_queues:85:11)\n    at runNextTicks (node:internal/process/task_queues:69:3)\n    at listOnTimeout (node:internal/timers:567:9)\n    at process.processTimers (node:internal/timers:541:7)"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: getaddrinfo ENOTFOUND mnkhan.onrender.com - 2026-06-13T01:35:00.025Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: getaddrinfo ENOTFOUND mnkhan.onrender.com - 2026-06-13T06:40:00.024Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"error","message":"Ping failed: timeout of 10000ms exceeded - 2026-06-13T09:20:10.050Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:25:02.652Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Running hourly email journey cron..."}
+{"level":"info","message":"Running cleanup job at 2026-06-13T15:00:00.050Z (IST)"}
+{"level":"info","message":"Updated 0 non-recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 recurring events to 'past' status"}
+{"level":"info","message":"Updated 0 bookings to 'expired' status"}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:30:02.165Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:35:01.618Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:40:01.543Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:45:01.254Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:50:01.306Z"}
+{"level":"info","message":"Running external service ping..."}
+{"level":"info","message":"Ping successful: 200 - 2026-06-13T09:55:03.110Z"}

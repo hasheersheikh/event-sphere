@@ -43,7 +43,6 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       }
 
       subtotal += price * ticketItem.quantity;
-      ticketType.sold += ticketItem.quantity;
 
       enrichedTickets.push({
         type: ticketItem.type,
@@ -110,6 +109,18 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    const isImmediate = totalAmount === 0;
+
+    // Only increment sold counts now for free (immediately confirmed) tickets.
+    // For paid tickets, sold is incremented in verifyPaymentLink after Razorpay confirms.
+    if (isImmediate) {
+      for (const item of enrichedTickets) {
+        const ticketType = event.ticketTypes.find(t => t.name === item.type);
+        if (ticketType) ticketType.sold += item.quantity;
+      }
+      await event.save();
+    }
+
     const booking = await Booking.create({
       user: userId,
       event: eventId,
@@ -122,10 +133,8 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       email,
       phoneNumber,
       contactName: contactName || undefined,
-      status: req.body.status || (totalAmount === 0 ? 'confirmed' : 'pending'),
+      status: req.body.status || (isImmediate ? 'confirmed' : 'pending'),
     });
-
-    await event.save();
 
     // Only send ticket notifications for bookings that are immediately confirmed (free tickets).
     // Paid bookings remain 'pending' here — notifications fire from verifyPaymentLink after payment.

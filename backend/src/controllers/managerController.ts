@@ -112,14 +112,13 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
     }, 0);
 
-    // Commission Calculation
+    // Commission Calculation — must match adminController logic exactly
     let platformCommission = 0;
     if (manager.commissionType === 'percentage') {
       platformCommission = (grossRevenue * manager.commissionValue) / 100;
     } else {
-      // For flat fee, we might want it per event or total. 
-      // Based on previous plan, let's treat it as a per-event flat fee for the deal if it's 'flat'.
-      platformCommission = manager.commissionValue;
+      // Flat fee: charged per ticket sold (consistent with adminController)
+      platformCommission = manager.commissionValue * totalTicketsSold;
     }
 
     const netRevenue = Math.max(0, grossRevenue - platformCommission);

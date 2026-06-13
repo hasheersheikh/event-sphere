@@ -7,6 +7,7 @@ import crypto from 'crypto';
 const router = express.Router();
 
 import Booking from '../models/Booking.js';
+import Event from '../models/Event.js';
 import StoreOrder from '../models/StoreOrder.js';
 import Payout from '../models/Payout.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
@@ -74,9 +75,30 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
       return;
     }
 
+    // Idempotency: if already confirmed, return success without reprocessing
+    if (booking.status === 'confirmed') {
+      res.json({ success: true, message: 'Booking already confirmed' });
+      return;
+    }
+
+    if (booking.status !== 'pending') {
+      res.status(400).json({ success: false, message: `Cannot confirm booking with status: ${booking.status}` });
+      return;
+    }
+
     booking.status = 'confirmed';
     booking.paymentId = razorpay_payment_id;
     await booking.save();
+
+    // Increment sold counts now that payment is confirmed
+    const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
+    if (eventDoc) {
+      for (const ticket of booking.tickets) {
+        const ticketType = eventDoc.ticketTypes.find(t => t.name === ticket.type);
+        if (ticketType) ticketType.sold += ticket.quantity;
+      }
+      await eventDoc.save();
+    }
 
     // Send ticket (non-blocking)
     (async () => {

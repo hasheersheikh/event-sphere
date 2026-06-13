@@ -680,8 +680,8 @@ export const getAdminStats: RequestHandler = async (req: AuthRequest, res: Respo
 
 export const getAnalytics: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
-    const totalTransactions = await Booking.countDocuments({});
-    const bookings = await Booking.find({}).populate('event');
+    const totalTransactions = await Booking.countDocuments({ status: 'confirmed' });
+    const bookings = await Booking.find({ status: 'confirmed' }).populate('event');
     
     // Aggregate Revenue
     const totalRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
