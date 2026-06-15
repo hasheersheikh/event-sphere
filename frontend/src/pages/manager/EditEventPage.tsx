@@ -356,7 +356,7 @@ const EditEventPage = () => {
         ageRestriction: event.ageRestriction || "All Ages",
       });
     }
-  }, [event, form]);
+  }, [event]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Remove the duplicate ticketTypes/vouchers useFieldArray calls below if they exist
 
