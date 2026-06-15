@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/User.js';
@@ -10,8 +11,13 @@ const OTP_ENABLED = process.env.ENABLE_OTP_AUTH === 'true';
 const MAX_ATTEMPTS = 3;
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
+const jwtSecret = (): string => {
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');
+  return process.env.JWT_SECRET;
+};
+
 const generateToken = (id: string, role: string) =>
-  jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' });
+  jwt.sign({ id, role }, jwtSecret(), { expiresIn: '30d' });
 
 // ---------------------------------------------------------------------------
 // When a user authenticates (any method), claim bookings made as a guest
@@ -66,7 +72,7 @@ export const sendOtp = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'identifier and type (email|phone) are required.' });
   }
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const otp = crypto.randomInt(100000, 999999).toString();
   const expiresAt = new Date(Date.now() + OTP_TTL_MS);
 
   await OtpToken.findOneAndUpdate(

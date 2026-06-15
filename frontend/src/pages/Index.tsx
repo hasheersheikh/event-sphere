@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import GoLocalSection from "@/components/home/GoLocalSection";
 import { useCity } from "@/contexts/CityContext";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
+import MobileEventCarousel from "@/components/events/MobileEventCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
 import { cn } from "@/lib/utils";
 import TrendingVenues from "@/components/home/TrendingVenues";
@@ -320,8 +321,8 @@ const Index = () => {
             </Link>
           </div>
 
-          <div className="container overflow-hidden">
-            {isLoading ? (
+          {isLoading ? (
+            <div className="container">
               <div className="flex gap-3 overflow-hidden">
                 {Array(6).fill(0).map((_, i) => (
                   <div key={i} className="flex-shrink-0 w-80">
@@ -334,25 +335,33 @@ const Index = () => {
                   </div>
                 ))}
               </div>
-            ) : filteredEvents?.length > 0 ? (
-              <MarqueeCarousel
-                events={filteredEvents}                speed={300}
-                direction="left"
-                pauseOnHover={true}
-              />
-            ) : (
-              <div className="flex items-center justify-center py-16">
-                <div className="text-center space-y-3 border border-dashed border-border rounded-xl px-12 py-8">
-                  <CalendarDays className="h-8 w-8 text-muted-foreground/25 mx-auto" />
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
-                    No events for this period
-                  </p>
-                </div>
+            </div>
+          ) : filteredEvents?.length > 0 ? (
+            <>
+              {/* Mobile snap carousel */}
+              <div className="md:hidden">
+                <MobileEventCarousel events={filteredEvents} />
               </div>
-            )}
-
-            
-          </div>
+              {/* Desktop marquee */}
+              <div className="hidden md:block container overflow-hidden">
+                <MarqueeCarousel
+                  events={filteredEvents}
+                  speed={300}
+                  direction="left"
+                  pauseOnHover={true}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="container flex items-center justify-center py-16">
+              <div className="text-center space-y-3 border border-dashed border-border rounded-xl px-12 py-8">
+                <CalendarDays className="h-8 w-8 text-muted-foreground/25 mx-auto" />
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
+                  No events for this period
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
 

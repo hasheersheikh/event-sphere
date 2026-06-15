@@ -24,7 +24,10 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string, role: string };
+      if (!process.env.JWT_SECRET) {
+        return res.status(500).json({ message: 'JWT secret not configured' });
+      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as { id: string, role: string };
 
       const Model = getModelByRole(decoded.role) as any;
       req.user = await Model.findById(decoded.id).select('-password');
@@ -51,7 +54,10 @@ export const optionalProtect = async (req: AuthRequest, res: Response, next: Nex
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as { id: string, role: string };
+      if (!process.env.JWT_SECRET) {
+        return res.status(500).json({ message: 'JWT secret not configured' });
+      }
+      const decoded = jwt.verify(token, process.env.JWT_SECRET) as { id: string, role: string };
 
       const Model = getModelByRole(decoded.role) as any;
       req.user = await Model.findById(decoded.id).select('-password');

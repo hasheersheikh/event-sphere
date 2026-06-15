@@ -262,7 +262,7 @@ export const getEvents = async (req: Request, res: Response) => {
     res.json(eventsWithStatus);
   } catch (error: any) {
     console.error('Error in getEvents:', error);
-    res.status(500).json({ message: 'Server error', error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
@@ -337,7 +337,7 @@ export const updateEvent = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
     res.json(updatedEvent);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -467,8 +467,11 @@ export const stopRecurrence = async (req: AuthRequest, res: Response) => {
     if (event.scheduleType !== 'recurring') {
       return res.status(400).json({ message: 'Event is not a recurring event' });
     }
+    if (!event.recurrence) {
+      return res.status(400).json({ message: 'Event has no recurrence data' });
+    }
 
-    event.recurrence!.isActive = false;
+    event.recurrence.isActive = false;
     event.markModified('recurrence');
     await event.save();
     res.json({ message: 'Recurrence stopped', event });
@@ -492,24 +495,27 @@ export const addRecurrenceException = async (req: AuthRequest, res: Response) =>
     if (event.scheduleType !== 'recurring') {
       return res.status(400).json({ message: 'Event is not a recurring event' });
     }
+    if (!event.recurrence) {
+      return res.status(400).json({ message: 'Event has no recurrence data' });
+    }
 
     const exceptionDate = new Date(req.body.date);
     if (isNaN(exceptionDate.getTime())) {
       return res.status(400).json({ message: 'Invalid date' });
     }
 
-    event.recurrence!.exceptions = event.recurrence!.exceptions || [];
+    event.recurrence.exceptions = event.recurrence.exceptions || [];
     // Avoid duplicates (compare date-only)
-    const alreadyExists = event.recurrence!.exceptions.some(
+    const alreadyExists = event.recurrence.exceptions.some(
       (d) => new Date(d).toDateString() === exceptionDate.toDateString()
     );
     if (!alreadyExists) {
-      event.recurrence!.exceptions.push(exceptionDate);
+      event.recurrence.exceptions.push(exceptionDate);
       event.markModified('recurrence');
       await event.save();
     }
 
-    res.json({ message: 'Exception added', exceptions: event.recurrence!.exceptions });
+    res.json({ message: 'Exception added', exceptions: event.recurrence.exceptions });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

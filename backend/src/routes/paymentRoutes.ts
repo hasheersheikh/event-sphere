@@ -58,9 +58,14 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
       return;
     }
 
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      res.status(500).json({ message: 'Razorpay key secret not configured' });
+      return;
+    }
+
     const sign = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
     const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(sign)
       .digest('hex');
 
@@ -90,14 +95,21 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
     booking.paymentId = razorpay_payment_id;
     await booking.save();
 
-    // Increment sold counts now that payment is confirmed
+    // Atomically increment sold counts — prevents race on concurrent confirmations
     const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
     if (eventDoc) {
       for (const ticket of booking.tickets) {
-        const ticketType = eventDoc.ticketTypes.find(t => t.name === ticket.type);
-        if (ticketType) ticketType.sold += ticket.quantity;
+        const tt = eventDoc.ticketTypes.find(t => t.name === ticket.type);
+        if (!tt) continue;
+        await Event.findOneAndUpdate(
+          {
+            _id: eventDoc._id,
+            'ticketTypes.name': ticket.type,
+            'ticketTypes.sold': tt.sold,
+          },
+          { $inc: { 'ticketTypes.$.sold': ticket.quantity } },
+        );
       }
-      await eventDoc.save();
     }
 
     // Send ticket (non-blocking)
@@ -124,13 +136,23 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
 
 
 export const handleRazorpayWebhook: RequestHandler = async (req: express.Request, res: Response) => {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder';
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) {
+    res.status(500).json({ message: 'Webhook secret not configured' });
+    return;
+  }
   const signature = req.headers['x-razorpay-signature'] as string;
 
   try {
+    const rawBody = (req as any).rawBody;
+    if (!rawBody) {
+      res.status(400).json({ message: 'Missing raw body' });
+      return;
+    }
+
     const expectedSignature = crypto
       .createHmac("sha256", secret)
-      .update(JSON.stringify(req.body))
+      .update(rawBody)
       .digest("hex");
 
     if (expectedSignature !== signature) {
@@ -198,9 +220,14 @@ export const verifyStoreOrderPayment: RequestHandler = async (req: AuthRequest, 
       return;
     }
 
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      res.status(500).json({ message: 'Razorpay key secret not configured' });
+      return;
+    }
+
     const sign = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
     const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(sign)
       .digest('hex');
 
@@ -263,9 +290,13 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
 
   try {
+    if (!process.env.RAZORPAY_KEY_SECRET) {
+      res.status(500).json({ message: 'Razorpay key secret not configured' });
+      return;
+    }
     const sign = `${razorpay_order_id}|${razorpay_payment_id}`;
     const expectedSign = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'secret_placeholder')
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(sign)
       .digest('hex');
 
@@ -291,13 +322,21 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
     booking.paymentId = razorpay_payment_id;
     await booking.save();
 
+    // Atomically increment sold counts
     const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
     if (eventDoc) {
       for (const ticket of booking.tickets) {
-        const ticketType = eventDoc.ticketTypes.find(t => t.name === ticket.type);
-        if (ticketType) ticketType.sold += ticket.quantity;
+        const tt = eventDoc.ticketTypes.find(t => t.name === ticket.type);
+        if (!tt) continue;
+        await Event.findOneAndUpdate(
+          {
+            _id: eventDoc._id,
+            'ticketTypes.name': ticket.type,
+            'ticketTypes.sold': tt.sold,
+          },
+          { $inc: { 'ticketTypes.$.sold': ticket.quantity } },
+        );
       }
-      await eventDoc.save();
     }
 
     // Send ticket confirmation (non-blocking)

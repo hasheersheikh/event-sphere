@@ -10,8 +10,13 @@ import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailService.js';
 import { claimGuestBookings } from './otpController.js';
 
+const jwtSecret = (): string => {
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');
+  return process.env.JWT_SECRET;
+};
+
 const generateToken = (id: string, role: string) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', {
+  return jwt.sign({ id, role }, jwtSecret(), {
     expiresIn: '30d',
   });
 };
@@ -44,8 +49,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'No account with that email address exists.' });
     }
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    userFound.resetPasswordToken = resetToken;
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    userFound.resetPasswordToken = hashedToken;
     userFound.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
 
     await userFound.save();
@@ -64,12 +70,13 @@ export const resetPassword = async (req: Request, res: Response) => {
   const { token, password } = req.body;
 
   try {
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const models = [User, Admin, EventManager];
     let userFound: any = null;
 
     for (const Model of models) {
       userFound = await (Model as any).findOne({
-        resetPasswordToken: token,
+        resetPasswordToken: hashedToken,
         resetPasswordExpires: { $gt: Date.now() },
       });
       if (userFound) break;

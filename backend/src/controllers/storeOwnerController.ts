@@ -7,8 +7,13 @@ import LocalStore from '../models/LocalStore.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { sendStoreOwnerWelcomeEmail } from '../utils/emailService.js';
 
+const jwtSecret = (): string => {
+  if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');
+  return process.env.JWT_SECRET;
+};
+
 const generateToken = (id: string, role: string) =>
-  jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret', { expiresIn: '30d' });
+  jwt.sign({ id, role }, jwtSecret(), { expiresIn: '30d' });
 
 // Admin creates a store owner account
 export const createStoreOwner = async (req: AuthRequest, res: Response) => {

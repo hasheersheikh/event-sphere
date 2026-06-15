@@ -113,12 +113,40 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     // Only increment sold counts now for free (immediately confirmed) tickets.
     // For paid tickets, sold is incremented in verifyPaymentLink after Razorpay confirms.
+    // Use atomic findOneAndUpdate to prevent race conditions on overselling.
     if (isImmediate) {
-      for (const item of enrichedTickets) {
-        const ticketType = event.ticketTypes.find(t => t.name === item.type);
-        if (ticketType) ticketType.sold += item.quantity;
+      const reserved: string[] = [];
+      try {
+        for (const item of enrichedTickets) {
+          const tt = event.ticketTypes.find(t => t.name === item.type);
+          if (!tt) continue;
+
+          const updated = await Event.findOneAndUpdate(
+            {
+              _id: eventId,
+              'ticketTypes.name': item.type,
+              'ticketTypes.sold': tt.sold,
+            },
+            { $inc: { 'ticketTypes.$.sold': item.quantity } },
+            { new: true }
+          );
+
+          if (!updated) {
+            throw new Error(`Sold out: ${item.type}`);
+          }
+          reserved.push(item.type);
+        }
+      } catch {
+        // Rollback: decrement sold for types we successfully reserved
+        for (const name of reserved) {
+          const qty = enrichedTickets.find(t => t.type === name)?.quantity || 0;
+          await Event.updateOne(
+            { _id: eventId, 'ticketTypes.name': name },
+            { $inc: { 'ticketTypes.$.sold': -qty } }
+          );
+        }
+        return res.status(409).json({ message: 'Tickets sold out. Please refresh and try again.' });
       }
-      await event.save();
     }
 
     const booking = await Booking.create({
@@ -227,7 +255,20 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
         return res.status(400).json({ message: `Only ${available} tickets available for "${item.type}"` });
       }
 
-      ticketType.sold += item.quantity;
+      // Atomically reserve tickets — prevents oversell race
+      const updated = await Event.findOneAndUpdate(
+        {
+          _id: eventId,
+          'ticketTypes.name': item.type,
+          'ticketTypes.sold': ticketType.sold,
+        },
+        { $inc: { 'ticketTypes.$.sold': item.quantity } },
+        { new: true }
+      );
+      if (!updated) {
+        return res.status(409).json({ message: `Tickets for "${item.type}" sold out. Please try again.` });
+      }
+
       const price = ticketType.price;
       subtotal += price * item.quantity;
 
@@ -277,8 +318,6 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
       isOffline: true,
       offlineNote: note || '',
     });
-
-    await event.save();
 
     // Send ticket via email / WhatsApp if contact details provided (non-blocking)
     if (email || phoneNumber) {

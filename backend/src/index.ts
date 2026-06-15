@@ -43,7 +43,11 @@ const logger = winston.createLogger({
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req: any, _res, buf) => {
+    req.rawBody = buf.toString();
+  },
+}));
 
 // Serve uploaded files when local storage is enabled
 if (process.env.USE_LOCAL_STORAGE === 'true') {

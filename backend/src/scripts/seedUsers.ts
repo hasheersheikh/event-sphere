@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import User from '../models/User.js';
+import Admin from '../models/Admin.js';
+import EventManager from '../models/EventManager.js';
 
 dotenv.config();
 
@@ -17,17 +18,20 @@ const seedUsers = async () => {
         email: 'admin@eventhub.com',
         password: 'admin123',
         role: 'admin',
+        Model: Admin,
       },
       {
         name: 'Event Manager',
         email: 'manager@eventhub.com',
         password: 'manager123',
         role: 'event_manager',
+        Model: EventManager,
       },
     ];
 
     for (const userData of usersToSeed) {
-      const userExists = await User.findOne({ email: userData.email });
+      const Model = userData.Model as any;
+      const userExists = await Model.findOne({ email: userData.email });
       if (userExists) {
         console.log(`User already exists: ${userData.email}`);
         continue;
@@ -36,9 +40,11 @@ const seedUsers = async () => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-      await User.create({
-        ...userData,
+      await Model.create({
+        name: userData.name,
+        email: userData.email,
         password: hashedPassword,
+        role: userData.role,
       });
       console.log(`User created: ${userData.email}`);
     }
