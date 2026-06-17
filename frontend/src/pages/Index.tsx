@@ -10,7 +10,6 @@ import {
   Users,
   Globe,
   Store,
-  Zap,
   MapPin,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
@@ -169,9 +168,21 @@ const Index = () => {
             HERO SECTION
         ═══════════════════════════════════════════════════════ */}
 
+        {/* ── MOBILE TAGLINE BAR ── */}
+        <div className="lg:hidden mt-14 flex items-center justify-between px-4 py-3 bg-background border-b border-border/40">
+          <span className="text-base font-black text-foreground tracking-tight leading-none">Catch your City Pulse</span>
+          <button
+            onClick={() => navigate("/events")}
+            className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center text-background shrink-0"
+            aria-label="Search events"
+          >
+            <Search className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
         {/* ── MOBILE HERO ── */}
         {hasHeroAssets && (
-          <section className="lg:hidden mt-14 relative overflow-hidden bg-background">
+          <section className="lg:hidden relative overflow-hidden bg-background">
             <HeroGallery assets={filteredHeroAssets} />
           </section>
         )}
@@ -221,8 +232,8 @@ const Index = () => {
                 )}
                 {...fadeUp(0.1)}
               >
-                Incredible Shows - Trending Venues, Unique Stores , Sports & Adventure - City Pulse makes going out Easy
-              </motion.p>
+Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+Discover what's happening around you with City Pulse.              </motion.p>
 
               {/* Search bar */}
               <motion.form onSubmit={handleSearch} {...fadeUp(0.14)} className="mb-8">
@@ -326,7 +337,7 @@ const Index = () => {
               <div className="flex gap-3 overflow-hidden">
                 {Array(6).fill(0).map((_, i) => (
                   <div key={i} className="flex-shrink-0 w-80">
-                    <div className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
+                    <div className="aspect-[4/5] rounded-xl bg-muted animate-pulse" />
                     <div className="mt-3 space-y-2">
                       <div className="h-2 w-20 rounded bg-muted animate-pulse" />
                       <div className="h-3.5 w-36 rounded bg-muted animate-pulse" />
@@ -379,35 +390,70 @@ const Index = () => {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-10 md:p-16 text-center"
+              transition={{ duration: 0.5 }}
+              className="rounded-2xl border border-border/40 overflow-hidden"
             >
-              {!shouldReduce && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-40 bg-foreground/5 blur-[80px] pointer-events-none rounded-full" />
-              )}
-              <div className="relative z-10 max-w-xl mx-auto">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-4">
-                  For Organizers
-                </p>
-                <h2 className="font-display text-4xl md:text-6xl font-black tracking-tighter leading-[0.88] mb-4">
-                  Host your<br />next event.
-                </h2>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-8 max-w-sm mx-auto">
-                  Sell tickets, manage attendees, and grow your audience on City Pulse.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {/* Organizer Banner */}
+              <div className="relative bg-zinc-950 py-16 md:py-24 text-center">
+                {!shouldReduce && (
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#c6f00018,_transparent)] pointer-events-none" />
+                )}
+                <div className="relative z-10 max-w-2xl mx-auto px-6">
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3 leading-tight">
+                    Are You An{" "}
+                    <span className="text-neon-lime">Event Organiser?</span>
+                  </h2>
+                  <p className="text-zinc-400 text-sm mb-8">
+                    Get your event live and selling in minutes
+                  </p>
                   <Link to="/list-your-event">
-                    <Button variant="default" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto">
-                      Start Exploring <ArrowRight className="h-3.5 w-3.5 ml-1" />
-                    </Button>
-                  </Link>
-                  <Link to="/boost">
-                    <Button variant="outline" className="h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] w-full sm:w-auto border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all gap-2">
-                      <Zap className="h-4 w-4" />
-                      Boost Event
+                    <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
+                      List Your Event
                     </Button>
                   </Link>
                 </div>
+              </div>
+
+              {/* How it Works */}
+              <div className="bg-zinc-900 border-t border-border/20 py-16 text-center px-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 mb-3">
+                  How it works
+                </p>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-14 leading-tight">
+                  Discovering Events Made{" "}
+                  <span className="text-neon-lime">Simple</span>
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto mb-12">
+                  {[
+                    { n: 1, title: "Browse Your", accent: "City", desc: "Explore upcoming events near you, filtered by vibe, date, or genre" },
+                    { n: 2, title: "Book Your", accent: "Tickets", desc: "Secure your spot in a few taps — no queues, no hassle" },
+                    { n: 3, title: "Show Up &", accent: "Enjoy", desc: "Scan in at the door and make a night to remember" },
+                  ].map(({ n, title, accent, desc }, i) => (
+                    <motion.div
+                      key={n}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: i * 0.12 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="h-14 w-14 rounded-full border-2 border-neon-lime flex items-center justify-center text-neon-lime font-black text-lg mb-5 shrink-0">
+                        {n}
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black text-white mb-2">
+                        {title} <span className="text-neon-lime">{accent}</span>
+                      </h3>
+                      <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">{desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+
+                <Link to="/events">
+                  <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
+                    Explore Events
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           </div>

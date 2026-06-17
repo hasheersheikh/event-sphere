@@ -13,6 +13,7 @@ import {
   Store,
   BookOpen,
   Instagram,
+  Video,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import PulseLogo from "./PulseLogo";
@@ -37,6 +38,7 @@ const Sidebar = () => {
     { label: "Hero Gallery", icon: LayoutDashboard, href: "/portal/admin/hero" },
     { label: "Trending Venues", icon: TrendingUp, href: "/portal/admin/trending-venues" },
     { label: "Influencer Net", icon: Users, href: "/portal/admin/influencers" },
+    { label: "Showcase Videos", icon: Video, href: "/portal/admin/showcase" },
     { label: "Sales Analytics", icon: TrendingUp, href: "/portal/analytics" },
     { label: "Scanner Hub", icon: Scan, href: "/scanner" },
     { label: "Refund Backlog", icon: Clock, href: "/portal/admin/refunds" },

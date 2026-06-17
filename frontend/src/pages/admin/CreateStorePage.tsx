@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +8,7 @@ import {
   Store, Phone, CreditCard, Image as ImageIcon,
   ChevronLeft, ChevronRight, X, Upload, Check,
   MapPin, Mail, MessageCircle, Clock, Link2,
-  Building2, Instagram, Facebook, Globe,
+  Building2, Instagram, Facebook, Globe, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -38,6 +38,8 @@ const storeSchema = z.object({
   address: z.string().min(5, "Address must be at least 5 characters"),
   description: z.string().optional(),
   category: z.string().min(1, "Category is required"),
+  bannerPhoto: z.string().optional(),
+  listingPhoto: z.string().optional(),
   photos: z.array(z.string()).optional(),
   contactEmail: z.string().email("Invalid email").or(z.literal("")).optional(),
   contactPhone: z.string().optional(),
@@ -67,7 +69,8 @@ const STEPS = [
 ];
 
 const EMPTY_DEFAULTS: StoreFormValues = {
-  name: "", address: "", description: "", category: "", photos: [],
+  name: "", address: "", description: "", category: "",
+  bannerPhoto: "", listingPhoto: "", photos: [],
   contactEmail: "", contactPhone: "", whatsapp: "", openingHours: "", googleMapUrl: "",
   paymentMethods: [], upiId: "",
   bankDetails: { accountHolder: "", accountNumber: "", bankName: "", ifscCode: "" },
@@ -102,6 +105,8 @@ const CreateStorePage = () => {
         address: storeData.address || "",
         description: storeData.description || "",
         category: storeData.category || "",
+        bannerPhoto: storeData.bannerPhoto || "",
+        listingPhoto: storeData.listingPhoto || "",
         photos: storeData.photos || [],
         contactEmail: storeData.contactEmail || "",
         contactPhone: storeData.contactPhone || "",
@@ -138,54 +143,81 @@ const CreateStorePage = () => {
     );
   };
 
-  const handleBannerUpload = () => {
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-        sources: ["local", "url", "camera"],
-        multiple: false,
-        cropping: true,
-        croppingAspectRatio: 2.5,
-      },
-      (error: any, result: any) => {
-        if (!error && result && result.event === "success") {
-          const current = form.getValues("photos") || [];
-          const updated = [...current];
-          updated[0] = result.info.secure_url;
-          form.setValue("photos", updated);
-          toast.success("Banner image uploaded!");
-        }
-      },
-    );
-    widget.open();
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [listingUploading, setListingUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const listingInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", uploadPreset);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
+    return data.secure_url;
   };
 
-  const handleGalleryUpload = () => {
+  const handleBannerFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBannerUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      form.setValue("bannerPhoto", url);
+      toast.success("Banner photo uploaded!");
+    } catch {
+      toast.error("Failed to upload banner photo");
+    } finally {
+      setBannerUploading(false);
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
+    }
+  };
+
+  const handleListingFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setListingUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      form.setValue("listingPhoto", url);
+      toast.success("Listing photo uploaded!");
+    } catch {
+      toast.error("Failed to upload listing photo");
+    } finally {
+      setListingUploading(false);
+      if (listingInputRef.current) listingInputRef.current.value = "";
+    }
+  };
+
+  const handleGalleryFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     const currentCount = form.getValues("photos")?.length || 0;
-    const maxAllowed = Math.max(0, 6 - currentCount);
+    const maxAllowed = Math.max(0, 5 - currentCount);
     if (maxAllowed === 0) {
-      toast.error("Maximum of 6 photos allowed (1 banner + 5 gallery).");
+      toast.error("Maximum of 5 gallery photos allowed.");
       return;
     }
-
-    // @ts-ignore
-    const widget = window.cloudinary.createUploadWidget(
-      {
-        cloudName: import.meta.env.VITE_CLOUDINARY_CLOUD_NAME,
-        uploadPreset: import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-        sources: ["local", "url", "camera"],
-        multiple: true,
-        maxFiles: maxAllowed,
-      },
-      (error: any, result: any) => {
-        if (!error && result && result.event === "success") {
-          appendPhoto(result.info.secure_url as any);
-        }
-      },
-    );
-    widget.open();
+    const toUpload = files.slice(0, maxAllowed);
+    setGalleryUploading(true);
+    try {
+      const urls = await Promise.all(toUpload.map(uploadToCloudinary));
+      urls.forEach((url) => appendPhoto(url as any));
+      toast.success(`${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded!`);
+    } catch {
+      toast.error("Failed to upload one or more photos");
+    } finally {
+      setGalleryUploading(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
   };
 
 
@@ -574,26 +606,31 @@ const CreateStorePage = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4 space-y-6">
-                      
-                      {/* Banner Image Section */}
-                      <div className="space-y-2.5">
+
+                      {/* Hidden file inputs */}
+                      <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerFileChange} />
+                      <input ref={listingInputRef} type="file" accept="image/*" className="hidden" onChange={handleListingFileChange} />
+                      <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryFileChange} />
+
+                      {/* Banner Photo */}
+                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                          Store Banner (Hero Image)
+                          Store Banner
                         </label>
-                        {form.watch("photos.0") ? (
-                          <div className="relative aspect-[2.5/1] rounded-xl overflow-hidden bg-muted border border-border group">
-                            <img src={form.watch("photos.0")} alt="Banner" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                        {form.watch("bannerPhoto") ? (
+                          <div className="relative aspect-[5/2] rounded-xl overflow-hidden bg-muted border border-border group">
+                            <img src={form.watch("bannerPhoto")} alt="Banner" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                               <button
                                 type="button"
-                                onClick={handleBannerUpload}
+                                onClick={() => bannerInputRef.current?.click()}
                                 className="px-4 py-2 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[9px] rounded-lg hover:scale-105 transition-all shadow-lg"
                               >
-                                Replace Banner
+                                Replace
                               </button>
                               <button
                                 type="button"
-                                onClick={() => removePhoto(0)}
+                                onClick={() => form.setValue("bannerPhoto", "")}
                                 className="px-4 py-2 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-[9px] rounded-lg hover:scale-105 transition-all shadow-lg"
                               >
                                 Remove
@@ -603,52 +640,112 @@ const CreateStorePage = () => {
                         ) : (
                           <button
                             type="button"
-                            onClick={handleBannerUpload}
-                            className="w-full h-28 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex flex-col items-center justify-center gap-2 transition-all hover:border-primary/40 group"
+                            onClick={() => bannerInputRef.current?.click()}
+                            disabled={bannerUploading}
+                            className="w-full h-28 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex flex-col items-center justify-center gap-2 transition-all hover:border-primary/40 group disabled:opacity-60"
                           >
-                            <Upload className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            <span className="group-hover:text-primary transition-colors">Upload Banner (2.5:1 ratio)</span>
+                            {bannerUploading ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                              <>
+                                <Upload className="h-5 w-5 group-hover:text-primary transition-colors" />
+                                <span className="group-hover:text-primary transition-colors">Upload Banner Photo</span>
+                              </>
+                            )}
                           </button>
                         )}
-                        <p className="text-[10px] text-muted-foreground/80 italic font-medium ml-1">
-                          This image will be cropped to a 2.5:1 aspect ratio and displayed at the top of the store page.
+                        <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
+                          Landscape hero shown at top of store page — recommended <strong>1500 × 600 px</strong> (5:2 ratio).
                         </p>
                       </div>
 
-                      {/* Gallery Images Section */}
+                      {/* Listing Photo */}
+                      <div className="space-y-2 pt-4 border-t border-border/40">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                          Listing Card Photo
+                        </label>
+                        <div className="flex items-start gap-4">
+                          {form.watch("listingPhoto") ? (
+                            <div className="relative w-32 aspect-square rounded-xl overflow-hidden bg-muted border border-border group shrink-0">
+                              <img src={form.watch("listingPhoto")} alt="Listing" className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => listingInputRef.current?.click()}
+                                  className="px-2 py-1 bg-primary text-primary-foreground font-black uppercase tracking-widest text-[8px] rounded-lg hover:scale-105 transition-all"
+                                >
+                                  Replace
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => form.setValue("listingPhoto", "")}
+                                  className="px-2 py-1 bg-destructive text-destructive-foreground font-black uppercase tracking-widest text-[8px] rounded-lg hover:scale-105 transition-all"
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => listingInputRef.current?.click()}
+                              disabled={listingUploading}
+                              className="w-32 aspect-square rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground flex flex-col items-center justify-center gap-2 transition-all hover:border-primary/40 group disabled:opacity-60 shrink-0"
+                            >
+                              {listingUploading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                              ) : (
+                                <>
+                                  <Upload className="h-5 w-5 group-hover:text-primary transition-colors" />
+                                  <span className="text-center group-hover:text-primary transition-colors">Upload Photo</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <p className="text-[10px] text-muted-foreground/70 italic font-medium mt-1">
+                            Square thumbnail shown on store listing cards — recommended <strong>800 × 800 px</strong> (1:1). Keep your subject centred.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Gallery Images */}
                       <div className="space-y-2.5 pt-4 border-t border-border/40">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                          Additional Gallery Photos ({Math.max(0, photoFields.length - 1)} / 5)
+                          Additional Gallery Photos ({photoFields.length} / 5)
                         </label>
-                        
-                        {photoFields.length > 1 && (
+
+                        {photoFields.length > 0 && (
                           <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                            {photoFields.slice(1).map((f, index) => {
-                              const actualIndex = index + 1;
-                              return (
-                                <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
-                                  <img src={form.watch(`photos.${actualIndex}` as any)} alt="" className="w-full h-full object-cover" />
-                                  <button
-                                    type="button"
-                                    onClick={() => removePhoto(actualIndex)}
-                                    className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
-                                </div>
-                              );
-                            })}
+                            {photoFields.map((f, index) => (
+                              <div key={f.id} className="relative aspect-square rounded-xl overflow-hidden bg-muted border border-border group">
+                                <img src={form.watch(`photos.${index}` as any)} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={() => removePhoto(index)}
+                                  className="absolute top-1.5 right-1.5 h-6 w-6 rounded-full bg-destructive/90 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         )}
-                        
+
                         <button
                           type="button"
-                          onClick={handleGalleryUpload}
-                          disabled={photoFields.length >= 6}
-                          className="w-full h-14 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 disabled:opacity-50 disabled:hover:bg-muted/20 disabled:cursor-not-allowed text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
+                          onClick={() => galleryInputRef.current?.click()}
+                          disabled={photoFields.length >= 5 || galleryUploading}
+                          className="w-full h-14 rounded-xl border-2 border-dashed border-border bg-muted/20 hover:bg-muted/40 disabled:opacity-50 disabled:cursor-not-allowed text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-2 transition-colors"
                         >
-                          <Upload className="h-4 w-4" /> Upload Gallery Photos via Cloudinary
+                          {galleryUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <><Upload className="h-4 w-4" /> Upload Additional Photos (max 5)</>
+                          )}
                         </button>
+                        <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
+                          Shown in the in-page photo strip — any size, landscape works best.
+                        </p>
                       </div>
 
                     </CardContent>

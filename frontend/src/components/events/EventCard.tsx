@@ -20,7 +20,7 @@ const formatViews = (viewCount?: number) => {
   return baseViews.toString();
 };
 
-const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: EventCardProps) => {
+const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const formatDate = (dateString: string, nextOccurrence?: string) => {
@@ -67,6 +67,7 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: Eve
 
   const soldPercentage = totalCapacity > 0 ? (totalSold / totalCapacity) * 100 : 0;
   const isPast = event.isActive === false || event.status === 'past';
+  const imageSrc = event.image || getCategoryImage(event.category);
 
   return (
     <div
@@ -86,20 +87,26 @@ const EventCard = ({ event, index = 0, imageRatio = "3/4", mobile = false }: Eve
       >
         <article className="h-full flex flex-col">
           <div
-            className="relative overflow-hidden flex-shrink-0"
+            className="relative overflow-hidden flex-shrink-0 bg-zinc-900"
             style={{ aspectRatio: imageRatio }}
           >
+            {/* Blurred backdrop — fills empty space for any aspect ratio */}
+            <img
+              src={imageSrc}
+              aria-hidden
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40 pointer-events-none"
+            />
+
             {!imageLoaded && (
-              <div className="absolute inset-0 bg-muted flex items-center justify-center">
-                <ImageIcon className="h-8 w-8 text-muted-foreground/20" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer bg-[length:200%_100%]" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <ImageIcon className="h-8 w-8 text-white/20" />
               </div>
             )}
 
             <SafeImage
-              src={event.image || getCategoryImage(event.category)}
+              src={imageSrc}
               alt={event.title}
-              className={`w-full h-full object-cover transition-all duration-500 ease-out-expo group-hover:scale-[1.06] ${
+              className={`relative w-full h-full object-contain transition-all duration-500 ease-out-expo group-hover:scale-[1.04] ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}

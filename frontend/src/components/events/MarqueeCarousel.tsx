@@ -160,7 +160,7 @@ const MarqueeCarousel = ({ events, pauseOnHover = true }: MarqueeCarouselProps) 
               !isStatic && hasMoved.current && "pointer-events-none"
             )}
           >
-            <EventCard event={event} index={index} imageRatio="3/4" />
+            <EventCard event={event} index={index} imageRatio="4/5" />
           </div>
         ))}
       </div>

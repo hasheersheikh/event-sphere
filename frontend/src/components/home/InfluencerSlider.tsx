@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Star, Loader2, ArrowRight, Instagram, ExternalLink } from "lucide-react";
+import { Star, Loader2, ArrowRight } from "lucide-react";
 import api from "@/lib/api";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import React from "react";
 import { Badge } from "@/components/ui/badge";
 
 interface Influencer {
@@ -64,7 +63,7 @@ const InfluencerSlider = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const scrollAmount = isMobile ? 260 : 320;
+    const scrollAmount = isMobile ? 270 : 320;
     container.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
@@ -73,11 +72,11 @@ const InfluencerSlider = () => {
 
   if (isLoading) {
     return (
-      <section className="py-12 border-t border-border/20">
-        <div className="container">
-          <div className="flex flex-col items-center gap-4 py-16">
-            <Loader2 className="h-8 w-8 text-primary animate-spin" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Syncing with creator network...</p>
+      <section className="py-8 md:py-12 border-t border-border/20">
+        <div className="container px-3 md:px-4">
+          <div className="flex flex-col items-center gap-3 md:gap-4 py-12 md:py-16">
+            <Loader2 className="h-7 w-7 md:h-8 md:w-8 text-primary animate-spin" />
+            <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground italic text-center">Syncing with creator network...</p>
           </div>
         </div>
       </section>
@@ -87,32 +86,32 @@ const InfluencerSlider = () => {
   if (!influencers || influencers.length === 0) return null;
 
   return (
-    <section className="py-12 border-t border-border/20">
-      <div className="container">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <section className="py-8 md:py-12 border-t border-border/20">
+      <div className="container px-3 md:px-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-8 gap-3 md:gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="h-4 w-4 text-primary fill-primary/20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em]">
+            <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
+              <Star className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary fill-primary/20" />
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.35em] md:tracking-[0.4em]">
                 Elite Creator Network
               </p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tighter">
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tighter">
               Pulse <span className="text-primary">Influencers</span>
             </h2>
           </div>
           <Link
             to="/boost"
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors group"
+            className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors group self-start md:self-auto"
           >
-            Marketing Portal <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+            Marketing Portal <ArrowRight className="h-2.5 w-2.5 md:h-3 md:w-3 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+            className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           >
             {influencers.map((inf, idx) => (
               <motion.div
@@ -122,81 +121,58 @@ const InfluencerSlider = () => {
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
                 whileHover={{ y: -8 }}
-                className="flex-shrink-0 w-64 md:w-72 flex flex-col h-full"
+                className="flex-shrink-0 w-56 sm:w-60 md:w-72 flex flex-col h-full"
               >
-                <div className="relative group bg-card/40 backdrop-blur-md border border-border/60 rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-primary/40 flex flex-col h-full">
+                <div
+                  onClick={() => inf.instagramUrl && window.open(inf.instagramUrl, "_blank", "noopener,noreferrer")}
+                  className={`relative group bg-card/40 backdrop-blur-md border border-border/60 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-primary/40 flex flex-col h-full ${inf.instagramUrl ? "cursor-pointer" : ""}`}
+                >
                   {/* Card Image Cover */}
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted/20">
                     <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent z-10" />
-                    
-                    <img 
-                      src={inf.image} 
-                      alt={inf.name} 
+
+                    <img
+                      src={inf.image}
+                      alt={inf.name}
                       className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
 
                     {/* Category Badge */}
-                    <div className="absolute top-4 left-4 z-20">
-                      <Badge className="bg-primary text-primary-foreground font-extrabold uppercase text-[8px] tracking-[0.15em] px-3 py-1.5 rounded-full border border-primary/20 shadow-md">
-                        {inf.category || 'Other'}
+                    <div className="absolute top-3 left-3 z-20">
+                      <Badge className="bg-primary text-primary-foreground font-extrabold uppercase text-[7px] md:text-[8px] tracking-[0.15em] px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border border-primary/20 shadow-md">
+                        {inf.category || "Other"}
                       </Badge>
                     </div>
 
                     {/* Reach Badge */}
-                    <div className="absolute top-4 right-4 z-20">
-                      <Badge variant="outline" className="bg-background/80 backdrop-blur-md text-foreground font-black uppercase text-[8px] tracking-[0.1em] px-3 py-1.5 rounded-full border border-border/50 shadow-md">
+                    <div className="absolute top-3 right-3 z-20">
+                      <Badge variant="outline" className="bg-background/80 backdrop-blur-md text-foreground font-black uppercase text-[7px] md:text-[8px] tracking-[0.1em] px-2.5 md:px-3 py-1 md:py-1.5 rounded-full border border-border/50 shadow-md">
                         {inf.reach} REACH
                       </Badge>
                     </div>
 
-                    {/* Star overlay badge */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-black h-12 w-12 rounded-full flex items-center justify-center shadow-2xl z-20 border-4 border-background opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500">
-                      <Star className="h-5 w-5 fill-black" />
+                    {/* Star overlay on hover */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-black h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center shadow-2xl z-20 border-4 border-background opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500">
+                      <Star className="h-4 w-4 md:h-5 md:w-5 fill-black" />
                     </div>
 
-                    {/* Text overlay on image bottom */}
-                    <div className="absolute bottom-4 left-5 right-5 z-20">
-                      <h4 className="text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">
+                    {/* Name + handle overlay */}
+                    <div className="absolute bottom-3 left-4 right-4 z-20">
+                      <h4 className="text-base md:text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">
                         {inf.name}
                       </h4>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-[10px] font-black text-primary uppercase tracking-widest">
-                          {inf.handle}
-                        </p>
-                        {inf.instagramUrl && (
-                          <a 
-                            href={inf.instagramUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-muted-foreground hover:text-primary transition-colors"
-                            title="View Instagram"
-                          >
-                            <Instagram className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
+                      <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest mt-0.5 md:mt-1">
+                        {inf.handle}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Card bottom details */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-black text-muted-foreground uppercase tracking-widest">Niche</span>
-                      <span className="font-extrabold text-foreground uppercase tracking-tight italic bg-muted/60 px-3 py-1 rounded-lg">
-                        {inf.niche}
-                      </span>
-                    </div>
-
-                    {inf.instagramUrl && (
-                      <a 
-                        href={inf.instagramUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full h-10 rounded-xl bg-muted/40 hover:bg-primary border border-border/50 hover:border-transparent text-muted-foreground hover:text-primary-foreground transition-all text-[9px] font-black uppercase tracking-widest duration-300"
-                      >
-                        Instagram Profile <ExternalLink className="h-3 w-3" />
-                      </a>
-                    )}
+                  {/* Card bottom: niche only */}
+                  <div className="p-4 md:p-5 flex items-center justify-between text-[9px] md:text-[10px]">
+                    <span className="font-black text-muted-foreground uppercase tracking-widest text-[8px] md:text-[10px]">Niche</span>
+                    <span className="font-extrabold text-foreground uppercase tracking-tight italic bg-muted/60 px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[9px] md:text-[10px]">
+                      {inf.niche}
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -206,20 +182,20 @@ const InfluencerSlider = () => {
           {canScrollLeft && (
             <button
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-9 w-9 md:h-10 md:w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
             </button>
           )}
 
           {canScrollRight && (
             <button
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-9 w-9 md:h-10 md:w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
               aria-label="Scroll right"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
             </button>
           )}
         </div>

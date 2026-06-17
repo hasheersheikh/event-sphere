@@ -134,14 +134,6 @@ const Navbar = () => {
 
         {/* ── Mobile right actions ── */}
         <div className="flex md:hidden items-center gap-1.5">
-          <Link
-            to="/events"
-            className="h-9 w-9 rounded-lg flex items-center justify-center text-foreground/60 hover:text-foreground hover:bg-muted/60 transition-all"
-            aria-label="Discover events"
-          >
-            <Search className="h-4 w-4" />
-          </Link>
-
           {totalItems > 0 && (
             <button
               type="button"

@@ -604,6 +604,9 @@ const CreateEventPage = () => {
                           {form.formState.errors.image && (
                             <p className="text-[11px] text-destructive font-medium">{form.formState.errors.image.message}</p>
                           )}
+                          <p className="text-[10px] text-muted-foreground/60">
+                            Use your Instagram post photo — 4:5 portrait (1080 × 1350 px). This is the standard Instagram feed size, so no separate photo needed.
+                          </p>
                         </div>
                       </div>
 

@@ -14,6 +14,8 @@ export interface ILocalStore extends Document {
   name: string;
   address: string;
   description?: string;
+  bannerPhoto?: string;
+  listingPhoto?: string;
   photos: string[];
   category: string;
   products: IProduct[];
@@ -55,6 +57,8 @@ const LocalStoreSchema = new Schema(
     name: { type: String, required: true },
     address: { type: String, required: true },
     description: { type: String },
+    bannerPhoto: { type: String },
+    listingPhoto: { type: String },
     photos: [{ type: String }],
     category: { type: String, default: 'General' },
     products: [ProductSchema],

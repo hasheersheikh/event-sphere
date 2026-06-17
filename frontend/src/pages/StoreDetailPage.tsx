@@ -37,7 +37,7 @@ const StoreDetailPage = () => {
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
         <main className="flex-1 container py-24 space-y-8">
-          <div className="h-72 w-full bg-muted animate-pulse rounded-[2rem]" />
+          <div className="h-52 md:h-72 w-full bg-muted animate-pulse" />
           <div className="h-8 w-48 bg-muted animate-pulse rounded-full" />
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array(6).fill(0).map((_, i) => (
@@ -75,21 +75,21 @@ const StoreDetailPage = () => {
       <Navbar />
 
       <main className="flex-1 relative z-10">
-        {/* Hero image — full, no crop */}
-        <div className="relative w-full">
-          {store.photos?.[0] ? (
+        {/* Hero banner — fixed height with blurred backdrop */}
+        <div className="relative w-full h-52 md:h-72 bg-zinc-900 overflow-hidden">
+          {(store.bannerPhoto || store.photos?.[0]) ? (
             <img
-              src={store.photos[0]}
+              src={store.bannerPhoto || store.photos[0]}
               alt={store.name}
-              className="w-full h-auto block"
+              className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-64 bg-gradient-to-br from-neon-lime/10 via-muted/30 to-background flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-neon-lime/10 via-muted/30 to-background flex items-center justify-center">
               <Store className="h-24 w-24 text-neon-lime/10" />
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
-          <div className="absolute top-6 left-0 right-0 container">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+          <div className="absolute top-4 left-0 right-0 container">
             <Link
               to="/local-stores"
               className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest bg-background/60 backdrop-blur-md border border-border/50 text-foreground hover:text-neon-lime px-4 py-2 rounded-xl transition-colors"
@@ -100,8 +100,8 @@ const StoreDetailPage = () => {
           </div>
         </div>
 
-        {/* Store Identity — pulled up 30% into the image via negative margin */}
-        <div className="container -mt-[50%] relative z-20 pb-4">
+        {/* Store Identity — overlaps bottom of banner by a fixed amount */}
+        <div className="container -mt-10 md:-mt-14 relative z-20 pb-4">
           <div className="bg-card/80 backdrop-blur-lg border border-border/60 rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden">
             <div className="absolute -right-24 -top-24 h-48 w-48 rounded-full bg-neon-lime/10 blur-[80px] pointer-events-none" />
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">

@@ -164,7 +164,7 @@ const ListYourEventPage = () => {
 
               {/* Stats row */}
               <motion.div
-                className="flex flex-wrap items-center justify-center gap-12 mt-16 pt-12 border-t border-border/20"
+                className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:gap-12 mt-10 md:mt-16 pt-8 md:pt-12 border-t border-border/20"
                 {...fadeUp(0.22)}
               >
                 {[
@@ -290,7 +290,7 @@ const ListYourEventPage = () => {
                   className="border border-border/30 rounded-2xl overflow-hidden hover:border-neon-lime/20 transition-colors"
                 >
                   <button
-                    className="w-full flex items-center justify-between px-8 py-6 text-left gap-6 hover:bg-card transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-4 md:px-8 md:py-6 text-left gap-4 md:gap-6 hover:bg-card transition-colors"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   >
                     <span className="font-black text-base md:text-lg tracking-tight">{faq.q}</span>
@@ -306,7 +306,7 @@ const ListYourEventPage = () => {
                       openFaq === i ? "max-h-48" : "max-h-0"
                     )}
                   >
-                    <p className="px-8 pb-6 text-sm md:text-base text-muted-foreground leading-relaxed">
+                    <p className="px-4 pb-4 md:px-8 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed">
                       {faq.a}
                     </p>
                   </div>
@@ -319,7 +319,7 @@ const ListYourEventPage = () => {
           <section className="pt-20 md:pt-28">
             <motion.div
               {...fadeUp(0)}
-              className="bg-neon-lime rounded-[3rem] p-14 md:p-20 text-black relative overflow-hidden group"
+              className="bg-neon-lime rounded-[2rem] md:rounded-[3rem] p-8 md:p-20 text-black relative overflow-hidden group"
             >
               <div className="absolute top-0 right-0 p-16 opacity-10 rotate-12 transition-transform group-hover:rotate-0 pointer-events-none">
                 <TicketIcon size={280} />

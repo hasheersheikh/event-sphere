@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, MapPin, X, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown } from "lucide-react";
+import { Search, X, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import EventCard from "@/components/events/EventCard";
@@ -130,34 +130,36 @@ const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
-  const [locationFilter, setLocationFilter] = useState(searchParams.get("location") || "");
   const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [sortOpen, setSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { selectedCity } = useCity();
+  const sortRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category") || "");
     setSearchQuery(searchParams.get("q") || "");
-    setLocationFilter(searchParams.get("location") || "");
   }, [searchParams]);
 
   useEffect(() => {
     if (!sortOpen) return;
-    const close = () => setSortOpen(false);
+    const close = (e: MouseEvent) => {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setSortOpen(false);
+      }
+    };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [sortOpen]);
 
   const { data: apiEvents, isLoading } = useQuery({
-    queryKey: ["events", searchQuery, selectedCategory, locationFilter, selectedCity],
+    queryKey: ["events", searchQuery, selectedCategory, selectedCity],
     queryFn: async () => {
       const { data } = await api.get("/events", {
         params: {
           q: searchQuery,
           category: selectedCategory,
-          location: locationFilter,
           city: selectedCity || undefined,
         },
       });
@@ -181,20 +183,18 @@ const EventsPage = () => {
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
     if (selectedCategory) params.set("category", selectedCategory);
-    if (locationFilter) params.set("location", locationFilter);
     setSearchParams(params);
   };
 
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCategory("");
-    setLocationFilter("");
     setDateFilter("all");
     setSortBy("default");
     setSearchParams({});
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || locationFilter || dateFilter !== "all" || sortBy !== "default";
+  const hasActiveFilters = searchQuery || selectedCategory || dateFilter !== "all" || sortBy !== "default";
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -203,7 +203,7 @@ const EventsPage = () => {
       <main className="flex-1 pt-14 md:pt-16">
 
         {/* ─── Page header ─────────────────────────────────────────────── */}
-        <section className="border-b border-border/20 py-10 md:py-14 relative overflow-hidden">
+        <section className="border-b border-border/20 py-2 md:py-14 relative overflow-hidden">
           {/* Decorative Mic Graphic */}
           <motion.div
             initial={{ opacity: 0, x: 100, rotate: 15 }}
@@ -218,20 +218,20 @@ const EventsPage = () => {
             />
           </motion.div>
 
-          <div className="container relative z-10">
+          <div className="container relative z-10 px-3 md:px-4">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-7"
+              className="mb-4 md:mb-7"
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-2">
+              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-muted-foreground mb-1 md:mb-2">
                 Discover
               </p>
-              <h1 className="font-display text-4xl md:text-6xl font-black tracking-tighter leading-[0.88]">
+              <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter leading-[0.88]">
                 Events
                 {!isLoading && displayEvents.length > 0 && (
-                  <span className="text-muted-foreground/30 ml-3 text-2xl md:text-3xl font-bold">
+                  <span className="text-muted-foreground/30 ml-2 md:ml-3 text-lg sm:text-2xl md:text-3xl font-bold">
                     {displayEvents.length}
                   </span>
                 )}
@@ -244,35 +244,25 @@ const EventsPage = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.06, duration: 0.4 }}
-              className="flex flex-col sm:flex-row gap-2 max-w-2xl"
+              className="flex flex-row items-center gap-2 max-w-2xl"
             >
-              <div className="flex flex-col sm:flex-row items-stretch gap-2 flex-1 p-1.5 bg-card border border-border/50 rounded-2xl">
+              <div className="flex flex-row items-center gap-1 flex-1 p-1 md:p-1.5 bg-card border border-border/50 rounded-xl md:rounded-2xl">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+                  <Search className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground/50" />
                   <Input
                     type="text"
                     placeholder="Search events…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-10 pl-10 bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
-                  />
-                </div>
-                <div className="hidden sm:block w-px self-stretch my-2 bg-border/40" />
-                <div className="relative sm:w-48">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-                  <Input
-                    type="text"
-                    placeholder="Location…"
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    className="h-10 pl-10 bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
+                    className="h-9 md:h-10 pl-9 md:pl-10 bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
                   />
                 </div>
                 <Button
                   type="submit"
-                  className="h-10 px-5 rounded-xl font-black uppercase tracking-widest text-[10px] bg-foreground text-background hover:bg-foreground/90 shrink-0"
+                  aria-label="Search"
+                  className="h-9 md:h-10 w-9 md:w-10 rounded-lg md:rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0 p-0 flex items-center justify-center"
                 >
-                  Search
+                  <Search className="h-3.5 md:h-4 w-3.5 md:w-4" />
                 </Button>
               </div>
               {hasActiveFilters && (
@@ -280,9 +270,9 @@ const EventsPage = () => {
                   type="button"
                   variant="ghost"
                   onClick={clearFilters}
-                  className="h-10 self-center px-4 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 text-[11px] font-bold shrink-0 transition-all"
+                  className="hidden sm:flex h-9 md:h-10 self-center px-3 md:px-4 rounded-lg md:rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-[10px] md:text-[11px] font-bold shrink-0 transition-all"
                 >
-                  <X className="h-4 w-4 mr-1" /> Clear all
+                  <X className="h-3.5 md:h-4 w-3.5 md:w-4 mr-0.5 md:mr-1" /> <span className="hidden sm:inline">Clear all</span>
                 </Button>
               )}
             </motion.form>
@@ -290,8 +280,8 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Category pills (sticky) ──────────────────────────────────── */}
-        <section className="border-b border-border/20 py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
-          <div className="container">
+        <section className="border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
+          <div className="container px-3 md:px-4">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               <button
                 onClick={() => {
@@ -301,7 +291,7 @@ const EventsPage = () => {
                   setSearchParams(params);
                 }}
                 className={cn(
-                  "whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
+                  "whitespace-nowrap px-3.5 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
                   !selectedCategory
                     ? "bg-foreground border-foreground text-background"
                     : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
@@ -321,13 +311,13 @@ const EventsPage = () => {
                     setSearchParams(params);
                   }}
                   className={cn(
-                    "whitespace-nowrap px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0 flex items-center gap-1.5",
+                    "whitespace-nowrap px-3.5 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0 flex items-center gap-1 md:gap-1.5",
                     selectedCategory === cat.name
                       ? "bg-foreground border-foreground text-background"
                       : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
                   )}
                 >
-                  <span>{cat.icon}</span>
+                  <span className="text-xs md:text-sm">{cat.icon}</span>
                   {cat.name}
                 </button>
               ))}
@@ -336,16 +326,16 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Date filter + view toggle ────────────────────────────────── */}
-        <section className="border-b border-border/10 py-2.5">
-          <div className="container flex items-center justify-between gap-4">
+        <section className="border-b border-border/10 py-2 md:py-2.5">
+          <div className="container px-3 md:px-4 flex items-center justify-between gap-3 md:gap-4">
             {/* Date tabs */}
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto scrollbar-hide">
               {DATE_FILTERS.map((f) => (
                 <button
                   key={f.id}
                   onClick={() => setDateFilter(f.id)}
                   className={cn(
-                    "whitespace-nowrap px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-150 shrink-0",
+                    "whitespace-nowrap px-2.5 md:px-3.5 py-1 md:py-1.5 rounded-lg text-[9px] md:text-[10px] font-bold uppercase tracking-widest transition-all duration-150 shrink-0",
                     dateFilter === f.id
                       ? "bg-foreground/8 text-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -356,20 +346,22 @@ const EventsPage = () => {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
               {/* Sort by price */}
-              <div className="relative">
+              <div className="relative" ref={sortRef}>
                 <button
                   onClick={() => setSortOpen((v) => !v)}
                   className={cn(
-                    "h-7 px-3 flex items-center gap-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-colors duration-150",
+                    "h-7 px-2 md:px-3 flex items-center gap-1 md:gap-1.5 rounded-lg border text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-colors duration-150",
                     sortBy !== "default"
                       ? "border-foreground bg-foreground text-background"
                       : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
                   )}
                 >
-                  <ArrowUpDown className="h-3 w-3" />
-                  {sortBy === "price-asc" ? "Price ↑" : sortBy === "price-desc" ? "Price ↓" : "Sort"}
+                  <ArrowUpDown className="h-2.5 md:h-3 w-2.5 md:w-3" />
+                  <span className="hidden sm:inline">
+                    {sortBy === "price-asc" ? "Price ↑" : sortBy === "price-desc" ? "Price ↓" : "Sort"}
+                  </span>
                 </button>
                 {sortOpen && (
                   <div className="absolute right-0 top-9 z-50 w-44 rounded-xl border border-border/60 bg-background shadow-xl overflow-hidden">
@@ -394,7 +386,7 @@ const EventsPage = () => {
               </div>
 
               {/* View toggle */}
-            <div className="flex items-center gap-0.5 border border-border/40 rounded-lg p-0.5 shrink-0">
+            <div className="flex items-center gap-0 border border-border/40 rounded-lg p-0.5 shrink-0">
               <button
                 onClick={() => setViewMode("grid")}
                 className={cn(
@@ -421,12 +413,12 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Results ─────────────────────────────────────────────────── */}
-        <section className="container py-8">
+        <section className="container py-4 md:py-8 px-3 md:px-4">
           {isLoading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 10 }).map((_, i) => (
                 <div key={i} className="space-y-3">
-                  <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+                  <Skeleton className="aspect-[4/5] w-full rounded-xl" />
                   <Skeleton className="h-2.5 w-20 rounded" />
                   <Skeleton className="h-4 w-full rounded" />
                   <Skeleton className="h-3 w-28 rounded" />
@@ -435,7 +427,7 @@ const EventsPage = () => {
             </div>
           ) : displayEvents.length > 0 ? (
             viewMode === "grid" ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
                 {displayEvents.map((event, index) => (
                   <EventCard key={event._id} event={event} index={index} />
                 ))}
@@ -448,18 +440,18 @@ const EventsPage = () => {
               </div>
             )
           ) : (
-            <div className="py-24 text-center space-y-6 border border-dashed border-border/50 rounded-2xl">
-              <Search className="h-10 w-10 text-muted-foreground/20 mx-auto" />
+            <div className="py-16 md:py-24 text-center space-y-4 md:space-y-6 border border-dashed border-border/50 rounded-2xl">
+              <Search className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground/20 mx-auto" />
               <div className="space-y-2">
-                <h3 className="text-xl font-black tracking-tighter">No events found</h3>
-                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                <h3 className="text-lg md:text-xl font-black tracking-tighter">No events found</h3>
+                <p className="text-muted-foreground text-xs md:text-sm max-w-xs mx-auto">
                   Try a different date range, category, or clear your filters.
                 </p>
               </div>
               <Button
                 onClick={clearFilters}
                 variant="outline"
-                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-10 px-6 hover:bg-primary/10 hover:text-primary border-border/50 hover:border-primary/30 transition-all"
+                className="rounded-xl font-black uppercase tracking-widest text-[10px] h-9 md:h-10 px-5 md:px-6 hover:bg-primary/10 hover:text-primary border-border/50 hover:border-primary/30 transition-all"
               >
                 Clear Filters
               </Button>

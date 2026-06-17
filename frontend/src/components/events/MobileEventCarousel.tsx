@@ -110,11 +110,17 @@ const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
               >
               <div className="rounded-2xl overflow-hidden bg-card border border-border/30 shadow-sm">
                 {/* Poster */}
-                <div className="relative" style={{ aspectRatio: "3/4" }}>
+                <div className="relative bg-zinc-900" style={{ aspectRatio: "4/5" }}>
+                  {/* Blurred backdrop */}
+                  <img
+                    src={event.image || getCategoryImage(event.category)}
+                    aria-hidden
+                    className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40 pointer-events-none"
+                  />
                   <SafeImage
                     src={event.image || getCategoryImage(event.category)}
                     alt={event.title}
-                    className="w-full h-full object-cover"
+                    className="relative w-full h-full object-contain"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 

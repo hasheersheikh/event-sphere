@@ -76,6 +76,7 @@ import HeroManagementPage from "./pages/admin/HeroManagementPage";
 import RefundManagementPage from "./pages/admin/RefundManagementPage";
 import InfluencerManagementPage from "./pages/admin/InfluencerManagementPage";
 import TrendingVenueManagementPage from "./pages/admin/TrendingVenueManagementPage";
+import ShowcaseManagementPage from "./pages/admin/ShowcaseManagementPage";
 import BoostMarketingPage from "./pages/manager/BoostMarketingPage";
 import BoostRequestPage from "./pages/manager/BoostRequestPage";
 import ListYourEventPage from "./pages/ListYourEventPage";
@@ -298,6 +299,7 @@ const AppContent = () => {
                   <Route path="admin/trending-venues" element={<TrendingVenueManagementPage />} />
                   <Route path="admin/refunds" element={<RefundManagementPage />} />
                   <Route path="admin/influencers" element={<InfluencerManagementPage />} />
+                  <Route path="admin/showcase" element={<ShowcaseManagementPage />} />
                   <Route path="manager" element={<ManagerDashboard />} />
                   <Route path="manager/payouts" element={<PayoutsPage />} />
                   <Route path="manager/analytics" element={<ManagerSalesAnalyticsPage />} />

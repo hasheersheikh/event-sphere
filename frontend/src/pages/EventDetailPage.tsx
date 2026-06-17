@@ -280,11 +280,17 @@ const EventDetailPage = () => {
 
             {/* Left Column: Image & Protection Info */}
             <div className="w-full md:w-[40%] space-y-6">
-              <div className="relative aspect-[4/3] sm:aspect-square w-full rounded-2xl overflow-hidden bg-muted shadow-xl group border border-border/50">
+              <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-zinc-900 shadow-xl group border border-border/50">
+                {/* Blurred backdrop fills the box so no black bars */}
+                <img
+                  src={event.image || getCategoryImage(event.category)}
+                  aria-hidden
+                  className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-40 pointer-events-none"
+                />
                 <SafeImage
                   src={event.image || getCategoryImage(event.category)}
                   alt={event.title}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain"
                 />
 
                 {/* Share Button Overlay */}
@@ -804,7 +810,7 @@ const EventDetailPage = () => {
                           transition={{ delay: idx * 0.1, duration: 0.4 }}
                         >
                           <Link to={`/events/${similarEvent._id}`} className="block group">
-                            <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
+                            <div className="relative aspect-[4/5] rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
                               <img
                                 src={similarEvent.image || getCategoryImage(similarEvent.category)}
                                 alt={similarEvent.title}
