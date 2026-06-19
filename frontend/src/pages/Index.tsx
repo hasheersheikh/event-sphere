@@ -245,7 +245,7 @@ Discover what's happening around you with City Pulse.              </motion.p>
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
                     <Input
                       type="text"
-                      placeholder="Search events…"
+                      placeholder="Best events in the city, instantly"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="h-10 pl-9 bg-transparent border-none focus-visible:ring-0 text-sm"
@@ -400,11 +400,11 @@ Discover what's happening around you with City Pulse.              </motion.p>
                 )}
                 <div className="relative z-10 max-w-2xl mx-auto px-6">
                   <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3 leading-tight">
-                    Are You An{" "}
-                    <span className="text-neon-lime">Event Organiser?</span>
+                    We Help you to{" "}
+                    <span className="text-neon-lime">catch the City Pulse</span>
                   </h2>
                   <p className="text-zinc-400 text-sm mb-8">
-                    Get your event live and selling in minutes
+                    Create, manage, and sell out your events with ease
                   </p>
                   <Link to="/list-your-event">
                     <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
@@ -414,21 +414,21 @@ Discover what's happening around you with City Pulse.              </motion.p>
                 </div>
               </div>
 
-              {/* How it Works */}
+              {/* For Creators & Organizers */}
               <div className="bg-zinc-900 border-t border-border/20 py-16 text-center px-6">
                 <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 mb-3">
-                  How it works
+                  For Creators & Organizers
                 </p>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-14 leading-tight">
-                  Discovering Events Made{" "}
-                  <span className="text-neon-lime">Simple</span>
+                  The City{" "}
+                  <span className="text-neon-lime">Experience</span>
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto mb-12">
                   {[
-                    { n: 1, title: "Browse Your", accent: "City", desc: "Explore upcoming events near you, filtered by vibe, date, or genre" },
-                    { n: 2, title: "Book Your", accent: "Tickets", desc: "Secure your spot in a few taps — no queues, no hassle" },
-                    { n: 3, title: "Show Up &", accent: "Enjoy", desc: "Scan in at the door and make a night to remember" },
+                    { n: 1, title: "Discover Events", accent: "you like", desc: "Find the absolute best concerts, secret parties, and local workshops happening right around you." },
+                    { n: 2, title: "Book Your", accent: "Spot", desc: "Purchase tickets instantly with secure one-tap checkout. No booking fees, no complications." },
+                    { n: 3, title: "Get Memories", accent: "& Friends", desc: "Attend events, share vibes with awesome folks, and bring home epic memories that last forever." },
                   ].map(({ n, title, accent, desc }, i) => (
                     <motion.div
                       key={n}
@@ -449,11 +449,19 @@ Discover what's happening around you with City Pulse.              </motion.p>
                   ))}
                 </div>
 
-                <Link to="/events">
-                  <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
-                    Explore Events
-                  </Button>
-                </Link>
+                <div className="max-w-3xl mx-auto space-y-4 pt-4">
+                  <h3 className="text-lg md:text-xl font-black text-white leading-tight">
+                    List Your Events, Venues, Stores/ Artists, Adventure Camps, and Sports Activities
+                  </h3>
+                  <p className="text-zinc-400 text-sm md:text-base italic">
+                    Less than 2 Minutes and maximize your Impact
+                  </p>
+                  <Link to="/list-your-event" className="inline-block">
+                    <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
+                      Try Listing Now
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </div>

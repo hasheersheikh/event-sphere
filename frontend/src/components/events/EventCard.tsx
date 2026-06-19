@@ -71,7 +71,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
 
   return (
     <div
-      className="group h-full"
+      className="group h-full transition-transform duration-300 ease-out hover:scale-105"
       style={{
         animationDelay: `${index * 60}ms`,
       }}
@@ -79,7 +79,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
       <Link
         to={`/events/${event._id}`}
         className={cn(
-          "block h-full overflow-hidden transition-all duration-300 ease-out-expo",
+          "block h-full transition-all duration-300 ease-out-expo relative",
           mobile
             ? "rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
             : "rounded-2xl bg-card border border-border/30 hover:border-border hover:shadow-lg"
@@ -87,7 +87,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
       >
         <article className="h-full flex flex-col">
           <div
-            className="relative overflow-hidden flex-shrink-0 bg-zinc-900"
+            className="relative overflow-hidden flex-shrink-0 bg-zinc-900 rounded-t-2xl"
             style={{ aspectRatio: imageRatio }}
           >
             {/* Blurred backdrop — fills empty space for any aspect ratio */}
@@ -148,7 +148,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
 
           <div className="p-3.5 flex flex-col gap-2 flex-1">
             <h3 className={cn(
-              "font-extrabold tracking-tight leading-snug text-foreground group-hover:text-foreground/80 transition-colors duration-200 line-clamp-2",
+              "font-extrabold tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2",
               mobile ? "text-[16px]" : "text-[13px]"
             )}>
               {event.title}
@@ -179,8 +179,8 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
               "flex items-center gap-1 text-muted-foreground mt-auto",
               mobile ? "pt-2" : "pt-1 border-t border-border/10"
             )}>
-              <MapPin className={cn("shrink-0", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
-              <p className={cn("font-medium line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
+              <MapPin className={cn("shrink-0 text-primary", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
+              <p className={cn("font-bold text-primary line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
                 {formatDate(event.date, event.nextOccurrence)} | {typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||

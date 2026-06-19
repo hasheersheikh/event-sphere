@@ -34,6 +34,7 @@ const Navbar = () => {
     { href: "/local-stores", label: "Stores" },
     { href: "/boost", label: "Marketing" },
     ...(FEATURES.ENABLE_BLOGS ? [{ href: "/blog", label: "Blog" }] : []),
+    { href: "/list-your-event", label: "List Your Event" },
     { href: "/about", label: "About" },
   ];
 
