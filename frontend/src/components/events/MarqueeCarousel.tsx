@@ -1,94 +1,86 @@
 import { Event } from "@/types/event";
 import EventCard from "@/components/events/EventCard";
-import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useRef, useState, useEffect } from "react";
+
+const SPEED = 40; // px per second
 
 interface MarqueeCarouselProps {
   events: Event[];
-  speed?: number;
-  direction?: "left" | "right";
-  pauseOnHover?: boolean;
 }
 
-const SPEED = 35; // px/s
-
-const MarqueeCarousel = ({ events, pauseOnHover = true }: MarqueeCarouselProps) => {
+const MarqueeCarousel = ({ events }: MarqueeCarouselProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const isPaused = useRef(false);
   const animRef = useRef<number>();
-  const posRef = useRef(0);
-  const lastTimeRef = useRef(0);
-  const [isStatic, setIsStatic] = useState(false);
+  const lastTsRef = useRef(0);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollStart = useRef(0);
+  const hasMoved = useRef(false);
+  const [grabbing, setGrabbing] = useState(false);
 
-  // check if content fits — if so, no animation
   useEffect(() => {
-    const check = () => {
-      const wrapper = wrapperRef.current;
-      const inner = innerRef.current;
-      if (!wrapper || inner) return;
-      setIsStatic(inner.scrollWidth <= wrapper.clientWidth + 1);
-    };
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, [events.length]);
-
-  // auto-scroll animation
-  useEffect(() => {
-    if (isStatic) return;
-
-    const animate = (ts: number) => {
-      if (lastTimeRef.current === 0) lastTimeRef.current = ts;
-      const delta = ts - lastTimeRef.current;
-
-      if (!isPaused.current && delta > 0) {
+    const tick = (ts: number) => {
+      if (!isDragging.current) {
         const wrapper = wrapperRef.current;
-        const inner = innerRef.current;
-        if (wrapper && inner) {
-          const maxScroll = inner.scrollWidth - wrapper.clientWidth;
-          posRef.current -= (delta / 1000) * SPEED;
-          if (posRef.current < -maxScroll) posRef.current = 0;
-          inner.style.transform = `translateX(${posRef.current}px)`;
+        if (wrapper) {
+          const delta = lastTsRef.current ? ts - lastTsRef.current : 0;
+          wrapper.scrollLeft += (SPEED * delta) / 1000;
+          // Loop back seamlessly when reaching the end
+          if (wrapper.scrollLeft >= wrapper.scrollWidth - wrapper.clientWidth - 1) {
+            wrapper.scrollLeft = 0;
+          }
         }
       }
-
-      lastTimeRef.current = ts;
-      animRef.current = requestAnimationFrame(animate);
+      lastTsRef.current = ts;
+      animRef.current = requestAnimationFrame(tick);
     };
 
-    animRef.current = requestAnimationFrame(animate);
+    animRef.current = requestAnimationFrame(tick);
     return () => {
       if (animRef.current) cancelAnimationFrame(animRef.current);
-      lastTimeRef.current = 0;
     };
-  }, [isStatic]);
+  }, []);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    hasMoved.current = false;
+    startX.current = e.pageX;
+    scrollStart.current = wrapperRef.current?.scrollLeft ?? 0;
+    setGrabbing(true);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !wrapperRef.current) return;
+    const delta = e.pageX - startX.current;
+    if (Math.abs(delta) > 4) hasMoved.current = true;
+    wrapperRef.current.scrollLeft = scrollStart.current - delta;
+  };
+
+  const onMouseUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    lastTsRef.current = 0; // reset so next tick delta starts at 0, no jump
+    setGrabbing(false);
+  };
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (hasMoved.current) e.preventDefault();
+  };
 
   return (
     <div
       ref={wrapperRef}
-      className="overflow-hidden"
-      onMouseEnter={() => { if (pauseOnHover) isPaused.current = true; }}
-      onMouseLeave={() => {
-        if (pauseOnHover) {
-          isPaused.current = false;
-          lastTimeRef.current = 0;
-        }
-      }}
+      className="overflow-x-auto scrollbar-hide select-none"
+      style={{ cursor: grabbing ? "grabbing" : "grab" }}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      onClickCapture={onClickCapture}
     >
-      <div
-        ref={innerRef}
-        className={cn(
-          "flex gap-3 md:gap-6 py-8",
-          isStatic ? "justify-start" : ""
-        )}
-        style={{ transform: "translateX(0)", transition: "none" }}
-      >
+      <div className="flex gap-6 py-8 w-max">
         {events.map((event, index) => (
-          <div
-            key={event._id}
-            className="flex-shrink-0 w-[75vw] sm:w-64 md:w-72 relative"
-          >
+          <div key={event._id} className="w-72 flex-shrink-0">
             <EventCard event={event} index={index} imageRatio="4/5" />
           </div>
         ))}
