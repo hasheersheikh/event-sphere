@@ -16,15 +16,17 @@ import {
   ChevronDown,
   ChevronUp,
   Megaphone,
+  Globe2,
+  Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 20 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true },
-  transition: { delay, duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  transition: { delay, duration: 0.55, ease: [0.16, 1, 0.3, 1] },
 });
 
 const STEPS = [
@@ -90,7 +92,7 @@ const FEATURES = [
 const FAQS = [
   {
     q: "Is it free to list an event?",
-    a: "Yes — creating an account and listing your event is completely free. A small service fee applies only on paid ticket sales.",
+    a: "Yes — creating an account and listing your event is completely free. A commission applies only on paid ticket sales: 3% + GST if you list exclusively on City Pulse, or 5% + GST if you also sell on other platforms.",
   },
   {
     q: "How quickly can I go live?",
@@ -118,231 +120,348 @@ const ListYourEventPage = () => {
       <Navbar />
 
       <main className="flex-1 pt-16 md:pt-20">
-        <div className="max-w-[1440px] mx-auto px-4 md:px-8 space-y-0 pb-24">
 
-          {/* ── HERO ── */}
-          <section className="relative overflow-hidden pb-20 md:pb-28 border-b border-border/20 text-center">
-            <div className="relative z-10">
-              <motion.p
-                className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/50 mb-5"
-                {...fadeUp(0)}
-              >
-                For Organizers · City Pulse
-              </motion.p>
-              <motion.h1
-                className="font-display font-black leading-[0.85] tracking-tighter text-[clamp(3.5rem,10vw,8rem)] mb-6"
-                {...fadeUp(0.05)}
-              >
-                List Your<br />
-                <span className="text-neon-lime">Event.</span>
-              </motion.h1>
-              <motion.p
-                className="text-muted-foreground text-base md:text-xl leading-relaxed mb-10 max-w-2xl mx-auto"
-                {...fadeUp(0.1)}
-              >
-                Reach thousands of event-goers in your city. Sell tickets, manage
-                your crowd, and grow your audience — all on City Pulse.
-              </motion.p>
-              <motion.div
-                className="flex flex-col sm:flex-row gap-4 justify-center"
-                {...fadeUp(0.15)}
-              >
-                <Link to="/auth">
-                  <Button className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-neon-lime text-black hover:bg-[#D4FF00] hover:shadow-[0_8px_32px_rgba(180,255,0,0.4)] transition-all gap-2">
-                    Create Free Account <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <a href="#how-it-works">
-                  <Button
-                    variant="outline"
-                    className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[11px] border-border/40 hover:border-neon-lime/40 hover:text-neon-lime transition-all"
-                  >
-                    See How It Works
-                  </Button>
-                </a>
-              </motion.div>
+        {/* ── HERO ── */}
+        <section className="border-b border-border/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 pt-12 pb-14 md:pt-20 md:pb-20 text-center">
 
-              {/* Stats row */}
-              <motion.div
-                className="flex flex-wrap items-center justify-center gap-x-8 gap-y-6 md:gap-12 mt-10 md:mt-16 pt-8 md:pt-12 border-t border-border/20"
-                {...fadeUp(0.22)}
-              >
-                {[
-                  { value: "10K+", label: "Events Listed" },
-                  { value: "500K+", label: "Tickets Sold" },
-                  { value: "200+", label: "Cities" },
-                  { value: "4.9★", label: "Organizer Rating" },
-                ].map((s) => (
-                  <div key={s.label} className="text-center">
-                    <p className="font-display font-black text-4xl md:text-5xl tracking-tighter text-neon-lime">{s.value}</p>
-                    <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mt-1">{s.label}</p>
-                  </div>
-                ))}
-              </motion.div>
-            </div>
-          </section>
+            <motion.div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-muted/30 text-[9px] font-black uppercase tracking-[0.45em] text-muted-foreground mb-7"
+              {...fadeUp(0)}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-lime shrink-0" />
+              For Organizers · City Pulse
+            </motion.div>
 
-          {/* ── HOW IT WORKS ── */}
-          <section id="how-it-works" className="py-20 md:py-28 border-b border-border/20">
-            <motion.div className="mb-14" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-3">Process</p>
-              <h2 className="font-display font-black text-5xl md:text-7xl tracking-tighter leading-[0.88]">
+            <motion.h1
+              className="font-display font-black leading-[0.88] tracking-tighter text-[clamp(2.6rem,6vw,5.5rem)] mb-5 whitespace-nowrap"
+              {...fadeUp(0.04)}
+            >
+              List Your <span className="text-neon-lime">Event.</span>
+            </motion.h1>
+
+            <motion.p
+              className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8 max-w-lg mx-auto"
+              {...fadeUp(0.08)}
+            >
+              Reach thousands of event-goers in your city. Sell tickets, manage
+              your crowd, and grow your audience — all on City Pulse.
+            </motion.p>
+
+            <motion.div className="flex flex-col sm:flex-row gap-3 mb-12 md:mb-16 justify-center" {...fadeUp(0.12)}>
+              <Link to="/auth" className="w-full sm:w-auto">
+                <Button className="w-full sm:w-auto h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] bg-foreground text-background hover:bg-foreground/90 gap-2 transition-all">
+                  Create Free Account <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </Link>
+              <a href="#how-it-works" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] border-border/50 hover:border-border transition-all"
+                >
+                  See How It Works
+                </Button>
+              </a>
+            </motion.div>
+
+            {/* Stats */}
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border/30 rounded-2xl overflow-hidden border border-border/20"
+              {...fadeUp(0.16)}
+            >
+              {[
+                { value: "10K+", label: "Events Listed" },
+                { value: "500K+", label: "Tickets Sold" },
+                { value: "200+", label: "Cities" },
+                { value: "4.9★", label: "Organizer Rating" },
+              ].map((s) => (
+                <div key={s.label} className="bg-background px-5 py-4 md:px-7 md:py-5">
+                  <p className="font-display font-black text-2xl md:text-3xl tracking-tighter text-neon-lime">{s.value}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ── HOW IT WORKS ── */}
+        <section id="how-it-works" className="border-b border-border/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+            <motion.div className="mb-10" {...fadeUp(0)}>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Process</p>
+              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
                 How it works.
               </h2>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               {STEPS.map((step, i) => (
                 <motion.div
                   key={step.num}
-                  {...fadeUp(i * 0.08)}
-                  className="group relative border border-border/30 rounded-3xl p-8 bg-card hover:border-neon-lime/30 hover:shadow-[0_0_40px_rgba(180,255,0,0.04)] transition-all"
+                  {...fadeUp(i * 0.07)}
+                  className="group rounded-2xl border border-border/30 bg-card p-6 hover:border-border/60 transition-all"
                 >
-                  <span className="font-display font-black text-[5rem] leading-none tracking-tighter text-neon-lime/15 group-hover:text-neon-lime/25 transition-colors block mb-4">
-                    {step.num}
-                  </span>
-                  <div className="h-11 w-11 rounded-2xl border border-border/40 bg-background flex items-center justify-center mb-5">
-                    <step.icon className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime transition-colors" />
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
+                      <step.icon className="h-4 w-4 text-foreground/60" />
+                    </div>
+                    <span className="font-display font-black text-4xl leading-none tracking-tighter text-foreground/[0.07] select-none">
+                      {step.num}
+                    </span>
                   </div>
-                  <h3 className="font-black text-base tracking-tight mb-2">{step.title}</h3>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed">{step.description}</p>
+                  <h3 className="font-black text-[14px] tracking-tight mb-2 leading-snug">{step.title}</h3>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed">{step.description}</p>
                 </motion.div>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ── FEATURES GRID ── */}
-          <section className="py-20 md:py-28 border-b border-border/20">
-            <motion.div className="mb-14" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-3">Everything you need</p>
-              <h2 className="font-display font-black text-5xl md:text-7xl tracking-tighter leading-[0.88]">
+        {/* ── COMMISSION ── */}
+        <section className="border-b border-border/20 bg-card/50">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+            <motion.div className="mb-10" {...fadeUp(0)}>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-lime/10 border border-neon-lime/30 text-neon-lime text-[9px] font-black uppercase tracking-[0.4em] mb-4">
+                <span className="h-1.5 w-1.5 rounded-full bg-neon-lime shrink-0" />
+                Transparent Pricing
+              </div>
+              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
+                Simple commission.
+              </h2>
+              <p className="text-muted-foreground text-sm mt-3 max-w-md">
+                No monthly fees. Commission only on paid ticket sales.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border/30 rounded-2xl overflow-hidden border border-border/30">
+              {/* Exclusive */}
+              <motion.div {...fadeUp(0.05)} className="bg-card p-7 md:p-10">
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-center gap-2">
+                    <div className="h-8 w-8 rounded-xl bg-neon-lime/10 border border-neon-lime/30 flex items-center justify-center">
+                      <Lock className="h-3.5 w-3.5 text-neon-lime" />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground">Exclusive</span>
+                  </div>
+                  <span className="text-[8px] font-black uppercase tracking-[0.25em] bg-neon-lime text-black px-2.5 py-1 rounded-full shrink-0">
+                    Best Rate
+                  </span>
+                </div>
+
+                <div className="mb-1">
+                  <span className="font-display font-black text-[4.5rem] md:text-[5.5rem] leading-none tracking-tighter">
+                    3<span className="text-neon-lime">%</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-5">+ GST · per paid ticket sold</p>
+
+                <div className="border-t border-border/20 pt-5 mb-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    List your event <span className="text-foreground font-bold">exclusively on City Pulse.</span> Lower rate, priority placement, and dedicated support.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {["Tickets sold only through City Pulse", "Priority event placement", "Dedicated organizer support"].map(item => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-neon-lime shrink-0" />
+                      <span className="text-[12px] font-medium">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Standard */}
+              <motion.div {...fadeUp(0.08)} className="bg-muted/20 p-7 md:p-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="h-8 w-8 rounded-xl bg-muted border border-border/40 flex items-center justify-center">
+                    <Globe2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground">Standard</span>
+                </div>
+
+                <div className="mb-1">
+                  <span className="font-display font-black text-[4.5rem] md:text-[5.5rem] leading-none tracking-tighter text-foreground">
+                    5<span className="text-foreground/30">%</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground mb-5">+ GST · per paid ticket sold</p>
+
+                <div className="border-t border-border/20 pt-5 mb-5">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    List on City Pulse <span className="text-foreground font-bold">alongside other platforms.</span> Ideal for multi-channel campaigns.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {["Tickets can be sold on other platforms", "Standard event placement", "Community organizer support"].map(item => (
+                    <div key={item} className="flex items-center gap-2.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                      <span className="text-[12px] font-medium text-muted-foreground">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            <motion.p {...fadeUp(0.14)} className="text-[10px] text-muted-foreground/40 mt-4">
+              Free events and RSVP-only events are always free to list.
+            </motion.p>
+          </div>
+        </section>
+
+        {/* ── FEATURES GRID ── */}
+        <section className="border-b border-border/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+            <motion.div className="mb-10" {...fadeUp(0)}>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Everything you need</p>
+              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
                 Built for organizers.
               </h2>
             </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {FEATURES.map((feat, i) => (
                 <motion.div
                   key={feat.title}
-                  {...fadeUp(i * 0.07)}
-                  className="group border border-border/30 rounded-3xl p-8 bg-card hover:border-neon-lime/30 hover:shadow-[0_0_40px_rgba(180,255,0,0.04)] transition-all"
+                  {...fadeUp(i * 0.05)}
+                  className="flex gap-4 p-5 rounded-2xl border border-border/30 bg-card hover:border-border/60 transition-colors"
                 >
-                  <div className="h-12 w-12 rounded-2xl border border-border/40 bg-background flex items-center justify-center mb-6 group-hover:border-neon-lime/40 transition-colors">
-                    <feat.icon className="h-5 w-5 text-muted-foreground group-hover:text-neon-lime transition-colors" />
+                  <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center shrink-0 mt-0.5">
+                    <feat.icon className="h-4 w-4 text-foreground/55" />
                   </div>
-                  <h3 className="font-black text-base tracking-tight mb-2">{feat.title}</h3>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed">{feat.description}</p>
+                  <div>
+                    <h3 className="font-black text-[13px] tracking-tight mb-1">{feat.title}</h3>
+                    <p className="text-[12px] text-muted-foreground leading-relaxed">{feat.description}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ── WHAT'S INCLUDED ── */}
-          <section className="py-20 md:py-28 border-b border-border/20">
-            <div className="rounded-[2.5rem] border border-border/30 bg-card p-10 md:p-16">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
-                <motion.div {...fadeUp(0)}>
+        {/* ── WHAT'S INCLUDED ── */}
+        <section className="border-b border-border/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+            <div className="rounded-2xl border border-border/30 bg-card overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <motion.div {...fadeUp(0)} className="p-7 md:p-12 lg:border-r border-b lg:border-b-0 border-border/20">
                   <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-4">What's included</p>
-                  <h2 className="font-display font-black text-5xl md:text-6xl tracking-tighter leading-[0.88] mb-6">
-                    Free to list.<br />Pay only when<br />you sell.
+                  <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9] mb-5">
+                    Free to list.<br />Pay only<br />when you sell.
                   </h2>
-                  <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                    No monthly fees, no setup costs. Create your organizer account and publish your first
-                    event for free. A small platform fee applies only on paid ticket sales.
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    No monthly fees, no setup costs. Create your account and publish
+                    your first event for free. Commission applies only on paid ticket sales.
                   </p>
                 </motion.div>
 
-                <motion.div {...fadeUp(0.1)} className="space-y-4">
-                  {[
-                    "Unlimited event listings",
-                    "Customizable ticket types & pricing",
-                    "Real-time sales dashboard",
-                    "QR code ticket scanning",
-                    "Attendee communication tools",
-                    "Event analytics & reporting",
-                    "Dedicated organizer support",
-                    "Boost & marketing add-ons",
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-4 py-1">
-                      <CheckCircle2 className="h-5 w-5 text-neon-lime shrink-0" />
-                      <span className="text-sm md:text-base font-medium">{item}</span>
-                    </div>
-                  ))}
+                <motion.div {...fadeUp(0.08)} className="p-7 md:p-12">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      "Unlimited event listings",
+                      "Custom ticket types & pricing",
+                      "Real-time sales dashboard",
+                      "QR code ticket scanning",
+                      "Attendee communication",
+                      "Event analytics & reporting",
+                      "Dedicated organizer support",
+                      "Boost & marketing add-ons",
+                    ].map((item) => (
+                      <div key={item} className="flex items-center gap-2.5">
+                        <CheckCircle2 className="h-4 w-4 text-neon-lime shrink-0" />
+                        <span className="text-[13px] font-medium">{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </motion.div>
               </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ── FAQ ── */}
-          <section className="py-20 md:py-28 border-b border-border/20">
-            <motion.div className="mb-14" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-3">Questions</p>
-              <h2 className="font-display font-black text-5xl md:text-7xl tracking-tighter leading-[0.88]">
+        {/* ── FAQ ── */}
+        <section className="border-b border-border/20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+            <motion.div className="mb-10" {...fadeUp(0)}>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Questions</p>
+              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
                 FAQ.
               </h2>
             </motion.div>
 
-            <div className="space-y-2 max-w-4xl">
+            <div className="max-w-3xl space-y-2">
               {FAQS.map((faq, i) => (
                 <motion.div
                   key={i}
-                  {...fadeUp(i * 0.06)}
-                  className="border border-border/30 rounded-2xl overflow-hidden hover:border-neon-lime/20 transition-colors"
+                  {...fadeUp(i * 0.05)}
+                  className="rounded-xl border border-border/30 overflow-hidden"
                 >
                   <button
-                    className="w-full flex items-center justify-between px-4 py-4 md:px-8 md:py-6 text-left gap-4 md:gap-6 hover:bg-card transition-colors"
+                    className="w-full flex items-center justify-between px-5 py-4 text-left gap-4 hover:bg-muted/30 transition-colors"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   >
-                    <span className="font-black text-base md:text-lg tracking-tight">{faq.q}</span>
-                    {openFaq === i ? (
-                      <ChevronUp className="h-5 w-5 text-neon-lime shrink-0" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0" />
-                    )}
+                    <span className="font-black text-sm md:text-[15px] tracking-tight">{faq.q}</span>
+                    <div className={cn(
+                      "h-6 w-6 rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                      openFaq === i ? "border-neon-lime/40 bg-neon-lime/5" : "border-border/50"
+                    )}>
+                      {openFaq === i
+                        ? <ChevronUp className="h-3 w-3 text-neon-lime" />
+                        : <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                      }
+                    </div>
                   </button>
-                  <div
-                    className={cn(
-                      "overflow-hidden transition-all duration-300",
-                      openFaq === i ? "max-h-48" : "max-h-0"
-                    )}
-                  >
-                    <p className="px-4 pb-4 md:px-8 md:pb-6 text-sm md:text-base text-muted-foreground leading-relaxed">
+                  <div className={cn("overflow-hidden transition-all duration-300", openFaq === i ? "max-h-48" : "max-h-0")}>
+                    <p className="px-5 pb-4 text-[13px] text-muted-foreground leading-relaxed border-t border-border/20 pt-3">
                       {faq.a}
                     </p>
                   </div>
                 </motion.div>
               ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* ── FINAL CTA ── */}
-          <section className="pt-20 md:pt-28">
+        {/* ── FINAL CTA ── */}
+        <section>
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
             <motion.div
               {...fadeUp(0)}
-              className="bg-neon-lime rounded-[2rem] md:rounded-[3rem] p-8 md:p-20 text-black relative overflow-hidden group"
+              className="rounded-2xl md:rounded-3xl bg-neon-lime p-8 md:p-20 text-black relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-16 opacity-10 rotate-12 transition-transform group-hover:rotate-0 pointer-events-none">
-                <TicketIcon size={280} />
+              <div className="absolute top-0 right-0 p-10 md:p-16 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none">
+                <TicketIcon size={240} />
               </div>
               <div className="relative z-10">
                 <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black/50 mb-5">Ready to start?</p>
-                <h2 className="font-display font-black text-5xl md:text-8xl tracking-tighter leading-[0.85] mb-6">
+                <h2 className="font-display font-black text-5xl md:text-7xl tracking-tighter leading-[0.85] mb-6">
                   Start listing<br />today.
                 </h2>
-                <p className="text-black/70 text-base md:text-lg leading-relaxed mb-10 max-w-lg">
+                <p className="text-black/70 text-sm md:text-base leading-relaxed mb-8 max-w-md">
                   Join thousands of organizers already selling tickets on City Pulse.
                   Free to sign up — no credit card required.
                 </p>
-                <Link to="/auth">
-                  <Button className="h-14 px-10 rounded-2xl bg-black text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[11px] shadow-xl gap-2 transition-all">
-                    Create Your Account <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Link to="/auth" className="w-full sm:w-auto">
+                    <Button className="w-full sm:w-auto h-12 px-8 rounded-xl bg-black text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] gap-2 transition-all">
+                      Create Your Account <ArrowRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </Link>
+                  <Link to="/auth" className="w-full sm:w-auto">
+                    <Button
+                      variant="ghost"
+                      className="w-full sm:w-auto h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] text-black/60 hover:text-black hover:bg-black/10 transition-all"
+                    >
+                      Sign In Instead
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </motion.div>
-          </section>
+          </div>
+        </section>
 
-        </div>
       </main>
 
       <Footer />

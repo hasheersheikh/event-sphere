@@ -33,7 +33,7 @@ interface AuthContextType {
     password: string,
     role: string,
   ) => Promise<{ success: boolean; message?: string }>;
-  googleLogin: (credential: string) => Promise<{ success: boolean; message?: string }>;
+  googleLogin: (credential: string) => Promise<{ success: boolean; role?: string | null; message?: string }>;
   logout: () => void;
   isLoading: boolean;
   setAuthUser: (userData: User) => void;
@@ -109,10 +109,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const data = response.data;
       setUser(data);
       localStorage.setItem("user", JSON.stringify(data));
-      return { success: true };
+      localStorage.removeItem("store-owner");
+      return { success: true, role: data.role as string };
     } catch (error: any) {
       return {
         success: false,
+        role: null,
         message: error.response?.data?.message || "Google login failed.",
       };
     }

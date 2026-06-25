@@ -71,7 +71,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
 
   return (
     <div
-      className="group h-full transition-transform duration-300 ease-out hover:scale-105"
+      className="group h-full transition-transform duration-300 ease-out md:hover:scale-105"
       style={{
         animationDelay: `${index * 60}ms`,
       }}
@@ -106,7 +106,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
             <SafeImage
               src={imageSrc}
               alt={event.title}
-              className={`relative w-full h-full object-contain transition-all duration-500 ease-out-expo group-hover:scale-[1.04] ${
+              className={`relative w-full h-full object-contain transition-all duration-500 ease-out-expo md:group-hover:scale-[1.04] ${
                 imageLoaded ? "opacity-100" : "opacity-0"
               }`}
               onLoad={() => setImageLoaded(true)}
@@ -114,7 +114,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+            <div className="absolute inset-0 bg-black/0 md:group-hover:bg-black/10 transition-colors duration-300" />
 
             <div className="absolute top-3 left-3 flex flex-col gap-1.5">
               {event.isSponsored && (

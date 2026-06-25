@@ -202,48 +202,14 @@ const EventsPage = () => {
 
       <main className="flex-1 pt-14 md:pt-16">
 
-        {/* ─── Page header ─────────────────────────────────────────────── */}
-        <section className="border-b border-border/20 py-2 md:py-14 relative overflow-hidden">
-          {/* Decorative Mic Graphic */}
-          <motion.div
-            initial={{ opacity: 0, x: 100, rotate: 15 }}
-            animate={{ opacity: 1, x: 0, rotate: 12 }}
-            transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute right-[-10%] top-[-20%] w-[50%] h-[150%] pointer-events-none hidden md:block opacity-[0.07] dark:opacity-[0.12]"
-          >
-            <img
-              src="/mic.png"
-              alt=""
-              className="w-full h-full object-contain grayscale"
-            />
-          </motion.div>
-
-          <div className="container relative z-10 px-3 md:px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="mb-4 md:mb-7"
-            >
-              <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-muted-foreground mb-1 md:mb-2">
-                Discover
-              </p>
-              <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter leading-[0.88]">
-                Events
-                {!isLoading && displayEvents.length > 0 && (
-                  <span className="text-muted-foreground/30 ml-2 md:ml-3 text-lg sm:text-2xl md:text-3xl font-bold">
-                    {displayEvents.length}
-                  </span>
-                )}
-              </h1>
-            </motion.div>
-
-            {/* Search bar */}
+        {/* ─── Search bar ──────────────────────────────────────────────── */}
+        <section className="border-b border-border/20 py-3 md:py-6">
+          <div className="container px-3 md:px-4">
             <motion.form
               onSubmit={handleSearch}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.06, duration: 0.4 }}
+              transition={{ duration: 0.4 }}
               className="flex flex-row items-center gap-2 max-w-2xl"
             >
               <div className="flex flex-row items-center gap-1 flex-1 p-1 md:p-1.5 bg-card border border-border/50 rounded-xl md:rounded-2xl">
@@ -279,8 +245,8 @@ const EventsPage = () => {
           </div>
         </section>
 
-        {/* ─── Category pills (sticky) ──────────────────────────────────── */}
-        <section className="border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
+        {/* ─── Category pills (sticky, desktop only) ───────────────────── */}
+        <section className="hidden md:block border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
           <div className="container px-3 md:px-4">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               <button

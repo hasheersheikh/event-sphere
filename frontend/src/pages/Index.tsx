@@ -11,6 +11,9 @@ import {
   Globe,
   Store,
   MapPin,
+  Ticket,
+  Camera,
+  Megaphone,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
@@ -169,20 +172,22 @@ const Index = () => {
         ═══════════════════════════════════════════════════════ */}
 
         {/* ── MOBILE TAGLINE BAR ── */}
-        <div className="lg:hidden mt-14 flex items-center justify-between px-4 py-3 bg-background border-b border-border/40">
-          <span className="text-base font-black text-foreground tracking-tight leading-none">Catch your City Pulse</span>
+        <div className="lg:hidden mt-14 flex items-center justify-between px-4 py-3 border-b border-border/20 bg-background gap-3">
+          <p className="text-[13px] font-black tracking-tight text-foreground leading-none">
+            Catch your City Pulse.
+          </p>
           <button
             onClick={() => navigate("/events")}
-            className="h-8 w-8 rounded-full bg-foreground flex items-center justify-center text-background shrink-0"
-            aria-label="Search events"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-[11px] font-black uppercase tracking-widest shrink-0 active:scale-95 transition-transform duration-100"
           >
-            <Search className="w-3.5 h-3.5" />
+            <Search className="w-3 h-3" />
+            Explore
           </button>
         </div>
 
         {/* ── MOBILE HERO ── */}
         {hasHeroAssets && (
-          <section className="lg:hidden relative overflow-hidden bg-background">
+          <section className="lg:hidden relative bg-background px-4">
             <HeroGallery assets={filteredHeroAssets} />
           </section>
         )}
@@ -393,72 +398,73 @@ Discover what's happening around you with City Pulse.              </motion.p>
               transition={{ duration: 0.5 }}
               className="rounded-2xl border border-border/40 overflow-hidden"
             >
-              {/* Organizer Banner */}
-              <div className="relative bg-zinc-950 py-16 md:py-24 text-center">
-                {!shouldReduce && (
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,_#c6f00018,_transparent)] pointer-events-none" />
-                )}
-                <div className="relative z-10 max-w-2xl mx-auto px-6">
-                  <h2 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-3 leading-tight">
+              {/* Customer Steps */}
+              <div className="bg-background py-16 md:py-24 text-center px-6">
+                <div className="max-w-2xl mx-auto mb-12">
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight text-foreground mb-3 leading-tight">
                     We Help you to{" "}
                     <span className="text-neon-lime">catch the City Pulse</span>
                   </h2>
-                  <p className="text-zinc-400 text-sm mb-8">
-                    Create, manage, and sell out your events with ease
+                  <p className="text-muted-foreground text-sm">
+                    Discover events, book your spot, create memories
                   </p>
-                  <Link to="/list-your-event">
-                    <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
-                      List Your Event
-                    </Button>
-                  </Link>
                 </div>
-              </div>
 
-              {/* For Creators & Organizers */}
-              <div className="bg-zinc-900 border-t border-border/20 py-16 text-center px-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-zinc-500 mb-3">
-                  For Creators & Organizers
-                </p>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-white mb-14 leading-tight">
-                  The City{" "}
-                  <span className="text-neon-lime">Experience</span>
-                </h2>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto mb-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto">
                   {[
-                    { n: 1, title: "Discover Events", accent: "you like", desc: "Find the absolute best concerts, secret parties, and local workshops happening right around you." },
-                    { n: 2, title: "Book Your", accent: "Spot", desc: "Purchase tickets instantly with secure one-tap checkout. No booking fees, no complications." },
-                    { n: 3, title: "Get Memories", accent: "& Friends", desc: "Attend events, share vibes with awesome folks, and bring home epic memories that last forever." },
-                  ].map(({ n, title, accent, desc }, i) => (
+                    { icon: Search, title: "Discover Events", accent: "you like", desc: "Find the absolute best concerts, secret parties, and local workshops happening right around you." },
+                    { icon: Ticket, title: "Book Your", accent: "Spot", desc: "Purchase tickets instantly with secure one-tap checkout. No booking fees, no complications." },
+                    { icon: Camera, title: "Get Memories", accent: "& Friends", desc: "Attend events, share vibes with awesome folks, and bring home epic memories that last forever." },
+                  ].map(({ icon: Icon, title, accent, desc }, i) => (
                     <motion.div
-                      key={n}
+                      key={title}
                       initial={{ opacity: 0, y: 16 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.4, delay: i * 0.12 }}
                       className="flex flex-col items-center"
                     >
-                      <div className="h-14 w-14 rounded-full border-2 border-neon-lime flex items-center justify-center text-neon-lime font-black text-lg mb-5 shrink-0">
-                        {n}
+                      <div className="h-14 w-14 rounded-full border-2 border-neon-lime flex items-center justify-center text-neon-lime mb-5 shrink-0">
+                        <Icon className="h-6 w-6" />
                       </div>
-                      <h3 className="text-xl md:text-2xl font-black text-white mb-2">
+                      <h3 className="text-xl md:text-2xl font-black text-foreground mb-2">
                         {title} <span className="text-neon-lime">{accent}</span>
                       </h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed max-w-xs">{desc}</p>
+                      <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{desc}</p>
                     </motion.div>
                   ))}
                 </div>
+              </div>
 
-                <div className="max-w-3xl mx-auto space-y-4 pt-4">
-                  <h3 className="text-lg md:text-xl font-black text-white leading-tight">
-                    List Your Events, Venues, Stores/ Artists, Adventure Camps, and Sports Activities
+              {/* For Creators & Organizers */}
+              <div className="bg-muted/30 border-t border-border/20 py-16 text-center px-6">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-3">
+                  For Creators & Organizers
+                </p>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground mb-6 leading-tight">
+                  The City{" "}
+                  <span className="text-neon-lime">Experience</span>
+                </h2>
+
+                <div className="max-w-3xl mx-auto space-y-4 mb-8">
+                  <h3 className="text-lg md:text-xl font-black text-foreground leading-tight">
+                    List Your Events, Venues, Stores / Artists, Adventure Camps, and Sports Activities
                   </h3>
-                  <p className="text-zinc-400 text-sm md:text-base italic">
-                    Less than 2 Minutes and maximize your Impact
+                  <p className="text-muted-foreground text-sm md:text-base italic">
+                    Less than 2 minutes to go live and maximize your impact
                   </p>
-                  <Link to="/list-your-event" className="inline-block">
-                    <Button className="h-12 px-10 bg-neon-lime text-black hover:bg-[#D4FF00] font-black uppercase tracking-widest text-[11px] rounded-xl">
-                      Try Listing Now
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Link to="/list-your-event">
+                    <Button className="h-12 px-10 bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[11px] rounded-xl">
+                      <Megaphone className="h-4 w-4 mr-2" />
+                      List Your Event
+                    </Button>
+                  </Link>
+                  <Link to="/list-your-event">
+                    <Button variant="outline" className="h-12 px-10 font-black uppercase tracking-widest text-[11px] rounded-xl border-border/60">
+                      Learn More
                     </Button>
                   </Link>
                 </div>

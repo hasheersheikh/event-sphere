@@ -46,7 +46,11 @@ const AuthPage = () => {
         const result = await googleLogin(tokenResponse.access_token);
         if (result.success) {
           toast.success("Signed in with Google.");
-          navigate("/events");
+          if (result.role === "admin" || result.role === "event_manager") {
+            navigate("/portal");
+          } else {
+            navigate("/events");
+          }
         } else {
           toast.error(result.message || "Google sign-in failed.");
         }
@@ -143,7 +147,7 @@ const AuthPage = () => {
               <div className="h-px w-12 bg-white/40 mb-8" />
               <h1 className="font-display text-5xl font-black tracking-tighter leading-[0.88] mb-4 uppercase">
                 Catch Your<br />
-                <span className="text-white/60">Pulse.</span>
+                <span className="text-white/60">City Pulse.</span>
               </h1>
               <p className="text-sm text-white/50 font-medium leading-relaxed max-w-xs">
                 Live shows, local gems, and everything worth showing up for — curated for your city.
