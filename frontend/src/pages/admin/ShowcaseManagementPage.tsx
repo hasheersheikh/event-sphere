@@ -157,7 +157,7 @@ const ShowcaseManagementPage = () => {
                 className="h-10 text-sm"
               />
               <p className="text-[10px] text-muted-foreground mt-1">
-                Paste the full URL — platform is detected automatically. Or enter a raw video ID and select the platform below.
+                Paste the full URL. Platform is detected automatically. Or enter a raw video ID and select the platform below.
               </p>
             </div>
 

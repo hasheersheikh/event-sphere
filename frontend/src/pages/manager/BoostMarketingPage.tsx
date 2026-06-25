@@ -355,7 +355,7 @@ const BoostMarketingPage = () => {
 
           {showcaseVideos.length === 0 ? (
             <div className="py-12 md:py-16 text-center border border-dashed border-border/30 rounded-3xl">
-              <p className="text-xs md:text-sm text-muted-foreground font-medium">No showcase videos yet — add some from the admin portal.</p>
+              <p className="text-xs md:text-sm text-muted-foreground font-medium">No showcase videos yet. Add some from the admin portal.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-8 px-2 md:px-4">

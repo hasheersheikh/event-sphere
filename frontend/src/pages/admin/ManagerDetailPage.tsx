@@ -465,9 +465,9 @@ const ManagerDetailPage = () => {
                         </span>
                         <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
                           {manager.upiId && !manager.bankDetails?.accountNumber
-                            ? `UPI — ${manager.upiId}`
+                            ? `UPI: ${manager.upiId}`
                             : manager.bankDetails?.accountNumber
-                              ? `Bank — ••••${manager.bankDetails.accountNumber.slice(-4)}`
+                              ? `Bank: ••••${manager.bankDetails.accountNumber.slice(-4)}`
                               : "No payment method set"}
                         </span>
                       </div>

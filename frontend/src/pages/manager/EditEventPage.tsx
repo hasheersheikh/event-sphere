@@ -662,7 +662,7 @@ const EditEventPage = () => {
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
-                  {/* Inline error summary — only appears after a failed submit attempt */}
+                  {/* Inline error summary: only appears after a failed submit attempt */}
                   {STEP_FIELDS[1].some((k) => form.formState.errors[k as keyof typeof form.formState.errors]) && (
                     <div className="flex gap-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5">
                       <XCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />

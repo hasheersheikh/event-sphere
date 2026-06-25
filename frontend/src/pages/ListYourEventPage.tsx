@@ -39,7 +39,7 @@ const STEPS = [
   {
     num: "02",
     title: "Set up your event",
-    description: "Add all your event details — dates, venue, lineup, ticket types and pricing.",
+    description: "Add all your event details: dates, venue, lineup, ticket types and pricing.",
     icon: CalendarDays,
   },
   {
@@ -51,7 +51,7 @@ const STEPS = [
   {
     num: "04",
     title: "Track and manage",
-    description: "Monitor sales, manage attendees, scan QR codes at the door — all from one dashboard.",
+    description: "Monitor sales, manage attendees, scan QR codes at the door, all from one dashboard.",
     icon: BarChart3,
   },
 ];
@@ -60,7 +60,7 @@ const FEATURES = [
   {
     icon: TicketIcon,
     title: "Flexible Ticketing",
-    description: "Create multiple ticket tiers — General, VIP, Early Bird. Set capacity limits and custom pricing.",
+    description: "Create multiple ticket tiers: General, VIP, Early Bird. Set capacity limits and custom pricing.",
   },
   {
     icon: BarChart3,
@@ -92,7 +92,7 @@ const FEATURES = [
 const FAQS = [
   {
     q: "Is it free to list an event?",
-    a: "Yes — creating an account and listing your event is completely free. A commission applies only on paid ticket sales: 3% + GST if you list exclusively on City Pulse, or 5% + GST if you also sell on other platforms.",
+    a: "Yes! Creating an account and listing your event is completely free. A commission applies only on paid ticket sales: 3% + GST if you list exclusively on City Pulse, or 5% + GST if you also sell on other platforms.",
   },
   {
     q: "How quickly can I go live?",
@@ -108,7 +108,7 @@ const FAQS = [
   },
   {
     q: "What types of events can I list?",
-    a: "Concerts, comedy shows, workshops, club nights, sports events, art exhibitions — any live event is welcome.",
+    a: "Concerts, comedy shows, workshops, club nights, sports events, art exhibitions. Any live event is welcome.",
   },
 ];
 
@@ -145,7 +145,7 @@ const ListYourEventPage = () => {
               {...fadeUp(0.08)}
             >
               Reach thousands of event-goers in your city. Sell tickets, manage
-              your crowd, and grow your audience — all on City Pulse.
+              your crowd, and grow your audience on City Pulse.
             </motion.p>
 
             <motion.div className="flex flex-col sm:flex-row gap-3 mb-12 md:mb-16 justify-center" {...fadeUp(0.12)}>
@@ -440,7 +440,7 @@ const ListYourEventPage = () => {
                 </h2>
                 <p className="text-black/70 text-sm md:text-base leading-relaxed mb-8 max-w-md">
                   Join thousands of organizers already selling tickets on City Pulse.
-                  Free to sign up — no credit card required.
+                  Free to sign up, no credit card required.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/auth" className="w-full sm:w-auto">

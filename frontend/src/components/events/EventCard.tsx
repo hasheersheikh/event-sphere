@@ -181,7 +181,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
             )}>
               <MapPin className={cn("shrink-0 text-primary", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
               <p className={cn("font-bold text-primary line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
-                {formatDate(event.date, event.nextOccurrence)} | {typeof event.location === "string"
+                {formatDate(event.date, event.nextOccurrence)}&nbsp;&nbsp;{typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||
                     event.location?.address?.split(",")[0] || "Nagpur"}

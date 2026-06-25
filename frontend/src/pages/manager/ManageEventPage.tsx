@@ -197,7 +197,7 @@ const ManageEventPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("CSV downloaded — " + data.recentBookings.length + " attendees.");
+    toast.success("CSV downloaded: " + data.recentBookings.length + " attendees");
   };
 
   const downloadPDF = () => {
@@ -205,14 +205,14 @@ const ManageEventPage = () => {
     try {
       const doc = new jsPDF({ orientation: "landscape" });
       const ev = data.event;
-      doc.setProperties({ title: `Attendees — ${ev?.title || "Event"}`, author: "City Pulse" });
+      doc.setProperties({ title: `Attendees: ${ev?.title || "Event"}`, author: "City Pulse" });
 
       doc.setFontSize(16); doc.setFont("helvetica", "bold");
       doc.text("Attendee Registry", 14, 18);
       doc.setFontSize(11); doc.setFont("helvetica", "italic");
       doc.text(ev?.title || "", 14, 25);
       doc.setFontSize(8); doc.setFont("helvetica", "normal");
-      doc.text(`Venue: ${ev?.location?.venueName || "—"}  |  Event Date: ${ev?.date ? new Date(ev.date).toLocaleDateString() : "—"}  |  Generated: ${new Date().toLocaleString()}`, 14, 31);
+      doc.text(`Venue: ${ev?.location?.venueName || "—"}   Event Date: ${ev?.date ? new Date(ev.date).toLocaleDateString() : "—"}   Generated: ${new Date().toLocaleString()}`, 14, 31);
       doc.setDrawColor(200, 200, 200); doc.line(14, 34, 283, 34);
 
       const cols   = ["Booking ID",  "Attendee",     "Email",         "Phone",       "Ticket(s)",     "Qty", "Paid (₹)",  "Source",   "Date"];
@@ -940,7 +940,7 @@ const ManageEventPage = () => {
                     .filter((tt: any) => !tt.isSoldOut && tt.capacity - tt.sold > 0)
                     .map((tt: any) => (
                       <SelectItem key={tt.name} value={tt.name} className="font-bold text-sm">
-                        {tt.name} — ₹{tt.price.toLocaleString()} ({tt.capacity - tt.sold} left)
+                        {tt.name}: ₹{tt.price.toLocaleString()} ({tt.capacity - tt.sold} left)
                       </SelectItem>
                     ))}
                 </SelectContent>

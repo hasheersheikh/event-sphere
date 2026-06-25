@@ -655,7 +655,7 @@ const CreateStorePage = () => {
                           </button>
                         )}
                         <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
-                          Landscape hero shown at top of store page — recommended <strong>1500 × 600 px</strong> (5:2 ratio).
+                          Landscape hero shown at top of store page. Recommended <strong>1500 × 600 px</strong> (5:2 ratio).
                         </p>
                       </div>
 
@@ -703,7 +703,7 @@ const CreateStorePage = () => {
                             </button>
                           )}
                           <p className="text-[10px] text-muted-foreground/70 italic font-medium mt-1">
-                            Square thumbnail shown on store listing cards — recommended <strong>800 × 800 px</strong> (1:1). Keep your subject centred.
+                            Square thumbnail shown on store listing cards. Recommended <strong>800 × 800 px</strong> (1:1). Keep your subject centred.
                           </p>
                         </div>
                       </div>
@@ -744,7 +744,7 @@ const CreateStorePage = () => {
                           )}
                         </button>
                         <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
-                          Shown in the in-page photo strip — any size, landscape works best.
+                          Shown in the in-page photo strip. Any size, landscape works best.
                         </p>
                       </div>
 

@@ -351,7 +351,7 @@ const HeroManagementPage = () => {
                       <Upload className="h-8 w-8" />
                       <span className="text-sm font-medium">Click to upload image or video</span>
                       <span className="text-xs opacity-60">
-                        JPG, PNG, WebP, GIF, MP4, MOV — max 50 MB
+                        JPG, PNG, WebP, GIF, MP4, MOV (max 50 MB)
                       </span>
                     </>
                   )}
@@ -363,7 +363,7 @@ const HeroManagementPage = () => {
             {uploadedFile && (
               <div className="flex items-center gap-2 text-xs text-primary font-medium">
                 <Check className="h-3.5 w-3.5" />
-                {uploadedFile.type === "video" ? "Video" : "Image"} ready — configure settings below and save
+                {uploadedFile.type === "video" ? "Video" : "Image"} ready. Configure settings below and save
               </div>
             )}
 

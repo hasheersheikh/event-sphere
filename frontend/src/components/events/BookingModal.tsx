@@ -590,7 +590,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                         setSelectedTicketType(ticket.name);
                         if (numberOfPeople > maxQty) {
                           setNumberOfPeople(maxQty);
-                          toast.error(`Only ${maxQty} ticket${maxQty !== 1 ? "s" : ""} remaining — quantity adjusted.`);
+                          toast.error(`Only ${maxQty} ticket${maxQty !== 1 ? "s" : ""} remaining. Quantity adjusted.`);
                         }
                       }}
                     >

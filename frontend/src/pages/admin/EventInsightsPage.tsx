@@ -681,7 +681,7 @@ const EventInsightsPage = () => {
                     .filter((tt: any) => !tt.isSoldOut && tt.capacity - tt.sold > 0)
                     .map((tt: any) => (
                       <SelectItem key={tt.name} value={tt.name} className="font-bold text-sm">
-                        {tt.name} — ₹{tt.price.toLocaleString()} ({tt.capacity - tt.sold} left)
+                        {tt.name}: ₹{tt.price.toLocaleString()} ({tt.capacity - tt.sold} left)
                       </SelectItem>
                     ))}
                 </SelectContent>

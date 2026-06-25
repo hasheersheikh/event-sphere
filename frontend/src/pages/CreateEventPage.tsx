@@ -542,7 +542,7 @@ const CreateEventPage = () => {
             <AnimatePresence mode="wait">
 
               {/* ═══════════════════════════════════════
-                  STEP 1 — Basics
+                  STEP 1: Basics
               ═══════════════════════════════════════ */}
               {currentStep === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
@@ -605,7 +605,7 @@ const CreateEventPage = () => {
                             <p className="text-[11px] text-destructive font-medium">{form.formState.errors.image.message}</p>
                           )}
                           <p className="text-[10px] text-muted-foreground/60">
-                            Use your Instagram post photo — 4:5 portrait (1080 × 1350 px). This is the standard Instagram feed size, so no separate photo needed.
+                            Use your Instagram post photo (4:5 portrait, 1080 × 1350 px). This is the standard Instagram feed size, so no separate photo needed.
                           </p>
                         </div>
                       </div>
@@ -766,7 +766,7 @@ const CreateEventPage = () => {
               )}
 
               {/* ═══════════════════════════════════════
-                  STEP 2 — When & Where
+                  STEP 2: When & Where
               ═══════════════════════════════════════ */}
               {currentStep === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
@@ -1017,7 +1017,7 @@ const CreateEventPage = () => {
                             {/* Optional end date */}
                             <FormField control={form.control} name="recurrence.endDate" render={({ field }) => (
                               <FormItem className="flex flex-col max-w-xs">
-                                <FormLabel className={labelCls}>End Date (optional — leave blank for no end)</FormLabel>
+                                <FormLabel className={labelCls}>End Date (optional: leave blank for no end)</FormLabel>
                                 <Popover>
                                   <PopoverTrigger asChild>
                                     <FormControl>
@@ -1102,7 +1102,7 @@ const CreateEventPage = () => {
                       {scheduleType === "multi_day" && (
                         <div className="space-y-5">
                           <p className="text-sm text-muted-foreground font-medium">
-                            Pick any combination of dates — they don't need to be continuous.
+                            Pick any combination of dates. They don't need to be continuous.
                           </p>
 
                           {/* Multi-select calendar */}
@@ -1133,7 +1133,7 @@ const CreateEventPage = () => {
 
                           {dayFields.length > 0 && (
                             <div className="space-y-3">
-                              <p className={labelCls}>{dayFields.length} date{dayFields.length > 1 ? "s" : ""} selected — set times for each</p>
+                              <p className={labelCls}>{dayFields.length} date{dayFields.length > 1 ? "s" : ""} selected. Set times for each</p>
                               {dayFields
                                 .map((f, i) => ({ ...f, originalIndex: i }))
                                 .sort((a, b) => new Date(a.date as unknown as Date).getTime() - new Date(b.date as unknown as Date).getTime())
@@ -1307,7 +1307,7 @@ const CreateEventPage = () => {
               )}
 
               {/* ═══════════════════════════════════════
-                  STEP 3 — Tickets & Vouchers
+                  STEP 3: Tickets & Vouchers
               ═══════════════════════════════════════ */}
               {currentStep === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">

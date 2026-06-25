@@ -49,7 +49,7 @@ const GoLocalSection = () => {
               Discover Unique Stores
             </>
           }
-          subtitle="Discover handpicked local stores around you — fresh produce, artisan crafts, neighbourhood favourites."
+          subtitle="Discover handpicked local stores around you: fresh produce, artisan crafts, neighbourhood favourites."
           themeColor="primary"
           size="md"
         />
