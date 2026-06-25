@@ -150,7 +150,9 @@ const AuthPage = () => {
                 <span className="text-white/60">City Pulse.</span>
               </h1>
               <p className="text-sm text-white/50 font-medium leading-relaxed max-w-xs">
-                Live shows, local gems, and everything worth showing up for — curated for your city.
+                Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                <br /><br />
+                Discover what's happening around you with City Pulse.
               </p>
             </motion.div>
           </div>

@@ -237,8 +237,10 @@ const Index = () => {
                 )}
                 {...fadeUp(0.1)}
               >
-Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
-Discover what's happening around you with City Pulse.              </motion.p>
+                Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                <br /><br />
+                Discover what's happening around you with City Pulse.
+              </motion.p>
 
               {/* Search bar */}
               <motion.form onSubmit={handleSearch} {...fadeUp(0.14)} className="mb-8">
