@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,17 +10,107 @@ import {
   Zap,
   Loader2,
   ArrowLeft,
+  Store,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import PulseLogo from "@/components/layout/PulseLogo";
 import { toast } from "sonner";
 import api from "@/lib/api";
 
+// Session timeout: 30 minutes in milliseconds
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+// Activity events to track for idle detection
+const ACTIVITY_EVENTS = ["mousedown", "keydown", "scroll", "touchstart", "click"];
+
 const StoreOwnerLoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Refs for timeout management
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
+  // Function to clear session timeout
+  const clearSessionTimeout = useCallback(() => {
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+      sessionTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Function to set session timeout
+  const setSessionTimeout = useCallback(() => {
+    clearSessionTimeout();
+    sessionTimeoutRef.current = setTimeout(() => {
+      console.log("Session expired due to inactivity");
+      logout();
+    }, SESSION_TIMEOUT);
+  }, [clearSessionTimeout]);
+
+  // Function to reset timer on user activity
+  const resetActivityTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setSessionTimeout();
+  }, [setSessionTimeout]);
+
+  // Logout function
+  const logout = useCallback(() => {
+    clearSessionTimeout();
+    localStorage.removeItem("store-owner");
+    localStorage.removeItem("lastActivity");
+    // Remove all activity event listeners
+    ACTIVITY_EVENTS.forEach((event) => {
+      window.removeEventListener(event, resetActivityTimer);
+    });
+  }, [clearSessionTimeout, resetActivityTimer]);
+
+  // Check session expiry on mount
+  useEffect(() => {
+    const savedOwner = localStorage.getItem("store-owner");
+    const lastActivity = localStorage.getItem("lastActivity");
+
+    if (savedOwner && lastActivity) {
+      const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+      if (timeSinceLastActivity > SESSION_TIMEOUT) {
+        console.log("Session expired. Please login again.");
+        localStorage.removeItem("store-owner");
+        localStorage.removeItem("lastActivity");
+      } else {
+        // Session is valid, set up activity listeners and start timeout
+        setSessionTimeout();
+        ACTIVITY_EVENTS.forEach((event) => {
+          window.addEventListener(event, resetActivityTimer);
+        });
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      clearSessionTimeout();
+      ACTIVITY_EVENTS.forEach((event) => {
+        window.removeEventListener(event, resetActivityTimer);
+      });
+    };
+  }, [resetActivityTimer, setSessionTimeout, clearSessionTimeout]);
+
+  // Update last activity timestamp on user activity
+  useEffect(() => {
+    const updateActivity = () => {
+      localStorage.setItem("lastActivity", Date.now().toString());
+    };
+
+    ACTIVITY_EVENTS.forEach((event) => {
+      window.addEventListener(event, updateActivity);
+    });
+
+    return () => {
+      ACTIVITY_EVENTS.forEach((event) => {
+        window.removeEventListener(event, updateActivity);
+      });
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +119,11 @@ const StoreOwnerLoginPage = () => {
       const { data } = await api.post("/store-owner/login", { email, password });
       // Store separately from main app auth
       localStorage.setItem("store-owner", JSON.stringify(data));
+      localStorage.setItem("lastActivity", Date.now().toString());
+
+      // Start session timeout
+      setSessionTimeout();
+
       toast.success(`Welcome back, ${data.name}!`);
       navigate("/store-owner/portal");
     } catch (err: any) {
@@ -99,61 +194,46 @@ const StoreOwnerLoginPage = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-sm relative z-10"
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-sm"
         >
-          <div className="mb-14 text-center md:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-amber-500/30 bg-muted/50 text-[10px] font-black uppercase tracking-[0.3em] text-amber-500 mb-6 rounded-xl shadow-sm">
-              <Zap className="h-3.5 w-3.5" />
-              Store Entry Point
+          <div className="mb-8">
+            <div className="h-10 w-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-4">
+              <Store className="h-5 w-5 text-amber-500" />
             </div>
-            <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase mb-3 italic text-foreground">
-              Welcome Back.
-            </h2>
-            <p className="text-[12px] text-muted-foreground font-bold italic">
-              Access your personalized store management center.
+            <h2 className="text-2xl font-black tracking-tight mb-2">Owner Login</h2>
+            <p className="text-sm text-muted-foreground">
+              Enter your credentials to access your store dashboard
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-3">
-              <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Business Email
-              </label>
-              <div className="relative group">
-                <Mail className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 group-focus-within:text-amber-500 transition-colors" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  required
                   type="email"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="store@pulse.com"
-                  className="h-14 pl-14 bg-muted/20 border-border focus:border-amber-500/50 rounded-xl font-black text-xs uppercase italic tracking-widest shadow-inner"
+                  required
+                  className="pl-10 h-12 rounded-xl bg-background/50 border-border/50"
                 />
               </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex justify-between items-center px-1">
-                <label className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
-                  Password
-                </label>
-                <button 
-                  type="button"
-                  className="text-[10px] font-black uppercase tracking-widest text-amber-500 hover:text-foreground transition-colors opacity-50 cursor-not-allowed"
-                  title="Contact admin to reset password"
-                >
-                  Forgot?
-                </button>
-              </div>
-              <div className="relative group">
-                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40 group-focus-within:text-amber-500 transition-colors" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  required
                   type="password"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-14 pl-14 bg-muted/20 border-border focus:border-amber-500/50 rounded-xl font-black text-xs uppercase italic tracking-widest shadow-inner"
+                  required
+                  className="pl-10 h-12 rounded-xl bg-background/50 border-border/50"
                 />
               </div>
             </div>
@@ -161,29 +241,38 @@ const StoreOwnerLoginPage = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-16 mt-8 bg-amber-500 hover:bg-amber-600 text-black rounded-xl font-black uppercase tracking-[0.25em] text-[10px] shadow-2xl group transition-all hover:scale-[1.02] active:scale-95 border-none"
+              className="w-full h-12 rounded-xl bg-amber-500 text-white hover:bg-amber-600 font-black uppercase tracking-widest text-[10px] gap-2 transition-all"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
               ) : (
                 <>
-                  Authorize Store Session
-                  <ArrowRight className="ml-3 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  Sign In <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
           </form>
 
-          <p className="mt-14 text-center text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-            Problems logging in?
-            <span className="ml-2 text-amber-500 italic">Contact Admin</span>
+          <div className="mt-6 pt-6 border-t border-border/30">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-amber-500" />
+                <span className="text-[10px] text-muted-foreground font-medium">Secure Login</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-amber-500" />
+                <span className="text-[10px] text-muted-foreground font-medium">30-min Session</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-center text-muted-foreground/60 mt-6">
+            Sessions expire after 30 minutes of inactivity for security
           </p>
         </motion.div>
-
-        <div className="absolute bottom-10 left-10 md:left-24 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] opacity-50 italic text-muted-foreground/30">
-          <ShieldCheck className="h-3 w-3 text-amber-500" />
-          Store Node Session • High Security Pulse Encryption
-        </div>
       </div>
     </div>
   );

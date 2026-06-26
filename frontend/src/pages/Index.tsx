@@ -14,6 +14,7 @@ import {
   Ticket,
   Camera,
   Megaphone,
+  Sparkles,
 } from "lucide-react";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
@@ -171,18 +172,35 @@ const Index = () => {
             HERO SECTION
         ═══════════════════════════════════════════════════════ */}
 
-        {/* ── MOBILE TAGLINE BAR ── */}
-        <div className="lg:hidden mt-14 flex items-center justify-between px-4 py-3 border-b border-border/20 bg-background gap-3">
-          <p className="text-[13px] font-black tracking-tight text-foreground leading-none">
-            Catch your City Pulse.
-          </p>
-          <button
-            onClick={() => navigate("/events")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-foreground text-background text-[11px] font-black uppercase tracking-widest shrink-0 active:scale-95 transition-transform duration-100"
-          >
-            <Search className="w-3 h-3" />
-            Explore
-          </button>
+        {/* ── MOBILE PROMOTIONAL BANNER ── */}
+        <div className="lg:hidden mt-14">
+          {/* Main promotional banner */}
+          <div className="px-4 py-3 border-b border-border/20 bg-background">
+            <div className="flex items-center justify-between gap-4">
+              {/* Left side: Logo and text */}
+              <div className="flex items-center gap-3">
+                {/* Logo icon */}
+                <div className="h-9 w-9 rounded-lg bg-neon-lime flex items-center justify-center shrink-0">
+                  <Sparkles className="h-4 w-4 text-black" />
+                </div>
+
+                {/* Text content */}
+                <div className="min-w-0">
+                  <p className="text-[15px] font-bold text-foreground leading-tight">
+                    Catch the City Pulse
+                  </p>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                onClick={() => navigate("/events")}
+                className="h-9 w-9 rounded-full bg-neon-lime text-black flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100 hover:shadow-[0_4px_12px_rgba(180,255,0,0.3)]"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* ── MOBILE HERO ── */}
@@ -364,9 +382,6 @@ const Index = () => {
               <div className="hidden md:block container overflow-hidden">
                 <MarqueeCarousel
                   events={filteredEvents}
-                  speed={300}
-                  direction="left"
-                  pauseOnHover={true}
                 />
               </div>
             </>

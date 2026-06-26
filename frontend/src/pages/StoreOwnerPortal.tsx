@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+
+// Session timeout: 30 minutes in milliseconds
+const SESSION_TIMEOUT = 30 * 60 * 1000;
+// Activity events to track for idle detection
+const ACTIVITY_EVENTS = ["mousedown", "keydown", "scroll", "touchstart", "click"];
 
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-500 border-amber-500/20",
@@ -63,16 +68,100 @@ const StoreOwnerPortal = () => {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
 
+  // Refs for timeout management
+  const sessionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
+
+  // Function to clear session timeout
+  const clearSessionTimeout = useCallback(() => {
+    if (sessionTimeoutRef.current) {
+      clearTimeout(sessionTimeoutRef.current);
+      sessionTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Function to set session timeout
+  const setSessionTimeout = useCallback(() => {
+    clearSessionTimeout();
+    sessionTimeoutRef.current = setTimeout(() => {
+      console.log("Session expired due to inactivity");
+      logout();
+    }, SESSION_TIMEOUT);
+  }, [clearSessionTimeout]);
+
+  // Function to reset timer on user activity
+  const resetActivityTimer = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setSessionTimeout();
+  }, [setSessionTimeout]);
+
+  // Logout function
+  const logout = useCallback(() => {
+    clearSessionTimeout();
+    localStorage.removeItem("store-owner");
+    localStorage.removeItem("lastActivity");
+    // Remove all activity event listeners
+    ACTIVITY_EVENTS.forEach((event) => {
+      window.removeEventListener(event, resetActivityTimer);
+    });
+    navigate("/store-owner/login");
+  }, [clearSessionTimeout, resetActivityTimer, navigate]);
+
   const owner = (() => {
     try { return JSON.parse(localStorage.getItem("store-owner") || "null"); } catch { return null; }
   })();
 
-  useEffect(() => { if (!owner) navigate("/store-owner/login"); }, []);
+  // Check session expiry on mount
+  useEffect(() => {
+    const lastActivity = localStorage.getItem("lastActivity");
 
-  const logout = () => {
-    localStorage.removeItem("store-owner");
-    navigate("/store-owner/login");
-  };
+    if (!owner) {
+      navigate("/store-owner/login");
+      return;
+    }
+
+    if (lastActivity) {
+      const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+      if (timeSinceLastActivity > SESSION_TIMEOUT) {
+        console.log("Session expired. Please login again.");
+        logout();
+        return;
+      }
+    }
+
+    // Session is valid, set up activity listeners and start timeout
+    setSessionTimeout();
+    ACTIVITY_EVENTS.forEach((event) => {
+      window.addEventListener(event, resetActivityTimer);
+    });
+
+    // Cleanup function
+    return () => {
+      clearSessionTimeout();
+      ACTIVITY_EVENTS.forEach((event) => {
+        window.removeEventListener(event, resetActivityTimer);
+      });
+    };
+  }, [owner, navigate, resetActivityTimer, setSessionTimeout, clearSessionTimeout, logout]);
+
+  // Update last activity timestamp on user activity
+  useEffect(() => {
+    if (owner) {
+      const updateActivity = () => {
+        localStorage.setItem("lastActivity", Date.now().toString());
+      };
+
+      ACTIVITY_EVENTS.forEach((event) => {
+        window.addEventListener(event, updateActivity);
+      });
+
+      return () => {
+        ACTIVITY_EVENTS.forEach((event) => {
+          window.removeEventListener(event, updateActivity);
+        });
+      };
+    }
+  }, [owner]);
 
   if (!owner) return null;
 
