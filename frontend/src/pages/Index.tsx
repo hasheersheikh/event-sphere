@@ -173,33 +173,23 @@ const Index = () => {
         ═══════════════════════════════════════════════════════ */}
 
         {/* ── MOBILE PROMOTIONAL BANNER ── */}
-        <div className="lg:hidden mt-14">
-          {/* Main promotional banner */}
-          <div className="px-4 py-3 border-b border-border/20 bg-background">
-            <div className="flex items-center justify-between gap-4">
-              {/* Left side: Logo and text */}
-              <div className="flex items-center gap-3">
-                {/* Logo icon */}
-                <div className="h-9 w-9 rounded-lg bg-neon-lime flex items-center justify-center shrink-0">
-                  <Sparkles className="h-4 w-4 text-black" />
-                </div>
-
-                {/* Text content */}
-                <div className="min-w-0">
-                  <p className="text-[15px] font-bold text-foreground leading-tight">
-                    Catch the City Pulse
-                  </p>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <button
-                onClick={() => navigate("/events")}
-                className="h-9 w-9 rounded-full bg-neon-lime text-black flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100 hover:shadow-[0_4px_12px_rgba(180,255,0,0.3)]"
-              >
-                <Search className="h-4 w-4" />
-              </button>
+        <div className="lg:hidden mt-14 px-4 py-3 border-b border-border/20 bg-background">
+          <div className="flex items-center gap-3">
+            {/* Logo icon */}
+            <div className="h-9 w-9 rounded-lg bg-neon-lime flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4 text-black" />
             </div>
+
+            {/* Search bar with tagline */}
+            <button
+              onClick={() => navigate("/events")}
+              className="flex-1 flex items-center justify-between gap-3 px-4 py-2.5 bg-card rounded-full shadow-[inset_0_3px_6px_rgba(0,0,0,0.2),inset_0_2px_4px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_3px_6px_rgba(255,255,255,0.15),inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_1px_2px_rgba(255,255,255,0.08)]"
+            >
+              <span className="text-sm font-bold text-foreground">Catch the City Pulse</span>
+              <div className="h-8 w-8 rounded-full bg-neon-lime flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100">
+                <Search className="h-4 w-4 text-black" />
+              </div>
+            </button>
           </div>
         </div>
 
