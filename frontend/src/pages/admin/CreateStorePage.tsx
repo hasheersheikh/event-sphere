@@ -82,9 +82,11 @@ const CreateStorePage = () => {
   const { id } = useParams<{ id?: string }>();
   const isEdit = Boolean(id);
   const [currentStep, setCurrentStep] = useState(1);
+  const formInitialized = useRef(false);
 
   const form = useForm<StoreFormValues>({
     resolver: zodResolver(storeSchema),
+    shouldUnregister: false,
     defaultValues: EMPTY_DEFAULTS,
   });
 
@@ -99,7 +101,8 @@ const CreateStorePage = () => {
   });
 
   useEffect(() => {
-    if (storeData) {
+    if (storeData && !formInitialized.current) {
+      formInitialized.current = true;
       form.reset({
         name: storeData.name || "",
         address: storeData.address || "",
@@ -126,7 +129,7 @@ const CreateStorePage = () => {
         website: storeData.website || "",
       });
     }
-  }, [storeData, form]);
+  }, [storeData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { fields: photoFields, append: appendPhoto, remove: removePhoto } = useFieldArray({
     control: form.control,

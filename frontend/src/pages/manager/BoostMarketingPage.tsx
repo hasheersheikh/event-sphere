@@ -31,8 +31,8 @@ import InfluencerSlider from "@/components/home/InfluencerSlider";
 const PLANS = [
   {
     id: "starter",
-    name: "Starter Sync",
-    price: "₹1,499",
+    name: "Spark",
+    price: "₹3,999",
     description: "Ideal for local hype and initial traction.",
     features: [
       "1 Targeted Instagram Post",
@@ -51,8 +51,8 @@ const PLANS = [
   },
   {
     id: "velocity",
-    name: "Viral Velocity",
-    price: "₹3,999",
+    name: "Catalyst",
+    price: "₹9,999",
     description: "Maximum momentum for high-capacity events.",
     features: [
       "1 High-Impact Reel",
@@ -73,8 +73,8 @@ const PLANS = [
   },
   {
     id: "elite",
-    name: "Elite Influence",
-    price: "Custom",
+    name: "Impact",
+    price: "₹14,999",
     description: "The ultimate exposure package for premier productions.",
     features: [
       "Influencer Collaboration",
@@ -217,15 +217,16 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
           {plan.name}
         </h3>
 
-        <div className="flex items-baseline gap-1.5 mb-4 md:mb-6">
-          <span className="text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-            {plan.price}
-          </span>
-          {plan.price !== "Custom" && (
+        <div className="flex flex-col mb-4 md:mb-6">
+          <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">Starting from</span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+              {plan.price}
+            </span>
             <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-wider">
               / Event
             </span>
-          )}
+          </div>
         </div>
 
         <p className="text-[11px] md:text-[12px] font-medium text-muted-foreground leading-relaxed mb-5 md:mb-8 min-h-[32px] md:min-h-[36px]">
@@ -299,14 +300,6 @@ const BoostMarketingPage = () => {
       <div className="px-4 md:p-6 space-y-12 md:space-y-24 max-w-[1440px] mx-auto pb-16 md:pb-24 pt-16 md:pt-20">
         {/* Public Landing Header */}
         <section className="pt-6 md:pt-12 pb-4 md:pb-6 space-y-4 md:space-y-5 text-center px-2">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] italic"
-            >
-              <Sparkles className="h-2.5 md:h-3 w-2.5 md:w-3" />
-              Marketing Engine v2.0
-            </motion.div>
             <div className="space-y-3 md:space-y-4">
               <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black brand-font uppercase tracking-tighter italic leading-[0.85] md:leading-[0.9] text-foreground text-center">
                 Boost Your <span className="text-primary underline decoration-primary/20 underline-offset-[8px] md:underline-offset-[12px]">Event.</span>

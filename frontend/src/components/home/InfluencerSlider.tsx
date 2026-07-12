@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Star, Loader2, ArrowRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import api from "@/lib/api";
-import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +90,6 @@ const InfluencerSlider = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-5 md:mb-8 gap-3 md:gap-4">
           <div>
             <div className="flex items-center gap-1.5 md:gap-2 mb-1.5 md:mb-2">
-              <Star className="h-3.5 w-3.5 md:h-4 md:w-4 text-primary fill-primary/20" />
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.35em] md:tracking-[0.4em]">
                 Elite Creator Network
               </p>
@@ -100,18 +98,12 @@ const InfluencerSlider = () => {
               Pulse <span className="text-primary">Influencers</span>
             </h2>
           </div>
-          <Link
-            to="/boost"
-            className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors group self-start md:self-auto"
-          >
-            Marketing Portal <ArrowRight className="h-2.5 w-2.5 md:h-3 md:w-3 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
         </div>
 
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+            className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pt-12 pb-6 -mt-12 -mb-6 px-1"
           >
             {influencers.map((inf, idx) => (
               <motion.div
@@ -120,15 +112,16 @@ const InfluencerSlider = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                whileHover={{ y: -8 }}
-                className="flex-shrink-0 w-56 sm:w-60 md:w-72 flex flex-col h-full"
+                whileHover={{ scale: 1.10, y: -8, zIndex: 20 }}
+                style={{ zIndex: 1 }}
+                className="flex-shrink-0 w-56 sm:w-60 md:w-72"
               >
                 <div
                   onClick={() => inf.instagramUrl && window.open(inf.instagramUrl, "_blank", "noopener,noreferrer")}
-                  className={`relative group bg-card/40 backdrop-blur-md border border-border/60 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-primary/40 flex flex-col h-full ${inf.instagramUrl ? "cursor-pointer" : ""}`}
+                  className={`relative group bg-card/40 backdrop-blur-md border border-border/60 rounded-xl md:rounded-2xl overflow-hidden transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] hover:border-primary/40 ${inf.instagramUrl ? "cursor-pointer" : ""}`}
                 >
                   {/* Card Image Cover */}
-                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-muted/20">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted/20">
                     <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent z-10" />
 
                     <img
@@ -151,11 +144,6 @@ const InfluencerSlider = () => {
                       </Badge>
                     </div>
 
-                    {/* Star overlay on hover */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-black h-10 w-10 md:h-12 md:w-12 rounded-full flex items-center justify-center shadow-2xl z-20 border-4 border-background opacity-0 scale-50 group-hover:opacity-100 group-hover:scale-100 transition-all duration-500">
-                      <Star className="h-4 w-4 md:h-5 md:w-5 fill-black" />
-                    </div>
-
                     {/* Name + handle overlay */}
                     <div className="absolute bottom-3 left-4 right-4 z-20">
                       <h4 className="text-base md:text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">
@@ -167,13 +155,6 @@ const InfluencerSlider = () => {
                     </div>
                   </div>
 
-                  {/* Card bottom: niche only */}
-                  <div className="p-4 md:p-5 flex items-center justify-between text-[9px] md:text-[10px]">
-                    <span className="font-black text-muted-foreground uppercase tracking-widest text-[8px] md:text-[10px]">Niche</span>
-                    <span className="font-extrabold text-foreground uppercase tracking-tight italic bg-muted/60 px-2 md:px-3 py-0.5 md:py-1 rounded-lg text-[9px] md:text-[10px]">
-                      {inf.niche}
-                    </span>
-                  </div>
                 </div>
               </motion.div>
             ))}

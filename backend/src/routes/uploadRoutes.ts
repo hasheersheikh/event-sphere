@@ -111,4 +111,43 @@ router.post('/multiple', protect, upload.array('files', 5), async (req, res) => 
   }
 });
 
+// Event video upload (4MB limit, with aspect ratio warning)
+const videoUpload = multer({
+  storage,
+  fileFilter: (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (!file.mimetype.startsWith('video/')) {
+      cb(new Error('Only video files are allowed'));
+    } else {
+      cb(null, true);
+    }
+  },
+  limits: { fileSize: 4 * 1024 * 1024 } // 4MB limit
+});
+
+router.post('/event-video', protect, videoUpload.single('video'), async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ message: 'No video uploaded' });
+    return;
+  }
+
+  try {
+    if (isCloudinaryConfigured()) {
+      const url = await uploadToCloudinary(req.file.path, 'event-sphere/videos');
+      fs.unlinkSync(req.file.path);
+      res.json({
+        url,
+        warning: 'Video should be in Instagram photo aspect ratio (4:5 portrait). Videos in other aspect ratios will be cropped.'
+      });
+    } else {
+      res.json({
+        url: `${getBaseUrl()}/uploads/${req.file.filename}`,
+        warning: 'Video should be in Instagram photo aspect ratio (4:5 portrait). Videos in other aspect ratios will be cropped.'
+      });
+    }
+  } catch (error) {
+    console.error('Video upload error:', error);
+    res.status(500).json({ message: 'Video upload failed', error });
+  }
+});
+
 export default router;

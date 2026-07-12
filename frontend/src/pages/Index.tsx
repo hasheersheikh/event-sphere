@@ -2,7 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowRight,
   Search,
@@ -16,6 +16,7 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
+import PulseLogo from "@/components/layout/PulseLogo";
 import EventCard from "@/components/events/EventCard";
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
@@ -29,6 +30,7 @@ import MobileEventCarousel from "@/components/events/MobileEventCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
 import { cn } from "@/lib/utils";
 import TrendingVenues from "@/components/home/TrendingVenues";
+import TrendingNagpurkars from "@/components/home/TrendingNagpurkars";
 
 
 const fadeUp = (delay = 0) => ({
@@ -69,10 +71,48 @@ function filterByDate(events: Event[], filter: DateFilterId): Event[] {
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
   const { selectedCity } = useCity();
   const shouldReduce = useReducedMotion();
+  const venuesRef = useRef<HTMLDivElement>(null);
+  const storesRef = useRef<HTMLDivElement>(null);
+  const nagpurkarsRef = useRef<HTMLDivElement>(null);
+  const pillsScrollRef = useRef<HTMLDivElement>(null);
+  const pillsDragRef = useRef({ isDragging: false, startX: 0, scrollLeft: 0, didDrag: false });
+
+  const onPillsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const s = pillsDragRef.current;
+    s.isDragging = true;
+    s.didDrag = false;
+    s.startX = e.clientX;
+    s.scrollLeft = pillsScrollRef.current?.scrollLeft ?? 0;
+  };
+  const onPillsMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const s = pillsDragRef.current;
+    if (!s.isDragging || !pillsScrollRef.current) return;
+    const dx = e.clientX - s.startX;
+    if (Math.abs(dx) > 4) s.didDrag = true;
+    pillsScrollRef.current.scrollLeft = s.scrollLeft - dx;
+  };
+  const onPillsMouseUp = () => { pillsDragRef.current.isDragging = false; };
+
+  // Animated placeholder text - vertical scrolling animation
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const placeholders = [
+    "Search events within the city.",
+    "Find concerts near you.",
+    "Discover tonight's parties.",
+  ];
+
+  useEffect(() => {
+    if (shouldReduce) return;
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [shouldReduce]);
 
   const { data: upcomingEvents, isLoading } = useQuery({
     queryKey: ["upcomingEvents", selectedCity],
@@ -163,9 +203,57 @@ const Index = () => {
     navigate(`/events${params.toString() ? `?${params.toString()}` : ""}`);
   };
 
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => {
+    const section = new URLSearchParams(location.search).get("section");
+    const refMap: Record<string, React.RefObject<HTMLDivElement>> = {
+      venues: venuesRef,
+      stores: storesRef,
+      nagpurkars: nagpurkarsRef,
+    };
+    const ref = section ? refMap[section] : null;
+    if (!ref) return;
+    const timeout = setTimeout(() => scrollToSection(ref), 100);
+    return () => clearTimeout(timeout);
+  }, [location.search]);
+
+  const handlePillClick = (type: string) => {
+    switch (type) {
+      case "events":
+        navigate("/events");
+        break;
+      case "venues":
+        scrollToSection(venuesRef);
+        break;
+      case "stores":
+        scrollToSection(storesRef);
+        break;
+      case "activity":
+        navigate("/events?category=Workshops");
+        break;
+      case "play":
+        navigate("/events?category=Sports");
+        break;
+      default:
+        break;
+    }
+  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground overflow-x-hidden">
+      <style>{`
+        @keyframes scroll {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-scroll {
+          animation: scroll 10s linear infinite;
+        }
+      `}</style>
       <main className="flex-1">
 
         {/* ═══════════════════════════════════════════════════════
@@ -175,18 +263,28 @@ const Index = () => {
         {/* ── MOBILE PROMOTIONAL BANNER ── */}
         <div className="lg:hidden mt-14 px-4 py-3 border-b border-border/20 bg-background">
           <div className="flex items-center gap-3">
-            {/* Logo icon */}
+            {/* Logo icon - PulseLogo with rotation animation in neon square */}
             <div className="h-9 w-9 rounded-lg bg-neon-lime flex items-center justify-center shrink-0">
-              <Sparkles className="h-4 w-4 text-black" />
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+              >
+                <PulseLogo size={24} className="text-white" />
+              </motion.div>
             </div>
 
-            {/* Search bar with tagline */}
+            {/* Search bar with vertical scrolling tagline */}
             <button
               onClick={() => navigate("/events")}
-              className="flex-1 flex items-center justify-between gap-3 px-4 py-2.5 bg-card rounded-full shadow-[inset_0_3px_6px_rgba(0,0,0,0.2),inset_0_2px_4px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(0,0,0,0.1)] dark:shadow-[inset_0_3px_6px_rgba(255,255,255,0.15),inset_0_2px_4px_rgba(255,255,255,0.1),inset_0_1px_2px_rgba(255,255,255,0.08)]"
+              className="flex-1 flex items-center justify-between gap-3 px-4 py-2.5 bg-card rounded-full shadow-[0_6px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.07)] border border-border/30 relative overflow-hidden"
             >
-              <span className="text-sm font-bold text-foreground">Catch the City Pulse</span>
-              <div className="h-8 w-8 rounded-full bg-neon-lime flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-light text-muted-foreground/60 pointer-events-none overflow-hidden h-5 flex items-center">
+                <span className="animate-scroll-vertical whitespace-nowrap" key={placeholderIndex}>
+                  {placeholders[placeholderIndex]}
+                </span>
+              </div>
+              <span className="text-sm font-light text-foreground opacity-0">Search</span>
+              <div className="h-8 w-8 rounded-full bg-neon-lime flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100 z-10">
                 <Search className="h-4 w-4 text-black" />
               </div>
             </button>
@@ -253,14 +351,19 @@ const Index = () => {
               {/* Search bar */}
               <motion.form onSubmit={handleSearch} {...fadeUp(0.14)} className="mb-8">
                 <div className={cn(
-                  "flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/50 rounded-2xl max-w-md",
+                  "flex flex-col sm:flex-row items-stretch gap-1.5 p-1.5 bg-card border border-border/30 rounded-2xl max-w-md shadow-[0_6px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.07)]",
                   !hasHeroAssets && "mx-auto"
                 )}>
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 z-10" />
+                    <div className="absolute left-9 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/60 pointer-events-none overflow-hidden h-5 flex items-center">
+                      <span className="animate-scroll-vertical whitespace-nowrap" key={placeholderIndex}>
+                        {placeholders[placeholderIndex]}
+                      </span>
+                    </div>
                     <Input
                       type="text"
-                      placeholder="Best events in the city, instantly"
+                      placeholder=""
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="h-10 pl-9 bg-transparent border-none focus-visible:ring-0 text-sm"
@@ -314,12 +417,55 @@ const Index = () => {
             </div>
           </div>
         </section>
+
+        {/* ═══ CATEGORY PILLS ═══ */}
+        <section className="border-b border-border/20 py-2 md:py-3 bg-background sticky top-14 z-30">
+          <div className="container">
+            <div
+              ref={pillsScrollRef}
+              onMouseDown={onPillsMouseDown}
+              onMouseMove={onPillsMouseMove}
+              onMouseUp={onPillsMouseUp}
+              onMouseLeave={onPillsMouseUp}
+              className="flex items-center gap-3 md:gap-4 overflow-x-auto scrollbar-hide py-2 px-1 select-none cursor-grab active:cursor-grabbing"
+              style={{ overscrollBehaviorX: "contain" }}
+            >
+              {[
+                { id: "events", label: "Events", icon: CalendarDays },
+                { id: "stores", label: "Stores", icon: Store },
+                { id: "activity", label: "Activity", icon: Sparkles },
+                { id: "play", label: "Play", icon: Ticket },
+                { id: "venues", label: "Venues", icon: MapPin },
+              ].map((pill) => (
+                <button
+                  key={pill.id}
+                  onClick={() => { if (!pillsDragRef.current.didDrag) handlePillClick(pill.id); }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/30 bg-card shadow-[0_2px_8px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.40),0_1px_3px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.07)] hover:shadow-[0_4px_14px_rgba(0,0,0,0.12),0_1px_3px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.85)] dark:hover:shadow-[0_4px_16px_rgba(0,0,0,0.55),0_1px_4px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.07)] hover:border-border/50 transition-all duration-200 shrink-0 group pointer-events-auto"
+                >
+                  {/* <pill.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" /> */}
+                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">
+                    {pill.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
-        <section className="border-t border-border/20 py-8">
+        <section className="border-t border-border/20 py-4 md:py-5">
           <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-pink animate-pulse" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.4em]">Upcoming</h2>
+            <div className="flex items-center justify-between w-full md:w-auto">
+              <div className="flex items-center gap-2.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-neon-pink animate-pulse" />
+                <h2 className="text-[10px] font-black uppercase tracking-[0.4em]">Upcoming</h2>
+              </div>
+              <Link
+                to="/events"
+                className="md:hidden flex text-[10px] font-black uppercase tracking-widest text-neon-lime hover:text-neon-lime/80 items-center gap-1 transition-colors group"
+              >
+                View All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
             </div>
 
             <div className="hidden md:flex items-center gap-1.5 overflow-x-auto scrollbar-hide">
@@ -390,10 +536,19 @@ const Index = () => {
 
 
         {/* ═══ TRENDING VENUES ═══ */}
-        <TrendingVenues />
+        <div ref={venuesRef}>
+          <TrendingVenues />
+        </div>
+
+        {/* ═══ TRENDING NAGPURKARS ═══ */}
+        <div ref={nagpurkarsRef}>
+          <TrendingNagpurkars />
+        </div>
 
         {/* ═══ GO LOCAL ═══ */}
-        <GoLocalSection />
+        <div ref={storesRef}>
+          <GoLocalSection />
+        </div>
 
         {/* ═══ ORGANIZER CTA ═══ */}
         <section className="py-12 border-t border-border/20">
@@ -467,11 +622,6 @@ const Index = () => {
                     <Button className="h-12 px-10 bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[11px] rounded-xl">
                       <Megaphone className="h-4 w-4 mr-2" />
                       List Your Event
-                    </Button>
-                  </Link>
-                  <Link to="/list-your-event">
-                    <Button variant="outline" className="h-12 px-10 font-black uppercase tracking-widest text-[11px] rounded-xl border-border/60">
-                      Learn More
                     </Button>
                   </Link>
                 </div>

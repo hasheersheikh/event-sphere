@@ -1,7 +1,5 @@
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Calendar, MapPin, Ticket, User, Shield } from "lucide-react";
-import { Event } from "@/types/event";
 
 interface TicketTemplateProps {
   booking: any;
@@ -12,143 +10,191 @@ interface TicketTemplateProps {
   };
 }
 
+const NEON = "#C4F000";
+const DARK = "#0d0d0d";
+const BORDER = "#282828";
+
 const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
   ({ booking, ticket }, ref) => {
-    const event: Event = booking?.event || {};
+    const event = booking?.event || {};
+    const user = booking?.user || {};
+
+    const dateStr = event.date
+      ? new Date(event.date).toLocaleDateString("en-US", {
+          weekday: "short", day: "numeric", month: "long", year: "numeric",
+        })
+      : "Date unavailable";
+
+    const venue = event.location?.venueName || event.location?.address || "Venue unavailable";
 
     return (
       <div
         ref={ref}
-        className="w-[800px] bg-white text-slate-900 p-12 relative overflow-hidden font-sans"
-        style={{ minHeight: "500px" }}
+        style={{
+          width: 800,
+          backgroundColor: DARK,
+          fontFamily: "'Inter', 'Helvetica Neue', Arial, sans-serif",
+          position: "relative",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
-        {/* Security Watermark */}
-        <div className="absolute inset-0 pointer-events-none opacity-[0.03] rotate-[-30deg] flex flex-wrap gap-20 p-10 select-none">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <span
-              key={i}
-              className="text-6xl font-black uppercase tracking-widest"
-            >
-              City Pulse Secure
+        {/* Security watermark */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          opacity: 0.022, display: "flex", flexWrap: "wrap", gap: 40,
+          padding: 20, transform: "rotate(-25deg)", transformOrigin: "center",
+          userSelect: "none", overflow: "hidden",
+        }}>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <span key={i} style={{ fontSize: 28, fontWeight: 900, color: NEON, whiteSpace: "nowrap", letterSpacing: 8 }}>
+              CITY PULSE
             </span>
           ))}
         </div>
 
-        <div className="relative z-10 border-4 border-slate-900 rounded-3xl p-8 flex gap-8">
-          {/* Left Section - Event Info */}
-          <div className="flex-1 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-indigo-600 flex items-center justify-center">
-                <Ticket className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                OFFICIAL TICKET
-              </h1>
-            </div>
+        {/* Top accent stripe */}
+        <div style={{ height: 4, background: `linear-gradient(90deg, ${NEON}, #aaee00, ${NEON})` }} />
 
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
-                  Event Name
-                </p>
-                <h2 className="text-2xl font-bold">{event.title || "Deleted Event"}</h2>
-              </div>
+        {/* Main body */}
+        <div style={{ display: "flex", padding: "32px 36px 28px 36px", gap: 0, alignItems: "stretch" }}>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
-                    Date & Time
-                  </p>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <Calendar className="h-4 w-4 text-indigo-600" />
-                    <span>
-                      {event.date ? new Date(event.date).toLocaleDateString() : "Date N/A"} at{" "}
-                      {event.time || "Time N/A"}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
-                    Location
-                  </p>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <MapPin className="h-4 w-4 text-indigo-600" />
-                    <span className="truncate">
-                      {event.location?.venueName || "Location Unavailable"}
-                    </span>
-                  </div>
-                </div>
-              </div>
+          {/* ── Left: Event info ── */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 22, paddingRight: 30 }}>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
-                    Ticket Holder
-                  </p>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <User className="h-4 w-4 text-indigo-600" />
-                    <span>{booking.user.name || "Booking Guest"}</span>
-                  </div>
+            {/* Brand row */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 28, height: 28, borderRadius: 7, backgroundColor: NEON,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <span style={{ fontSize: 11, fontWeight: 900, color: "#000", letterSpacing: -0.5 }}>CP</span>
                 </div>
-                <div>
-                  <p className="text-xs font-bold uppercase text-slate-400 tracking-widest mb-1">
-                    Ticket Type
-                  </p>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <Badge
-                      variant="outline"
-                      className="text-lg px-3 py-1 font-bold border-2"
-                    >
-                      {ticket.quantity}x {ticket.type}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-slate-200">
-              <div className="flex items-center gap-2 text-slate-500 text-sm">
-                <Shield className="h-4 w-4 text-green-600" />
-                <span>
-                  This ticket is unique and valid for one-time admission only.
+                <span style={{ fontSize: 9, fontWeight: 800, color: "#555", letterSpacing: 5, textTransform: "uppercase" }}>
+                  City Pulse
                 </span>
               </div>
+              <span style={{ fontSize: 8, fontWeight: 700, color: "#444", letterSpacing: 3, textTransform: "uppercase" }}>
+                Admission Ticket
+              </span>
+            </div>
+
+            {/* Event title */}
+            <div>
+              <span style={{ fontSize: 8, fontWeight: 900, color: NEON, letterSpacing: 5, textTransform: "uppercase", display: "block", marginBottom: 7 }}>
+                Event
+              </span>
+              <span style={{ fontSize: 24, fontWeight: 900, color: "#ffffff", lineHeight: 1.15, letterSpacing: -0.5, display: "block" }}>
+                {event.title || "Deleted Event"}
+              </span>
+            </div>
+
+            {/* Info grid — 2×2, no boxes */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 28px" }}>
+              <InfoCell label="Date" value={dateStr} />
+              <InfoCell label="Time" value={event.time || "TBA"} />
+              <InfoCell label="Venue" value={venue} />
+              <InfoCell label="Ticket Holder" value={user.name || "Guest"} />
+            </div>
+
+            {/* Ticket type row — plain text, no box */}
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div>
+                <span style={{ fontSize: 7, fontWeight: 900, color: "#555", letterSpacing: 4, textTransform: "uppercase", display: "block", marginBottom: 4 }}>
+                  Ticket Type
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: NEON, letterSpacing: 1, textTransform: "uppercase" }}>
+                  {ticket.quantity}× {ticket.type}
+                </span>
+              </div>
+              {ticket.price > 0 && (
+                <div style={{ borderLeft: `1px solid ${BORDER}`, paddingLeft: 16 }}>
+                  <span style={{ fontSize: 7, fontWeight: 900, color: "#555", letterSpacing: 4, textTransform: "uppercase", display: "block", marginBottom: 4 }}>
+                    Amount Paid
+                  </span>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: "#aaa", letterSpacing: 0.5 }}>
+                    ₹{(ticket.price * ticket.quantity).toFixed(0)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Footer note */}
+            <div style={{ marginTop: "auto", paddingTop: 14, borderTop: `1px solid ${BORDER}`, display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: NEON, flexShrink: 0 }} />
+              <span style={{ fontSize: 8, color: "#444", fontWeight: 700, letterSpacing: 0.5 }}>
+                Valid for one-time admission only · Do not duplicate or share
+              </span>
             </div>
           </div>
 
-          {/* Right Section - QR Code */}
-          <div className="w-[200px] flex flex-col items-center justify-center gap-4 bg-slate-50 rounded-2xl border-l-2 border-dashed border-slate-300 p-6">
-            <div className="bg-white p-3 rounded-xl shadow-md">
+          {/* ── Perforation ── */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 1 }}>
+            <div style={{ width: 18, height: 18, borderRadius: "50%", backgroundColor: DARK, border: `1px solid ${BORDER}`, marginTop: -32, flexShrink: 0 }} />
+            <div style={{ flex: 1, borderLeft: `2px dashed ${BORDER}`, margin: "3px 0" }} />
+            <div style={{ width: 18, height: 18, borderRadius: "50%", backgroundColor: DARK, border: `1px solid ${BORDER}`, marginBottom: -28, flexShrink: 0 }} />
+          </div>
+
+          {/* ── Right: QR ── */}
+          <div style={{
+            width: 190,
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            gap: 14, paddingLeft: 30,
+          }}>
+            <div style={{
+              backgroundColor: "#fff", padding: 10, borderRadius: 12,
+              border: `2.5px solid ${NEON}`,
+              boxShadow: `0 0 20px ${NEON}28`,
+            }}>
               <QRCodeSVG
                 value={`citypulse://ticket/${booking._id}`}
-                size={140}
+                size={128}
                 level="H"
-                includeMargin={true}
+                includeMargin={false}
               />
             </div>
-            <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-tighter">
-              ID: {booking._id.substring(0, 12)}...
-            </p>
+
+            <div style={{ textAlign: "center" }}>
+              <span style={{ fontSize: 7, fontWeight: 900, color: "#444", letterSpacing: 4, textTransform: "uppercase", display: "block", marginBottom: 5 }}>
+                Booking ID
+              </span>
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#777", letterSpacing: 1, display: "block" }}>
+                #{booking._id.slice(-10).toUpperCase()}
+              </span>
+            </div>
+
+            <span style={{ fontSize: 8, fontWeight: 900, color: "#555", letterSpacing: 3, textTransform: "uppercase" }}>
+              Scan at entry
+            </span>
           </div>
         </div>
 
-        {/* Bottom Footer */}
-        <div className="mt-8 text-center text-[10px] text-slate-400 font-medium">
-          Generated by City Pulse • Validated via Cryptographic ID • Do not
-          share this QR code
+        {/* Bottom rule + footer */}
+        <div style={{ height: 1, backgroundColor: BORDER, margin: "0 36px" }} />
+        <div style={{ padding: "12px 36px 14px", textAlign: "center" }}>
+          <span style={{ fontSize: 8, color: "#383838", letterSpacing: 3, fontWeight: 700, textTransform: "uppercase" }}>
+            citypulse.in · Cryptographically verified · Do not share this QR code
+          </span>
         </div>
       </div>
     );
-  },
+  }
 );
 
-// Minimal Badge for the ticket
-const Badge = ({ children, variant, className }: any) => (
-  <span
-    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${className}`}
-  >
-    {children}
-  </span>
+const InfoCell = ({ label, value }: { label: string; value: string }) => (
+  <div>
+    <span style={{ fontSize: 7, fontWeight: 900, color: "#555", letterSpacing: 4, textTransform: "uppercase", display: "block", marginBottom: 5 }}>
+      {label}
+    </span>
+    <span style={{ fontSize: 11, fontWeight: 700, color: "#bbb", lineHeight: 1.35, display: "block" }}>
+      {value}
+    </span>
+  </div>
 );
+
+TicketTemplate.displayName = "TicketTemplate";
 
 export default TicketTemplate;

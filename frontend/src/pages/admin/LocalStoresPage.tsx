@@ -165,6 +165,7 @@ const StoreForm = ({
 
   const form = useForm<StoreFormValues>({
     resolver: zodResolver(storeSchema),
+    shouldUnregister: false,
     defaultValues: editStore
       ? {
           name: editStore.name,

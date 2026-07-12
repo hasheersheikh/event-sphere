@@ -238,7 +238,7 @@ const TrendingVenueManagementPage = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="aspect-[4/3] rounded-2xl bg-muted animate-pulse" />
+            <div key={i} className="aspect-[4/5] rounded-2xl bg-muted animate-pulse" />
           ))}
         </div>
       ) : venues.length === 0 ? (
@@ -255,7 +255,7 @@ const TrendingVenueManagementPage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {venues.map((venue) => (
             <div key={venue._id} className="group relative rounded-2xl border border-border overflow-hidden bg-card shadow-sm hover:shadow-lg transition-all duration-300">
-              <div className="aspect-[4/3] relative bg-muted overflow-hidden">
+              <div className="aspect-[4/5] relative bg-muted overflow-hidden">
                 {venue.image ? (
                   <img src={venue.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
@@ -337,7 +337,7 @@ const TrendingVenueManagementPage = () => {
               onClick={handlePrimaryUploadClick}
               disabled={uploading}
               className={cn(
-                "relative w-full aspect-[4/3] rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2",
+                "relative w-full aspect-[4/5] rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-2",
                 form.image ? "border-primary/40 bg-primary/5 overflow-hidden" : "border-border hover:border-primary/50 hover:bg-muted/40"
               )}
             >
@@ -353,16 +353,22 @@ const TrendingVenueManagementPage = () => {
               ) : (
                 <>
                   <Upload className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">Upload Venue Image</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Upload Cover Photo</span>
                 </>
               )}
             </button>
+            <p className="text-[9px] font-bold text-muted-foreground/70 text-center -mt-1">
+              Use <span className="text-primary font-black">4:5 ratio (1080 × 1350 px)</span> — matches Instagram portrait posts exactly
+            </p>
 
             {/* Gallery Images Section */}
             <div className="space-y-2">
-              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                Venue Gallery (Multiple Photos)
-              </label>
+              <div className="flex items-baseline gap-2 ml-1">
+                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+                  Venue Gallery (Multiple Photos)
+                </label>
+                <span className="text-[9px] font-bold text-muted-foreground/60">· 4:5 ratio recommended</span>
+              </div>
               
               {form.images && form.images.length > 0 && (
                 <div className="grid grid-cols-4 gap-2 border border-border/40 rounded-xl p-2 bg-muted/10">

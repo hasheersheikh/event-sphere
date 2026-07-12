@@ -140,7 +140,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
             </div>
 
             {/* Views Badge */}
-            <div className="absolute bottom-3 right-3 flex items-center gap-1 bg-black/65 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white border border-white/10 shadow-sm z-20">
+            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/65 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white border border-white/10 shadow-sm z-20">
               <Eye className="h-3 w-3 text-neon-lime" />
               <span>{formatViews(event.viewCount)} Views</span>
             </div>
@@ -181,14 +181,11 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
             )}>
               <MapPin className={cn("shrink-0 text-primary", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
               <p className={cn("font-bold text-primary line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
-                {formatDate(event.date, event.nextOccurrence)}&nbsp;&nbsp;{typeof event.location === "string"
-                  ? event.location
-                  : event.location?.venueName ||
-                    event.location?.address?.split(",")[0] || "Nagpur"}
+                {formatDate(event.date, event.nextOccurrence)}
               </p>
             </div>
 
-            {event.coordinator?.phone && (
+            {!mobile && event.coordinator?.phone && (
               <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
                 <Phone className="h-2.5 w-2.5 shrink-0" />
                 <p className="text-[10px] font-medium">
@@ -197,7 +194,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
               </div>
             )}
 
-            {soldPercentage > 50 && !isSoldOut && (
+            {!mobile && soldPercentage > 50 && !isSoldOut && (
               <div className="mt-1">
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <div

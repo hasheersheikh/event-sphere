@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { MapPin, Building2, TrendingUp, ArrowRight, Eye } from "lucide-react";
+import { MapPin, Building2, ArrowRight, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
 import { cn } from "@/lib/utils";
@@ -88,21 +88,13 @@ const TrendingVenues = () => {
   return (
     <section className="py-12 border-t border-border/20">
       <div className="container">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="h-4 w-4 " />
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] ">
-                Trending Now
-              </p>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tighter">
-              Trending <span className="">Venues</span>
-            </h2>
-          </div>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl md:text-3xl font-black tracking-tighter">
+            Trending Venues
+          </h2>
           <Link
             to="/venues"
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime flex items-center gap-1 transition-colors group"
+            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime flex items-center gap-1 transition-colors group shrink-0"
           >
             View All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
           </Link>
@@ -120,15 +112,15 @@ const TrendingVenues = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                className="flex-shrink-0 w-72 md:w-80"
+                className="flex-shrink-0 w-52 md:w-56"
               >
                 <button
                   onClick={() => setSelectedVenue(venue)}
                   className="block w-full text-left group focus:outline-none"
                 >
                   <div className="rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
-                    {/* Image */}
-                    <div className="relative aspect-[4/3]">
+                    {/* Image — 4:5 Instagram portrait ratio */}
+                    <div className="relative aspect-[4/5]">
                       {venue.image ? (
                         <img
                           src={venue.image}
@@ -166,15 +158,6 @@ const TrendingVenues = () => {
                         </div>
                       </div>
                     </div>
-
-                    {/* Description strip */}
-                    {venue.description && (
-                      <div className="px-4 py-3 bg-card border-t border-border/30">
-                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
-                          {venue.description}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </button>
               </motion.div>
@@ -225,7 +208,7 @@ const TrendingVenues = () => {
 
                 {/* Photos Gallery */}
                 <div className="space-y-2">
-                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-muted border border-border/60">
+                  <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-muted border border-border/60">
                     {venueImages.length > 0 ? (
                       <img
                         src={venueImages[activeImageIndex]}
@@ -265,7 +248,7 @@ const TrendingVenues = () => {
                           key={i}
                           onClick={() => setActiveImageIndex(i)}
                           className={cn(
-                            "relative flex-shrink-0 w-20 aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all",
+                            "relative flex-shrink-0 w-14 aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all",
                             activeImageIndex === i ? "border-neon-lime" : "border-border/50 opacity-60 hover:opacity-100"
                           )}
                         >

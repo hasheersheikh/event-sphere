@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, X, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown } from "lucide-react";
+import { Search, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown, ChevronUp } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
 import EventCard from "@/components/events/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,8 +133,23 @@ const EventsPage = () => {
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [sortOpen, setSortOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const { selectedCity } = useCity();
   const sortRef = useRef<HTMLDivElement>(null);
+
+  const placeholders = [
+    "Best events in the city, instantly.",
+    "Find concerts near you.",
+    "Discover tonight's parties.",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category") || "");
@@ -152,6 +166,18 @@ const EventsPage = () => {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [sortOpen]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const { data: apiEvents, isLoading } = useQuery({
     queryKey: ["events", searchQuery, selectedCategory, selectedCity],
@@ -194,58 +220,164 @@ const EventsPage = () => {
     setSearchParams({});
   };
 
-  const hasActiveFilters = searchQuery || selectedCategory || dateFilter !== "all" || sortBy !== "default";
-
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
       <main className="flex-1 pt-14 md:pt-16">
 
-        {/* ─── Search bar ──────────────────────────────────────────────── */}
-        <section className="border-b border-border/20 py-3 md:py-6">
-          <div className="container px-3 md:px-4">
+        {/* ─── Desktop: heading + left-aligned search ──────────────────── */}
+        <section className="hidden md:block border-b border-border/20 py-6">
+          <div className="container px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-4"
+            >
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-1">Discover</p>
+                <h1 className="text-4xl font-black tracking-tighter">Events</h1>
+              </div>
+              <form onSubmit={handleSearch} className="max-w-md">
+                <div className="flex items-stretch gap-1.5 p-1.5 bg-card border border-border/30 rounded-2xl shadow-[0_6px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.07)]">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/50 z-10" />
+                    {!searchQuery && (
+                      <div className="absolute left-9 top-1/2 -translate-y-1/2 text-sm text-muted-foreground/60 pointer-events-none overflow-hidden h-5 flex items-center">
+                        <span className="animate-scroll-vertical whitespace-nowrap" key={placeholderIndex}>
+                          {placeholders[placeholderIndex]}
+                        </span>
+                      </div>
+                    )}
+                    <Input
+                      type="text"
+                      placeholder=""
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="h-10 pl-9 bg-transparent border-none focus-visible:ring-0 text-sm"
+                    />
+                  </div>
+                  <Button
+                    variant="default"
+                    type="submit"
+                    className="h-10 px-4 rounded-xl font-black uppercase tracking-widest text-[9px] shrink-0"
+                  >
+                    Search
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* ─── Mobile: centered pill search ────────────────────────────── */}
+        <section className="md:hidden border-b border-border/20 py-3">
+          <div className="container px-3">
             <motion.form
               onSubmit={handleSearch}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-row items-center gap-2 max-w-2xl"
             >
-              <div className="flex flex-row items-center gap-1 flex-1 p-1 md:p-1.5 bg-card border border-border/50 rounded-xl md:rounded-2xl">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 md:left-3.5 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground/50" />
+              <div className="flex items-center gap-3 px-4 py-2 bg-card rounded-full border border-border/30 shadow-[0_6px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.07)]">
+                <div className="relative flex-1 h-9 flex items-center">
+                  {!searchQuery && (
+                    <div className="absolute inset-0 flex items-center overflow-hidden pointer-events-none">
+                      <span className="animate-scroll-vertical whitespace-nowrap text-sm font-light text-foreground/50" key={placeholderIndex}>
+                        {placeholders[placeholderIndex]}
+                      </span>
+                    </div>
+                  )}
                   <Input
                     type="text"
-                    placeholder="Search events…"
+                    placeholder=""
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-9 md:h-10 pl-9 md:pl-10 bg-transparent border-none focus-visible:ring-0 text-sm font-medium"
+                    className="flex-1 h-9 bg-transparent border-none focus-visible:ring-0 text-sm font-light px-0"
                   />
                 </div>
-                <Button
+                <button
                   type="submit"
-                  aria-label="Search"
-                  className="h-9 md:h-10 w-9 md:w-10 rounded-lg md:rounded-xl bg-foreground text-background hover:bg-foreground/90 shrink-0 p-0 flex items-center justify-center"
+                  className="h-9 w-9 rounded-full bg-neon-lime flex items-center justify-center shrink-0 active:scale-95 transition-transform duration-100"
                 >
-                  <Search className="h-3.5 md:h-4 w-3.5 md:w-4" />
-                </Button>
+                  <Search className="h-4 w-4 text-black" />
+                </button>
               </div>
-              {hasActiveFilters && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  onClick={clearFilters}
-                  className="hidden sm:flex h-9 md:h-10 self-center px-3 md:px-4 rounded-lg md:rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted text-[10px] md:text-[11px] font-bold shrink-0 transition-all"
-                >
-                  <X className="h-3.5 md:h-4 w-3.5 md:w-4 mr-0.5 md:mr-1" /> <span className="hidden sm:inline">Clear all</span>
-                </Button>
-              )}
             </motion.form>
           </div>
         </section>
 
-        {/* ─── Category pills (sticky, desktop only) ───────────────────── */}
+        {/* ─── Mobile: Instagram stories-style categories ─────────────────── */}
+        <section className="md:hidden border-b border-border/20 py-4 px-4">
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide snap-x px-4">
+              {/* All category */}
+              <button
+                onClick={() => {
+                  setSelectedCategory("");
+                  const params = new URLSearchParams(searchParams);
+                  params.delete("category");
+                  setSearchParams(params);
+                }}
+                className="flex flex-col items-center gap-1.5 shrink-0 snap-start group mx-1 mt-3"
+              >
+                <div
+                  className={cn(
+                    "w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-200 relative ml-2",
+                    !selectedCategory
+                      ? "bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                      : "bg-muted/50 text-foreground group-hover:bg-muted"
+                  )}
+                >
+                  <span className="text-2xl">✨</span>
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium whitespace-nowrap",
+                    !selectedCategory ? "text-foreground font-bold" : "text-muted-foreground"
+                  )}
+                >
+                  All
+                </span>
+              </button>
+
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    const next = selectedCategory === cat.name ? "" : cat.name;
+                    setSelectedCategory(next);
+                    const params = new URLSearchParams(searchParams);
+                    if (next) params.set("category", next);
+                    else params.delete("category");
+                    setSearchParams(params);
+                  }}
+                  className="flex flex-col items-center gap-1.5 shrink-0 snap-start group"
+                >
+                  <div
+                    className={cn(
+                      "w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-200 relative",
+                      selectedCategory === cat.name
+                        ? "bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                        : "bg-muted/50 text-foreground group-hover:bg-muted"
+                    )}
+                  >
+                    <span className="text-2xl">{cat.icon}</span>
+                  </div>
+                  <span
+                    className={cn(
+                      "text-[10px] font-medium whitespace-nowrap",
+                      selectedCategory === cat.name ? "text-foreground font-bold" : "text-muted-foreground"
+                    )}
+                  >
+                    {cat.name}
+                  </span>
+                </button>
+              ))}
+          </div>
+        </section>
+
+        {/* ─── Desktop: Category pills (sticky) ─────────────────────────────── */}
         <section className="hidden md:block border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
           <div className="container px-3 md:px-4">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
@@ -426,7 +558,17 @@ const EventsPage = () => {
         </section>
       </main>
 
-      <Footer />
+      {/* Back to Top Button */}
+      <motion.button
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: showBackToTop ? 1 : 0, scale: showBackToTop ? 1 : 0.8 }}
+        transition={{ duration: 0.2 }}
+        onClick={scrollToTop}
+        className="fixed bottom-6 right-6 z-40 h-12 w-12 rounded-full bg-foreground text-background shadow-lg hover:shadow-xl hover:bg-foreground/90 transition-all flex items-center justify-center"
+        aria-label="Back to top"
+      >
+        <ChevronUp className="h-5 w-5" />
+      </motion.button>
     </div>
   );
 };

@@ -43,10 +43,9 @@ const GoLocalSection = () => {
 
       <div className="container relative z-10">
         <PublicPageHeader
-          pillText="Nearby Gems"
           title={
             <>
-              Discover Unique Stores
+              Unique Stores
             </>
           }
           subtitle="Discover handpicked local stores around you: fresh produce, artisan crafts, neighbourhood favourites."

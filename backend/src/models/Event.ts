@@ -72,6 +72,7 @@ export interface IEvent extends Document {
   category: string;
   image?: string;
   videoUrl?: string;
+  eventVideo?: string; // Uploaded video file for event banner
   reels?: string[];
   artist?: {
     name: string;
@@ -162,6 +163,7 @@ const EventSchema: Schema = new Schema(
     category: { type: String, required: true },
     image: { type: String },
     videoUrl: { type: String },
+    eventVideo: { type: String }, // Uploaded video file for event banner gallery
     reels: [{ type: String }],
     artist: {
       name: { type: String },

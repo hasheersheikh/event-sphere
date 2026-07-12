@@ -1,22 +1,32 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Loader2, AlertCircle, Search, Building2,
-  LocateFixed, Navigation,
+  X, Loader2, AlertCircle, Search,
+  LocateFixed, Navigation, Building2, MapPin, Landmark, Zap,
+  Mountain, Waves, TreePine, Sun, Coffee, Drum,
 } from "lucide-react";
 import { CITIES, City, useCity } from "@/contexts/CityContext";
 
 const POPULAR_CITIES: string[] = [
-  "Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai", "Pune",
-  "Nagpur", "Kolkata", "Ahmedabad", "Jaipur", "Surat", "Lucknow",
+  "Nagpur", "Mumbai", "Delhi", "Bengaluru", "Hyderabad", "Chennai",
+  "Pune", "Kolkata",
 ];
 
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+// Unique icon for each city
+const CITY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  "Nagpur": TreePine,      // Orange city
+  "Mumbai": Waves,         // Coastal city
+  "Delhi": Landmark,       // Capital city
+  "Bengaluru": Coffee,     // IT hub
+  "Hyderabad": Zap,        // Tech city
+  "Chennai": Drum,         // Cultural city
+  "Pune": Mountain,        // Hill city
+  "Kolkata": Building2,    // Metro city
+};
 
 const CitySelectModal = () => {
   const { showCityModal, setShowCityModal, setSelectedCity, selectedCity } = useCity();
   const [search, setSearch] = useState("");
-  const [activeLetter, setActiveLetter] = useState("A");
   const [isLocating, setIsLocating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [detectedCityName, setDetectedCityName] = useState<string | null>(null);
@@ -83,17 +93,12 @@ const CitySelectModal = () => {
     );
   };
 
-  const availableLetters = useMemo(
-    () => new Set(CITIES.map(c => c[0].toUpperCase())),
-    []
-  );
-
   const filteredCities = useMemo(() => {
     if (search.trim()) {
-      return CITIES.filter(c => c.toLowerCase().includes(search.toLowerCase().trim()));
+      return CITIES.filter(c => c.toLowerCase().startsWith(search.toLowerCase().trim()));
     }
-    return CITIES.filter(c => c[0].toUpperCase() === activeLetter);
-  }, [search, activeLetter]);
+    return [];
+  }, [search]);
 
   return (
     <AnimatePresence>
@@ -110,7 +115,7 @@ const CitySelectModal = () => {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            className="bg-background w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]"
+            className="bg-card w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh]"
           >
             {/* Drag handle (mobile) */}
             <div className="sm:hidden flex justify-center pt-3 pb-1 shrink-0">
@@ -118,7 +123,7 @@ const CitySelectModal = () => {
             </div>
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 shrink-0 mb-2">
               <h2 className="text-xl font-black tracking-tight">Select Location</h2>
               <button
                 onClick={handleSkip}
@@ -129,17 +134,16 @@ const CitySelectModal = () => {
             </div>
 
             {/* Scrollable body */}
-            <div className="px-6 pb-8 overflow-y-auto flex-1 space-y-5">
-
+            <div className="px-6 pb-8 overflow-y-auto flex-1 space-y-6">
               {/* Search */}
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 pointer-events-none" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search city, area or locality"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full h-12 pl-11 pr-4 rounded-full border border-border bg-muted/30 text-sm font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all"
+                  className="w-full h-12 pl-11 pr-4 rounded-full border border-border bg-muted/50 text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-foreground transition-all"
                 />
                 {search && (
                   <button
@@ -203,21 +207,22 @@ const CitySelectModal = () => {
               {!search && (
                 <div className="space-y-3">
                   <h3 className="text-base font-black tracking-tight">Popular Cities</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {POPULAR_CITIES.map((city) => {
                       const isActive = selectedCity === city;
+                      const CityIcon = CITY_ICONS[city] || MapPin;
                       return (
                         <button
                           key={city}
                           onClick={() => handleSelect(city as City)}
-                          className={`flex flex-col items-center gap-2.5 p-3 rounded-2xl border transition-all duration-200 active:scale-95 ${
+                          className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border transition-all duration-200 active:scale-95 ${
                             isActive
-                              ? "bg-foreground border-foreground text-background"
-                              : "bg-muted/40 border-border/40 hover:border-border hover:bg-muted/70 text-foreground"
+                              ? "bg-foreground border-foreground"
+                              : "bg-card border-border hover:border-foreground/50 hover:bg-muted"
                           }`}
                         >
-                          <Building2 className={`h-7 w-7 ${isActive ? "text-background" : "text-foreground/50"}`} />
-                          <span className="text-[11px] font-bold leading-tight text-center">{city}</span>
+                          <CityIcon className={`h-7 w-7 ${isActive ? "text-background" : "text-foreground"}`} />
+                          <span className={`text-[11px] font-bold leading-tight text-center ${isActive ? "text-background" : "text-foreground"}`}>{city}</span>
                         </button>
                       );
                     })}
@@ -225,63 +230,36 @@ const CitySelectModal = () => {
                 </div>
               )}
 
-              {/* All Cities */}
-              <div className="space-y-3">
-                <h3 className="text-base font-black tracking-tight">
-                  {search ? "Search Results" : "All Cities"}
-                </h3>
-
-                {/* A–Z nav — hidden when searching */}
-                {!search && (
-                  <div className="flex flex-wrap gap-0.5">
-                    {ALPHABET.map((letter) => {
-                      const has = availableLetters.has(letter);
-                      return (
-                        <button
-                          key={letter}
-                          onClick={() => has && setActiveLetter(letter)}
-                          disabled={!has}
-                          className={`h-7 w-7 text-xs font-black rounded-lg transition-all ${
-                            activeLetter === letter
-                              ? "bg-foreground text-background"
-                              : has
-                              ? "text-foreground hover:bg-muted"
-                              : "text-muted-foreground/25 cursor-not-allowed"
-                          }`}
-                        >
-                          {letter}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* City list */}
-                {filteredCities.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-0.5">
-                    {filteredCities.map((city) => {
-                      const isActive = selectedCity === city;
-                      return (
-                        <button
-                          key={city}
-                          onClick={() => handleSelect(city as City)}
-                          className={`text-left text-sm py-2 px-1 rounded-lg truncate transition-colors hover:bg-muted/40 ${
-                            isActive
-                              ? "font-black text-foreground"
-                              : "font-semibold text-foreground/70 hover:text-foreground"
-                          }`}
-                        >
-                          {city}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-6">
-                    No cities found for "{search}"
-                  </p>
-                )}
-              </div>
+              {/* Search Results — shown only when searching */}
+              {search && (
+                <div className="space-y-3">
+                  <h3 className="text-base font-black tracking-tight">Search Results</h3>
+                  {filteredCities.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {filteredCities.map((city) => {
+                        const isActive = selectedCity === city;
+                        return (
+                          <button
+                            key={city}
+                            onClick={() => handleSelect(city as City)}
+                            className={`text-left py-3 px-4 rounded-xl border transition-all ${
+                              isActive
+                                ? "font-black bg-foreground text-background border-foreground"
+                                : "font-semibold bg-card text-foreground border-border hover:border-foreground/50 hover:bg-muted"
+                            }`}
+                          >
+                            {city}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-6">
+                      No cities found for "{search}"
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>

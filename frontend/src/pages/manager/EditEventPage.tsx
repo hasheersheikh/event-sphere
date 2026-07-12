@@ -18,6 +18,7 @@ import {
   LayoutGrid,
   MapPin,
   Users,
+  Video,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -71,6 +72,7 @@ const eventSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   image: z.string().min(1, "Banner image is required"),
   videoUrl: z.string().optional(),
+  eventVideo: z.string().optional(),
   reels: z.array(z.string()).optional(),
   lineup: z.array(z.object({
     name: z.string().min(1, "Name is required"),
@@ -208,7 +210,7 @@ const flattenErrors = (errors: any, path = ""): { field: string; message: string
 };
 
 const STEP_FIELDS: Record<number, string[]> = {
-  1: ["title", "description", "category", "image", "ageRestriction", "lineup", "artist", "videoUrl", "reels"],
+  1: ["title", "description", "category", "image", "ageRestriction", "lineup", "artist", "videoUrl", "eventVideo", "reels"],
   2: ["location", "city", "date", "time", "endTime", "slots", "days", "recurrence", "coordinator", "offlineTicketsAvailable"],
   3: ["ticketTypes", "vouchers"],
 };
@@ -218,6 +220,7 @@ const EditEventPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const formInitialized = useRef(false);
 
   const { data: event, isLoading: isFetching } = useQuery({
     queryKey: ["event", id],
@@ -232,6 +235,7 @@ const EditEventPage = () => {
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
+    shouldUnregister: false,
     defaultValues: {
       title: "",
       description: "",
@@ -255,6 +259,7 @@ const EditEventPage = () => {
       },
       image: "",
       videoUrl: "",
+      eventVideo: "",
       reels: [],
       days: [],
       ticketTypes: [],
@@ -308,7 +313,8 @@ const EditEventPage = () => {
   };
 
   useEffect(() => {
-    if (event) {
+    if (event && !formInitialized.current) {
+      formInitialized.current = true;
       form.reset({
         title: event.title,
         description: event.description,
@@ -339,6 +345,7 @@ const EditEventPage = () => {
         },
         image: event.image || "",
         videoUrl: event.videoUrl || "",
+        eventVideo: (event as any).eventVideo || "",
         reels: event.reels || [],
         days: event.days?.map((d: any) => ({
           ...d,
@@ -514,9 +521,10 @@ const EditEventPage = () => {
   };
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Direct Cloudinary REST upload — no widget, no local backend
-  const uploadToCloudinary = async (file: File): Promise<string> => {
+  const uploadToCloudinary = async (file: File, resourceType: "image" | "video" = "image"): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
     if (cloudName && uploadPreset) {
@@ -524,7 +532,7 @@ const EditEventPage = () => {
       fd.append("file", file);
       fd.append("upload_preset", uploadPreset);
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
         { method: "POST", body: fd }
       );
       const data = await res.json();
@@ -545,6 +553,33 @@ const EditEventPage = () => {
       toast.success("Banner uploaded.");
     } catch {
       toast.error("Upload failed.");
+    }
+    e.target.value = "";
+  };
+
+  const handleVideoUpload = () => { videoInputRef.current?.click(); };
+
+  const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (4MB limit)
+    const maxSize = 4 * 1024 * 1024; // 4MB
+    if (file.size > maxSize) {
+      toast.error("Video file must be under 4MB.");
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      const url = await uploadToCloudinary(file, "video");
+      form.setValue("eventVideo", url);
+      toast.success("Event video uploaded.", {
+        description: "Video should be in Instagram photo aspect ratio (4:5 portrait).",
+        duration: 4000,
+      });
+    } catch {
+      toast.error("Video upload failed.");
     }
     e.target.value = "";
   };
@@ -829,6 +864,51 @@ const EditEventPage = () => {
                             </FormItem>
                           )}
                         />
+
+                        {/* Event Video Upload - for banner gallery */}
+                        <div className="space-y-2">
+                          <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
+                            Event Video <span className="text-muted-foreground/70">(Optional)</span>
+                          </FormLabel>
+                          <input
+                            ref={videoInputRef}
+                            type="file"
+                            accept="video/*"
+                            className="hidden"
+                            onChange={handleVideoFileUpload}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleVideoUpload}
+                            className="w-full h-11 bg-background/50 border border-dashed border-white/20 rounded-lg flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group"
+                          >
+                            <Video className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-primary group-hover:text-primary/80">
+                              {form.watch("eventVideo") ? "Change Video" : "Upload Event Video"}
+                            </span>
+                          </button>
+                          <div className="space-y-1">
+                            <p className="text-[9px] text-muted-foreground/60">
+                              Max 4MB. Video will be displayed in a gallery with your banner image.
+                            </p>
+                            <p className="text-[8px] text-orange-500/70 font-medium">
+                              ⚠️ Use Instagram photo aspect ratio (4:5 portrait). Other ratios will be cropped.
+                            </p>
+                          </div>
+                          {form.watch("eventVideo") && (
+                            <div className="relative aspect-[4/5] w-28 rounded-lg overflow-hidden bg-muted border border-white/10 mt-2">
+                              <video src={form.watch("eventVideo")} className="w-full h-full object-cover" muted />
+                              <button
+                                type="button"
+                                onClick={() => form.setValue("eventVideo", "")}
+                                className="absolute top-1 right-1 h-6 w-6 rounded-full bg-destructive/90 text-white flex items-center justify-center hover:bg-destructive transition-colors"
+                                title="Remove video"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="space-y-4">

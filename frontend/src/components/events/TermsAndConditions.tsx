@@ -73,15 +73,6 @@ const TermsAndConditions = ({ className, customTerms }: { className?: string; cu
           </AnimatePresence>
         </div>
 
-        {terms.length > 1 && !isExpanded && (
-          <button
-            onClick={() => setIsExpanded(true)}
-            className="w-full py-3 rounded-xl border border-dashed border-border hover:border-neon-lime/50 bg-muted/5 hover:bg-muted/10 transition-all text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime flex items-center justify-center gap-2 group animate-pulse"
-          >
-            <span>Show +{hiddenCount} more terms</span>
-            <ChevronDown className="h-4 w-4 group-hover:translate-y-0.5 transition-transform" />
-          </button>
-        )}
       </div>
     </div>
   );

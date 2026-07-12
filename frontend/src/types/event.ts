@@ -88,6 +88,18 @@ export interface Event {
   updatedAt: string;
   isActive?: boolean;
   nextOccurrence?: string;
+  lineup?: Array<{
+    name: string;
+    role?: string;
+    image?: string;
+    instagramUrl?: string;
+  }>;
+  artist?: {
+    name?: string;
+    profileImage?: string;
+    instagramHandle?: string;
+  };
+  offlineTicketsAvailable?: boolean;
 }
 
 export interface Category {

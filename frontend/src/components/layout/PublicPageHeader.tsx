@@ -35,7 +35,7 @@ export const PublicPageHeader = ({
     size === "lg" ? "text-lg md:text-xl max-w-2xl" : "text-sm md:text-base max-w-xl";
 
   return (
-    <header className={cn("max-w-4xl mx-auto text-center mb-10 space-y-4", className)}>
+    <header className={cn("max-w-4xl mx-auto mb-10 space-y-4", className)}>
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -7,12 +7,17 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
-    Explore: [
+    Browse: [
       { label: "Live Events", href: "/events" },
       { label: "Local Stores", href: "/local-stores" },
+      { label: "Activity & Adventure", href: "/events?category=Workshops" },
+      { label: "Play & Sports", href: "/events?category=Sports" },
+    ],
+    Explore: [
       { label: "Boost Event", href: "/boost" },
+      { label: "Trending Venues in Nagpur", href: "/?section=venues" },
+      { label: "Trending Nagpurkars", href: "/?section=nagpurkars" },
       ...(FEATURES.ENABLE_BLOGS ? [{ label: "Blog", href: "/blog" }] : []),
-
     ],
     Support: [
       { label: "Contact", href: "/contact" },
@@ -33,7 +38,7 @@ const Footer = () => {
   return (
     <footer className="bg-background border-t border-border/20">
       <div className="container py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-2">
             <Link to="/" onClick={scrollToTop} className="flex items-center gap-2.5 mb-5 group w-fit">
