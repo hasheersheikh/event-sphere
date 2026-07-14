@@ -43,6 +43,7 @@ const GoLocalSection = () => {
 
       <div className="container relative z-10">
         <PublicPageHeader
+          pillText="Go Local"
           title={
             <>
               Unique Stores
@@ -51,6 +52,7 @@ const GoLocalSection = () => {
           subtitle="Discover handpicked local stores around you: fresh produce, artisan crafts, neighbourhood favourites."
           themeColor="primary"
           size="md"
+          className="text-center"
         />
 
         {isLoading ? (
