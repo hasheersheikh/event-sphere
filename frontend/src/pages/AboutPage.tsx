@@ -159,13 +159,14 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-5"
             >
-              <NeonBadge>What's Happening Around You</NeonBadge>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
-                The Problem <span className="text-neon-lime italic">We Solve.</span>
-              </h2>
-              <div className="flex flex-wrap gap-2 md:gap-3">
+              <div className="space-y-3 md:space-y-4">
+                <NeonBadge>What's Happening Around You</NeonBadge>
+                <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+                  The Problem <span className="text-neon-lime italic">We Solve.</span>
+                </h2>
+              </div>
+              <div className="flex flex-wrap gap-2 md:gap-3 mt-5 md:mt-6">
                 {cityExperiences.map((exp, i) => (
                   <motion.div
                     key={i}
@@ -223,7 +224,7 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-3"
+              className="space-y-3 md:space-y-4"
             >
               <NeonBadge>Our Story</NeonBadge>
               <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
@@ -276,7 +277,7 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-3"
+              className="space-y-3 md:space-y-4"
             >
               <NeonBadge>Why We Exist</NeonBadge>
               <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
@@ -398,7 +399,7 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-3"
+              className="space-y-3 md:space-y-4"
             >
               <NeonBadge>More Than Ticketing</NeonBadge>
               <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
@@ -437,12 +438,12 @@ const AboutPage = () => {
         {/* Features Section */}
         <section className="py-16 md:py-24 container relative px-3 md:px-4">
           <div className="max-w-6xl mx-auto space-y-10 md:space-y-16">
-            <div className="text-center space-y-3 md:space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <NeonBadge>Everything You Need</NeonBadge>
               <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
                 Everything <span className="text-neon-lime italic">You Need.</span>
               </h2>
-              <p className="text-muted-foreground text-sm md:text-base lg:text-lg font-medium italic max-w-xl mx-auto">
+              <p className="text-muted-foreground text-sm md:text-base lg:text-lg font-medium italic max-w-xl">
                 City Pulse provides all the tools you need to create, manage, and scale your events with ease.
               </p>
             </div>
