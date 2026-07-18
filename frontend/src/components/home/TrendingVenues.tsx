@@ -15,6 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 interface TrendingVenue {
   _id: string;
@@ -88,17 +89,18 @@ const TrendingVenues = () => {
   return (
     <section className="py-12 border-t border-border/20">
       <div className="container">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl md:text-3xl font-black tracking-tighter">
-            Trending Venues
-          </h2>
+        <PublicPageHeader
+          title="Trending Venues"
+          size="md"
+          className="text-center"
+        >
           <Link
             to="/venues"
-            className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime flex items-center gap-1 transition-colors group shrink-0"
+            className="inline-flex text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-neon-lime items-center gap-1 transition-colors group"
           >
             View All <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
           </Link>
-        </div>
+        </PublicPageHeader>
 
         <div className="relative">
           <div
@@ -112,13 +114,13 @@ const TrendingVenues = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                className="flex-shrink-0 w-52 md:w-56"
+                className="flex-shrink-0 w-[72vw] max-w-[17rem] sm:w-72 md:w-80 lg:w-[22rem]"
               >
                 <button
                   onClick={() => setSelectedVenue(venue)}
                   className="block w-full text-left group focus:outline-none"
                 >
-                  <div className="rounded-xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
+                  <div className="rounded-2xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
                     {/* Image — 4:5 Instagram portrait ratio */}
                     <div className="relative aspect-[4/5]">
                       {venue.image ? (

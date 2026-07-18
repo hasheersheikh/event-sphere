@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 interface Nagpurkar {
   id: number;
@@ -224,16 +225,19 @@ const TrendingNagpurkars = () => {
       <div className="container px-3 md:px-4">
 
         {/* Header — z-10 so it stays above the scroll container's -mt-12 bleed area */}
-        <div className="relative z-10 flex flex-col gap-4 mb-6 md:mb-10 mx-2">
-          <div>
-            
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-black tracking-tighter">
-              Trending <span className="text-primary">Nagpurkars</span>
-            </h2>
-          </div>
+        <div className="relative z-10 mb-6 md:mb-10">
+          <PublicPageHeader
+            title={
+              <>
+                Trending <span className="text-primary">Nagpurkars</span>
+              </>
+            }
+            size="md"
+            className="text-center mb-6"
+          />
 
           {/* Category filter pills */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center">
             {CATEGORIES.map(cat => (
               <button
                 key={cat}

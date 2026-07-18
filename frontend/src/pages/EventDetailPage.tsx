@@ -424,13 +424,11 @@ const EventDetailPage = () => {
                      <Eye className="h-3.5 w-3.5" />
                      {formatViews(event.viewCount)} Views
                    </span>
-                   {event.isActive && timeLeft ? (
-                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary animate-pulse">
+                   {event.isActive && event.endTime ? (
+                     <div className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full text-primary">
                        <Clock className="h-3.5 w-3.5" />
                        <span className="text-[10px] font-black uppercase tracking-widest">
-                         {timeLeft.hasStarted
-                           ? `Ends in ${timeLeft.hours}h ${timeLeft.minutes}m`
-                           : `Starts in ${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m`}
+                         {formatDuration(event.time, event.endTime)}
                        </span>
                      </div>
                    ) : (

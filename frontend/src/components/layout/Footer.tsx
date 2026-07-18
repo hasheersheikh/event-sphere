@@ -66,7 +66,7 @@ const Footer = () => {
 
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
+            <div key={title} className={title === "Support" ? "hidden md:block" : ""}>
               <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-5">
                 {title}
               </h4>

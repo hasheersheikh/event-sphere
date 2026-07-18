@@ -86,7 +86,7 @@ const AboutPage = () => {
         {/* Hero Header */}
         <section className="relative pt-20 md:pt-24 pb-6 md:pb-8 overflow-hidden">
           <div className="container px-3 md:px-4">
-            <div className="max-w-6xl mx-auto space-y-4 mb-10">
+            <div className="max-w-6xl mx-auto space-y-4 mb-10 text-center md:text-left">
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -98,7 +98,7 @@ const AboutPage = () => {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="font-black tracking-tighter text-4xl md:text-5xl leading-none"
+                className="font-black tracking-tighter text-3xl md:text-5xl leading-tight md:leading-none"
               >
                 If it's happening in the city,{" "}
                 <span className="text-neon-lime italic">it's on City Pulse.</span>
@@ -107,7 +107,7 @@ const AboutPage = () => {
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.45 }}
-                className="text-muted-foreground font-medium leading-relaxed text-sm md:text-base max-w-[75%]"
+                className="text-muted-foreground font-medium leading-relaxed text-sm md:text-base mx-auto md:mx-0 md:max-w-[75%]"
               >
                 A hyperlocal discovery platform that helps people find, explore, and book everything happening in their city—from major events to hidden local experiences.
               </motion.p>
@@ -134,8 +134,8 @@ const AboutPage = () => {
                 alt="City Pulse Community"
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${theme === "dark" ? "from-background via-background/20 to-transparent" : ""}`} />
-              <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-10 md:left-10 md:right-10 flex flex-col md:flex-row items-end justify-between gap-3 md:gap-6">
-                <div className="max-w-xl space-y-2 md:space-y-3">
+              <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-10 md:left-10 md:right-10 flex flex-col md:flex-row items-center md:items-end justify-between gap-3 md:gap-6">
+                <div className="max-w-xl w-full md:w-auto space-y-2 md:space-y-3 text-center md:text-left">
                   <NeonBadge>Our Core Philosophy</NeonBadge>
                   <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-2xl">
                     Every city has <br />its own rhythm.
@@ -160,13 +160,13 @@ const AboutPage = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <div className="space-y-3 md:space-y-4">
+              <div className="space-y-3 md:space-y-4 text-center md:text-left">
                 <NeonBadge>What's Happening Around You</NeonBadge>
-                <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+                <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-tight md:leading-none">
                   The Problem <span className="text-neon-lime italic">We Solve.</span>
                 </h2>
               </div>
-              <div className="flex flex-wrap gap-2 md:gap-3 mt-5 md:mt-6">
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-3 mt-5 md:mt-6">
                 {cityExperiences.map((exp, i) => (
                   <motion.div
                     key={i}
@@ -224,10 +224,10 @@ const AboutPage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="space-y-3 md:space-y-4"
+              className="space-y-3 md:space-y-4 text-center md:text-left"
             >
               <NeonBadge>Our Story</NeonBadge>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-tight md:leading-none">
                 The Mind <span className="text-neon-lime italic">Behind It.</span>
               </h2>
             </motion.div>
@@ -271,7 +271,7 @@ const AboutPage = () => {
         </section>
 
         {/* Why We Exist */}
-        <section className="py-12 md:py-20 container px-3 md:px-4">
+        <section className="hidden md:block py-12 md:py-20 container px-3 md:px-4">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -280,7 +280,7 @@ const AboutPage = () => {
               className="space-y-3 md:space-y-4"
             >
               <NeonBadge>Why We Exist</NeonBadge>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-tight md:leading-none">
                 Built for the <span className="text-neon-lime italic">City.</span>
               </h2>
             </motion.div>
@@ -369,7 +369,7 @@ const AboutPage = () => {
         </section>
 
         {/* Stats Grid */}
-        <section className="py-12 md:py-20 container px-3 md:px-4">
+        <section className="hidden md:block py-12 md:py-20 container px-3 md:px-4">
           <div className="max-w-6xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {stats.map((stat, i) => (
               <motion.div
@@ -393,7 +393,7 @@ const AboutPage = () => {
         </section>
 
         {/* More Than a Ticketing Platform */}
-        <section className="py-12 md:py-20 container px-3 md:px-4">
+        <section className="hidden md:block py-12 md:py-20 container px-3 md:px-4">
           <div className="max-w-6xl mx-auto space-y-6 md:space-y-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -402,7 +402,7 @@ const AboutPage = () => {
               className="space-y-3 md:space-y-4"
             >
               <NeonBadge>More Than Ticketing</NeonBadge>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-tight md:leading-none">
                 We're the city's <span className="text-neon-lime italic">Discovery Engine.</span>
               </h2>
             </motion.div>
@@ -438,12 +438,12 @@ const AboutPage = () => {
         {/* Features Section */}
         <section className="py-16 md:py-24 container relative px-3 md:px-4">
           <div className="max-w-6xl mx-auto space-y-10 md:space-y-16">
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-3 md:space-y-4 text-center md:text-left">
               <NeonBadge>Everything You Need</NeonBadge>
-              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-none">
+              <h2 className="text-2xl md:text-3xl lg:text-5xl font-black tracking-tighter uppercase leading-tight md:leading-none">
                 Everything <span className="text-neon-lime italic">You Need.</span>
               </h2>
-              <p className="text-muted-foreground text-sm md:text-base lg:text-lg font-medium italic max-w-xl">
+              <p className="text-muted-foreground text-sm md:text-base lg:text-lg font-medium italic max-w-xl mx-auto md:mx-0">
                 City Pulse provides all the tools you need to create, manage, and scale your events with ease.
               </p>
             </div>
@@ -471,7 +471,9 @@ const AboutPage = () => {
           </div>
         </section>
 
-        <CircularWorkflowSection />
+        <div className="hidden md:block">
+          <CircularWorkflowSection />
+        </div>
       </main>
 
       <Footer />

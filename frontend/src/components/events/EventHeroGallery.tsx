@@ -30,8 +30,8 @@ export const EventHeroGallery = ({
   const didDrag = useRef(false);
 
   const assets: Asset[] = [
-    ...(imageUrl ? [{ type: "image" as const, url: imageUrl }] : []),
     ...(videoUrl ? [{ type: "video" as const, url: videoUrl }] : []),
+    ...(imageUrl ? [{ type: "image" as const, url: imageUrl }] : []),
   ];
 
   const hasMultiple = assets.length > 1;

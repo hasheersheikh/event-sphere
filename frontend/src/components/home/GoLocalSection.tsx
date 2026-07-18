@@ -43,7 +43,6 @@ const GoLocalSection = () => {
 
       <div className="container relative z-10">
         <PublicPageHeader
-          pillText="Go Local"
           title={
             <>
               Unique Stores

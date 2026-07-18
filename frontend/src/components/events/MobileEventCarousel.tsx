@@ -106,8 +106,7 @@ const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
             <div
               key={event._id}
               data-card-index={i}
-              className="flex-shrink-0 snap-center"
-              style={{ width: "72vw" }}
+              className="flex-shrink-0 snap-center w-[72vw] max-w-[17rem]"
             >
               <Link
                 to={`/events/${event._id}`}
