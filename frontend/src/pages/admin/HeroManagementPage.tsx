@@ -128,9 +128,9 @@ const HeroManagementPage = () => {
       queryClient.invalidateQueries({ queryKey: ["heroAssets"] });
       closeDialog();
     },
-    onError: (err: any) => {
+    onError: (err: any, variables: any) => {
       toast({
-        title: variables.id ? "Failed to update asset" : "Failed to add asset",
+        title: variables?.id ? "Failed to update asset" : "Failed to add asset",
         description: err.response?.data?.message ?? "Please try again.",
         variant: "destructive",
       });
@@ -206,11 +206,7 @@ const HeroManagementPage = () => {
       await api.delete(`/hero-assets/${id}`);
       return id;
     },
-    onSuccess: (id) => {
-      queryClient.setQueryData<HeroAsset[]>(
-        ["heroAssets", "admin"],
-        (old = []) => old.filter((a) => a._id !== id)
-      );
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["heroAssets"] });
       toast({ title: "Asset deleted" });
     },
@@ -223,7 +219,16 @@ const HeroManagementPage = () => {
 
   const openDialog = () => {
     setEditingId(null);
-    setForm(BLANK_FORM);
+    // Calculate next order number (end of sequence)
+    const maxOrder = assets.length > 0
+      ? Math.max(...assets.map(asset => asset.order))
+      : 0;
+    const nextOrder = maxOrder + 1;
+
+    setForm({
+      ...BLANK_FORM,
+      order: nextOrder
+    });
     setUploadedFile(null);
     setUploading(false);
     setDialogOpen(true);
@@ -426,7 +431,7 @@ const HeroManagementPage = () => {
                 }
               }}
               isDeleting={
-                deleteMutation.isPending && deleteMutation.variables === asset._id
+                deleteMutation.isPending && (deleteMutation.variables as string) === asset._id
               }
             />
           ))}

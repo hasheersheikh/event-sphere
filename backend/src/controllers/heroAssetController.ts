@@ -78,7 +78,17 @@ export const deleteHeroAsset = async (req: AuthRequest, res: Response) => {
       return;
     }
 
-    res.json({ message: 'Asset deleted' });
+    // Recalculate sequence for all remaining assets
+    const remainingAssets = await HeroAsset.find().sort({ order: 1 });
+
+    // Update orders sequentially starting from 1
+    const updatePromises = remainingAssets.map((remainingAsset, index) => {
+      return HeroAsset.findByIdAndUpdate(remainingAsset._id, { order: index + 1 });
+    });
+
+    await Promise.all(updatePromises);
+
+    res.json({ message: 'Asset deleted and sequence recalculated' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete hero asset' });
   }
