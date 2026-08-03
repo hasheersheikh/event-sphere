@@ -525,7 +525,7 @@ const Index = () => {
 
         {/* ═══ ORGANIZER CTA ═══ */}
         <section className="py-8 md:py-14 border-t border-border/20">
-          <div className="container">
+          <div className="container px-3 md:px-8">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}

@@ -181,7 +181,7 @@ const TrendingNagpurkars = () => {
 
   return (
     <section className="py-8 md:py-14 border-t border-border/20">
-      <div className="container px-3 md:px-4">
+      <div className="container px-3 md:px-8">
         <PublicPageHeader
           pillText="Faces of the City"
           title={
