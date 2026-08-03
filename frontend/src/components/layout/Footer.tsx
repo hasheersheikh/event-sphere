@@ -3,7 +3,12 @@ import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import PulseLogo from "./PulseLogo";
 import { FEATURES } from "@/config/features";
 
-const Footer = () => {
+interface FooterProps {
+  /** On mobile, show only the brand block + bottom bar and hide the Browse/Explore/Support link columns. Desktop is unaffected. */
+  mobileMinimal?: boolean;
+}
+
+const Footer = ({ mobileMinimal = false }: FooterProps) => {
   const currentYear = new Date().getFullYear();
 
   const footerLinks = {
@@ -66,7 +71,10 @@ const Footer = () => {
 
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title} className={title === "Support" ? "hidden md:block" : ""}>
+            <div
+              key={title}
+              className={mobileMinimal ? "hidden md:block" : title === "Support" ? "hidden md:block" : ""}
+            >
               <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-5">
                 {title}
               </h4>

@@ -25,7 +25,7 @@ export const getAllHeroAssets = async (_req: AuthRequest, res: Response) => {
 // Admin — create a new hero asset
 export const createHeroAsset = async (req: AuthRequest, res: Response) => {
   try {
-    const { type, url, duration, order, targetDevice, isActive } = req.body;
+    const { type, url, targetUrl, duration, order, targetDevice, isActive } = req.body;
 
     if (!type || !url) {
       res.status(400).json({ message: 'type and url are required' });
@@ -35,6 +35,7 @@ export const createHeroAsset = async (req: AuthRequest, res: Response) => {
     const asset = await HeroAsset.create({
       type,
       url,
+      targetUrl,
       duration: duration ?? 5000,
       order: order ?? 0,
       targetDevice: targetDevice ?? 'all',

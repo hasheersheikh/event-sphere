@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IHeroAsset extends Document {
   type: 'image' | 'video';
   url: string;
+  targetUrl?: string;
   duration?: number;
   order: number;
   targetDevice: 'mobile' | 'desktop' | 'all';
@@ -15,6 +16,7 @@ const HeroAssetSchema: Schema = new Schema(
   {
     type: { type: String, enum: ['image', 'video'], required: true },
     url: { type: String, required: true },
+    targetUrl: { type: String },
     duration: { type: Number, default: 5000 },
     order: { type: Number, default: 0 },
     targetDevice: { type: String, enum: ['mobile', 'desktop', 'all'], default: 'all' },

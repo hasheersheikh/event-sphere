@@ -89,7 +89,7 @@ const TrendingVenues = () => {
 
   return (
     <section className="py-8 md:py-14 border-t border-border/20">
-      <div className="container">
+      <div className="container px-3 md:px-8">
         <PublicPageHeader
           pillText="Where It's Happening"
           title={
@@ -132,6 +132,7 @@ const TrendingVenues = () => {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                whileHover={{ scale: 1.1, transition: { duration: 0.3, ease: "easeOut" } }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
                 className="flex-shrink-0 w-[21.6rem]"
               >

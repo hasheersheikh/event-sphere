@@ -150,9 +150,13 @@ const AuthPage = () => {
                 <span className="text-white/60">City Pulse.</span>
               </h1>
               <p className="text-sm text-white/50 font-medium leading-relaxed max-w-xs">
-                Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                <span className="text-black dark:text-white">
+                  Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                </span>
                 <br /><br />
-                Discover what's happening around you with City Pulse.
+                <span className="inline-block px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black font-medium">
+                  Discover what's happening around you with City Pulse.
+                </span>
               </p>
             </motion.div>
           </div>

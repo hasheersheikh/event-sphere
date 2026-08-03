@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Search, LayoutGrid, List, Calendar, MapPinIcon, ArrowUpDown, ChevronUp } from "lucide-react";
+import { Search, ArrowUpDown, ChevronUp } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import EventCard from "@/components/events/EventCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,11 @@ import { categories } from "@/data/mockEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCity } from "@/contexts/CityContext";
-import { Event, ITicketType } from "@/types/event";
+import { Event } from "@/types/event";
 
 // ─── Date filter helpers ────────────────────────────────────────────────────
+
+const EVENTS_PER_PAGE = 20;
 
 const DATE_FILTERS = [
   { id: "today", label: "Today" },
@@ -52,76 +55,6 @@ function filterByDate(events: Event[], filter: DateFilterId): Event[] {
   });
 }
 
-// ─── Format helpers (used in list view) ────────────────────────────────────
-
-function formatListDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString("en-IN", {
-    weekday: "short", month: "short", day: "numeric",
-  });
-}
-
-function formatMinPrice(ticketTypes: ITicketType[]) {
-  if (!ticketTypes?.length) return "Free";
-  const min = Math.min(...ticketTypes.map((t) => t.price));
-  if (min === 0) return "Free";
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(min);
-}
-
-// ─── List-view row ──────────────────────────────────────────────────────────
-
-const EventListItem = ({ event, index }: { event: Event; index: number }) => {
-  const isSoldOut =
-    event.ticketTypes?.every((t) => t.isSoldOut || t.sold >= t.capacity) ?? false;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-    >
-      <Link
-        to={`/events/${event._id}`}
-        className="flex items-center gap-4 px-4 py-3.5 rounded-xl border border-border/20 hover:border-border/50 hover:bg-muted/20 transition-all duration-200 group"
-      >
-        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-muted border border-border/20">
-          <img
-            src={event.image || ""}
-            alt={event.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="font-extrabold text-[13px] tracking-tight leading-snug line-clamp-1 group-hover:text-foreground/80 transition-colors">
-            {event.title}
-          </p>
-          <div className="flex items-center gap-3 mt-0.5 text-muted-foreground">
-            <span className="text-[11px] font-medium flex items-center gap-1">
-              <Calendar className="h-3 w-3 shrink-0" />
-              {formatListDate(event.date)}
-            </span>
-            <span className="text-[11px] font-medium flex items-center gap-1 min-w-0">
-              <MapPinIcon className="h-3 w-3 shrink-0" />
-              <span className="line-clamp-1">{event.location?.venueName || event.location?.address?.split(",")[0]}</span>
-            </span>
-          </div>
-        </div>
-
-        <div className="shrink-0 text-right">
-          {event.isSponsored && (
-            <span className="block text-[8px] font-black uppercase tracking-wider text-muted-foreground mb-0.5">Promoted</span>
-          )}
-          {isSoldOut ? (
-            <span className="text-[11px] font-bold text-muted-foreground">Sold Out</span>
-          ) : (
-            <span className="text-[13px] font-black">{formatMinPrice(event.ticketTypes)}</span>
-          )}
-        </div>
-      </Link>
-    </motion.div>
-  );
-};
-
 // ─── Page ───────────────────────────────────────────────────────────────────
 
 const EventsPage = () => {
@@ -131,13 +64,14 @@ const EventsPage = () => {
   const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc">("default");
   const [sortOpen, setSortOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const { selectedCity } = useCity();
   const sortRef = useRef<HTMLDivElement>(null);
 
   const placeholders = [
+    "Let us help you catch the city pulse",
     "Best events in the city, instantly.",
     "Find concerts near you.",
     "Discover tonight's parties.",
@@ -203,6 +137,18 @@ const EventsPage = () => {
     });
   }, [dateFiltered, sortBy]);
 
+  // Pagination
+  const totalPages = Math.ceil(displayEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = displayEvents.slice(
+    (currentPage - 1) * EVENTS_PER_PAGE,
+    currentPage * EVENTS_PER_PAGE
+  );
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, dateFilter, sortBy]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -226,8 +172,8 @@ const EventsPage = () => {
       <main className="flex-1 pt-0 md:pt-4">
 
         {/* ─── Desktop: heading + left-aligned search ──────────────────── */}
-        <section className="hidden md:block border-b border-border/20 py-1.5">
-          <div className="container px-4">
+        <section className="hidden md:block py-1.5">
+          <div className="container px-8">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -271,8 +217,8 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Mobile: centered pill search ────────────────────────────── */}
-        <section className="md:hidden border-b border-border/20 pt-0 pb-1.5">
-          <div className="container px-3">
+        <section className="md:hidden pt-0 pb-1.5">
+          <div className="container px-8">
             <motion.form
               onSubmit={handleSearch}
               initial={{ opacity: 0, y: 8 }}
@@ -308,8 +254,8 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Mobile: Instagram stories-style categories ─────────────────── */}
-        <section className="md:hidden border-b border-border/20 py-4 px-4">
-          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide snap-x px-4">
+        <section className="md:hidden py-4 px-8">
+          <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide snap-x px-8 py-2">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -321,11 +267,11 @@ const EventsPage = () => {
                     else params.delete("category");
                     setSearchParams(params);
                   }}
-                  className="flex flex-col items-center gap-1.5 shrink-0 snap-start group"
+                  className="flex flex-col items-center gap-1.5 shrink-0 snap-start group p-2"
                 >
                   <div
                     className={cn(
-                      "w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-200 relative",
+                      "w-20 h-20 rounded-full flex items-center justify-center text-2xl transition-all duration-200",
                       selectedCategory === cat.name
                         ? "bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background"
                         : "bg-muted/50 text-foreground group-hover:bg-muted"
@@ -335,8 +281,8 @@ const EventsPage = () => {
                   </div>
                   <span
                     className={cn(
-                      "text-[10px] font-medium whitespace-nowrap",
-                      selectedCategory === cat.name ? "text-foreground font-bold" : "text-muted-foreground"
+                      "text-xs font-bold whitespace-nowrap",
+                      selectedCategory === cat.name ? "text-foreground font-black" : "text-muted-foreground"
                     )}
                   >
                     {cat.name}
@@ -346,9 +292,9 @@ const EventsPage = () => {
           </div>
         </section>
 
-        {/* ─── Desktop: Category pills (sticky) ─────────────────────────────── */}
-        <section className="hidden md:block border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
-          <div className="container px-3 md:px-4">
+        {/* ─── Desktop: Category pills ─────────────────────────────────────────── */}
+        <section className="hidden md:block py-2.5 md:py-3">
+          <div className="container px-8">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {categories.map((cat) => (
                 <button
@@ -377,8 +323,8 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Date filter + view toggle ────────────────────────────────── */}
-        <section className="border-b border-border/10 py-2 md:py-2.5">
-          <div className="container px-3 md:px-4 flex items-center justify-between gap-3 md:gap-4">
+        <section className="py-2 md:py-2.5">
+          <div className="container px-8 flex items-center justify-between gap-3 md:gap-4">
             {/* Date tabs */}
             <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto scrollbar-hide">
               {DATE_FILTERS.map((f) => (
@@ -386,7 +332,7 @@ const EventsPage = () => {
                   key={f.id}
                   onClick={() => setDateFilter((prev) => (prev === f.id ? "all" : f.id))}
                   className={cn(
-                    "whitespace-nowrap px-2.5 md:px-3.5 py-1 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
+                    "whitespace-nowrap px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
                     dateFilter === f.id
                       ? "bg-foreground border-foreground text-background"
                       : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
@@ -403,13 +349,13 @@ const EventsPage = () => {
                 <button
                   onClick={() => setSortOpen((v) => !v)}
                   className={cn(
-                    "h-7 px-2 md:px-3 flex items-center gap-1 md:gap-1.5 rounded-lg border text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-colors duration-150",
+                    "h-7 px-3 flex items-center gap-1.5 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-colors duration-150",
                     sortBy !== "default"
                       ? "border-foreground bg-foreground text-background"
                       : "border-border/40 text-muted-foreground hover:text-foreground hover:border-border"
                   )}
                 >
-                  <ArrowUpDown className="h-2.5 md:h-3 w-2.5 md:w-3" />
+                  <ArrowUpDown className="h-3 w-3" />
                   <span className="hidden sm:inline">
                     {sortBy === "price-asc" ? "Price ↑" : sortBy === "price-desc" ? "Price ↓" : "Sort"}
                   </span>
@@ -435,36 +381,12 @@ const EventsPage = () => {
                   </div>
                 )}
               </div>
-
-              {/* View toggle */}
-            <div className="flex items-center gap-0 border border-border/40 rounded-lg p-0.5 shrink-0">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "h-7 w-7 flex items-center justify-center rounded-md transition-colors duration-150",
-                  viewMode === "grid" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label="Grid view"
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "h-7 w-7 flex items-center justify-center rounded-md transition-colors duration-150",
-                  viewMode === "list" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
-                )}
-                aria-label="List view"
-              >
-                <List className="h-3.5 w-3.5" />
-              </button>
-            </div>
             </div>
           </div>
         </section>
 
         {/* ─── Results ─────────────────────────────────────────────────── */}
-        <section className="container py-4 md:py-8 px-3 md:px-4">
+        <section className="container py-6 md:py-8 px-8 md:px-8">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 10 }).map((_, i) => (
@@ -477,19 +399,92 @@ const EventsPage = () => {
               ))}
             </div>
           ) : displayEvents.length > 0 ? (
-            viewMode === "grid" ? (
+            <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-                {displayEvents.map((event, index) => (
+                {paginatedEvents.map((event, index) => (
                   <EventCard key={event._id} event={event} index={index} />
                 ))}
               </div>
-            ) : (
-              <div className="flex flex-col gap-2 max-w-3xl">
-                {displayEvents.map((event, index) => (
-                  <EventListItem key={event._id} event={event} index={index} />
-                ))}
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8 md:mt-12">
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className={cn(
+                      "h-10 w-10 rounded-full border flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed",
+                      currentPage === 1
+                        ? "border-border/30 text-muted-foreground"
+                        : "border-border/60 text-foreground hover:border-foreground hover:bg-foreground/5"
+                    )}
+                  >
+                    ←
+                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                      // Show first page, last page, current page, and pages around current page
+                      const showPage =
+                        pageNum === 1 ||
+                        pageNum === totalPages ||
+                        (pageNum >= currentPage - 1 && pageNum <= currentPage + 1);
+
+                      if (!showPage && pageNum === currentPage - 2) {
+                        return (
+                          <span key={pageNum} className="text-muted-foreground text-sm px-2">
+                            ...
+                          </span>
+                        );
+                      }
+
+                      if (!showPage && pageNum === currentPage + 2) {
+                        return (
+                          <span key={pageNum} className="text-muted-foreground text-sm px-2">
+                            ...
+                          </span>
+                        );
+                      }
+
+                      if (!showPage) return null;
+
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
+                          className={cn(
+                            "h-10 w-10 rounded-full text-sm font-black border transition-all duration-200",
+                            currentPage === pageNum
+                              ? "bg-foreground border-foreground text-background"
+                              : "border-border/40 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
+                          )}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className={cn(
+                      "h-10 w-10 rounded-full border flex items-center justify-center transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed",
+                      currentPage === totalPages
+                        ? "border-border/30 text-muted-foreground"
+                        : "border-border/60 text-foreground hover:border-foreground hover:bg-foreground/5"
+                    )}
+                  >
+                    →
+                  </button>
+                </div>
+              )}
+
+              {/* Results info */}
+              <div className="text-center mt-6 text-xs text-muted-foreground">
+                Showing {((currentPage - 1) * EVENTS_PER_PAGE) + 1}-{Math.min(currentPage * EVENTS_PER_PAGE, displayEvents.length)} of {displayEvents.length} events
               </div>
-            )
+            </>
           ) : (
             <div className="py-16 md:py-24 text-center space-y-4 md:space-y-6 border border-dashed border-border/50 rounded-2xl">
               <Search className="h-8 w-8 md:h-10 md:w-10 text-muted-foreground/20 mx-auto" />
@@ -510,6 +505,8 @@ const EventsPage = () => {
           )}
         </section>
       </main>
+
+      <Footer mobileMinimal />
 
       {/* Back to Top Button */}
       <motion.button

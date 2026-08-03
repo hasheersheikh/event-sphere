@@ -43,7 +43,7 @@ const GoLocalSection = () => {
     <section className="py-8 md:py-14 border-t border-border/20 relative overflow-hidden">
       <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-foreground/4 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="container relative z-10">
+      <div className="container px-3 md:px-8 relative z-10">
         <PublicPageHeader
           pillText="Go Local"
           title={

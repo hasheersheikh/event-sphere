@@ -194,7 +194,7 @@ const TrendingNagpurkars = () => {
         />
 
         {/* Category filter pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-5 md:pb-1 justify-center">
           {CATEGORIES.map(cat => (
             <button
               key={cat}
@@ -234,6 +234,7 @@ const TrendingNagpurkars = () => {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                whileHover={{ scale: 1.1, transition: { duration: 0.3, ease: "easeOut" } }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
                 className="flex-shrink-0 w-[21.6rem] cursor-pointer group"
                 onClick={() => setSelected(person)}

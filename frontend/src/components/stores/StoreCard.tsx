@@ -35,6 +35,7 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-30px" }}
+      whileHover={{ scale: 1.1, transition: { duration: 0.3, ease: "easeOut" } }}
       transition={{ duration: 0.45, ease: [0.23, 1, 0.32, 1], delay: index * 0.04 }}
       className="group h-full"
     >

@@ -86,7 +86,7 @@ const LocalStoresPage = () => {
         </section>
 
         {/* ─── Category pills ─── */}
-        <section className="border-b border-border/20 py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
+        <section className="border-b border-border/20 py-3">
           <div className="container">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {CATEGORIES.map((cat) => (
@@ -156,7 +156,7 @@ const LocalStoresPage = () => {
         </section>
       </main>
 
-      <Footer />
+      <Footer mobileMinimal />
     </div>
   );
 };

@@ -26,6 +26,10 @@ import {
   Loader2,
   Upload,
   Check,
+  Edit2,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -34,6 +38,7 @@ interface HeroAsset {
   _id: string;
   type: "image" | "video";
   url: string;
+  targetUrl?: string;
   duration: number;
   order: number;
   targetDevice: "mobile" | "desktop" | "all";
@@ -50,6 +55,7 @@ interface UploadedFile {
 const BLANK_FORM = {
   type: "image" as "image" | "video",
   url: "",
+  targetUrl: "",
   duration: 5000,
   order: 0,
   targetDevice: "all" as "mobile" | "desktop" | "all",
@@ -66,6 +72,7 @@ const HeroManagementPage = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isCloudinaryOpen, setIsCloudinaryOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(BLANK_FORM);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -81,32 +88,116 @@ const HeroManagementPage = () => {
     staleTime: 0,
   });
 
+  // Check if current order value is a duplicate (after assets is loaded)
+  const isDuplicateOrder = editingId
+    ? assets.some((a) => a.order === form.order && a._id !== editingId)
+    : assets.some((a) => a.order === form.order);
+
   // ── Create ────────────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
-    mutationFn: async (payload: typeof BLANK_FORM) => {
-      const { data } = await api.post("/hero-assets", payload);
-      return data as HeroAsset;
+    mutationFn: async (payload: typeof BLANK_FORM & { id?: string }) => {
+      if (payload.id) {
+        // Update mode
+        const { id, ...updateData } = payload;
+        const { data } = await api.put(`/hero-assets/${id}`, updateData);
+        return data as HeroAsset;
+      } else {
+        // Create mode
+        const { data } = await api.post("/hero-assets", payload);
+        return data as HeroAsset;
+      }
     },
-    onSuccess: (created) => {
-      // Immediately append to list — no waiting for refetch
-      queryClient.setQueryData<HeroAsset[]>(
-        ["heroAssets", "admin"],
-        (old = []) => [...old, created]
-      );
+    onSuccess: (updated, variables) => {
+      if (variables.id) {
+        // Update existing in list
+        queryClient.setQueryData<HeroAsset[]>(
+          ["heroAssets", "admin"],
+          (old = []) => old.map((a) => (a._id === updated._id ? updated : a))
+        );
+        toast({ title: "Asset updated" });
+      } else {
+        // Append new to list
+        queryClient.setQueryData<HeroAsset[]>(
+          ["heroAssets", "admin"],
+          (old = []) => [...old, updated]
+        );
+        toast({ title: "Asset added to hero gallery" });
+      }
       // Also re-sync public hero feed on home page
       queryClient.invalidateQueries({ queryKey: ["heroAssets"] });
       closeDialog();
-      toast({ title: "Asset added to hero gallery" });
     },
     onError: (err: any) => {
       toast({
-        title: "Failed to add asset",
+        title: variables.id ? "Failed to update asset" : "Failed to add asset",
         description: err.response?.data?.message ?? "Please try again.",
         variant: "destructive",
       });
     },
   });
+
+  // ── Normalize Orders (reassign sequential 0, 1, 2, 3...) ────────────────────────
+
+  const normalizeOrders = (assetList: HeroAsset[]): HeroAsset[] => {
+    return assetList.map((asset, index) => ({ ...asset, order: index }));
+  };
+
+  // ── Quick Reorder (swap positions with adjacent asset) ───────────────────────
+
+  const quickReorderMutation = useMutation({
+    mutationFn: async ({ asset1, asset2 }: { asset1: { id: string; order: number }, asset2: { id: string; order: number } }) => {
+      // Swap the order values between the two assets
+      await Promise.all([
+        api.put(`/hero-assets/${asset1.id}`, { order: asset2.order }),
+        api.put(`/hero-assets/${asset2.id}`, { order: asset1.order }),
+      ]);
+      return { asset1, asset2 };
+    },
+    onSuccess: ({ asset1, asset2 }) => {
+      queryClient.setQueryData<HeroAsset[]>(
+        ["heroAssets", "admin"],
+        (old = []) => {
+          const updated = old.map((a) => {
+            if (a._id === asset1.id) return { ...a, order: asset2.order };
+            if (a._id === asset2.id) return { ...a, order: asset1.order };
+            return a;
+          });
+          return updated.sort((a, b) => a.order - b.order);
+        }
+      );
+      queryClient.invalidateQueries({ queryKey: ["heroAssets"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to reorder", variant: "destructive" });
+    },
+  });
+
+  const moveUp = (asset: HeroAsset) => {
+    // Find the index of the current asset
+    const currentIndex = assets.findIndex((a) => a._id === asset._id);
+    if (currentIndex <= 0) return; // Already at top
+
+    // Get the asset above
+    const assetAbove = assets[currentIndex - 1];
+    quickReorderMutation.mutate({
+      asset1: { id: asset._id, order: asset.order },
+      asset2: { id: assetAbove._id, order: assetAbove.order },
+    });
+  };
+
+  const moveDown = (asset: HeroAsset) => {
+    // Find the index of the current asset
+    const currentIndex = assets.findIndex((a) => a._id === asset._id);
+    if (currentIndex >= assets.length - 1) return; // Already at bottom
+
+    // Get the asset below
+    const assetBelow = assets[currentIndex + 1];
+    quickReorderMutation.mutate({
+      asset1: { id: asset._id, order: asset.order },
+      asset2: { id: assetBelow._id, order: assetBelow.order },
+    });
+  };
 
   // ── Delete ────────────────────────────────────────────────────────────────
 
@@ -131,8 +222,28 @@ const HeroManagementPage = () => {
   // ── Dialog helpers ────────────────────────────────────────────────────────
 
   const openDialog = () => {
+    setEditingId(null);
     setForm(BLANK_FORM);
     setUploadedFile(null);
+    setUploading(false);
+    setDialogOpen(true);
+  };
+
+  const editAsset = (asset: HeroAsset) => {
+    setEditingId(asset._id);
+    setForm({
+      type: asset.type,
+      url: asset.url,
+      targetUrl: asset.targetUrl ?? "",
+      duration: asset.duration,
+      order: asset.order,
+      targetDevice: asset.targetDevice,
+      isActive: asset.isActive,
+    });
+    setUploadedFile({
+      url: asset.url,
+      type: asset.type,
+    });
     setUploading(false);
     setDialogOpen(true);
   };
@@ -143,6 +254,7 @@ const HeroManagementPage = () => {
       widgetRef.current.destroy();
       widgetRef.current = null;
     }
+    setEditingId(null);
     setForm(BLANK_FORM);
     setUploadedFile(null);
     setUploading(false);
@@ -235,7 +347,31 @@ const HeroManagementPage = () => {
 
   const handleSave = () => {
     if (!form.url || createMutation.isPending) return;
-    createMutation.mutate(form);
+
+    // For new assets, find the next available order (max + 1)
+    let finalOrder = form.order;
+    if (!editingId) {
+      const maxOrder = Math.max(0, ...assets.map((a) => a.order));
+      finalOrder = maxOrder + 1;
+    } else {
+      // For editing, check if this order is already taken by another asset
+      const existingWithSameOrder = assets.find(
+        (a) => a.order === form.order && a._id !== editingId
+      );
+      if (existingWithSameOrder) {
+        toast({
+          title: "Order already in use",
+          description: `Asset #${form.order} already exists. Use the arrow buttons to reorder.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const payload = editingId
+      ? { ...form, id: editingId, order: finalOrder }
+      : { ...form, order: finalOrder };
+    createMutation.mutate(payload);
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -275,10 +411,15 @@ const HeroManagementPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assets.map((asset) => (
+          {assets.map((asset, index) => (
             <AssetCard
               key={asset._id}
               asset={asset}
+              onEdit={editAsset}
+              onMoveUp={moveUp}
+              onMoveDown={moveDown}
+              canMoveUp={index > 0}
+              canMoveDown={index < assets.length - 1}
               onDelete={(id) => {
                 if (confirm("Delete this asset? This cannot be undone.")) {
                   deleteMutation.mutate(id);
@@ -302,7 +443,7 @@ const HeroManagementPage = () => {
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Hero Asset</DialogTitle>
+            <DialogTitle>{editingId ? "Edit Hero Asset" : "Add Hero Asset"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-5 pt-2">
@@ -368,49 +509,97 @@ const HeroManagementPage = () => {
             )}
 
             {/* Settings */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Target Device
+                  Display Order / Sequence
                 </label>
-                <Select
-                  value={form.targetDevice}
-                  onValueChange={(v: "all" | "desktop" | "mobile") =>
-                    setForm((f) => ({ ...f, targetDevice: v }))
-                  }
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Devices</SelectItem>
-                    <SelectItem value="desktop">Desktop Only</SelectItem>
-                    <SelectItem value="mobile">Mobile Only</SelectItem>
-                  </SelectContent>
-                </Select>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={form.order}
+                  onChange={(e) => setForm((f) => ({ ...f, order: Number(e.target.value) || 0 }))}
+                  className={cn(
+                    "w-full h-10 px-3 rounded-lg border bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors",
+                    isDuplicateOrder
+                      ? "border-destructive focus-visible:ring-destructive"
+                      : "border-input focus-visible:ring-ring"
+                  )}
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] text-muted-foreground">
+                    {editingId
+                      ? "Change position, or use arrow buttons on cards to reorder."
+                      : "New assets are automatically placed at the end."}
+                  </p>
+                  {isDuplicateOrder && (
+                    <span className="text-[10px] text-destructive font-medium">
+                      Order #{form.order} already exists
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                  Duration (images)
+                  Target URL (optional)
                 </label>
-                <Select
-                  value={String(form.duration / 1000)}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, duration: Number(v) * 1000 }))
-                  }
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[3, 5, 7, 10, 15].map((s) => (
-                      <SelectItem key={s} value={String(s)}>
-                        {s}s
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <input
+                  type="url"
+                  placeholder="https://example.com"
+                  value={form.targetUrl}
+                  onChange={(e) => setForm((f) => ({ ...f, targetUrl: e.target.value }))}
+                  className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  If provided, clicking the hero image will open this URL in a new tab
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Target Device
+                  </label>
+                  <Select
+                    value={form.targetDevice}
+                    onValueChange={(v: "all" | "desktop" | "mobile") =>
+                      setForm((f) => ({ ...f, targetDevice: v }))
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Devices</SelectItem>
+                      <SelectItem value="desktop">Desktop Only</SelectItem>
+                      <SelectItem value="mobile">Mobile Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                    Duration (images)
+                  </label>
+                  <Select
+                    value={String(form.duration / 1000)}
+                    onValueChange={(v) =>
+                      setForm((f) => ({ ...f, duration: Number(v) * 1000 }))
+                    }
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[3, 5, 7, 10, 15].map((s) => (
+                        <SelectItem key={s} value={String(s)}>
+                          {s}s
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -432,7 +621,7 @@ const HeroManagementPage = () => {
                 {createMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Save Asset"
+                  editingId ? "Update Asset" : "Save Asset"
                 )}
               </Button>
             </div>
@@ -448,10 +637,15 @@ const HeroManagementPage = () => {
 interface AssetCardProps {
   asset: HeroAsset;
   onDelete: (id: string) => void;
+  onEdit?: (asset: HeroAsset) => void;
+  onMoveUp?: (asset: HeroAsset) => void;
+  onMoveDown?: (asset: HeroAsset) => void;
   isDeleting: boolean;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
 }
 
-const AssetCard = ({ asset, onDelete, isDeleting }: AssetCardProps) => (
+const AssetCard = ({ asset, onDelete, onEdit, onMoveUp, onMoveDown, isDeleting, canMoveUp, canMoveDown }: AssetCardProps) => (
   <div className="group relative rounded-2xl border border-border overflow-hidden bg-card shadow-sm hover:shadow-lg transition-shadow duration-300">
     {/* Preview */}
     <div className="aspect-video relative bg-muted overflow-hidden">
@@ -467,6 +661,13 @@ const AssetCard = ({ asset, onDelete, isDeleting }: AssetCardProps) => (
 
       {/* Hover actions overlay */}
       <div className="absolute inset-0 bg-black/50 flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onEdit?.(asset)}
+          className="h-9 w-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-110 transition-transform"
+          title="Edit asset"
+        >
+          <Edit2 className="h-4 w-4" />
+        </button>
         <a
           href={asset.url}
           target="_blank"
@@ -503,19 +704,54 @@ const AssetCard = ({ asset, onDelete, isDeleting }: AssetCardProps) => (
 
     {/* Meta row */}
     <div className="px-4 py-3 flex items-center justify-between text-xs text-muted-foreground">
-      <div className="flex items-center gap-2">
-        <span
-          className={cn(
-            "h-1.5 w-1.5 rounded-full",
-            asset.isActive ? "bg-green-500" : "bg-muted-foreground/40"
-          )}
-        />
-        {asset.isActive ? "Active" : "Paused"}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "h-1.5 w-1.5 rounded-full",
+              asset.isActive ? "bg-green-500" : "bg-muted-foreground/40"
+            )}
+          />
+          {asset.isActive ? "Active" : "Paused"}
+        </div>
+        <div className="flex items-center gap-1">
+          <GripVertical className="h-3 w-3 opacity-50" />
+          <span className="font-medium text-foreground">#{asset.order}</span>
+        </div>
       </div>
-      <span className="font-mono">
-        {asset.duration / 1000}s ·{" "}
-        {asset.targetDevice === "all" ? "All devices" : asset.targetDevice}
-      </span>
+      <div className="flex items-center gap-3">
+        {/* Quick reorder buttons */}
+        <div className="flex items-center gap-0.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveUp?.(asset);
+            }}
+            disabled={!canMoveUp}
+            className="p-1.5 rounded hover:bg-accent hover:text-accent-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-current transition-colors cursor-pointer disabled:cursor-not-allowed"
+            title="Move up in sequence"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveDown?.(asset);
+            }}
+            disabled={!canMoveDown}
+            className="p-1.5 rounded hover:bg-accent hover:text-accent-foreground disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-current transition-colors cursor-pointer disabled:cursor-not-allowed"
+            title="Move down in sequence"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </button>
+        </div>
+        <span className="font-mono">
+          {asset.duration / 1000}s ·{" "}
+          {asset.targetDevice === "all" ? "All" : asset.targetDevice}
+        </span>
+      </div>
     </div>
   </div>
 );

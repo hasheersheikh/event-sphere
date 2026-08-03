@@ -101,6 +101,7 @@ const Index = () => {
   // Animated placeholder text - vertical scrolling animation
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const placeholders = [
+    "Let us help you catch the city pulse",
     "Search events within the city.",
     "Find concerts near you.",
     "Discover tonight's parties.",
@@ -139,37 +140,6 @@ const Index = () => {
     }
   });
 
-  const FALLBACK_HERO_ASSETS = [
-    {
-      _id: "fb-1",
-      type: "video" as const,
-      url: "/hero/capped-1080p.mp4",
-      isActive: true,
-      targetDevice: "all" as const
-    },
-    {
-      _id: "fb-2",
-      type: "image" as const,
-      url: "/hero/From KlickPin CF Bright kindness reminders with charm and useful ideas for creative people that feel calm and clear 🌿 - Pin-1065453224404265030.jpg",
-      isActive: true,
-      targetDevice: "all" as const
-    },
-    {
-      _id: "fb-3",
-      type: "image" as const,
-      url: "/hero/From KlickPin CF Discover Stunning minimalist bedroom decor that make your next project look polished and expensive for ideas worth saving right now - Pin-921338036281486033.jpg",
-      isActive: true,
-      targetDevice: "all" as const
-    },
-    {
-      _id: "fb-4",
-      type: "image" as const,
-      url: "/hero/From KlickPin CF Steal these elegant rainy day activity ideas you’ll want to recreate this weekend with aesthetic touches that photograph beautifully — save these - Pin-985936543440402367.jpg",
-      isActive: true,
-      targetDevice: "all" as const
-    }
-  ];
-
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -182,10 +152,10 @@ const Index = () => {
   const filteredHeroAssets = (heroAssets && heroAssets.length > 0)
     ? heroAssets.filter((a: any) => {
       if (!a.isActive) return false;
-      if (a.targetDevice === 'all') return true;
-      return isMobile ? a.targetDevice === 'mobile' : a.targetDevice === 'desktop';
+      if (a.targetDevice === "all") return true;
+      return isMobile ? a.targetDevice === "mobile" : a.targetDevice === "desktop";
     })
-    : FALLBACK_HERO_ASSETS;
+    : [];
 
   const hasHeroAssets = filteredHeroAssets.length > 0;
 
@@ -321,13 +291,6 @@ const Index = () => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-muted/50 via-transparent to-transparent pointer-events-none" />
 
             <div className={cn("relative z-30 lg:mr-0", !hasHeroAssets && "max-w-3xl")}>
-              <motion.p
-                className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-4"
-                {...fadeUp(0)}
-              >
-                City Pulse
-              </motion.p>
-
               {/* Tagline */}
               <motion.h1
                 className="font-display font-black leading-[0.85] tracking-tighter text-[clamp(2.8rem,8vw,5.5rem)] mb-6"
@@ -343,9 +306,13 @@ const Index = () => {
                 )}
                 {...fadeUp(0.1)}
               >
-                Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                <span className="text-black dark:text-white">
+                  Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                </span>
                 <br /><br />
-                Discover what's happening around you with City Pulse.
+                <span className="inline-block px-3 py-1 rounded bg-black text-white dark:bg-white dark:text-black font-medium">
+                  Discover what's happening around you with City Pulse.
+                </span>
               </motion.p>
 
               {/* Search bar */}
@@ -454,7 +421,7 @@ const Index = () => {
 
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
         <section className="border-t border-border/20 py-8 md:py-14">
-          <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="container px-3 md:px-8 mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center justify-between w-full md:w-auto">
               <div className="flex items-center gap-2.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-neon-pink animate-pulse" />
@@ -494,7 +461,7 @@ const Index = () => {
           </div>
 
           {isLoading ? (
-            <div className="container">
+            <div className="container px-3 md:px-8">
               <div className="flex gap-3 overflow-hidden">
                 {Array(6).fill(0).map((_, i) => (
                   <div key={i} className="flex-shrink-0 w-80">
@@ -512,7 +479,7 @@ const Index = () => {
             <>
               {/* Mobile snap carousel */}
               <div className="md:hidden">
-                <div className="container">
+                <div className="container px-3 md:px-8">
                   <MobileEventCarousel events={filteredEvents} />
                 </div>
               </div>
@@ -528,7 +495,7 @@ const Index = () => {
               </div>
             </>
           ) : (
-            <div className="container flex items-center justify-center py-16">
+            <div className="container px-3 md:px-8 flex items-center justify-center py-16">
               <div className="text-center space-y-3 border border-dashed border-border rounded-xl px-12 py-8">
                 <CalendarDays className="h-8 w-8 text-muted-foreground/25 mx-auto" />
                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">
@@ -567,8 +534,14 @@ const Index = () => {
               className="rounded-2xl border border-border/40 overflow-hidden"
             >
               {/* Customer Steps */}
-              <div className="bg-background py-16 md:py-24 text-center px-6">
-                <div className="max-w-2xl mx-auto mb-12">
+              <div className="relative overflow-hidden bg-background py-16 md:py-24 text-center px-6">
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('/images/concert-crowd-silhouette.jpg')" }}
+                />
+                <div className="absolute inset-0 bg-background/85" />
+
+                <div className="relative z-10 max-w-2xl mx-auto mb-12">
                   <h2 className="text-3xl md:text-5xl font-black tracking-tight text-foreground mb-3 leading-tight">
                     We Help you to{" "}
                     <span className="text-neon-lime">catch the City Pulse</span>
@@ -578,7 +551,7 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto">
                   {[
                     { icon: Search, title: "Discover Events", accent: "you like", desc: "Find the absolute best concerts, secret parties, and local workshops happening right around you." },
                     { icon: Ticket, title: "Book Your", accent: "Spot", desc: "Purchase tickets instantly with secure one-tap checkout. No booking fees, no complications." },

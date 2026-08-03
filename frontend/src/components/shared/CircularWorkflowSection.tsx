@@ -79,6 +79,13 @@ export default function CircularWorkflowSection() {
 
   return (
     <section className="py-12 md:py-20 relative overflow-hidden bg-background border-t border-border/20 selection:bg-neon-lime/20">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/concert-crowd-silhouette.jpg')" }}
+      />
+      <div className="absolute inset-0 bg-background/85" />
+
       {/* Background Neon Orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-neon-lime/5 rounded-full blur-[120px] animate-pulse" />

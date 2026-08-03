@@ -201,7 +201,7 @@ const ListYourEventPage = () => {
                     <div className="h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center">
                       <step.icon className="h-4 w-4 text-foreground/60" />
                     </div>
-                    <span className="font-display font-black text-4xl leading-none tracking-tighter text-foreground/[0.07] select-none">
+                    <span className="font-display font-black text-4xl leading-none tracking-tighter text-neon-lime select-none">
                       {step.num}
                     </span>
                   </div>

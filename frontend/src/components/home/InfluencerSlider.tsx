@@ -116,6 +116,7 @@ const InfluencerSlider = () => {
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
+                whileHover={{ scale: 1.1, transition: { duration: 0.3, ease: "easeOut" } }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
                 className="flex-shrink-0 w-[21.6rem]"
               >
