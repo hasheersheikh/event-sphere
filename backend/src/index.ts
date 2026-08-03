@@ -58,15 +58,9 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(compression());
 
-// CORS — restrict to known frontend origin(s) in production. Comma-separated
-// list via FRONTEND_URL, falls back to permissive CORS in development.
-const allowedOrigins = (process.env.FRONTEND_URL || '')
-  .split(',')
-  .map((o) => o.trim())
-  .filter(Boolean);
-
+// CORS — temporarily disabled for development
 app.use(cors({
-  origin: isProduction && allowedOrigins.length ? allowedOrigins : true,
+  origin: true,
   credentials: true,
 }));
 
