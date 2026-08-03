@@ -50,7 +50,7 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
   if (HERO_ASSETS.length === 0) return null;
 
   return (
-    <div className="relative w-full aspect-video lg:aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted">
+    <div className="relative w-full aspect-[2/1] lg:aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted">
       <div className="absolute inset-0 w-full h-full">
           {HERO_ASSETS[currentIndex].type === "image" ? (
             <img

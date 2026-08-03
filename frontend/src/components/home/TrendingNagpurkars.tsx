@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
@@ -120,7 +120,8 @@ const NAGPURKARS: Nagpurkar[] = [
   },
 ];
 
-const SPEED = 30; // px per second — desktop auto-scroll
+const SPEED = 30; // px per second — auto-scroll (desktop + mobile)
+const TOUCH_RESUME_DELAY_MS = 4000;
 
 const TrendingNagpurkars = () => {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -137,6 +138,8 @@ const TrendingNagpurkars = () => {
   const startX = useRef(0);
   const scrollStart = useRef(0);
   const hasMoved = useRef(false);
+  const touchResumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -149,9 +152,9 @@ const TrendingNagpurkars = () => {
     ? NAGPURKARS
     : NAGPURKARS.filter(n => n.category === activeCategory);
 
-  // Desktop: continuous rAF auto-scroll (same pattern as MarqueeCarousel)
+  // Continuous rAF auto-scroll — runs on both desktop and mobile; paused while dragging/touching
   useEffect(() => {
-    if (isMobile) {
+    if (shouldReduceMotion) {
       if (animRef.current) cancelAnimationFrame(animRef.current);
       return;
     }
@@ -171,7 +174,7 @@ const TrendingNagpurkars = () => {
     };
     animRef.current = requestAnimationFrame(tick);
     return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [isMobile, filtered]);
+  }, [shouldReduceMotion, filtered]);
 
   // Mobile: track scroll position for arrows
   useEffect(() => {
@@ -211,6 +214,19 @@ const TrendingNagpurkars = () => {
   };
   const onClickCapture = (e: React.MouseEvent) => {
     if (hasMoved.current) e.preventDefault();
+  };
+
+  // Mobile touch handlers — pause auto-scroll while swiping, resume shortly after release
+  const onTouchStart = () => {
+    isDragging.current = true;
+    if (touchResumeTimeoutRef.current) clearTimeout(touchResumeTimeoutRef.current);
+  };
+  const onTouchEnd = () => {
+    if (touchResumeTimeoutRef.current) clearTimeout(touchResumeTimeoutRef.current);
+    touchResumeTimeoutRef.current = setTimeout(() => {
+      isDragging.current = false;
+      lastTsRef.current = 0;
+    }, TOUCH_RESUME_DELAY_MS);
   };
 
   // Mobile manual scroll
@@ -266,6 +282,8 @@ const TrendingNagpurkars = () => {
           onMouseUp={!isMobile ? onMouseUp : undefined}
           onMouseLeave={!isMobile ? onMouseUp : undefined}
           onClickCapture={!isMobile ? onClickCapture : undefined}
+          onTouchStart={isMobile ? onTouchStart : undefined}
+          onTouchEnd={isMobile ? onTouchEnd : undefined}
         >
           {filtered.map((person, idx) => (
             <motion.div
@@ -276,7 +294,7 @@ const TrendingNagpurkars = () => {
               transition={{ delay: idx * 0.05, duration: 0.4 }}
               whileHover={{ scale: 1.10, y: -8, zIndex: 20 }}
               style={{ zIndex: 1 }}
-              className="flex-shrink-0 w-[72vw] max-w-[17rem] sm:w-72 md:w-80 lg:w-[22rem] cursor-pointer group"
+              className="flex-shrink-0 w-[86vw] max-w-[20.4rem] sm:w-[21.6rem] md:w-96 lg:w-[26.4rem] cursor-pointer group"
               onClick={() => !hasMoved.current && setSelected(person)}
             >
               <div className="relative rounded-2xl overflow-hidden border border-border/60 group-hover:border-primary/40 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
@@ -288,7 +306,7 @@ const TrendingNagpurkars = () => {
                       <img
                         src={person.image!}
                         alt={person.name}
-                        className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent" />
@@ -309,7 +327,7 @@ const TrendingNagpurkars = () => {
                       <img
                         src={person.image}
                         alt={person.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center">

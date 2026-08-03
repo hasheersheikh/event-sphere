@@ -80,7 +80,7 @@ const MarqueeCarousel = ({ events }: MarqueeCarouselProps) => {
     >
       <div className="flex gap-6 py-8 w-max">
         {events.map((event, index) => (
-          <div key={event._id} className="w-72 flex-shrink-0">
+          <div key={event._id} className="w-[21.6rem] flex-shrink-0">
             <EventCard event={event} index={index} imageRatio="4/5" />
           </div>
         ))}

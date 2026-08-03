@@ -3,6 +3,9 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import rateLimit from 'express-rate-limit';
 import mongoose from 'mongoose';
 import winston from 'winston';
 import path from 'path';
@@ -30,20 +33,61 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const PORT = process.env.PORT || 5001;
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Logger
+if (isProduction && !process.env.JWT_SECRET) {
+  console.error('❌ CRITICAL: JWT_SECRET is not set. Refusing to start in production.');
+  process.exit(1);
+}
+
+// Logger — file transports only carry errors; verbose logs stay on stdout
+// (which Docker/journald already capture) so disk usage doesn't grow unbounded.
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
   ],
 });
 
-// Middleware
-app.use(cors());
+// Trust the reverse proxy (Caddy/Nginx) for correct client IPs — required for
+// express-rate-limit and secure cookies to work behind a proxy.
+app.set('trust proxy', 1);
+
+app.use(helmet());
+app.use(compression());
+
+// CORS — restrict to known frontend origin(s) in production. Comma-separated
+// list via FRONTEND_URL, falls back to permissive CORS in development.
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: isProduction && allowedOrigins.length ? allowedOrigins : true,
+  credentials: true,
+}));
+
+// Rate limiting — protects a small VPS from being overwhelmed by bursts/scrapers.
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many attempts, please try again later.' },
+});
+app.use('/api/', generalLimiter);
+app.use('/api/auth', strictLimiter);
+app.use('/api/payments', strictLimiter);
+
 app.use(express.json({
   verify: (req: any, _res, buf) => {
     req.rawBody = buf.toString();
@@ -56,11 +100,14 @@ if (process.env.USE_LOCAL_STORAGE === 'true') {
   app.use('/uploads', express.static(uploadsDir));
 }
 
-// Debug Logger
-app.use((req, res, next) => {
-  logger.info(`Incoming request: ${req.method} ${req.url}`);
-  next();
-});
+// Request logger — console only in production (avoids per-request disk I/O
+// growing combined.log unbounded); full logging kept in development.
+if (!isProduction) {
+  app.use((req, res, next) => {
+    logger.info(`Incoming request: ${req.method} ${req.url}`);
+    next();
+  });
+}
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -107,6 +154,18 @@ app.get('/', (_req, res) => {
 app.get('/api/config/cloudinary-status', (_req, res) => {
   const isConfigured = !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
   res.json({ isConfigured });
+});
+
+// 404 handler — must come after all routes
+app.use((req, res) => {
+  res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// Centralized error handler — must be registered last
+app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error(`Unhandled error on ${req.method} ${req.originalUrl}: ${err?.message}`, { stack: err?.stack });
+  if (res.headersSent) return;
+  res.status(err?.status || 500).json({ message: err?.message || 'Internal server error' });
 });
 
 // Start Server

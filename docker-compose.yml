@@ -5,10 +5,24 @@ services:
     image: mongo:7
     container_name: event-sphere-mongo
     restart: unless-stopped
+    # Caps WiredTiger's cache so Mongo doesn't grab ~50% of host RAM by default
+    # and starve the backend/frontend containers on a small VPS.
+    command: ["--wiredTigerCacheSizeGB", "0.5"]
     volumes:
       - mongo_data:/data/db
     networks:
       - event-sphere-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
 
   # ── Backend ────────────────────────────────────────────────────────────────
   backend:
@@ -21,14 +35,27 @@ services:
       - ./backend/.env
     environment:
       MONGODB_URI: mongodb://mongo:27017/event-sphere
+      NODE_ENV: production
     volumes:
       - uploads_data:/app/uploads
-    ports:
-      - "5001:5001"
+    expose:
+      - "5001"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     networks:
       - event-sphere-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5001/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
 
   # ── Frontend ───────────────────────────────────────────────────────────────
   frontend:
@@ -36,7 +63,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:5001/api}
+        VITE_API_URL: ${VITE_API_URL:-/api}
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
         VITE_USE_LOCAL_STORAGE: ${VITE_USE_LOCAL_STORAGE:-false}
         VITE_CLOUDINARY_CLOUD_NAME: ${VITE_CLOUDINARY_CLOUD_NAME:-}
@@ -44,16 +71,57 @@ services:
         VITE_RAZORPAY_KEY_ID: ${VITE_RAZORPAY_KEY_ID:-}
     container_name: event-sphere-frontend
     restart: unless-stopped
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
     depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - event-sphere-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+
+  # ── Reverse proxy / TLS termination ────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: event-sphere-caddy
+    restart: unless-stopped
+    environment:
+      # Set DOMAIN to your real domain (e.g. app.example.com) to get automatic
+      # HTTPS via Let's Encrypt. Leave as ":80" for IP-only/local testing.
+      DOMAIN: ${DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
       - backend
     networks:
       - event-sphere-net
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
 
 volumes:
   mongo_data:
   uploads_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   event-sphere-net:

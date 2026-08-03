@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { MapPin, Building2, ArrowRight, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
@@ -27,6 +27,9 @@ interface TrendingVenue {
   order: number;
 }
 
+const AUTO_SCROLL_SPEED = 40; // px per second — mobile-only autoplay
+const AUTO_SCROLL_RESUME_DELAY_MS = 4000;
+
 const TrendingVenues = () => {
   const { data: trendingVenues, isLoading } = useQuery({
     queryKey: ["trendingVenues"],
@@ -42,6 +45,11 @@ const TrendingVenues = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState<TrendingVenue | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const shouldReduceMotion = useReducedMotion();
+  const autoScrollAnimRef = useRef<number>();
+  const autoScrollLastTsRef = useRef(0);
+  const autoScrollPausedRef = useRef(false);
+  const autoScrollResumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -72,6 +80,43 @@ const TrendingVenues = () => {
       return () => container.removeEventListener("scroll", checkScroll);
     }
   }, [trendingVenues]);
+
+  // Mobile-only autoplay — continuously drifts the strip, pausing while the user touches it
+  useEffect(() => {
+    if (!isMobile || shouldReduceMotion) {
+      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
+      return;
+    }
+    const tick = (ts: number) => {
+      const el = scrollContainerRef.current;
+      if (el && !autoScrollPausedRef.current) {
+        const delta = autoScrollLastTsRef.current ? ts - autoScrollLastTsRef.current : 0;
+        el.scrollLeft += (AUTO_SCROLL_SPEED * delta) / 1000;
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+          el.scrollLeft = 0;
+        }
+      }
+      autoScrollLastTsRef.current = ts;
+      autoScrollAnimRef.current = requestAnimationFrame(tick);
+    };
+    autoScrollAnimRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
+      autoScrollLastTsRef.current = 0;
+    };
+  }, [isMobile, shouldReduceMotion, trendingVenues]);
+
+  const pauseAutoScroll = () => {
+    autoScrollPausedRef.current = true;
+    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
+  };
+  const resumeAutoScrollSoon = () => {
+    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
+    autoScrollResumeTimeoutRef.current = setTimeout(() => {
+      autoScrollPausedRef.current = false;
+      autoScrollLastTsRef.current = 0;
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
+  };
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
@@ -105,7 +150,9 @@ const TrendingVenues = () => {
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+            onTouchStart={pauseAutoScroll}
+            onTouchEnd={resumeAutoScrollSoon}
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
           >
             {trendingVenues.map((venue, idx) => (
               <motion.div
@@ -114,7 +161,7 @@ const TrendingVenues = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                className="flex-shrink-0 w-[72vw] max-w-[17rem] sm:w-72 md:w-80 lg:w-[22rem]"
+                className="flex-shrink-0 w-[86vw] max-w-[20.4rem] sm:w-[21.6rem] md:w-96 lg:w-[26.4rem]"
               >
                 <button
                   onClick={() => setSelectedVenue(venue)}

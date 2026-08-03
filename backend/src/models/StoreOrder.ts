@@ -69,4 +69,7 @@ const StoreOrderSchema = new Schema(
   { timestamps: true }
 );
 
+StoreOrderSchema.index({ storeId: 1, createdAt: -1 });
+StoreOrderSchema.index({ userId: 1 });
+
 export default mongoose.model<IStoreOrder>('StoreOrder', StoreOrderSchema);

@@ -218,4 +218,9 @@ const EventSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+// Public listing endpoint filters on status+isApproved and sorts by date —
+// this is the hottest read path in the app.
+EventSchema.index({ status: 1, isApproved: 1, date: 1 });
+EventSchema.index({ category: 1 });
+
 export default mongoose.model<IEvent>('Event', EventSchema);

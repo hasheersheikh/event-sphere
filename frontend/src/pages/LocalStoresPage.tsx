@@ -50,24 +50,19 @@ const LocalStoresPage = () => {
       <main className="flex-1 pt-14 md:pt-16">
 
         {/* ─── Header ─── */}
-        <section className="border-b border-border/20 py-8 md:py-10">
+        <section className="border-b border-border/20 py-2.5 md:py-3">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-6"
+              className="mb-2.5"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
                 Community
               </p>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
                 Discover <span className="text-neon-lime">Unique Stores</span>
-                {stores?.length > 0 && (
-                  <span className="text-muted-foreground/50 ml-3 text-2xl md:text-3xl font-bold">
-                    {stores.length}
-                  </span>
-                )}
               </h1>
               <p className="text-muted-foreground text-sm mt-2 max-w-md">
                 Discover curated shops from your neighbourhood.

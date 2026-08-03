@@ -65,4 +65,8 @@ const BookingSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+// "My bookings" and per-event capacity/attendee lookups are the hot queries.
+BookingSchema.index({ user: 1, createdAt: -1 });
+BookingSchema.index({ event: 1 });
+
 export default mongoose.model<IBooking>('Booking', BookingSchema);

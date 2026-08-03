@@ -227,13 +227,13 @@ const EventsPage = () => {
       <main className="flex-1 pt-14 md:pt-16">
 
         {/* ─── Desktop: heading + left-aligned search ──────────────────── */}
-        <section className="hidden md:block border-b border-border/20 py-6">
+        <section className="hidden md:block border-b border-border/20 py-2">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="space-y-4"
+              className="space-y-2"
             >
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-1">Discover</p>
@@ -272,7 +272,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Mobile: centered pill search ────────────────────────────── */}
-        <section className="md:hidden border-b border-border/20 py-3">
+        <section className="md:hidden border-b border-border/20 py-1.5">
           <div className="container px-3">
             <motion.form
               onSubmit={handleSearch}
