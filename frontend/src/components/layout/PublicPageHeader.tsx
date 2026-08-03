@@ -36,7 +36,7 @@ export const PublicPageHeader = ({
 
   return (
     <header className={cn("max-w-4xl mx-auto mb-10 space-y-4", className)}>
-      {pillText && (
+      {/* {pillText && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -44,7 +44,7 @@ export const PublicPageHeader = ({
         >
           {pillText}
         </motion.p>
-      )}
+      )} */}
 
       <motion.h1
         initial={{ opacity: 0, y: 16 }}

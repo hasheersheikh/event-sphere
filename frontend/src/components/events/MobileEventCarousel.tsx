@@ -1,13 +1,11 @@
-import { useRef, useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Event } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
 import { cn } from "@/lib/utils";
 import { Eye } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-
-const AUTOPLAY_INTERVAL_MS = 3200;
-const RESUME_AFTER_INTERACTION_MS = 4000;
+import { AnimatePresence, motion } from "framer-motion";
+import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 
 interface MobileEventCarouselProps {
   events: Event[];
@@ -42,64 +40,7 @@ const formatViews = (viewCount?: number) => {
 };
 
 const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const shouldReduce = useReducedMotion();
-  const isInteractingRef = useRef(false);
-  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const cards = el.querySelectorAll<HTMLElement>("[data-card-index]");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            const idx = parseInt(
-              entry.target.getAttribute("data-card-index") ?? "0"
-            );
-            setActiveIndex(idx);
-          }
-        });
-      },
-      { root: el, threshold: 0.5 }
-    );
-
-    cards.forEach((card) => observer.observe(card));
-    return () => observer.disconnect();
-  }, [events.length]);
-
-  // Autoplay: advance to the next card unless the user is currently interacting
-  useEffect(() => {
-    if (shouldReduce || events.length <= 1) return;
-    const timer = setInterval(() => {
-      if (isInteractingRef.current) return;
-      const el = scrollRef.current;
-      if (!el) return;
-      const nextIndex = (activeIndex + 1) % events.length;
-      const nextCard = el.querySelector<HTMLElement>(`[data-card-index="${nextIndex}"]`);
-      if (!nextCard) return;
-      // Scroll the carousel's own horizontal axis only — scrollIntoView can
-      // still nudge the whole page vertically even with block: "nearest".
-      const targetLeft =
-        nextCard.offsetLeft - (el.clientWidth - nextCard.clientWidth) / 2;
-      el.scrollTo({ left: targetLeft, behavior: "smooth" });
-    }, AUTOPLAY_INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [activeIndex, events.length, shouldReduce]);
-
-  const pauseAutoplay = () => {
-    isInteractingRef.current = true;
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-  };
-  const resumeAutoplaySoon = () => {
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-    resumeTimeoutRef.current = setTimeout(() => {
-      isInteractingRef.current = false;
-    }, RESUME_AFTER_INTERACTION_MS);
-  };
 
   const formatDate = (dateString: string, nextOccurrence?: string) => {
     const dateToUse = nextOccurrence || dateString;
@@ -118,20 +59,8 @@ const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
 
   return (
     <div>
-      <div
-        ref={scrollRef}
-        onTouchStart={pauseAutoplay}
-        onTouchEnd={resumeAutoplaySoon}
-        onPointerDown={pauseAutoplay}
-        onPointerUp={resumeAutoplaySoon}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide gap-3"
-        style={{
-          paddingLeft: "9vw",
-          paddingRight: "9vw",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
-        {events.map((event, i) => {
+      <MobileMarqueeCarousel onActiveIndexChange={setActiveIndex} showDots={false}>
+        {events.map((event) => {
           const isPast =
             event.isActive === false || event.status === "past";
           const totalCapacity =
@@ -143,30 +72,10 @@ const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
             (totalCapacity - totalSold <= 0 ||
               event.ticketTypes?.every((t) => t.isSoldOut));
 
-          const isActive = i === activeIndex;
-
           return (
-            <div
-              key={event._id}
-              data-card-index={i}
-              className="flex-shrink-0 snap-center w-[86vw] max-w-[20.4rem]"
-            >
-              <Link
-                to={`/events/${event._id}`}
-                className={cn(
-                  "block transition-all duration-500 ease-out",
-                  isActive
-                    ? "scale-100 opacity-100 blur-none"
-                    : "scale-[0.86] opacity-40 blur-[1.5px]"
-                )}
-              >
+            <Link key={event._id} to={`/events/${event._id}`} className="block">
               <div
-                className={cn(
-                  "relative rounded-lg overflow-hidden bg-zinc-900 transition-shadow duration-500",
-                  isActive
-                    ? "shadow-[0_24px_48px_-16px_rgba(0,0,0,0.55)]"
-                    : "shadow-none"
-                )}
+                className="relative rounded-lg overflow-hidden bg-zinc-900 transition-shadow duration-500 shadow-[0_24px_48px_-16px_rgba(0,0,0,0.55)]"
                 style={{ aspectRatio: "4/5" }}
               >
                 {/* Blurred backdrop */}
@@ -208,10 +117,9 @@ const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
                 </div>
               </div>
             </Link>
-            </div>
           );
         })}
-      </div>
+      </MobileMarqueeCarousel>
 
       {/* Active card title — lives outside the strip, crossfades as the card changes */}
       {activeEvent && (

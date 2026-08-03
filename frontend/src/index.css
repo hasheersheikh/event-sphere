@@ -9,7 +9,6 @@
   html {
     font-size: 15px;
     background-color: hsl(var(--background));
-    scroll-behavior: smooth;
   }
 
   :root {
@@ -49,6 +48,7 @@
     --icon-tickets: 38 92% 50%;
     --font-sans: "Plus Jakarta Sans", "Inter", sans-serif;
     --font-serif: "Plus Jakarta Sans", sans-serif;
+    --nav-h: 3.5rem; /* mobile navbar height (h-14); shrinks to 3rem (h-12) when scrolled */
     --glass-bg: rgba(255, 255, 255, 0.90);
     --glass-border: rgba(0, 0, 0, 0.08);
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -84,8 +84,8 @@
     --accent-foreground: 0 0% 5%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
+    --border: 0 0% 28%;
+    --input: 0 0% 28%;
     --ring: 0 0% 100%;
     --pulse-bg: #080808;
     --glass-bg: rgba(255, 255, 255, 0.04);

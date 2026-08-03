@@ -56,7 +56,7 @@ const LocalStoresPage = () => {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="mb-2.5"
+              className="mb-4"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
                 Community
@@ -64,9 +64,7 @@ const LocalStoresPage = () => {
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
                 Discover <span className="text-neon-lime">Unique Stores</span>
               </h1>
-              <p className="text-muted-foreground text-sm mt-2 max-w-md">
-                Discover curated shops from your neighbourhood.
-              </p>
+             
             </motion.div>
 
             {/* Search */}

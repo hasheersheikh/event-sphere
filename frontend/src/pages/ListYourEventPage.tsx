@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 20 },
@@ -125,28 +126,17 @@ const ListYourEventPage = () => {
         <section className="border-b border-border/20">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 pt-12 pb-14 md:pt-20 md:pb-20 text-center">
 
-            <motion.div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-muted/30 text-[9px] font-black uppercase tracking-[0.45em] text-muted-foreground mb-7"
-              {...fadeUp(0)}
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-neon-lime shrink-0" />
-              For Organizers · City Pulse
-            </motion.div>
-
-            <motion.h1
-              className="font-display font-black leading-[0.88] tracking-tighter text-[clamp(2.6rem,6vw,5.5rem)] mb-5 whitespace-nowrap"
-              {...fadeUp(0.04)}
-            >
-              List Your <span className="text-neon-lime">Event.</span>
-            </motion.h1>
-
-            <motion.p
-              className="text-muted-foreground text-sm md:text-base leading-relaxed mb-8 max-w-lg mx-auto"
-              {...fadeUp(0.08)}
-            >
-              Reach thousands of event-goers in your city. Sell tickets, manage
-              your crowd, and grow your audience on City Pulse.
-            </motion.p>
+            <PublicPageHeader
+              pillText="For Organizers · City Pulse"
+              title={
+                <>
+                  List Your <span className="text-neon-lime">Event</span>
+                </>
+              }
+              subtitle="Reach thousands of event-goers in your city. Sell tickets, manage your crowd, and grow your audience on City Pulse."
+              size="lg"
+              className="text-center mb-8"
+            />
 
             <motion.div className="flex flex-col sm:flex-row gap-3 mb-12 md:mb-16 justify-center" {...fadeUp(0.12)}>
               <Link to="/auth" className="w-full sm:w-auto">
@@ -187,11 +177,17 @@ const ListYourEventPage = () => {
         {/* ── HOW IT WORKS ── */}
         <section id="how-it-works" className="border-b border-border/20">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
-            <motion.div className="mb-10" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Process</p>
-              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
-                How it works.
-              </h2>
+            <motion.div {...fadeUp(0)}>
+              <PublicPageHeader
+                pillText="Process"
+                title={
+                  <>
+                    How It <span className="text-neon-lime">Works</span>
+                  </>
+                }
+                size="md"
+                className="text-center mb-10"
+              />
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -220,17 +216,18 @@ const ListYourEventPage = () => {
         {/* ── COMMISSION ── */}
         <section className="border-b border-border/20 bg-card/50">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
-            <motion.div className="mb-10" {...fadeUp(0)}>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-lime/10 border border-neon-lime/30 text-neon-lime text-[9px] font-black uppercase tracking-[0.4em] mb-4">
-                <span className="h-1.5 w-1.5 rounded-full bg-neon-lime shrink-0" />
-                Transparent Pricing
-              </div>
-              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
-                Simple commission.
-              </h2>
-              <p className="text-muted-foreground text-sm mt-3 max-w-md">
-                No monthly fees. Commission only on paid ticket sales.
-              </p>
+            <motion.div {...fadeUp(0)}>
+              <PublicPageHeader
+                pillText="Transparent Pricing"
+                title={
+                  <>
+                    Simple <span className="text-neon-lime">Commission</span>
+                  </>
+                }
+                subtitle="No monthly fees. Commission only on paid ticket sales."
+                size="md"
+                className="text-center mb-10"
+              />
             </motion.div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-border/30 rounded-2xl overflow-hidden border border-border/30">
@@ -313,11 +310,17 @@ const ListYourEventPage = () => {
         {/* ── FEATURES GRID ── */}
         <section className="border-b border-border/20">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
-            <motion.div className="mb-10" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Everything you need</p>
-              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
-                Built for organizers.
-              </h2>
+            <motion.div {...fadeUp(0)}>
+              <PublicPageHeader
+                pillText="Everything You Need"
+                title={
+                  <>
+                    Built for <span className="text-neon-lime">Organizers</span>
+                  </>
+                }
+                size="md"
+                className="text-center mb-10"
+              />
             </motion.div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -383,14 +386,20 @@ const ListYourEventPage = () => {
         {/* ── FAQ ── */}
         <section className="border-b border-border/20">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
-            <motion.div className="mb-10" {...fadeUp(0)}>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-2">Questions</p>
-              <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9]">
-                FAQ.
-              </h2>
+            <motion.div {...fadeUp(0)}>
+              <PublicPageHeader
+                pillText="Questions"
+                title={
+                  <>
+                    Frequently Asked <span className="text-neon-lime">Questions</span>
+                  </>
+                }
+                size="md"
+                className="text-center mb-10"
+              />
             </motion.div>
 
-            <div className="max-w-3xl space-y-2">
+            <div className="max-w-3xl mx-auto space-y-2">
               {FAQS.map((faq, i) => (
                 <motion.div
                   key={i}

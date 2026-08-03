@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(python3 -c import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('scripts',{}), indent=2)))",
+      "Shell(npx tsc --noEmit -p tsconfig.json 2 >& 1)",
+      "Shell(npm:*)",
+      "Shell(npx tsc --noEmit -p tsconfig.json)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

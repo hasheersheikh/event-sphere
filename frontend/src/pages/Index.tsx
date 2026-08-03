@@ -25,7 +25,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import GoLocalSection from "@/components/home/GoLocalSection";
 import { useCity } from "@/contexts/CityContext";
-import MarqueeCarousel from "@/components/events/MarqueeCarousel";
+import EventMarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileEventCarousel from "@/components/events/MobileEventCarousel";
 import HeroGallery from "@/components/home/HeroGallery";
 import { cn } from "@/lib/utils";
@@ -261,7 +261,7 @@ const Index = () => {
         ═══════════════════════════════════════════════════════ */}
 
         {/* ── MOBILE PROMOTIONAL BANNER ── */}
-        <div className="lg:hidden mt-14 px-4 py-3 border-b border-border/20 bg-background">
+        <div className="lg:hidden px-4 py-3 border-b border-border/20 bg-background" style={{ marginTop: "var(--nav-h)" }}>
           <div className="flex items-center gap-3">
             {/* Logo icon - PulseLogo with rotation animation in neon square */}
             <div className="h-9 w-9 rounded-lg bg-neon-lime flex items-center justify-center shrink-0">
@@ -387,7 +387,7 @@ const Index = () => {
                   </Button>
                 </Link>
                 <Link to="/local-stores">
-                  <Button variant="default" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-neon-lime text-black hover:bg-[#D4FF00] hover:shadow-[0_8px_24px_rgba(180,255,0,0.4)] transition-all gap-2">
+                  <Button variant="default" className="h-11 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] bg-neon-lime text-black hover:bg-neon-lime/90 transition-all gap-2">
                     <Store className="h-4 w-4" />
                     Unique Stores
                   </Button>
@@ -419,7 +419,7 @@ const Index = () => {
         </section>
 
         {/* ═══ CATEGORY PILLS ═══ */}
-        <section className="border-b border-border/20 py-2 md:py-3 bg-background sticky top-14 z-30">
+        <section className="md:hidden border-b border-border/20 py-2 bg-background sticky z-30" style={{ top: "var(--nav-h)" }}>
           <div className="container">
             <div
               ref={pillsScrollRef}
@@ -512,13 +512,19 @@ const Index = () => {
             <>
               {/* Mobile snap carousel */}
               <div className="md:hidden">
-                <MobileEventCarousel events={filteredEvents} />
+                <div className="container">
+                  <MobileEventCarousel events={filteredEvents} />
+                </div>
               </div>
               {/* Desktop marquee */}
               <div className="hidden md:block container overflow-hidden">
-                <MarqueeCarousel
-                  events={filteredEvents}
-                />
+                <EventMarqueeCarousel>
+                  {filteredEvents.map((event, index) => (
+                    <div key={event._id} className="w-[21.6rem] flex-shrink-0">
+                      <EventCard event={event} index={index} imageRatio="4/5" />
+                    </div>
+                  ))}
+                </EventMarqueeCarousel>
               </div>
             </>
           ) : (
@@ -619,7 +625,7 @@ const Index = () => {
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                   <Link to="/list-your-event">
-                    <Button className="h-12 px-10 bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[11px] rounded-xl">
+                    <Button className="h-11 px-6 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[10px]">
                       <Megaphone className="h-4 w-4 mr-2" />
                       List Your Event
                     </Button>

@@ -78,14 +78,14 @@ export default function CircularWorkflowSection() {
   ];
 
   return (
-    <section className="py-24 relative overflow-hidden bg-background border-t border-border/20 selection:bg-neon-lime/20">
+    <section className="py-14 md:py-24 relative overflow-hidden bg-background border-t border-border/20 selection:bg-neon-lime/20">
       {/* Background Neon Orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-neon-lime/5 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-purple-500/5 rounded-full blur-[120px] animate-pulse" />
       </div>
 
-      <div className="container relative z-10 space-y-24">
+      <div className="container px-3 md:px-4 relative z-10 space-y-16 md:space-y-24">
         {/* Section Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <motion.div
@@ -93,9 +93,9 @@ export default function CircularWorkflowSection() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 bg-neon-lime/10 border border-neon-lime/20 rounded-full text-neon-lime text-[9px] font-black uppercase tracking-[0.2em]"
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-neon-lime/10 border border-neon-lime/20 rounded-full text-neon-lime text-[9px] font-black uppercase tracking-[0.2em] leading-none"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-neon-lime animate-ping" />
+            <span className="w-1.5 h-1.5 rounded-full bg-neon-lime" />
             The City Experience
           </motion.div>
           <motion.h2
@@ -103,7 +103,7 @@ export default function CircularWorkflowSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="font-display text-4xl md:text-6xl font-black tracking-tighter uppercase leading-[0.88] text-foreground"
+            className="font-display text-3xl sm:text-4xl md:text-6xl font-black tracking-tighter uppercase leading-[0.88] text-foreground"
           >
             We Help you to <span className="text-neon-lime italic">catch the City Pulse</span>
           </motion.h2>
@@ -119,7 +119,7 @@ export default function CircularWorkflowSection() {
         </div>
 
         {/* Three Step Circular Journey */}
-        <div className="relative grid md:grid-cols-3 gap-12 lg:gap-16 max-w-5xl mx-auto">
+        <div className="relative grid md:grid-cols-3 gap-10 md:gap-16 lg:gap-16 max-w-5xl mx-auto">
           {/* Connecting SVG Path on Desktop */}
           <div className="hidden md:block absolute top-[90px] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-pink-500 via-neon-lime to-purple-500 opacity-20 -z-10" />
 
@@ -137,7 +137,7 @@ export default function CircularWorkflowSection() {
                 {/* Circular Node */}
                 <div 
                   className={cn(
-                    "relative w-44 h-44 rounded-full flex items-center justify-center border-2 border-border/40 bg-card/60 backdrop-blur-xl transition-all duration-500",
+                    "relative w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full flex items-center justify-center border-2 border-border/40 bg-card/60 backdrop-blur-xl transition-all duration-500",
                     "group-hover:border-transparent group-hover:scale-105"
                   )}
                   style={{
@@ -157,8 +157,8 @@ export default function CircularWorkflowSection() {
 
                   <div className="space-y-2 flex flex-col items-center">
                     {/* Pulsing Icon Ring */}
-                    <div className="relative w-14 h-14 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-muted/10 transition-colors">
-                      <Icon className="h-6 w-6 text-foreground group-hover:scale-110 transition-transform duration-300" />
+                    <div className="relative w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-muted/40 flex items-center justify-center group-hover:bg-muted/10 transition-colors">
+                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground group-hover:scale-110 transition-transform duration-300" />
                     </div>
                     <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">
                       Step {step.id}
@@ -258,8 +258,8 @@ export default function CircularWorkflowSection() {
           <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-neon-lime/5 blur-[80px] pointer-events-none rounded-full" />
           
           <div className="relative z-10 space-y-6 max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-neon-lime/10 border border-neon-lime/20 rounded-full text-neon-lime text-[9px] font-black uppercase tracking-[0.25em]">
-              <Zap className="h-3 w-3 text-neon-lime animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-neon-lime/10 border border-neon-lime/20 rounded-full text-neon-lime text-[9px] font-black uppercase tracking-[0.25em] leading-none">
+              <Zap className="h-3 w-3 text-neon-lime" />
               For Creators & Organizers
             </div>
             

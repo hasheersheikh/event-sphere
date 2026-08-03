@@ -82,7 +82,7 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
           "block h-full transition-all duration-300 ease-out-expo relative",
           mobile
             ? "rounded-xl bg-white shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
-            : "rounded-2xl bg-card border border-border/30 hover:border-border hover:shadow-lg"
+            : "rounded-xl md:rounded-2xl bg-card border border-border/50 hover:border-border hover:shadow-lg"
         )}
       >
         <article className="h-full flex flex-col">

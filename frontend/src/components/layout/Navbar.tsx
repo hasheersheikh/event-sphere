@@ -14,13 +14,27 @@ import { FEATURES } from "@/config/features";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
   const { totalItems, setIsOpen: openCart } = useLocalStoreCart();
   const { selectedCity, setShowCityModal } = useCity();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    let lastY = window.scrollY;
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setIsScrolled(y > 20);
+        // Hide only when scrolling down past the header; show on scroll up.
+        setIsHidden(y > 80 && y > lastY);
+        lastY = y;
+        ticking = false;
+      });
+    };
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -45,11 +59,22 @@ const Navbar = () => {
     : "bg-background border-transparent";
 
   return (
-    <header className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${navBg}`}>
-      <nav className="container flex h-14 md:h-16 items-center justify-between gap-4">
+    <header
+      className={`fixed top-0 z-50 w-full border-b transition-all duration-300 ${navBg} ${
+        isHidden && !isOpen
+          ? "-translate-y-full"
+          : "translate-y-0"
+      }`}
+    >
+      <nav className={`container flex items-center justify-between gap-4 transition-all duration-300 ${isScrolled ? "h-12 md:h-16" : "h-14 md:h-16"}`}>
 
         {/* ── Logo ── */}
-        <Link to="/" className="flex items-center gap-2 shrink-0 group">
+        <Link
+          to="/"
+          className={`flex items-center gap-2 shrink-0 group transition-transform duration-300 ${
+            isScrolled ? "scale-[0.7] md:scale-100" : "scale-100"
+          }`}
+        >
           <motion.div
             whileHover={{ rotate: 180 }}
             transition={{ duration: 0.6, ease: "anticipate" }}
@@ -135,18 +160,18 @@ const Navbar = () => {
 
         {/* ── Mobile right actions ── */}
         <div className="flex md:hidden items-center gap-1.5">
-          {totalItems > 0 && (
-            <button
-              type="button"
-              onClick={() => openCart(true)}
-              className="relative h-9 w-9 rounded-lg flex items-center justify-center text-foreground/60 hover:text-foreground hover:bg-muted/60 transition-all"
-            >
-              <ShoppingCart className="h-4 w-4" />
+          <button
+            type="button"
+            onClick={() => openCart(true)}
+            className="relative h-9 w-9 rounded-lg flex items-center justify-center text-foreground/60 hover:text-foreground hover:bg-muted/60 transition-all"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {totalItems > 0 && (
               <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-0.5 rounded-full bg-foreground text-background text-[8px] font-black flex items-center justify-center">
                 {totalItems > 9 ? "9+" : totalItems}
               </span>
-            </button>
-          )}
+            )}
+          </button>
 
           <button
             className="h-9 w-9 flex items-center justify-center rounded-lg text-foreground/70 hover:text-foreground hover:bg-muted/60 transition-all"

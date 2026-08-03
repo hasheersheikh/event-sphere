@@ -1,7 +1,9 @@
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Mail } from "lucide-react";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import MarqueeCarousel from "@/components/events/MarqueeCarousel";
+import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 
 interface Nagpurkar {
   id: number;
@@ -120,132 +122,70 @@ const NAGPURKARS: Nagpurkar[] = [
   },
 ];
 
-const SPEED = 30; // px per second — auto-scroll (desktop + mobile)
-const TOUCH_RESUME_DELAY_MS = 4000;
+const initials = (name: string) => name.split(" ").map(w => w[0]).join("");
+
+const NagpurkarCardContent = ({ person }: { person: Nagpurkar }) => (
+  <div>
+    <div className="relative aspect-[4/5] w-full rounded-xl md:rounded-2xl overflow-hidden border border-border/60 group-hover:border-primary/40 transition-all duration-300 bg-muted/20">
+      {person.isLogo ? (
+        /* Logo card — same 4:5 ratio, logo contained on dark bg */
+        <div className="absolute inset-0 flex items-center justify-center p-10 bg-card/60">
+          <img
+            src={person.image!}
+            alt={person.name}
+            className="w-full h-full object-contain"
+          />
+        </div>
+      ) : person.image ? (
+        <img
+          src={person.image}
+          alt={person.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center">
+          <span className="text-6xl font-black text-primary/50 tracking-tighter">{initials(person.name)}</span>
+        </div>
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+      <div className="absolute top-3 left-3 z-10">
+        <span className={`inline-flex items-center text-[7px] md:text-[8px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full ${BADGE_COLORS[person.category] || "bg-primary text-primary-foreground"}`}>
+          {person.category}
+        </span>
+      </div>
+    </div>
+
+    {/* Name + tagline — below the image, centered, matching Upcoming Events */}
+    <div className="mt-3 text-center">
+      <h4 className="font-black text-lg md:text-xl tracking-tight leading-snug line-clamp-1 text-foreground">
+        {person.name}
+      </h4>
+      <p className="text-[11px] font-black text-neon-lime uppercase tracking-widest mt-1 line-clamp-1">
+        {person.tagline}
+      </p>
+    </div>
+  </div>
+);
 
 const TrendingNagpurkars = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [selected, setSelected] = useState<Nagpurkar | null>(null);
-  const [isMobile, setIsMobile] = useState(false);
-  const [grabbing, setGrabbing] = useState(false);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const animRef = useRef<number>();
-  const lastTsRef = useRef(0);
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollStart = useRef(0);
-  const hasMoved = useRef(false);
-  const touchResumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const shouldReduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   const filtered = activeCategory === "All"
     ? NAGPURKARS
     : NAGPURKARS.filter(n => n.category === activeCategory);
 
-  // Continuous rAF auto-scroll — runs on both desktop and mobile; paused while dragging/touching
-  useEffect(() => {
-    if (shouldReduceMotion) {
-      if (animRef.current) cancelAnimationFrame(animRef.current);
-      return;
-    }
-    const tick = (ts: number) => {
-      if (!isDragging.current) {
-        const el = scrollRef.current;
-        if (el) {
-          const delta = lastTsRef.current ? ts - lastTsRef.current : 0;
-          el.scrollLeft += (SPEED * delta) / 1000;
-          if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
-            el.scrollLeft = 0;
-          }
-        }
-      }
-      lastTsRef.current = ts;
-      animRef.current = requestAnimationFrame(tick);
-    };
-    animRef.current = requestAnimationFrame(tick);
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [shouldReduceMotion, filtered]);
-
-  // Mobile: track scroll position for arrows
-  useEffect(() => {
-    if (!isMobile) return;
-    const checkScroll = () => {
-      const el = scrollRef.current;
-      if (!el) return;
-      setCanScrollLeft(el.scrollLeft > 0);
-      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
-    };
-    const el = scrollRef.current;
-    if (!el) return;
-    checkScroll();
-    el.addEventListener("scroll", checkScroll);
-    return () => el.removeEventListener("scroll", checkScroll);
-  }, [isMobile, filtered]);
-
-  // Desktop drag handlers
-  const onMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true;
-    hasMoved.current = false;
-    startX.current = e.pageX;
-    scrollStart.current = scrollRef.current?.scrollLeft ?? 0;
-    setGrabbing(true);
-  };
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging.current || !scrollRef.current) return;
-    const delta = e.pageX - startX.current;
-    if (Math.abs(delta) > 4) hasMoved.current = true;
-    scrollRef.current.scrollLeft = scrollStart.current - delta;
-  };
-  const onMouseUp = () => {
-    if (!isDragging.current) return;
-    isDragging.current = false;
-    lastTsRef.current = 0;
-    setGrabbing(false);
-  };
-  const onClickCapture = (e: React.MouseEvent) => {
-    if (hasMoved.current) e.preventDefault();
-  };
-
-  // Mobile touch handlers — pause auto-scroll while swiping, resume shortly after release
-  const onTouchStart = () => {
-    isDragging.current = true;
-    if (touchResumeTimeoutRef.current) clearTimeout(touchResumeTimeoutRef.current);
-  };
-  const onTouchEnd = () => {
-    if (touchResumeTimeoutRef.current) clearTimeout(touchResumeTimeoutRef.current);
-    touchResumeTimeoutRef.current = setTimeout(() => {
-      isDragging.current = false;
-      lastTsRef.current = 0;
-    }, TOUCH_RESUME_DELAY_MS);
-  };
-
-  // Mobile manual scroll
-  const scroll = (dir: "left" | "right") => {
-    scrollRef.current?.scrollBy({ left: dir === "left" ? -300 : 300, behavior: "smooth" });
-  };
-
-  const initials = (name: string) => name.split(" ").map(w => w[0]).join("");
-
   return (
     <section className="py-8 md:py-14 border-t border-border/20">
       <div className="container px-3 md:px-4">
-
-        {/* Header — z-10 so it stays above the scroll container's -mt-12 bleed area */}
-        <div className="relative z-10 mb-6 md:mb-10">
+        <div className="mb-6 md:mb-10">
           <PublicPageHeader
+            pillText="Faces of the City"
             title={
               <>
-                Trending <span className="text-primary">Nagpurkars</span>
+                Trending <span className="text-neon-lime">Nagpurkars</span>
               </>
             }
             size="md"
@@ -270,111 +210,39 @@ const TrendingNagpurkars = () => {
           </div>
         </div>
 
-      </div>
-
-      {/* Scroll area — extends to viewport edges on mobile for proper padding */}
-      <div className="relative px-3 md:container md:px-4">
-        <div
-          ref={scrollRef}
-          className={`flex gap-4 md:gap-5 overflow-x-auto scrollbar-hide pt-12 pb-6 -mt-12 -mb-6 select-none ${!isMobile ? (grabbing ? "cursor-grabbing" : "cursor-grab") : ""}`}
-          onMouseDown={!isMobile ? onMouseDown : undefined}
-          onMouseMove={!isMobile ? onMouseMove : undefined}
-          onMouseUp={!isMobile ? onMouseUp : undefined}
-          onMouseLeave={!isMobile ? onMouseUp : undefined}
-          onClickCapture={!isMobile ? onClickCapture : undefined}
-          onTouchStart={isMobile ? onTouchStart : undefined}
-          onTouchEnd={isMobile ? onTouchEnd : undefined}
-        >
-          {filtered.map((person, idx) => (
-            <motion.div
-              key={person.id}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.05, duration: 0.4 }}
-              whileHover={{ scale: 1.10, y: -8, zIndex: 20 }}
-              style={{ zIndex: 1 }}
-              className="flex-shrink-0 w-[86vw] max-w-[20.4rem] sm:w-[21.6rem] md:w-96 lg:w-[26.4rem] cursor-pointer group"
-              onClick={() => !hasMoved.current && setSelected(person)}
-            >
-              <div className="relative rounded-2xl overflow-hidden border border-border/60 group-hover:border-primary/40 transition-all duration-300 shadow-[0_8px_30px_rgb(0,0,0,0.12)] group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-
-                {person.isLogo ? (
-                  /* Logo card — same 4:5 ratio, logo contained on dark bg with name overlay */
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-card/60">
-                    <div className="absolute inset-0 flex items-center justify-center p-10">
-                      <img
-                        src={person.image!}
-                        alt={person.name}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/10 to-transparent" />
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className={`inline-flex items-center text-[7px] md:text-[8px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full ${BADGE_COLORS[person.category] || "bg-primary text-primary-foreground"}`}>
-                        {person.category}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-4 left-4 right-4 z-10">
-                      <h4 className="text-base md:text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">{person.name}</h4>
-                      <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest mt-1 line-clamp-2 italic">{person.tagline}</p>
-                    </div>
-                  </div>
-                ) : (
-                  /* Portrait card */
-                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted/20">
-                    {person.image ? (
-                      <img
-                        src={person.image}
-                        alt={person.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-background flex items-center justify-center">
-                        <span className="text-6xl font-black text-primary/50 tracking-tighter">{initials(person.name)}</span>
-                      </div>
-                    )}
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent" />
-
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className={`inline-flex items-center text-[7px] md:text-[8px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full ${BADGE_COLORS[person.category] || "bg-primary text-primary-foreground"}`}>
-                        {person.category}
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-4 left-4 right-4 z-10">
-                      <h4 className="text-base md:text-lg font-black uppercase tracking-tight italic text-foreground leading-tight drop-shadow-sm">
-                        {person.name}
-                      </h4>
-                      <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest mt-1 line-clamp-2 italic">
-                        {person.tagline}
-                      </p>
-                    </div>
-                  </div>
-                )}
+        {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
+        <div className="md:hidden">
+          <MobileMarqueeCarousel key={activeCategory}>
+            {filtered.map((person) => (
+              <div
+                key={person.id}
+                className="cursor-pointer group"
+                onClick={() => setSelected(person)}
+              >
+                <NagpurkarCardContent person={person} />
               </div>
-            </motion.div>
-          ))}
+            ))}
+          </MobileMarqueeCarousel>
         </div>
 
-        {/* Mobile scroll arrows */}
-        {isMobile && canScrollLeft && (
-          <button
-            onClick={() => scroll("left")}
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted transition-all z-10"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-        )}
-        {isMobile && canScrollRight && (
-          <button
-            onClick={() => scroll("right")}
-            className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted transition-all z-10"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        )}
+        {/* Desktop: continuous drift marquee */}
+        <div className="relative hidden md:block">
+          <MarqueeCarousel>
+            {filtered.map((person, idx) => (
+              <motion.div
+                key={person.id}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.05, duration: 0.4 }}
+                className="flex-shrink-0 w-[21.6rem] cursor-pointer group"
+                onClick={() => setSelected(person)}
+              >
+                <NagpurkarCardContent person={person} />
+              </motion.div>
+            ))}
+          </MarqueeCarousel>
+        </div>
       </div>
 
       {/* Detail modal */}

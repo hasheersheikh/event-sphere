@@ -17,14 +17,13 @@ import { Event, ITicketType } from "@/types/event";
 // ─── Date filter helpers ────────────────────────────────────────────────────
 
 const DATE_FILTERS = [
-  { id: "all", label: "All" },
   { id: "today", label: "Today" },
   { id: "weekend", label: "This Weekend" },
   { id: "week", label: "This Week" },
   { id: "month", label: "This Month" },
 ] as const;
 
-type DateFilterId = (typeof DATE_FILTERS)[number]["id"];
+type DateFilterId = "all" | (typeof DATE_FILTERS)[number]["id"];
 
 function filterByDate(events: Event[], filter: DateFilterId): Event[] {
   if (filter === "all") return events;
@@ -227,7 +226,7 @@ const EventsPage = () => {
       <main className="flex-1 pt-0 md:pt-4">
 
         {/* ─── Desktop: heading + left-aligned search ──────────────────── */}
-        <section className="hidden md:block border-b border-border/20 py-1">
+        <section className="hidden md:block border-b border-border/20 py-1.5">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -311,36 +310,6 @@ const EventsPage = () => {
         {/* ─── Mobile: Instagram stories-style categories ─────────────────── */}
         <section className="md:hidden border-b border-border/20 py-4 px-4">
           <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide snap-x px-4">
-              {/* All category */}
-              <button
-                onClick={() => {
-                  setSelectedCategory("");
-                  const params = new URLSearchParams(searchParams);
-                  params.delete("category");
-                  setSearchParams(params);
-                }}
-                className="flex flex-col items-center gap-1.5 shrink-0 snap-start group mx-1 mt-3"
-              >
-                <div
-                  className={cn(
-                    "w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all duration-200 relative ml-2",
-                    !selectedCategory
-                      ? "bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background"
-                      : "bg-muted/50 text-foreground group-hover:bg-muted"
-                  )}
-                >
-                  <span className="text-2xl">✨</span>
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] font-medium whitespace-nowrap",
-                    !selectedCategory ? "text-foreground font-bold" : "text-muted-foreground"
-                  )}
-                >
-                  All
-                </span>
-              </button>
-
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -381,22 +350,6 @@ const EventsPage = () => {
         <section className="hidden md:block border-b border-border/20 py-2.5 md:py-3 sticky top-14 md:top-16 z-30 bg-background/95 backdrop-blur-xl">
           <div className="container px-3 md:px-4">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              <button
-                onClick={() => {
-                  setSelectedCategory("");
-                  const params = new URLSearchParams(searchParams);
-                  params.delete("category");
-                  setSearchParams(params);
-                }}
-                className={cn(
-                  "whitespace-nowrap px-3.5 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
-                  !selectedCategory
-                    ? "bg-foreground border-foreground text-background"
-                    : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
-                )}
-              >
-                All
-              </button>
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -431,7 +384,7 @@ const EventsPage = () => {
               {DATE_FILTERS.map((f) => (
                 <button
                   key={f.id}
-                  onClick={() => setDateFilter(f.id)}
+                  onClick={() => setDateFilter((prev) => (prev === f.id ? "all" : f.id))}
                   className={cn(
                     "whitespace-nowrap px-2.5 md:px-3.5 py-1 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
                     dateFilter === f.id

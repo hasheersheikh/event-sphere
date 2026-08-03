@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { MapPin, Building2, ArrowRight, Eye } from "lucide-react";
 import api from "@/lib/api";
 import { Event } from "@/types/event";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import {
   Dialog,
@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import MarqueeCarousel from "@/components/events/MarqueeCarousel";
+import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 
 interface TrendingVenue {
   _id: string;
@@ -27,8 +29,49 @@ interface TrendingVenue {
   order: number;
 }
 
-const AUTO_SCROLL_SPEED = 40; // px per second — mobile-only autoplay
-const AUTO_SCROLL_RESUME_DELAY_MS = 4000;
+const VenueCardContent = ({ venue }: { venue: TrendingVenue }) => {
+  const total = Array.from(new Set([venue.image, ...(venue.images || [])].filter(Boolean))).length;
+  return (
+    <div>
+      {/* Image — 4:5 Instagram portrait ratio */}
+      <div className="relative aspect-[4/5] rounded-xl md:rounded-2xl overflow-hidden bg-muted border border-border/50 group-hover:border-border transition-all duration-300">
+        {venue.image ? (
+          <img
+            src={venue.image}
+            alt={venue.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
+            <Building2 className="h-12 w-12 text-neon-lime/40" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+        {/* Photo count badge */}
+        {total > 1 && (
+          <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full border border-white/10">
+            <Eye className="h-3 w-3" />
+            <span className="text-[9px] font-black">{total} photos</span>
+          </div>
+        )}
+      </div>
+
+      {/* Title — below the image, centered, matching Upcoming Events */}
+      <div className="mt-3 text-center">
+        <h3 className="font-black text-lg md:text-xl tracking-tight leading-snug line-clamp-1 text-foreground">
+          {venue.name}
+        </h3>
+        <div className="flex items-center justify-center gap-1 mt-1">
+          <MapPin className="h-3 w-3 text-neon-lime shrink-0" />
+          <p className="text-[11px] text-muted-foreground font-medium line-clamp-1">
+            {venue.location}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const TrendingVenues = () => {
   const { data: trendingVenues, isLoading } = useQuery({
@@ -39,95 +82,12 @@ const TrendingVenues = () => {
     },
   });
 
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [selectedVenue, setSelectedVenue] = useState<TrendingVenue | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
-  const shouldReduceMotion = useReducedMotion();
-  const autoScrollAnimRef = useRef<number>();
-  const autoScrollLastTsRef = useRef(0);
-  const autoScrollPausedRef = useRef(false);
-  const autoScrollResumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     setActiveImageIndex(0);
   }, [selectedVenue]);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  useEffect(() => {
-    const checkScroll = () => {
-      const container = scrollContainerRef.current;
-      if (container) {
-        setCanScrollLeft(container.scrollLeft > 0);
-        setCanScrollRight(
-          container.scrollLeft < container.scrollWidth - container.clientWidth
-        );
-      }
-    };
-
-    const container = scrollContainerRef.current;
-    if (container) {
-      checkScroll();
-      container.addEventListener("scroll", checkScroll);
-      return () => container.removeEventListener("scroll", checkScroll);
-    }
-  }, [trendingVenues]);
-
-  // Mobile-only autoplay — continuously drifts the strip, pausing while the user touches it
-  useEffect(() => {
-    if (!isMobile || shouldReduceMotion) {
-      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
-      return;
-    }
-    const tick = (ts: number) => {
-      const el = scrollContainerRef.current;
-      if (el && !autoScrollPausedRef.current) {
-        const delta = autoScrollLastTsRef.current ? ts - autoScrollLastTsRef.current : 0;
-        el.scrollLeft += (AUTO_SCROLL_SPEED * delta) / 1000;
-        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
-          el.scrollLeft = 0;
-        }
-      }
-      autoScrollLastTsRef.current = ts;
-      autoScrollAnimRef.current = requestAnimationFrame(tick);
-    };
-    autoScrollAnimRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
-      autoScrollLastTsRef.current = 0;
-    };
-  }, [isMobile, shouldReduceMotion, trendingVenues]);
-
-  const pauseAutoScroll = () => {
-    autoScrollPausedRef.current = true;
-    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
-  };
-  const resumeAutoScrollSoon = () => {
-    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
-    autoScrollResumeTimeoutRef.current = setTimeout(() => {
-      autoScrollPausedRef.current = false;
-      autoScrollLastTsRef.current = 0;
-    }, AUTO_SCROLL_RESUME_DELAY_MS);
-  };
-
-  const scroll = (direction: "left" | "right") => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const scrollAmount = isMobile ? 280 : 340;
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  };
 
   if (isLoading || !trendingVenues || trendingVenues.length === 0) return null;
 
@@ -135,7 +95,12 @@ const TrendingVenues = () => {
     <section className="py-12 border-t border-border/20">
       <div className="container">
         <PublicPageHeader
-          title="Trending Venues"
+          pillText="Where It's Happening"
+          title={
+            <>
+              Trending <span className="text-neon-lime">Venues</span>
+            </>
+          }
           size="md"
           className="text-center"
         >
@@ -147,13 +112,24 @@ const TrendingVenues = () => {
           </Link>
         </PublicPageHeader>
 
-        <div className="relative">
-          <div
-            ref={scrollContainerRef}
-            onTouchStart={pauseAutoScroll}
-            onTouchEnd={resumeAutoScrollSoon}
-            className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
-          >
+        {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
+        <div className="md:hidden">
+          <MobileMarqueeCarousel>
+            {trendingVenues.map((venue) => (
+              <button
+                key={venue._id}
+                onClick={() => setSelectedVenue(venue)}
+                className="block w-full text-left group focus:outline-none"
+              >
+                <VenueCardContent venue={venue} />
+              </button>
+            ))}
+          </MobileMarqueeCarousel>
+        </div>
+
+        {/* Desktop: continuous drift marquee */}
+        <div className="relative hidden md:block">
+          <MarqueeCarousel>
             {trendingVenues.map((venue, idx) => (
               <motion.div
                 key={venue._id}
@@ -161,77 +137,17 @@ const TrendingVenues = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
-                className="flex-shrink-0 w-[86vw] max-w-[20.4rem] sm:w-[21.6rem] md:w-96 lg:w-[26.4rem]"
+                className="flex-shrink-0 w-[21.6rem]"
               >
                 <button
                   onClick={() => setSelectedVenue(venue)}
                   className="block w-full text-left group focus:outline-none"
                 >
-                  <div className="rounded-2xl overflow-hidden bg-muted border border-border/50 hover:border-neon-lime/50 transition-all duration-300">
-                    {/* Image — 4:5 Instagram portrait ratio */}
-                    <div className="relative aspect-[4/5]">
-                      {venue.image ? (
-                        <img
-                          src={venue.image}
-                          alt={venue.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
-                          <Building2 className="h-12 w-12 text-neon-lime/40" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-                      {/* Photo count badge */}
-                      {(() => {
-                        const total = Array.from(new Set([venue.image, ...(venue.images || [])].filter(Boolean))).length;
-                        return total > 1 ? (
-                          <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-full border border-white/10">
-                            <Eye className="h-3 w-3" />
-                            <span className="text-[9px] font-black">{total} photos</span>
-                          </div>
-                        ) : null;
-                      })()}
-
-                      {/* Name + location overlay */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="text-base font-black text-white line-clamp-1 mb-0.5">
-                          {venue.name}
-                        </h3>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-neon-lime shrink-0" />
-                          <p className="text-[10px] font-medium text-white/80 line-clamp-1">
-                            {venue.location}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <VenueCardContent venue={venue} />
                 </button>
               </motion.div>
             ))}
-          </div>
-
-          {canScrollLeft && (
-            <button
-              onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-neon-lime/50 transition-all z-10"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-          )}
-
-          {canScrollRight && (
-            <button
-              onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-neon-lime/50 transition-all z-10"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </button>
-          )}
+          </MarqueeCarousel>
         </div>
       </div>
 

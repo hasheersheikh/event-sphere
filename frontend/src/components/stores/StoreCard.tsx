@@ -39,10 +39,10 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
       className="group h-full"
     >
       <Link to={`/local-stores/${store._id}`} className="block h-full">
-        <article className="h-full flex flex-col bg-card border border-border/40 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300">
+        <article className="h-full flex flex-col">
 
           {/* ── image ── */}
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted shrink-0">
+          <div className="relative aspect-[4/5] w-full rounded-xl md:rounded-2xl overflow-hidden bg-muted border border-border/50 hover:border-border transition-all duration-300 shrink-0">
             <AnimatedShimmer visible={!imageLoaded} />
 
             <motion.div
@@ -55,7 +55,7 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
                 <SafeImage
                   src={store.photos[0]}
                   alt={store.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  className="w-full h-full object-cover"
                   onLoad={() => setImageLoaded(true)}
                 />
               ) : (
@@ -66,7 +66,7 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
             </motion.div>
 
             {/* gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
 
             {/* category badge */}
             <div className="absolute top-2.5 left-2.5">
@@ -74,20 +74,16 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
                 {store.category}
               </span>
             </div>
-
-            {/* Name overlay */}
-            <div className="absolute bottom-3 left-4 right-4 z-20">
-              <h3 className="text-base md:text-lg font-black uppercase tracking-tight italic text-white leading-tight drop-shadow-sm line-clamp-1">
-                {store.name}
-              </h3>
-            </div>
           </div>
 
-          {/* ── content ── */}
-          <div className="p-4 flex-1 flex flex-col gap-2">
-            <div className="flex items-start gap-1.5 text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
-              <p className="text-[11px] font-medium line-clamp-1">{store.address}</p>
+          {/* Name + address — below the image, centered, matching Upcoming Events */}
+          <div className="mt-3 text-center">
+            <h3 className="font-black text-lg md:text-xl tracking-tight leading-snug line-clamp-1 text-foreground">
+              {store.name}
+            </h3>
+            <div className="flex items-center justify-center gap-1 mt-1">
+              <MapPin className="h-3 w-3 text-neon-lime shrink-0" />
+              <p className="text-[11px] text-muted-foreground font-medium line-clamp-1">{store.address}</p>
             </div>
           </div>
         </article>

@@ -4,6 +4,8 @@ import { Tag } from "lucide-react";
 import api from "@/lib/api";
 import StoreCard from "@/components/stores/StoreCard";
 import StoreSlider from "@/components/stores/StoreSlider";
+import MarqueeCarousel from "@/components/events/MarqueeCarousel";
+import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 interface Product {
@@ -43,13 +45,12 @@ const GoLocalSection = () => {
 
       <div className="container relative z-10">
         <PublicPageHeader
+          pillText="Go Local"
           title={
             <>
-              Unique Stores
+              Unique <span className="text-neon-lime">Stores</span>
             </>
           }
-          // subtitle="Discover handpicked local stores around you: fresh produce, artisan crafts, neighbourhood favourites."
-          themeColor="primary"
           size="md"
           className="text-center"
         />
@@ -66,7 +67,27 @@ const GoLocalSection = () => {
               ))}
           </div>
         ) : (
-          <StoreSlider stores={stores || []} showProducts={false} />
+          <>
+            {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
+            <div className="md:hidden">
+              <MobileMarqueeCarousel>
+                {stores?.map((store, index) => (
+                  <StoreCard key={store._id} store={store} index={index} />
+                ))}
+              </MobileMarqueeCarousel>
+            </div>
+
+            {/* Desktop: continuous drift marquee */}
+            <div className="hidden md:block">
+              <MarqueeCarousel>
+                {stores?.map((store, index) => (
+                  <div key={store._id} className="w-[21.6rem] flex-shrink-0">
+                    <StoreCard store={store} index={index} />
+                  </div>
+                ))}
+              </MarqueeCarousel>
+            </div>
+          </>
         )}
       </div>
     </section>

@@ -27,6 +27,7 @@ import api from "@/lib/api";
 import { motion, useMotionValue, useMotionTemplate } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import InfluencerSlider from "@/components/home/InfluencerSlider";
+import PublicPageHeader from "@/components/layout/PublicPageHeader";
 
 const PLANS = [
   {
@@ -170,7 +171,7 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
       whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
       onClick={onClick}
       onMouseMove={handleMouseMove}
-      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/40 ${
+      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/40 w-[85vw] max-w-[26rem] md:w-auto md:max-w-none shrink-0 snap-start ${
         isSelected
           ? plan.selectedGlowClass
           : `border-border/60 hover:border-transparent hover:shadow-2xl ${plan.glowClass}`
@@ -299,15 +300,18 @@ const BoostMarketingPage = () => {
       <Navbar />
       <div className="px-4 md:p-6 space-y-12 md:space-y-24 max-w-[1440px] mx-auto pb-16 md:pb-24 pt-16 md:pt-20">
         {/* Public Landing Header */}
-        <section className="pt-6 md:pt-12 pb-4 md:pb-6 space-y-4 md:space-y-5 text-center px-2">
-            <div className="space-y-3 md:space-y-4">
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-8xl font-black brand-font uppercase tracking-tighter italic leading-[0.85] md:leading-[0.9] text-foreground text-center">
-                Boost Your <span className="text-primary underline decoration-primary/20 underline-offset-[8px] md:underline-offset-[12px]">Event.</span>
-              </h1>
-              <p className="text-muted-foreground font-medium uppercase tracking-[0.15em] md:tracking-[0.2em] text-[9px] md:text-xs max-w-xl mx-auto leading-relaxed text-center px-4">
-                Get more reach and ticket sales through our elite Instagram marketing partners and influencer network.
-              </p>
-            </div>
+        <section className="pt-6 md:pt-12 pb-4 md:pb-6 px-2">
+            <PublicPageHeader
+              pillText="City Pulse Marketing"
+              title={
+                <>
+                  Boost Your <span className="text-neon-lime">Event</span>
+                </>
+              }
+              subtitle="Get more reach and ticket sales through our elite Instagram marketing partners and influencer network."
+              size="lg"
+              className="text-center mb-0"
+            />
             <div className="flex justify-center pt-4 md:pt-8">
                <Link to={`/boost/request${selectedPlan ? `?plan=${selectedPlan}` : ""}`}>
                 <Button className="bg-neon-lime text-black h-12 md:h-16 px-8 md:px-12 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-[11px] italic flex items-center gap-2 md:gap-3 shadow-xl hover:shadow-2xl hover:bg-neon-lime/90 hover:scale-105 transition-all">
@@ -322,11 +326,18 @@ const BoostMarketingPage = () => {
 
         {/* Plans Section */}
         <section className="space-y-8 md:space-y-12 px-2">
-          <div className="flex flex-col gap-1 items-center md:items-start text-center md:text-left">
-            <h2 className="text-2xl md:text-3xl font-black brand-font uppercase tracking-tighter italic">Select Your Engine</h2>
-            <p className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] md:tracking-[0.2em]">Choose a plan that fits your event scale</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
+          <PublicPageHeader
+            pillText="Pricing"
+            title={
+              <>
+                Select Your <span className="text-neon-lime">Plan</span>
+              </>
+            }
+            subtitle="Choose a plan that fits your event scale."
+            size="md"
+            className="text-center mb-0"
+          />
+          <div className="flex md:grid md:grid-cols-3 gap-5 md:gap-8 overflow-x-auto md:overflow-visible scrollbar-hide snap-x md:snap-none px-1 md:px-0 -mx-1 md:mx-0 pb-2 md:pb-0">
             {PLANS.map((plan, idx) => (
               <PlanCard
                 key={plan.id}
@@ -341,17 +352,24 @@ const BoostMarketingPage = () => {
 
         {/* Showcase Section */}
         <section className="space-y-8 md:space-y-12 px-2">
-          <div className="flex flex-col gap-1 text-center">
-            <h2 className="text-2xl md:text-3xl font-black brand-font uppercase tracking-tighter italic text-center">Marketing Showcase</h2>
-            <p className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-[0.15em] md:tracking-[0.2em] text-center">Tap any reel to see the magic in action</p>
-          </div>
+          <PublicPageHeader
+            pillText="See It In Action"
+            title={
+              <>
+                Marketing <span className="text-neon-lime">Showcase</span>
+              </>
+            }
+            subtitle="Tap any reel to see the magic in action."
+            size="md"
+            className="text-center mb-0"
+          />
 
           {showcaseVideos.length === 0 ? (
             <div className="py-12 md:py-16 text-center border border-dashed border-border/30 rounded-3xl">
               <p className="text-xs md:text-sm text-muted-foreground font-medium">No showcase videos yet. Add some from the admin portal.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-8 px-2 md:px-4">
+            <div className="flex md:grid md:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-8 overflow-x-auto md:overflow-visible scrollbar-hide snap-x md:snap-none px-2 md:px-0 -mx-2 md:mx-0 pb-2 md:pb-0">
               {showcaseVideos.map((v, idx) => (
                 <motion.div
                   key={v._id}
@@ -359,7 +377,7 @@ const BoostMarketingPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
-                  className="group flex flex-col w-full max-w-[400px] mx-auto rounded-2xl md:rounded-3xl overflow-hidden border border-border/60 hover:border-border transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,0,0,0.3)] bg-card"
+                  className="group flex flex-col w-[85vw] max-w-[400px] md:w-auto md:max-w-none shrink-0 snap-start rounded-2xl md:rounded-3xl overflow-hidden border border-border/60 hover:border-border transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,0,0,0.3)] bg-card"
                 >
                   {/* Platform header bar */}
                   <div className="flex items-center justify-between px-3 md:px-4 py-2.5 md:py-3 border-b border-border/40">
@@ -408,85 +426,32 @@ const BoostMarketingPage = () => {
 
         {/* Strategy Section */}
         <section className="bg-muted/30 rounded-2xl md:rounded-[3rem] p-6 md:p-12 lg:p-16 border border-border/50">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
-            <div className="space-y-6 md:space-y-8">
-              <div className="space-y-2 md:space-y-3">
-                <Badge variant="outline" className="border-primary/30 text-primary font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[8px] px-3 py-1 italic">Our Strategy</Badge>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black brand-font uppercase tracking-tighter italic leading-[0.9]">How We Pulse Your Event.</h2>
-                <p className="text-xs md:text-sm font-medium text-muted-foreground leading-relaxed max-w-md">
-                  We don't just "post" on social media. We build a comprehensive digital ecosystem around your event to drive ticket sales.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 md:gap-8">
-                {STRATEGIES.map((strat, idx) => (
-                  <div key={idx} className="space-y-2 md:space-y-3">
-                    <div className="h-9 w-9 md:h-10 md:w-10 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm">
-                      <strat.icon className="h-4 w-4 md:h-5 md:w-5 text-primary" />
-                    </div>
-                    <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight italic">{strat.title}</h4>
-                    <p className="text-[9px] md:text-[10px] font-medium text-muted-foreground leading-relaxed">{strat.description}</p>
-                  </div>
-                ))}
-              </div>
+          <div className="space-y-10 md:space-y-14">
+            <div className="text-center max-w-2xl mx-auto space-y-3 md:space-y-4">
+              <Badge variant="outline" className="border-neon-lime/40 text-neon-lime font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[8px] px-4 py-1.5 rounded-full italic">Our Strategy</Badge>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black brand-font uppercase tracking-tighter italic leading-[0.9]">
+                How We <span className="text-neon-lime">Pulse</span> Your Event.
+              </h2>
+              <p className="text-xs md:text-sm font-medium text-muted-foreground leading-relaxed">
+                We don't just "post" on social media. We build a comprehensive digital ecosystem around your event to drive ticket sales.
+              </p>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-2 md:-inset-4 bg-gradient-to-tr from-primary/10 to-transparent blur-2xl md:blur-3xl opacity-50" />
-              <div className="relative aspect-square rounded-2xl md:rounded-3xl overflow-hidden border border-border shadow-xl md:shadow-2xl bg-card p-5 md:p-8 flex flex-col justify-center gap-4 md:gap-6">
-                 <div className="space-y-1.5 md:space-y-2">
-                    <div className="flex items-center justify-between text-[9px] md:text-[10px] font-black uppercase tracking-widest">
-                      <span>Reach Growth</span>
-                      <span className="text-primary">+420%</span>
-                    </div>
-                    <div className="h-1.5 md:h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "85%" }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="h-full bg-primary"
-                      />
-                    </div>
-                 </div>
-                 <div className="space-y-1.5 md:space-y-2">
-                    <div className="flex items-center justify-between text-[9px] md:text-[10px] font-black uppercase tracking-widest">
-                      <span>Ticket Conversion</span>
-                      <span className="text-primary">+12.5%</span>
-                    </div>
-                    <div className="h-1.5 md:h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "65%" }}
-                        transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
-                        className="h-full bg-primary"
-                      />
-                    </div>
-                 </div>
-                 <div className="space-y-1.5 md:space-y-2">
-                    <div className="flex items-center justify-between text-[9px] md:text-[10px] font-black uppercase tracking-widest">
-                      <span>Audience Retention</span>
-                      <span className="text-primary">94%</span>
-                    </div>
-                    <div className="h-1.5 md:h-2 w-full bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "94%" }}
-                        transition={{ duration: 1.5, delay: 0.4, ease: "easeOut" }}
-                        className="h-full bg-primary"
-                      />
-                    </div>
-                 </div>
-                 <div className="mt-3 md:mt-4 pt-4 md:pt-6 border-t border-border flex items-center justify-between">
-                    <div className="flex -space-x-2 md:-space-x-3">
-                      {[1,2,3,4].map(i => (
-                        <div key={i} className="h-7 w-7 md:h-8 md:w-8 rounded-full border-2 border-card bg-muted flex items-center justify-center text-[9px] md:text-[10px] font-black">
-                          {String.fromCharCode(64 + i)}
-                        </div>
-                      ))}
-                    </div>
-                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Trusted by 200+ Promoters</span>
-                 </div>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {STRATEGIES.map((strat, idx) => (
+                <div
+                  key={idx}
+                  className="flex sm:flex-col items-start sm:items-center gap-4 sm:gap-5 p-5 md:p-7 rounded-2xl md:rounded-3xl bg-card border border-border/60 hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+                >
+                  <div className="h-11 w-11 md:h-12 md:w-12 rounded-xl md:rounded-2xl bg-neon-lime/10 border border-neon-lime/30 flex items-center justify-center shrink-0">
+                    <strat.icon className="h-5 w-5 md:h-6 md:w-6 text-neon-lime" />
+                  </div>
+                  <div className="text-left sm:text-center space-y-1.5 md:space-y-2">
+                    <h4 className="text-[11px] md:text-xs font-black uppercase tracking-tight italic text-neon-lime">{strat.title}</h4>
+                    <p className="text-[10px] md:text-[11px] font-medium text-muted-foreground leading-relaxed">{strat.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -499,12 +464,12 @@ const BoostMarketingPage = () => {
               <Rocket size={250} className="hidden md:block" />
             </div>
 
-            <div className="relative z-10 space-y-5 md:space-y-8">
-              <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black brand-font uppercase tracking-tighter italic leading-none text-center md:text-left">Ready to Go Viral?</h2>
-              <p className="text-sm md:text-lg lg:text-xl font-bold uppercase tracking-tight italic opacity-80 max-w-lg leading-relaxed text-center md:text-left mx-auto md:mx-0">
+            <div className="relative z-10 space-y-5 md:space-y-8 text-center">
+              <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black brand-font uppercase tracking-tighter italic leading-none">Ready to Go Viral?</h2>
+              <p className="text-sm md:text-lg lg:text-xl font-bold uppercase tracking-tight italic opacity-80 max-w-lg leading-relaxed mx-auto">
                 Initialize your marketing engine today and watch your ticket sales skyrocket.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4 justify-center md:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 pt-2 md:pt-4 justify-center">
                 <Link to={`/boost/request${selectedPlan ? `?plan=${selectedPlan}` : ""}`}>
                   <Button className="bg-black text-white hover:bg-zinc-800 h-12 md:h-16 px-8 md:px-12 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs italic flex items-center gap-2 md:gap-3 shadow-lg md:shadow-xl">
                     Start Marketing Now <ArrowRight className="h-3.5 md:h-4 w-3.5 md:w-4" />
