@@ -578,31 +578,41 @@ const Index = () => {
               </div>
 
               {/* For Creators & Organizers */}
-              <div className="bg-muted/30 border-t border-border/20 py-16 text-center px-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-3">
-                  For Creators & Organizers
-                </p>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground mb-6 leading-tight">
-                  The City{" "}
-                  <span className="text-neon-lime">Experience</span>
-                </h2>
+              <div className="relative border-t border-border/20 py-16 md:py-24 text-center px-6">
+                {/* Background image with overlay */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('/images/performer-stage-silhouette.jpg')" }}
+                />
+                <div className="absolute inset-0 bg-background/85" />
 
-                <div className="max-w-3xl mx-auto space-y-4 mb-8">
-                  <h3 className="text-lg md:text-xl font-black text-foreground leading-tight">
-                    List Your Events, Venues, Stores / Artists, Adventure Camps, and Sports Activities
-                  </h3>
-                  <p className="text-muted-foreground text-sm md:text-base italic">
-                    Less than 2 minutes to go live and maximize your impact
+                {/* Content */}
+                <div className="relative z-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-3">
+                    For Creators & Organizers
                   </p>
-                </div>
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground mb-6 leading-tight">
+                    The City{" "}
+                    <span className="text-neon-lime">Experience</span>
+                  </h2>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Link to="/list-your-event">
-                    <Button className="h-11 px-6 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[10px]">
-                      <Megaphone className="h-4 w-4 mr-2" />
-                      List Your Event
-                    </Button>
-                  </Link>
+                  <div className="max-w-3xl mx-auto space-y-4 mb-8">
+                    <h3 className="text-lg md:text-xl font-black text-foreground leading-tight">
+                      List Your Events, Venues, Stores / Artists, Adventure Camps, and Sports Activities
+                    </h3>
+                    <p className="text-muted-foreground text-sm md:text-base italic">
+                      Less than 2 minutes to go live and maximize your impact
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <Link to="/list-your-event">
+                      <Button className="h-11 px-6 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[10px]">
+                        <Megaphone className="h-4 w-4 mr-2" />
+                        List Your Event
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </motion.div>
