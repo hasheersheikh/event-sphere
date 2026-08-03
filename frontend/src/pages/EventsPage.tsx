@@ -236,7 +236,7 @@ const EventsPage = () => {
               className="space-y-2"
             >
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-muted-foreground/60 mb-1">Discover</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-neon-lime mb-1">Discover</p>
                 <h1 className="text-4xl font-black tracking-tighter">Events</h1>
               </div>
               <form onSubmit={handleSearch} className="max-w-md">
