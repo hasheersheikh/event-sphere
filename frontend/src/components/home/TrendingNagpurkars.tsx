@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail } from "lucide-react";
+import { motion } from "framer-motion";
+import { Mail } from "lucide-react";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
+import DetailModal from "@/components/shared/DetailModal";
+import ReadMore from "@/components/shared/ReadMore";
 
 interface Nagpurkar {
   id: number;
@@ -246,88 +248,63 @@ const TrendingNagpurkars = () => {
       </div>
 
       {/* Detail modal */}
-      <AnimatePresence>
-        {selected && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6 bg-background/80 backdrop-blur-md"
-            onClick={() => setSelected(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.96, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.96, opacity: 0, y: 40 }}
-              transition={{ type: "spring", stiffness: 350, damping: 32 }}
-              className="relative bg-card border border-border/60 rounded-t-3xl sm:rounded-2xl overflow-hidden w-full sm:max-w-3xl max-h-[92vh] shadow-2xl flex flex-col sm:flex-row"
-              onClick={e => e.stopPropagation()}
-            >
-              {/* Image / logo panel */}
-              {selected.isLogo ? (
-                <div className="flex-shrink-0 sm:w-64 flex items-center justify-center p-10 bg-card/60 border-b sm:border-b-0 sm:border-r border-border/40">
-                  <img src={selected.image!} alt={selected.name} className="w-36 sm:w-44 h-auto object-contain" />
-                </div>
+      <DetailModal
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        mediaClassName="sm:w-80"
+        media={
+          selected?.isLogo ? (
+            <div className="flex items-center justify-center p-10 bg-card/60 aspect-[4/5] border-b sm:border-b-0 sm:border-r border-border/40">
+              <img src={selected.image!} alt={selected.name} className="w-36 sm:w-44 h-auto object-contain" />
+            </div>
+          ) : selected ? (
+            <div className="relative w-full sm:w-80 aspect-[4/5] overflow-hidden bg-muted border-b sm:border-b-0 sm:border-r border-border/40">
+              {selected.image ? (
+                <img
+                  src={selected.image}
+                  alt={selected.name}
+                  className="w-full h-full object-cover object-top"
+                />
               ) : (
-                <div className="relative flex-shrink-0 sm:w-72">
-                  {selected.image ? (
-                    <img
-                      src={selected.image}
-                      alt={selected.name}
-                      className="w-full h-56 sm:h-full object-cover object-top"
-                    />
-                  ) : (
-                    <div className="w-full h-56 sm:h-full bg-gradient-to-br from-primary/30 via-primary/10 to-card flex items-center justify-center">
-                      <span className="text-7xl font-black text-primary/50 tracking-tighter">{initials(selected.name)}</span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-card/70 via-transparent to-transparent" />
+                <div className="w-full h-full bg-gradient-to-br from-primary/30 via-primary/10 to-card flex items-center justify-center">
+                  <span className="text-7xl font-black text-primary/50 tracking-tighter">{initials(selected.name)}</span>
                 </div>
               )}
+            </div>
+          ) : null
+        }
+      >
+        {selected && (
+          <>
+            <span className={`inline-flex items-center text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-full mb-4 ${BADGE_COLORS[selected.category] || "bg-primary text-primary-foreground"}`}>
+              {selected.category}
+            </span>
 
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                <span className={`inline-flex items-center text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-full mb-4 ${BADGE_COLORS[selected.category] || "bg-primary text-primary-foreground"}`}>
-                  {selected.category}
-                </span>
+            <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter italic leading-tight text-foreground">
+              {selected.name}
+            </h3>
+            <p className="text-xs md:text-sm font-black text-primary uppercase tracking-widest mt-2 italic">
+              {selected.tagline}
+            </p>
 
-                <h3 className="text-2xl md:text-3xl font-black uppercase tracking-tighter italic leading-tight text-foreground">
-                  {selected.name}
-                </h3>
-                <p className="text-xs md:text-sm font-black text-primary uppercase tracking-widest mt-2 italic">
-                  {selected.tagline}
-                </p>
+            <div className="h-px bg-border/40 my-5" />
 
-                <div className="h-px bg-border/40 my-5" />
+            <ReadMore text={selected.description} collapsedLines={4} />
 
-                <p className="text-sm md:text-[15px] text-muted-foreground leading-relaxed font-medium">
-                  {selected.description}
-                </p>
-
-                {selected.contact && (
-                  <div className="mt-6 pt-5 border-t border-border/30">
-                    <a
-                      href={`mailto:${selected.contact}`}
-                      className="inline-flex items-center gap-2 text-xs md:text-sm font-black uppercase tracking-widest text-primary hover:underline underline-offset-4"
-                    >
-                      <Mail className="h-4 w-4" />
-                      {selected.contact}
-                    </a>
-                  </div>
-                )}
+            {selected.contact && (
+              <div className="mt-6 pt-5 border-t border-border/30">
+                <a
+                  href={`mailto:${selected.contact}`}
+                  className="inline-flex items-center gap-2 text-xs md:text-sm font-black uppercase tracking-widest text-primary hover:underline underline-offset-4"
+                >
+                  <Mail className="h-4 w-4" />
+                  {selected.contact}
+                </a>
               </div>
-
-              {/* Close */}
-              <button
-                onClick={() => setSelected(null)}
-                className="absolute top-4 right-4 h-8 w-8 rounded-full bg-background/90 border border-border/50 flex items-center justify-center hover:bg-muted transition-colors z-10"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </motion.div>
-          </motion.div>
+            )}
+          </>
         )}
-      </AnimatePresence>
+      </DetailModal>
     </section>
   );
 };

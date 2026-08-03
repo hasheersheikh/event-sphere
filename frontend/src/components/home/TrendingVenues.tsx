@@ -8,16 +8,12 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
+import DetailModal from "@/components/shared/DetailModal";
+import ReadMore from "@/components/shared/ReadMore";
 
 interface TrendingVenue {
   _id: string;
@@ -151,130 +147,144 @@ const TrendingVenues = () => {
         </div>
       </div>
 
-      <Dialog open={!!selectedVenue} onOpenChange={(open) => !open && setSelectedVenue(null)}>
-        <DialogContent className="sm:max-w-lg overflow-hidden rounded-2xl border-border bg-background shadow-2xl p-6">
-          {selectedVenue && (() => {
+      <DetailModal
+        open={!!selectedVenue}
+        onClose={() => setSelectedVenue(null)}
+        mediaClassName="sm:w-96"
+        media={
+          selectedVenue && (() => {
             const venueImages = Array.from(
               new Set([selectedVenue.image, ...(selectedVenue.images || [])].filter(Boolean))
             ) as string[];
 
             return (
-              <div className="space-y-5">
-                <DialogHeader className="p-0">
-                  <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-foreground flex items-center gap-2">
-                    <Building2 className="h-5 w-5 text-neon-lime" />
-                    {selectedVenue.name}
-                  </DialogTitle>
-                  <div className="flex items-center gap-1 text-muted-foreground mt-0.5">
-                    <MapPin className="h-3 w-3 text-neon-lime/70" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">{selectedVenue.location}</span>
+              <div className="relative w-full sm:w-96 aspect-[4/5] rounded-t-3xl sm:rounded-none overflow-hidden bg-muted border-b sm:border-b-0 sm:border-r border-border/60">
+                {venueImages.length > 0 ? (
+                  <img
+                    src={venueImages[activeImageIndex]}
+                    alt={selectedVenue.name}
+                    className="w-full h-full object-cover transition-all duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
+                    <Building2 className="h-16 w-16 text-neon-lime/40" />
                   </div>
-                </DialogHeader>
+                )}
 
-                {/* Photos Gallery */}
-                <div className="space-y-2">
-                  <div className="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-muted border border-border/60">
-                    {venueImages.length > 0 ? (
-                      <img
-                        src={venueImages[activeImageIndex]}
-                        alt={selectedVenue.name}
-                        className="w-full h-full object-cover transition-all duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
-                        <Building2 className="h-16 w-16 text-neon-lime/40" />
-                      </div>
-                    )}
-
-                    {venueImages.length > 1 && (
-                      <>
-                        <button
-                          onClick={() => setActiveImageIndex((prev) => (prev === 0 ? venueImages.length - 1 : prev - 1))}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/60 text-white hover:bg-black/80 flex items-center justify-center transition-all border border-white/10"
-                          aria-label="Previous image"
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setActiveImageIndex((prev) => (prev === venueImages.length - 1 ? 0 : prev + 1))}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/60 text-white hover:bg-black/80 flex items-center justify-center transition-all border border-white/10"
-                          aria-label="Next image"
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {venueImages.length > 1 && (
-                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                      {venueImages.map((img, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setActiveImageIndex(i)}
-                          className={cn(
-                            "relative flex-shrink-0 w-14 aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all",
-                            activeImageIndex === i ? "border-neon-lime" : "border-border/50 opacity-60 hover:opacity-100"
-                          )}
-                        >
-                          <img src={img} className="w-full h-full object-cover" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Tabs */}
-                <Tabs defaultValue="about" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-muted/40 rounded-xl p-1 border border-border/20">
-                    <TabsTrigger
-                      value="about"
-                      className="rounded-lg font-black uppercase text-[10px] tracking-widest py-2.5 italic transition-all data-[state=active]:bg-background data-[state=active]:text-neon-lime data-[state=active]:shadow-sm"
+                {venueImages.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setActiveImageIndex((prev) => (prev === 0 ? venueImages.length - 1 : prev - 1))}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/60 text-white hover:bg-black/80 flex items-center justify-center transition-all border border-white/10"
+                      aria-label="Previous image"
                     >
-                      About
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="location"
-                      className="rounded-lg font-black uppercase text-[10px] tracking-widest py-2.5 italic transition-all data-[state=active]:bg-background data-[state=active]:text-neon-lime data-[state=active]:shadow-sm"
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => setActiveImageIndex((prev) => (prev === venueImages.length - 1 ? 0 : prev + 1))}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-black/60 text-white hover:bg-black/80 flex items-center justify-center transition-all border border-white/10"
+                      aria-label="Next image"
                     >
-                      Location
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="about" className="mt-4 focus-visible:outline-none">
-                    <div className="space-y-1.5 p-1">
-                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Venue Profile</h4>
-                      <p className="text-xs text-foreground/80 leading-relaxed font-semibold">
-                        {selectedVenue.description || "No description available for this trending venue."}
-                      </p>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="location" className="mt-4 space-y-4 focus-visible:outline-none">
-                    <div className="flex items-start gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl">
-                      <MapPin className="h-5 w-5 text-neon-lime shrink-0 mt-0.5" />
-                      <div className="space-y-0.5">
-                        <h4 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Address</h4>
-                        <p className="text-xs text-foreground font-black uppercase">{selectedVenue.location}</p>
-                      </div>
-                    </div>
-                    
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedVenue.name + ' ' + selectedVenue.location)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-neon-lime text-black font-black uppercase tracking-widest text-[10px] hover:bg-neon-lime/80 transition-all italic text-center shadow-lg shadow-neon-lime/10"
-                    >
-                      <MapPin className="h-3.5 w-3.5" />
-                      View on Google Maps
-                    </a>
-                  </TabsContent>
-                </Tabs>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </>
+                )}
               </div>
             );
-          })()}
-        </DialogContent>
-      </Dialog>
+          })()
+        }
+      >
+        {selectedVenue && (
+          <div className="space-y-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-neon-lime shrink-0" />
+                <h3 className="text-xl font-black uppercase italic tracking-tighter text-foreground leading-tight">
+                  {selectedVenue.name}
+                </h3>
+              </div>
+              <div className="flex items-center gap-1 text-muted-foreground mt-1">
+                <MapPin className="h-3 w-3 text-neon-lime/70" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{selectedVenue.location}</span>
+              </div>
+            </div>
+
+            {/* Thumbnails */}
+            {(() => {
+              const venueImages = Array.from(
+                new Set([selectedVenue.image, ...(selectedVenue.images || [])].filter(Boolean))
+              ) as string[];
+              return venueImages.length > 1 ? (
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                  {venueImages.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveImageIndex(i)}
+                      className={cn(
+                        "relative flex-shrink-0 w-14 aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all",
+                        activeImageIndex === i ? "border-neon-lime" : "border-border/50 opacity-60 hover:opacity-100"
+                      )}
+                    >
+                      <img src={img} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+
+            {/* Tabs */}
+            <Tabs defaultValue="about" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/40 rounded-xl p-1 border border-border/20">
+                <TabsTrigger
+                  value="about"
+                  className="rounded-lg font-black uppercase text-[10px] tracking-widest py-2.5 italic transition-all data-[state=active]:bg-background data-[state=active]:text-neon-lime data-[state=active]:shadow-sm"
+                >
+                  About
+                </TabsTrigger>
+                <TabsTrigger
+                  value="location"
+                  className="rounded-lg font-black uppercase text-[10px] tracking-widest py-2.5 italic transition-all data-[state=active]:bg-background data-[state=active]:text-neon-lime data-[state=active]:shadow-sm"
+                >
+                  Location
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="about" className="mt-4 focus-visible:outline-none">
+                <div className="space-y-1.5 p-1">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">Venue Profile</h4>
+                  {selectedVenue.description ? (
+                    <ReadMore text={selectedVenue.description} collapsedLines={4} />
+                  ) : (
+                    <p className="text-xs text-foreground/80 leading-relaxed font-semibold">
+                      No description available for this trending venue.
+                    </p>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="location" className="mt-4 space-y-4 focus-visible:outline-none">
+                <div className="flex items-start gap-3 p-3 bg-muted/20 border border-border/50 rounded-xl">
+                  <MapPin className="h-5 w-5 text-neon-lime shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <h4 className="text-[9px] font-black uppercase tracking-widest text-muted-foreground italic">Address</h4>
+                    <p className="text-xs text-foreground font-black uppercase">{selectedVenue.location}</p>
+                  </div>
+                </div>
+
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedVenue.name + ' ' + selectedVenue.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-neon-lime text-black font-black uppercase tracking-widest text-[10px] hover:bg-neon-lime/80 transition-all italic text-center shadow-lg shadow-neon-lime/10"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  View on Google Maps
+                </a>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
+      </DetailModal>
     </section>
   );
 };
