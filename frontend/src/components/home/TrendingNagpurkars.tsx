@@ -182,34 +182,32 @@ const TrendingNagpurkars = () => {
   return (
     <section className="py-8 md:py-14 border-t border-border/20">
       <div className="container px-3 md:px-4">
-        <div className="mb-6 md:mb-10">
-          <PublicPageHeader
-            pillText="Faces of the City"
-            title={
-              <>
-                Trending <span className="text-neon-lime">Nagpurkars</span>
-              </>
-            }
-            size="md"
-            className="text-center mb-6"
-          />
+        <PublicPageHeader
+          pillText="Faces of the City"
+          title={
+            <>
+              Trending <span className="text-neon-lime">Nagpurkars</span>
+            </>
+          }
+          size="md"
+          className="text-center"
+        />
 
-          {/* Category filter pills */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`flex-shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] px-3 md:px-4 py-1.5 rounded-full border transition-all duration-200 ${
-                  activeCategory === cat
-                    ? "bg-foreground text-background border-transparent"
-                    : "bg-transparent text-muted-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        {/* Category filter pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 justify-center">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] px-3 md:px-4 py-1.5 rounded-full border transition-all duration-200 ${
+                activeCategory === cat
+                  ? "bg-foreground text-background border-transparent"
+                  : "bg-transparent text-muted-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}

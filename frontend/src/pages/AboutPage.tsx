@@ -105,7 +105,7 @@ const AboutPage = () => {
 
         {/* Vision Image */}
         <LazySection minHeight="min-h-56 sm:min-h-72 md:min-h-[28rem]">
-          <section className="container py-6 md:py-8 px-3 md:px-4">
+          <section className="container py-12 md:py-20 px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0">
             <div className="relative h-56 sm:h-72 md:h-[28rem] rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl">
               <img
@@ -393,7 +393,7 @@ const AboutPage = () => {
 
         {/* Features Section */}
         <LazySection>
-          <section className="py-16 md:py-24 container relative px-3 md:px-4">
+          <section className="py-12 md:py-20 container relative px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-10 md:space-y-16">
             <PublicPageHeader
               pillText="Everything You Need"

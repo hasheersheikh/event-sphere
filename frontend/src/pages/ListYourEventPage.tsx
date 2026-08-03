@@ -346,39 +346,40 @@ const ListYourEventPage = () => {
         {/* ── WHAT'S INCLUDED ── */}
         <section className="border-b border-border/20">
           <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
-            <div className="rounded-2xl border border-border/30 bg-card overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <motion.div {...fadeUp(0)} className="p-7 md:p-12 lg:border-r border-b lg:border-b-0 border-border/20">
-                  <p className="text-[9px] font-black uppercase tracking-[0.5em] text-neon-lime mb-4">What's included</p>
-                  <h2 className="font-display font-black text-4xl md:text-5xl tracking-tighter leading-[0.9] mb-5">
-                    Free to list.<br />Pay only<br />when you sell.
-                  </h2>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    No monthly fees, no setup costs. Create your account and publish
-                    your first event for free. Commission applies only on paid ticket sales.
-                  </p>
-                </motion.div>
+            <div className="rounded-2xl border border-border/30 bg-card overflow-hidden p-7 md:p-12">
+              <motion.div {...fadeUp(0)}>
+                <PublicPageHeader
+                  pillText="What's included"
+                  title={
+                    <>
+                      Free to list. <span className="text-neon-lime">Pay only</span> when you sell.
+                    </>
+                  }
+                  subtitle="No monthly fees, no setup costs. Create your account and publish your first event for free. Commission applies only on paid ticket sales."
+                  size="md"
+                  className="text-center mb-10"
+                />
+              </motion.div>
 
-                <motion.div {...fadeUp(0.08)} className="p-7 md:p-12">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      "Unlimited event listings",
-                      "Custom ticket types & pricing",
-                      "Real-time sales dashboard",
-                      "QR code ticket scanning",
-                      "Attendee communication",
-                      "Event analytics & reporting",
-                      "Dedicated organizer support",
-                      "Boost & marketing add-ons",
-                    ].map((item) => (
-                      <div key={item} className="flex items-center gap-2.5">
-                        <CheckCircle2 className="h-4 w-4 text-neon-lime shrink-0" />
-                        <span className="text-[13px] font-medium">{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              </div>
+              <motion.div {...fadeUp(0.08)} className="overflow-hidden">
+                <div className="flex overflow-x-auto gap-3 pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x">
+                  {[
+                    "Unlimited event listings",
+                    "Custom ticket types & pricing",
+                    "Real-time sales dashboard",
+                    "QR code ticket scanning",
+                    "Attendee communication",
+                    "Event analytics & reporting",
+                    "Dedicated organizer support",
+                    "Boost & marketing add-ons",
+                  ].map((item) => (
+                    <div key={item} className="flex items-center gap-2.5 rounded-full border border-border/30 bg-muted/40 px-4 py-2.5 whitespace-nowrap shrink-0 snap-start">
+                      <CheckCircle2 className="h-4 w-4 text-neon-lime shrink-0" />
+                      <span className="text-[13px] font-medium">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>

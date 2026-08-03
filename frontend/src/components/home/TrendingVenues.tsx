@@ -88,7 +88,7 @@ const TrendingVenues = () => {
   if (isLoading || !trendingVenues || trendingVenues.length === 0) return null;
 
   return (
-    <section className="py-12 border-t border-border/20">
+    <section className="py-8 md:py-14 border-t border-border/20">
       <div className="container">
         <PublicPageHeader
           pillText="Where It's Happening"

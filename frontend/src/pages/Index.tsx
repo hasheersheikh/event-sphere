@@ -453,7 +453,7 @@ const Index = () => {
         </section>
 
         {/* ═══ UPCOMING EVENTS STRIP ═══ */}
-        <section className="border-t border-border/20 py-4 md:py-5">
+        <section className="border-t border-border/20 py-8 md:py-14">
           <div className="container mb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center justify-between w-full md:w-auto">
               <div className="flex items-center gap-2.5">
@@ -557,7 +557,7 @@ const Index = () => {
         </div>
 
         {/* ═══ ORGANIZER CTA ═══ */}
-        <section className="py-12 border-t border-border/20">
+        <section className="py-8 md:py-14 border-t border-border/20">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 16 }}

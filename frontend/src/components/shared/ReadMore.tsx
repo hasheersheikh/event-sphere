@@ -24,9 +24,9 @@ const ReadMore = ({ text, collapsedLines = 3, className }: ReadMoreProps) => {
       <p
         className={cn(
           "text-sm md:text-[15px] text-muted-foreground leading-relaxed font-medium",
-          !expanded &&
-            needsToggle &&
-            "line-clamp-3 overflow-hidden",
+          expanded
+            ? "max-h-40 overflow-y-auto pr-1"
+            : needsToggle && "line-clamp-3 overflow-hidden",
           className
         )}
       >

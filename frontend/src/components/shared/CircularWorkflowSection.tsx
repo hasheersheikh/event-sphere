@@ -78,7 +78,7 @@ export default function CircularWorkflowSection() {
   ];
 
   return (
-    <section className="py-14 md:py-24 relative overflow-hidden bg-background border-t border-border/20 selection:bg-neon-lime/20">
+    <section className="py-12 md:py-20 relative overflow-hidden bg-background border-t border-border/20 selection:bg-neon-lime/20">
       {/* Background Neon Orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/10 w-96 h-96 bg-neon-lime/5 rounded-full blur-[120px] animate-pulse" />
