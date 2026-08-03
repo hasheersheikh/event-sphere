@@ -47,10 +47,10 @@ const LocalStoresPage = () => {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
-      <main className="flex-1 pt-14 md:pt-16">
+      <main className="flex-1 pt-0 md:pt-4">
 
         {/* ─── Header ─── */}
-        <section className="border-b border-border/20 py-2.5 md:py-3">
+        <section className="border-b border-border/20 py-1 md:py-1.5">
           <div className="container">
             <motion.div
               initial={{ opacity: 0, y: 12 }}

@@ -42,7 +42,7 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
         <article className="h-full flex flex-col bg-card border border-border/40 rounded-xl overflow-hidden hover:border-primary/30 transition-all duration-300">
 
           {/* ── image ── */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted shrink-0">
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted shrink-0">
             <AnimatedShimmer visible={!imageLoaded} />
 
             <motion.div
@@ -74,25 +74,21 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
                 {store.category}
               </span>
             </div>
+
+            {/* Name overlay */}
+            <div className="absolute bottom-3 left-4 right-4 z-20">
+              <h3 className="text-base md:text-lg font-black uppercase tracking-tight italic text-white leading-tight drop-shadow-sm line-clamp-1">
+                {store.name}
+              </h3>
+            </div>
           </div>
 
           {/* ── content ── */}
           <div className="p-4 flex-1 flex flex-col gap-2">
-            <h3 className="font-black text-sm tracking-tight leading-snug group-hover:text-primary transition-colors">
-              {store.name}
-            </h3>
-
             <div className="flex items-start gap-1.5 text-muted-foreground">
               <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
               <p className="text-[11px] font-medium line-clamp-1">{store.address}</p>
             </div>
-
-            {store.description && (
-              <p className="text-[11px] text-muted-foreground/80 font-medium line-clamp-2 leading-relaxed">
-                {store.description}
-              </p>
-            )}
-
           </div>
         </article>
       </Link>

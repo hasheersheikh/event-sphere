@@ -224,10 +224,10 @@ const EventsPage = () => {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
-      <main className="flex-1 pt-14 md:pt-16">
+      <main className="flex-1 pt-0 md:pt-4">
 
         {/* ─── Desktop: heading + left-aligned search ──────────────────── */}
-        <section className="hidden md:block border-b border-border/20 py-2">
+        <section className="hidden md:block border-b border-border/20 py-1">
           <div className="container px-4">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
@@ -272,7 +272,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Mobile: centered pill search ────────────────────────────── */}
-        <section className="md:hidden border-b border-border/20 py-1.5">
+        <section className="md:hidden border-b border-border/20 pt-0 pb-1.5">
           <div className="container px-3">
             <motion.form
               onSubmit={handleSearch}

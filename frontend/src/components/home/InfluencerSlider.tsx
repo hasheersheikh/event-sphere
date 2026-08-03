@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -18,6 +18,9 @@ interface Influencer {
   isActive: boolean;
 }
 
+const AUTO_SCROLL_SPEED = 50; // px per second — mobile-only autoplay
+const AUTO_SCROLL_RESUME_DELAY_MS = 4000;
+
 const InfluencerSlider = () => {
   const { data: influencers, isLoading } = useQuery<Influencer[]>({
     queryKey: ["influencers", "public"],
@@ -31,6 +34,11 @@ const InfluencerSlider = () => {
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
+  const autoScrollAnimRef = useRef<number>();
+  const autoScrollLastTsRef = useRef(0);
+  const autoScrollPausedRef = useRef(false);
+  const autoScrollResumeTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -58,11 +66,49 @@ const InfluencerSlider = () => {
     }
   }, [influencers]);
 
+  // Mobile-only autoplay — continuously drifts the strip, pausing while the user touches it
+  useEffect(() => {
+    if (!isMobile || shouldReduceMotion) {
+      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
+      return;
+    }
+    const tick = (ts: number) => {
+      const el = scrollContainerRef.current;
+      if (el && !autoScrollPausedRef.current) {
+        const delta = autoScrollLastTsRef.current ? ts - autoScrollLastTsRef.current : 0;
+        el.scrollLeft += (AUTO_SCROLL_SPEED * delta) / 1000;
+        if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 1) {
+          el.scrollLeft = 0;
+        }
+      }
+      autoScrollLastTsRef.current = ts;
+      autoScrollAnimRef.current = requestAnimationFrame(tick);
+    };
+    autoScrollAnimRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (autoScrollAnimRef.current) cancelAnimationFrame(autoScrollAnimRef.current);
+      autoScrollLastTsRef.current = 0;
+    };
+  }, [isMobile, shouldReduceMotion, influencers]);
+
+  const pauseAutoScroll = () => {
+    autoScrollPausedRef.current = true;
+    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
+  };
+
+  const resumeAutoScrollSoon = () => {
+    if (autoScrollResumeTimeoutRef.current) clearTimeout(autoScrollResumeTimeoutRef.current);
+    autoScrollResumeTimeoutRef.current = setTimeout(() => {
+      autoScrollPausedRef.current = false;
+      autoScrollLastTsRef.current = 0;
+    }, AUTO_SCROLL_RESUME_DELAY_MS);
+  };
+
   const scroll = (direction: "left" | "right") => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    const scrollAmount = isMobile ? 270 : 320;
+    const scrollAmount = isMobile ? 280 : 340;
     container.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
@@ -103,7 +149,9 @@ const InfluencerSlider = () => {
         <div className="relative">
           <div
             ref={scrollContainerRef}
-            className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pt-12 pb-6 -mt-12 -mb-6 px-1"
+            onTouchStart={pauseAutoScroll}
+            onTouchEnd={resumeAutoScrollSoon}
+            className="flex gap-3 md:gap-4 overflow-x-auto scrollbar-hide pb-2"
           >
             {influencers.map((inf, idx) => (
               <motion.div
@@ -114,7 +162,7 @@ const InfluencerSlider = () => {
                 transition={{ delay: idx * 0.05, duration: 0.4 }}
                 whileHover={{ scale: 1.10, y: -8, zIndex: 20 }}
                 style={{ zIndex: 1 }}
-                className="flex-shrink-0 w-56 sm:w-60 md:w-72"
+                className="flex-shrink-0 w-[86vw] max-w-[20.4rem] sm:w-[21.6rem] md:w-96 lg:w-[26.4rem]"
               >
                 <div
                   onClick={() => inf.instagramUrl && window.open(inf.instagramUrl, "_blank", "noopener,noreferrer")}
@@ -163,20 +211,20 @@ const InfluencerSlider = () => {
           {canScrollLeft && (
             <button
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-9 w-9 md:h-10 md:w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" />
+              <ChevronLeft className="h-5 w-5" />
             </button>
           )}
 
           {canScrollRight && (
             <button
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-9 w-9 md:h-10 md:w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-10 w-10 rounded-full bg-background border border-border/50 shadow-lg flex items-center justify-center hover:bg-muted hover:border-primary/50 transition-all z-10"
               aria-label="Scroll right"
             >
-              <ChevronRight className="h-4 w-4 md:h-5 md:w-5" />
+              <ChevronRight className="h-5 w-5" />
             </button>
           )}
         </div>
