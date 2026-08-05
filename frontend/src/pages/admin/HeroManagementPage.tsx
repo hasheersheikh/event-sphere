@@ -30,6 +30,7 @@ import {
   GripVertical,
   ChevronUp,
   ChevronDown,
+  AlertTriangle,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -446,12 +447,37 @@ const HeroManagementPage = () => {
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Hero Asset" : "Add Hero Asset"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-5 pt-2">
+            {/* Size / crop warning */}
+            <div className="flex gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-3 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div className="space-y-1.5 text-xs leading-relaxed">
+                <p className="font-semibold">Image gets cropped to fit — match the shape:</p>
+                {(form.targetDevice === "mobile" || form.targetDevice === "all") && (
+                  <p>
+                    <span className="font-medium">Mobile:</span>{" "}
+                    <span className="font-mono">2:1</span> landscape · min{" "}
+                    <span className="font-mono">1600×800px</span>
+                  </p>
+                )}
+                {(form.targetDevice === "desktop" || form.targetDevice === "all") && (
+                  <p>
+                    <span className="font-medium">Desktop:</span>{" "}
+                    <span className="font-mono">4:5</span> portrait · min{" "}
+                    <span className="font-mono">1200×1500px</span>
+                  </p>
+                )}
+                {form.targetDevice === "all" && (
+                  <p className="opacity-80">Keep subject centered, it's cropped both ways.</p>
+                )}
+              </div>
+            </div>
+
             {/* Upload zone */}
             <button
               type="button"
