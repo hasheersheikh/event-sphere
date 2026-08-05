@@ -107,17 +107,13 @@ const AboutPage = () => {
         <LazySection minHeight="min-h-56 sm:min-h-72 md:min-h-[28rem]">
           <section className="container py-12 md:py-20 px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0">
-            <div className="relative h-56 sm:h-72 md:h-[28rem] rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl">
+            <div className="relative h-72 sm:h-96 md:h-[32rem] rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl">
               <img
-                src={
-                  theme === "dark"
-                    ? "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=2070"
-                    : "https://images.unsplash.com/photo-1549451371-64aa98a6f660?auto=format&fit=crop&q=80&w=2070"
-                }
+                src="/concert-crowd-live.jpg"
                 loading="lazy"
                 decoding="async"
-                className="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-1000"
-                alt="City Pulse Community"
+                className="w-full h-full object-cover object-bottom scale-105 hover:scale-100 transition-transform duration-1000"
+                alt="Live Concert Crowd"
               />
               <div className={`absolute inset-0 bg-gradient-to-t ${theme === "dark" ? "from-background via-background/20 to-transparent" : ""}`} />
               <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-10 md:left-10 md:right-10 flex flex-col md:flex-row items-center md:items-end justify-between gap-3 md:gap-6">
@@ -215,34 +211,66 @@ const AboutPage = () => {
             </div>
 
             <div className="p-6 md:p-10 rounded-2xl md:rounded-[2rem] bg-card/50 border border-border/50 backdrop-blur-xl">
-              <div className="flex flex-col md:flex-row md:items-start gap-6 md:gap-10">
-                <div className="flex-shrink-0 flex flex-col items-center md:items-start gap-3">
-                  <div className="h-16 w-16 md:h-20 md:w-20 rounded-2xl flex items-center justify-center text-neon-lime" style={{ background: `${neon}18`, border: `1px solid ${neon}33` }}>
-                    <GraduationCap className="h-8 w-8 md:h-10 md:w-10" />
+              <div className="flex flex-col items-center gap-6 md:gap-8">
+                <div className="flex flex-col items-center gap-6">
+                  <div className="h-64 w-64 md:h-72 md:w-72 rounded-2xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl">
+                    <img
+                      src="/mohsin-sheikh-founder.jpg"
+                      alt="Mohsin Sheikh - Founder"
+                      className="w-full h-full object-contain object-center"
+                    />
                   </div>
-                  <div className="text-center md:text-left">
-                    <p className="text-lg md:text-xl font-black tracking-tighter uppercase italic">Mohsin Sheikh</p>
-                    <div className="flex flex-wrap justify-center md:justify-start gap-1.5 mt-1.5">
-                      <span className="inline-flex items-center text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-neon-lime" style={{ background: `${neon}18`, border: `1px solid ${neon}33` }}>IIT Alumni</span>
-                      <span className="inline-flex items-center text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full text-neon-lime" style={{ background: `${neon}18`, border: `1px solid ${neon}33` }}>IIM Alumni</span>
+                  <div className="text-center space-y-2">
+                    <PublicPageHeader
+                      pillText="Founder"
+                      title={
+                        <>
+                          Mohsin <span className="text-neon-lime">Sheikh</span>
+                        </>
+                      }
+                      size="md"
+                      className="text-center mb-0"
+                    />
+                    <p className="text-lg md:text-xl font-semibold text-neon-lime">Founder, City Pulse</p>
+                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-10 items-end">
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src="/iit-roorkee-logo.png"
+                          alt="IIT Roorkee"
+                          className="h-16 w-16 md:h-20 md:w-20 object-contain"
+                        />
+                        <p className="text-xs font-semibold text-muted-foreground">IIT Roorkee</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        {theme === "dark" ? (
+                          <img
+                            src="/iim-calcutta-logo-white.png"
+                            alt="IIM Calcutta"
+                            className="h-16 w-16 md:h-20 md:w-20 object-contain"
+                          />
+                        ) : (
+                            <img
+                              src="/iim-calcutta-logo.png"
+                              alt="IIM Calcutta"
+                              className="h-16 w-16 md:h-20 md:w-20 object-contain"
+                            />
+                        )}
+                        <p className="text-xs font-semibold text-muted-foreground">IIM Calcutta</p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="rounded-xl bg-white px-3 py-1">
+                          <img
+                            src="/edhec-logo.png"
+                            alt="EDHEC Business School"
+                            className="h-16 w-32 md:h-20 md:w-40 object-contain"
+                          />
+                        </div>
+                        <p className="text-xs font-semibold text-muted-foreground">EDHEC Business School</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex-1 space-y-4">
-                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    City Pulse was built with a precise blend of technological innovation, deep-rooted love for urban culture, and a simple belief:
-                  </p>
-                  <p className="text-xl md:text-2xl font-black tracking-tighter italic text-foreground">
-                    "Every city deserves its own discovery platform."
-                  </p>
-                  <div className="pt-2 border-t border-border/40">
-                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                      We didn't want to build just another rigid corporate ticketing platform. We set out to create a <span className="text-foreground font-semibold">living, breathing digital companion for the city</span>—democratizing the event space so a massive musical concert gets the same spotlight as a small, passionate neighbourhood art exhibition.
-                    </p>
-                  </div>
-                </div>
-              </div>
+            </div>
             </div>
           </div>
         </section>
