@@ -441,10 +441,10 @@ const Index = () => {
                   key={f.id}
                   onClick={() => setDateFilter(f.id)}
                   className={cn(
-                    "whitespace-nowrap px-3.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-150 shrink-0",
+                    "whitespace-nowrap px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0",
                     dateFilter === f.id
-                      ? "bg-neon-lime text-black"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      ? "bg-foreground border-foreground text-background"
+                      : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
                   )}
                 >
                   {f.label}
