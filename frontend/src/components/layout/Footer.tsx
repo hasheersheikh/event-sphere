@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Instagram, Linkedin, Youtube } from "lucide-react";
 import PulseLogo from "./PulseLogo";
 import { FEATURES } from "@/config/features";
 
@@ -34,10 +34,9 @@ const Footer = ({ mobileMinimal = false }: FooterProps) => {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    { icon: Instagram, href: "https://www.instagram.com/nagpurcitypulse?igsh=OWlzMTVybG0ybzZk", label: "Instagram" },
+    { icon: Linkedin, href: "https://www.linkedin.com/in/city-pulse-279994424/?isSelfProfile=true", label: "LinkedIn" },
+    { icon: Youtube, href: "https://www.youtube.com/channel/UC2WfwZ89zhQYaK7UYdXnHOw", label: "YouTube" },
   ];
 
   return (
@@ -52,8 +51,11 @@ const Footer = ({ mobileMinimal = false }: FooterProps) => {
                 City <span className="opacity-40">Pulse</span>
               </span>
             </Link>
-            <p className="text-muted-foreground text-sm font-medium max-w-sm leading-relaxed mb-6">
+            <p className="text-muted-foreground text-sm font-medium max-w-sm leading-relaxed mb-4">
               The future of live experiences. Discover events and local gems in your city.
+            </p>
+            <p className="text-xs md:text-sm font-bold text-foreground mb-6">
+              Follow us on Social media for live Events Updates.
             </p>
             <div className="flex gap-2">
               {socialLinks.map((social) => (

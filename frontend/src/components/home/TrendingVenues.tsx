@@ -111,7 +111,7 @@ const TrendingVenues = () => {
         {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
         <div className="md:hidden">
           <MobileMarqueeCarousel>
-            {trendingVenues.map((venue) => (
+            {trendingVenues?.map((venue) => (
               <button
                 key={venue._id}
                 onClick={() => setSelectedVenue(venue)}
@@ -126,7 +126,7 @@ const TrendingVenues = () => {
         {/* Desktop: continuous drift marquee */}
         <div className="relative hidden md:block">
           <MarqueeCarousel>
-            {trendingVenues.map((venue, idx) => (
+            {trendingVenues?.map((venue, idx) => (
               <motion.div
                 key={venue._id}
                 initial={{ opacity: 0, y: 16 }}

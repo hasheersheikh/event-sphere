@@ -598,7 +598,7 @@ const Index = () => {
 
                   <div className="max-w-3xl mx-auto space-y-4 mb-8">
                     <h3 className="text-lg md:text-xl font-black text-foreground leading-tight">
-                      List Your Events, Venues, Stores / Artists, Adventure Camps, and Sports Activities
+                      List Your Events, Venues, Stores, Artists, Adventure Camps, and Sports Activities
                     </h3>
                     <p className="text-muted-foreground text-sm md:text-base italic">
                       Less than 2 minutes to go live and maximize your impact

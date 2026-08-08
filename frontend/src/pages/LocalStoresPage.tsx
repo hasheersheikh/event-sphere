@@ -11,15 +11,13 @@ import StoreCard from "@/components/stores/StoreCard";
 
 const CATEGORIES = [
   "All",
-  "Food & Beverage",
-  "Grocery",
-  "Bakery",
-  "Crafts & Art",
   "Fashion",
+  "Beauty",
+  "Home Décor",
+  "Handicrafts",
+  "Gifts & Toys",
+  "Art & Culture",
   "Electronics",
-  "Books",
-  "Health & Beauty",
-  "General",
 ];
 
 const LocalStoresPage = () => {
@@ -59,10 +57,10 @@ const LocalStoresPage = () => {
               className="mb-4"
             >
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
-                Community
+                Discover
               </p>
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
-                Discover <span className="text-neon-lime">Unique Stores</span>
+                New Stores <span className="text-neon-lime">In Your City</span>
               </h1>
              
             </motion.div>
@@ -110,7 +108,7 @@ const LocalStoresPage = () => {
         {/* ─── Grid ─── */}
         <section className="container py-8">
           {isLoading ? (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
               {Array(8).fill(0).map((_, i) => (
                 <div key={i} className="space-y-3">
                   <div className="h-48 rounded-xl bg-muted animate-pulse" />
@@ -136,7 +134,7 @@ const LocalStoresPage = () => {
               </button>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
               <AnimatePresence mode="popLayout">
                 {filteredStores?.map((store: any, index: number) => (
                   <motion.div

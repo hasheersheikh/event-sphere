@@ -59,6 +59,16 @@ function filterByDate(events: Event[], filter: DateFilterId): Event[] {
 
 const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const categoryImages: Record<string, string> = {
+    "Music": "/categories/music.jpeg",
+    "Comedy": "/categories/comedy.jpeg",
+    "Sports": "/categories/sports.jpg",
+    "Arts": "/categories/arts.jpeg",
+    "Food & Drink": "/categories/food-drink.jpeg",
+    "Health": "/categories/health.jpg",
+    "Meetups": "/categories/meetups.jpeg",
+  };
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
   const [dateFilter, setDateFilter] = useState<DateFilterId>("all");
@@ -180,8 +190,8 @@ const EventsPage = () => {
               transition={{ duration: 0.4 }}
               className="space-y-2"
             >
-              <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-neon-lime mb-1">Discover</p>
+              <div className="mb-4">
+                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-neon-lime mb-1">Discover Experiences That Moves You</p>
                 <h1 className="text-4xl font-black tracking-tighter">Events</h1>
               </div>
               <form onSubmit={handleSearch} className="max-w-md">
@@ -217,7 +227,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Mobile: centered pill search ────────────────────────────── */}
-        <section className="md:hidden pt-0 pb-1.5">
+        <section className="md:hidden pt-4 pb-4">
           <div className="container px-8">
             <motion.form
               onSubmit={handleSearch}
@@ -271,13 +281,23 @@ const EventsPage = () => {
                 >
                   <div
                     className={cn(
-                      "w-20 h-20 rounded-full flex items-center justify-center text-2xl transition-all duration-200",
+                      "w-20 h-20 rounded-full overflow-hidden transition-all duration-200 relative",
                       selectedCategory === cat.name
-                        ? "bg-foreground text-background ring-2 ring-foreground ring-offset-2 ring-offset-background"
-                        : "bg-muted/50 text-foreground group-hover:bg-muted"
+                        ? "ring-2 ring-foreground ring-offset-2 ring-offset-background"
+                        : ""
                     )}
                   >
-                    <span className="text-2xl">{cat.icon}</span>
+                    <img
+                      src={categoryImages[cat.name] || "/images/categories/other.jpg"}
+                      alt={cat.name}
+                      className={cn(
+                        "w-full h-full object-cover transition-all duration-200",
+                        selectedCategory === cat.name ? "opacity-100" : "opacity-70 group-hover:opacity-100"
+                      )}
+                    />
+                    {selectedCategory === cat.name && (
+                      <div className="absolute inset-0 bg-foreground/20 rounded-full" />
+                    )}
                   </div>
                   <span
                     className={cn(
@@ -293,7 +313,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Desktop: Category pills ─────────────────────────────────────────── */}
-        <section className="hidden md:block py-2.5 md:py-3">
+        <section className="hidden md:block py-2">
           <div className="container px-8">
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
               {categories.map((cat) => (
@@ -323,7 +343,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Date filter + view toggle ────────────────────────────────── */}
-        <section className="py-2 md:py-2.5">
+        <section className="py-2 md:py-2">
           <div className="container px-8 flex items-center justify-between gap-3 md:gap-4">
             {/* Date tabs */}
             <div className="flex items-center gap-1 md:gap-1.5 overflow-x-auto scrollbar-hide">
@@ -386,7 +406,7 @@ const EventsPage = () => {
         </section>
 
         {/* ─── Results ─────────────────────────────────────────────────── */}
-        <section className="container py-6 md:py-8 px-8 md:px-8">
+        <section className="container py-8 md:py-10 px-8 md:px-8">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
               {Array.from({ length: 10 }).map((_, i) => (
@@ -400,7 +420,7 @@ const EventsPage = () => {
             </div>
           ) : displayEvents.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-3 gap-y-8 md:gap-x-6 md:gap-y-12 lg:gap-x-8 lg:gap-y-14">
                 {paginatedEvents.map((event, index) => (
                   <EventCard key={event._id} event={event} index={index} />
                 ))}

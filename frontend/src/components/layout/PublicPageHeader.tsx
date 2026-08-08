@@ -32,7 +32,7 @@ export const PublicPageHeader = ({
       : "text-4xl md:text-5xl leading-none";
 
   const subtitleSize =
-    size === "lg" ? "text-lg md:text-xl max-w-2xl" : "text-sm md:text-base max-w-xl";
+    size === "lg" ? "text-lg md:text-xl max-w-2xl" : "text-sm md:text-base max-w-3xl";
 
   return (
     <header className={cn("max-w-4xl mx-auto mb-10 space-y-4", className)}>

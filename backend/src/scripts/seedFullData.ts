@@ -62,7 +62,7 @@ const seed = async () => {
         status: 'published',
         isApproved: true,
         isSponsored: true,
-        viewCount: 1250,
+        viewCount: 10420,
       },
 
       // 2. MULTI-DAY EVENT - Milan
@@ -97,7 +97,7 @@ const seed = async () => {
         status: 'published',
         isApproved: true,
         isSponsored: false,
-        viewCount: 5400,
+        viewCount: 12850,
       },
 
       // 3. MULTI-SLOT EVENT - Rome

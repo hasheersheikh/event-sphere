@@ -13,7 +13,7 @@ interface EventCardProps {
 }
 
 const formatViews = (viewCount?: number) => {
-  const baseViews = 200 + (viewCount || 0);
+  const baseViews = 10000 + (viewCount || 0);
   if (baseViews >= 1000) {
     return `${(baseViews / 1000).toFixed(1)} K`;
   }
@@ -140,49 +140,63 @@ const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: Eve
             </div>
 
             {/* Views Badge */}
-            <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/65 backdrop-blur-md px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider text-white border border-white/10 shadow-sm z-20">
-              <Eye className="h-3 w-3 text-neon-lime" />
-              <span>{formatViews(event.viewCount)} Views</span>
+            <div className="absolute top-3 right-3 z-20">
+              <span className="inline-flex items-center text-[7px] md:text-[8px] font-black uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-white text-black shadow-sm">
+                <Eye className="h-3 w-3 mr-1" />
+                {formatViews(event.viewCount)} Views
+              </span>
             </div>
           </div>
 
           <div className="p-3.5 flex flex-col gap-2 flex-1">
-            <h3 className={cn(
-              "font-extrabold tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2",
-              mobile ? "text-[16px]" : "text-[13px]"
-            )}>
-              {event.title}
-            </h3>
+            {/* Title + Date row */}
+            <div className="flex items-start justify-between gap-2">
+              <h3 className={cn(
+                "font-extrabold tracking-tight leading-snug text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 flex-1",
+                mobile ? "text-[16px]" : "text-[13px]"
+              )}>
+                {event.title}
+              </h3>
+              <div className={cn(
+                "flex items-center gap-1 text-primary font-bold whitespace-nowrap",
+                mobile ? "text-[12px]" : "text-[10px]"
+              )}>
+                <Calendar className={cn("shrink-0", mobile ? "h-3 w-3" : "h-2.5 w-2.5")} />
+                <span className="uppercase tracking-wider">
+                  {formatDate(event.date, event.nextOccurrence)}
+                </span>
+              </div>
+            </div>
 
             <div className="flex items-center justify-between gap-2 mt-0.5">
               <p className={cn(
                 "text-muted-foreground font-bold flex items-center gap-1",
                 mobile ? "text-[14px]" : "text-[10px] uppercase tracking-[0.1em]"
               )}>
-                {mobile ? null : <Calendar className="h-3 w-3 text-primary/60" />}
+                {mobile ? null : <MapPin className="h-3 w-3 text-primary/60" />}
                 {typeof event.location === "string"
                   ? event.location
                   : event.location?.venueName ||
                     event.location?.address?.split(",")[0] || "Nagpur"}
               </p>
-              <span className={cn(
-                "font-black tracking-tight",
-                mobile ? "text-[#2E7D32] text-[15px]" : "text-foreground text-[11px]"
-              )}>
-                {"₹" + (event.ticketTypes?.length
-                  ? Math.min(...event.ticketTypes.map(t => t.price))
-                  : 0) + (event.ticketTypes?.length ? " onwards" : "")}
-              </span>
-            </div>
-
-            <div className={cn(
-              "flex items-center gap-1 text-muted-foreground mt-auto",
-              mobile ? "pt-2" : "pt-1 border-t border-border/10"
-            )}>
-              <MapPin className={cn("shrink-0 text-primary", mobile ? "h-3.5 w-3.5" : "h-2.5 w-2.5")} />
-              <p className={cn("font-bold text-primary line-clamp-1", mobile ? "text-[#666] text-[14px]" : "text-[10px]")}>
-                {formatDate(event.date, event.nextOccurrence)}
-              </p>
+              <div className="flex flex-col items-end">
+                <span className={cn(
+                  "font-black tracking-tight leading-none",
+                  mobile ? "text-[#2E7D32] text-[18px]" : "text-foreground text-[14px]"
+                )}>
+                  {"₹" + (event.ticketTypes?.length
+                    ? Math.min(...event.ticketTypes.map(t => t.price))
+                    : 0)}
+                </span>
+                {event.ticketTypes?.length && (
+                  <span className={cn(
+                    "font-bold uppercase tracking-wider leading-none",
+                    mobile ? "text-[#2E7D32] text-[8px]" : "text-muted-foreground text-[7px]"
+                  )}>
+                    onwards
+                  </span>
+                )}
+              </div>
             </div>
 
             {!mobile && event.coordinator?.phone && (

@@ -24,6 +24,18 @@ const CITY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
   "Kolkata": Building2,    // Metro city
 };
 
+// City images
+const CITY_IMAGES: Record<string, string> = {
+  "Nagpur": "/images/city/Nagpur.jpg",
+  "Mumbai": "/images/city/Mumbai.jpg",
+  "Delhi": "/images/city/Delhi.jpg",
+  "Bengaluru": "", // No image yet
+  "Hyderabad": "/images/city/Hyderabad.jpg",
+  "Chennai": "/images/city/Chennai.jpg",
+  "Pune": "/images/city/Pune.jpg",
+  "Kolkata": "/images/city/Kolkata.jpg",
+};
+
 const CitySelectModal = () => {
   const { showCityModal, setShowCityModal, setSelectedCity, selectedCity } = useCity();
   const [search, setSearch] = useState("");
@@ -210,19 +222,44 @@ const CitySelectModal = () => {
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {POPULAR_CITIES.map((city) => {
                       const isActive = selectedCity === city;
-                      const CityIcon = CITY_ICONS[city] || MapPin;
+                      const cityImage = CITY_IMAGES[city];
                       return (
                         <button
                           key={city}
                           onClick={() => handleSelect(city as City)}
-                          className={`flex flex-col items-center gap-2.5 p-4 rounded-2xl border transition-all duration-200 active:scale-95 ${
+                          className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all duration-200 active:scale-95 relative overflow-hidden ${
                             isActive
-                              ? "bg-foreground border-foreground"
-                              : "bg-card border-border hover:border-foreground/50 hover:bg-muted"
+                              ? "bg-black"
+                              : "bg-card hover:bg-muted"
                           }`}
                         >
-                          <CityIcon className={`h-7 w-7 ${isActive ? "text-background" : "text-foreground"}`} />
-                          <span className={`text-[11px] font-bold leading-tight text-center ${isActive ? "text-background" : "text-foreground"}`}>{city}</span>
+                          {cityImage && (
+                            <img
+                              src={cityImage}
+                              alt={city}
+                              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-200 ${
+                                isActive ? "opacity-20" : "opacity-0"
+                              }`}
+                            />
+                          )}
+                          <div className="relative z-10 flex flex-col items-center gap-2 w-full">
+                            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-muted">
+                              {cityImage ? (
+                                <img
+                                  src={cityImage}
+                                  alt={city}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <MapPin className={`h-8 w-8 ${isActive ? "text-background" : "text-muted-foreground"}`} />
+                                </div>
+                              )}
+                            </div>
+                            <span className={`text-[11px] font-bold leading-tight text-center ${
+                              isActive ? "text-white" : "text-foreground"
+                            }`}>{city}</span>
+                          </div>
                         </button>
                       );
                     })}

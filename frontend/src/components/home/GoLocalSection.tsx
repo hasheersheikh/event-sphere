@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tag } from "lucide-react";
 import api from "@/lib/api";
@@ -7,6 +8,18 @@ import StoreSlider from "@/components/stores/StoreSlider";
 import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 import PublicPageHeader from "@/components/layout/PublicPageHeader";
+import { cn } from "@/lib/utils";
+
+const STORE_CATEGORIES = [
+  "All",
+  "Fashion",
+  "Beauty",
+  "Home Décor",
+  "Handicrafts",
+  "Gifts & Toys",
+  "Art & Culture",
+  "Electronics",
+];
 
 interface Product {
   _id: string;
@@ -29,6 +42,8 @@ interface LocalStore {
 }
 
 const GoLocalSection = () => {
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
   const { data: stores, isLoading } = useQuery({
     queryKey: ["localStores"],
     queryFn: async () => {
@@ -36,6 +51,11 @@ const GoLocalSection = () => {
       return (data.data || []) as LocalStore[];
     },
   });
+
+  const filteredStores = stores?.filter((store: LocalStore) => {
+    if (selectedCategory === "All") return true;
+    return store.category === selectedCategory;
+  }) || [];
 
   if (!isLoading && (!stores || stores.length === 0)) return null;
 
@@ -55,6 +75,25 @@ const GoLocalSection = () => {
           className="text-center"
         />
 
+        {/* Category pills */}
+        <div className="mb-6 md:mb-8">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-5 md:pb-1 pl-3 pr-4 md:px-8 justify-start md:justify-center">
+            {STORE_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`flex-shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] px-3 md:px-4 py-1.5 rounded-full border transition-all duration-200 ${
+                  selectedCategory === cat
+                    ? "bg-foreground text-background border-transparent"
+                    : "bg-transparent text-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {isLoading ? (
           <div className="flex gap-6 overflow-hidden">
             {Array(3)
@@ -71,7 +110,7 @@ const GoLocalSection = () => {
             {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
             <div className="md:hidden">
               <MobileMarqueeCarousel>
-                {stores?.map((store, index) => (
+                {filteredStores.map((store, index) => (
                   <StoreCard key={store._id} store={store} index={index} />
                 ))}
               </MobileMarqueeCarousel>
@@ -80,7 +119,7 @@ const GoLocalSection = () => {
             {/* Desktop: continuous drift marquee */}
             <div className="hidden md:block">
               <MarqueeCarousel>
-                {stores?.map((store, index) => (
+                {filteredStores.map((store, index) => (
                   <div key={store._id} className="w-[21.6rem] flex-shrink-0">
                     <StoreCard store={store} index={index} />
                   </div>

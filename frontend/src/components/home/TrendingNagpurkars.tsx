@@ -194,7 +194,7 @@ const TrendingNagpurkars = () => {
         />
 
         {/* Category filter pills */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-5 md:pb-1 justify-center">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-5 md:pb-1 pl-3 pr-4 md:px-8 justify-start md:justify-center">
           {CATEGORIES.map(cat => (
             <button
               key={cat}
@@ -202,7 +202,7 @@ const TrendingNagpurkars = () => {
               className={`flex-shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] px-3 md:px-4 py-1.5 rounded-full border transition-all duration-200 ${
                 activeCategory === cat
                   ? "bg-foreground text-background border-transparent"
-                  : "bg-transparent text-muted-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
+                  : "bg-transparent text-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
               }`}
             >
               {cat}

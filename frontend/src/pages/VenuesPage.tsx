@@ -44,44 +44,45 @@ const VenuesPage = () => {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
 
-      <main className="flex-1 pt-14 md:pt-16">
-        {/* Page Header */}
-        <section className="border-b border-border/20 py-10 md:py-14 relative overflow-hidden">
-          <div className="container relative z-10">
-            <div className="mb-7">
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-2">
+      <main className="flex-1 pt-0 md:pt-4">
+
+        {/* ─── Header ─── */}
+        <section className="border-b border-border/20 py-1 md:py-1.5">
+          <div className="container">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="mb-4"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
                 Discover
               </p>
-              <h1 className="font-display text-4xl md:text-6xl font-black tracking-tighter leading-[0.88]">
-                Venues
-                {!isLoading && filteredVenues.length > 0 && (
-                  <span className="text-muted-foreground/30 ml-3 text-2xl md:text-3xl font-bold">
-                    {filteredVenues.length}
-                  </span>
-                )}
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
+                Trending <span className="text-neon-lime">Venues</span>
               </h1>
-            </div>
+            </motion.div>
 
-            {/* Search Bar */}
-            <div className="flex flex-col sm:flex-row gap-2 max-w-xl">
-              <div className="flex items-center gap-2 flex-1 p-1.5 bg-card border border-border/50 rounded-2xl">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-                  <Input
-                    type="text"
-                    placeholder="Search venues or cities..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="h-10 pl-10 bg-transparent border-none focus-visible:ring-0 text-sm font-medium uppercase"
-                  />
-                </div>
-              </div>
-            </div>
+            {/* Search */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05, duration: 0.4 }}
+              className="relative max-w-md"
+            >
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60" />
+              <Input
+                placeholder="Search venues…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-11 pl-10 bg-card border-border/50 rounded-xl font-medium text-sm"
+              />
+            </motion.div>
           </div>
         </section>
 
         {/* Results */}
-        <section className="container py-12">
+        <section className="container py-8">
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (

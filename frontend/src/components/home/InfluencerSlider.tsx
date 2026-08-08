@@ -94,6 +94,7 @@ const InfluencerSlider = () => {
               Pulse <span className="text-neon-lime">Influencers</span>
             </>
           }
+          subtitle="We have exclusive partnerships with your city's most influential creators and influencers within your city to maximize event reach, drive ticket sales, and create maximum buzz."
           size="md"
           className="text-center"
         />

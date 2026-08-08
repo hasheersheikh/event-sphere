@@ -32,7 +32,7 @@ const getCategoryImage = (category: string = "other") => {
 };
 
 const formatViews = (viewCount?: number) => {
-  const baseViews = 200 + (viewCount || 0);
+  const baseViews = 10000 + (viewCount || 0);
   if (baseViews >= 1000) {
     return `${(baseViews / 1000).toFixed(1)} K`;
   }

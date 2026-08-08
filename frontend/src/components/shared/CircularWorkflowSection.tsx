@@ -142,7 +142,7 @@ export default function CircularWorkflowSection() {
                 className="flex flex-col items-center text-center group"
               >
                 {/* Circular Node */}
-                <div 
+                <motion.div
                   className={cn(
                     "relative w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 rounded-full flex items-center justify-center border-2 border-border/40 bg-card/60 backdrop-blur-xl transition-all duration-500",
                     "group-hover:border-transparent group-hover:scale-105"
@@ -171,7 +171,7 @@ export default function CircularWorkflowSection() {
                       Step {step.id}
                     </span>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Text Content */}
                 <div className="mt-8 space-y-2.5 max-w-xs">
@@ -272,7 +272,7 @@ export default function CircularWorkflowSection() {
             
             <div className="space-y-2">
               <h3 className="font-display text-2xl md:text-4xl font-black tracking-tighter uppercase leading-none text-foreground">
-                List Your Events, Venues, Stores/ Artists,<br />
+                List Your Events, Venues, Stores, Artists,<br />
                 Adventure Camps, and Sports Activities
               </h3>
               <p className="text-muted-foreground text-xs md:text-sm font-bold uppercase tracking-wider italic text-neon-lime">

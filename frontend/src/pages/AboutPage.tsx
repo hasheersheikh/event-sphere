@@ -1,6 +1,9 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { useRef, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   Users,
   ShieldCheck,
@@ -25,6 +28,8 @@ import {
   Search,
   Compass,
   CalendarDays,
+  Ticket,
+  Camera,
 } from "lucide-react";
 import CircularWorkflowSection from "@/components/shared/CircularWorkflowSection";
 import LazySection from "@/components/shared/LazySection";
@@ -86,7 +91,7 @@ const AboutPage = () => {
       <main className="flex-1 relative z-10">
 
         {/* Hero Header */}
-        <section className="relative pt-20 md:pt-24 pb-6 md:pb-8 overflow-hidden">
+        <section className="relative pt-16 md:pt-20 pb-10 md:pb-12 overflow-hidden">
           <div className="container px-3 md:px-4">
             <PublicPageHeader
               pillText="About City Pulse"
@@ -96,7 +101,7 @@ const AboutPage = () => {
                   <span className="text-neon-lime">it's on City Pulse</span>
                 </>
               }
-              subtitle="A hyperlocal discovery platform that helps people find, explore, and book everything happening in their city—from major events to hidden local experiences."
+              subtitle="A hyperlocal discovery platform that helps people find, explore, and book everything happening in their city, from major events to hidden local experiences."
               size="md"
               className="text-center mb-10"
             />
@@ -105,7 +110,7 @@ const AboutPage = () => {
 
         {/* Vision Image */}
         <LazySection minHeight="min-h-56 sm:min-h-72 md:min-h-[28rem]">
-          <section className="container py-12 md:py-20 px-3 md:px-4">
+          <section className="container py-8 md:py-12 px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0">
             <div className="relative h-72 sm:h-96 md:h-[32rem] rounded-2xl md:rounded-[2.5rem] overflow-hidden border border-border/50 shadow-2xl">
               <img
@@ -118,9 +123,15 @@ const AboutPage = () => {
               <div className={`absolute inset-0 bg-gradient-to-t ${theme === "dark" ? "from-background via-background/20 to-transparent" : ""}`} />
               <div className="absolute bottom-3 left-3 right-3 sm:bottom-4 sm:left-4 sm:right-4 md:bottom-10 md:left-10 md:right-10 flex flex-col md:flex-row items-center md:items-end justify-between gap-3 md:gap-6">
                 <div className="max-w-xl w-full md:w-auto space-y-2 md:space-y-3 text-center md:text-left">
-                  <NeonBadge>Our Core Philosophy</NeonBadge>
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-2xl">
-                    Every city has <br />its own rhythm.
+                  
+                    <div
+      className="inline-flex items-center pr-4 py-2 rounded-full text-xs md:text-sm font-black uppercase tracking-widest text-neon-lime leading-none"
+      style={{ background: `${neon}18`, border: `1px solid ${neon}40` }}
+    >
+    Our Core Philosophy
+    </div>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter text-white uppercase italic leading-none drop-shadow-2xl">
+                    Every city has its own rhythm.
                   </h2>
                 </div>
                 <div className="hidden md:block">
@@ -136,7 +147,7 @@ const AboutPage = () => {
 
         {/* The Problem We Solve */}
         <LazySection>
-          <section className="container py-12 md:py-20 px-3 md:px-4">
+          <section className="container py-8 md:py-12 px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-8 md:space-y-12">
 
             <div>
@@ -175,7 +186,7 @@ const AboutPage = () => {
                   </p>
                 </div>
                 <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-center md:text-left">
-                  While major concerts find their place on national platforms, hundreds of amazing local experiences go unnoticed—they simply lack the visibility.
+                  While major concerts find their place on national platforms, hundreds of amazing local experiences go unnoticed. They simply lack the visibility.
                 </p>
               </div>
 
@@ -195,7 +206,7 @@ const AboutPage = () => {
 
         {/* Our Story */}
         <LazySection>
-          <section className="py-12 md:py-20 container px-3 md:px-4">
+          <section className="py-8 md:py-12 container px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-6 md:space-y-10">
             <div>
               <PublicPageHeader
@@ -210,67 +221,80 @@ const AboutPage = () => {
               />
             </div>
 
-            <div className="p-6 md:p-10 rounded-2xl md:rounded-[2rem] bg-card/50 border border-border/50 backdrop-blur-xl">
-              <div className="flex flex-col items-center gap-6 md:gap-8">
-                <div className="flex flex-col items-center gap-6">
-                  <div className="h-64 w-64 md:h-72 md:w-72 rounded-2xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl">
-                    <img
-                      src="/mohsin-sheikh-founder.jpg"
-                      alt="Mohsin Sheikh - Founder"
-                      className="w-full h-full object-contain object-center"
-                    />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <PublicPageHeader
-                      pillText="Founder"
-                      title={
-                        <>
-                          Mohsin <span className="text-neon-lime">Sheikh</span>
-                        </>
-                      }
-                      size="md"
-                      className="text-center mb-0"
-                    />
-                    <p className="text-lg md:text-xl font-semibold text-neon-lime">Founder, City Pulse</p>
-                    <div className="flex flex-wrap justify-center gap-4 md:gap-6 mt-10 items-end">
-                      <div className="flex flex-col items-center gap-2">
-                        <img
-                          src="/iit-roorkee-logo.png"
-                          alt="IIT Roorkee"
-                          className="h-16 w-16 md:h-20 md:w-20 object-contain"
-                        />
-                        <p className="text-xs font-semibold text-muted-foreground">IIT Roorkee</p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        {theme === "dark" ? (
-                          <img
-                            src="/iim-calcutta-logo-white.png"
-                            alt="IIM Calcutta"
-                            className="h-16 w-16 md:h-20 md:w-20 object-contain"
-                          />
-                        ) : (
-                            <img
-                              src="/iim-calcutta-logo.png"
-                              alt="IIM Calcutta"
-                              className="h-16 w-16 md:h-20 md:w-20 object-contain"
-                            />
-                        )}
-                        <p className="text-xs font-semibold text-muted-foreground">IIM Calcutta</p>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="rounded-xl bg-white px-3 py-1">
-                          <img
-                            src="/edhec-logo.png"
-                            alt="EDHEC Business School"
-                            className="h-16 w-32 md:h-20 md:w-40 object-contain"
-                          />
-                        </div>
-                        <p className="text-xs font-semibold text-muted-foreground">EDHEC Business School</p>
-                      </div>
-                    </div>
-                  </div>
+            <div className="p-6 md:p-10 rounded-2xl md:rounded-[2rem] bg-card/50 border border-border/50 backdrop-blur-xl space-y-12 md:space-y-16">
+
+              {/* Person 1: Mohsin Sheikh */}
+              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-0">
+                  <img
+                    src="/mohsin_sheikh.png"
+                    alt="Mohsin Sheikh - Founder"
+                    className="w-full h-full object-cover object-center"
+                  />
                 </div>
-            </div>
+                <div className="flex-1 text-center md:text-left space-y-4">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-neon-lime">Founder</p>
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
+                    Mohsin <span className="text-neon-lime">Sheikh</span>
+                  </h3>
+                  <p className="text-xl md:text-2xl font-semibold text-neon-lime">Founder, City Pulse</p>
+                  <p className="text-base md:text-lg font-bold text-white leading-relaxed">
+                    Every event, big or small, deserves to be discovered and find its audience.
+                  </p>
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                    City Pulse is the city's digital companion, democratizing event discovery by making neighborhood exhibitions, house parties, running clubs, community gatherings, and independent experiences as discoverable as major concerts and festivals.
+                  </p>
+                </div>
+              </div>
+
+              {/* Person 2: Gulfeshan Aftab */}
+              <div className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
+                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-0">
+                  <img
+                    src="/gulfeshan.png"
+                    alt="Gulfeshan Aftab - CPO"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="flex-1 text-center md:text-left space-y-4">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-neon-lime">CPO - Chief Pulse Officer</p>
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
+                    Gulfeshan <span className="text-neon-lime">Aftab</span>
+                  </h3>
+                  <p className="text-xl md:text-2xl font-semibold text-neon-lime">Project Manager - General Mills, Ex-Amway & ITC</p>
+                  <p className="text-base md:text-lg font-bold text-white leading-relaxed">
+                    The future isn't just about finding events, it's about finding your people, your tribe.
+                  </p>
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                    As Gen Z nowadays seeks more authentic and community-driven experiences, we're on a mission to build the city's social infrastructure which connects to it. From book clubs and running groups to chess meetups, and from house parties to networking events, our goal is to help people discover experiences and connect through shared interests.
+                  </p>
+                </div>
+              </div>
+
+              {/* Person 3: Amir Sheikh */}
+              <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-2xl shrink-0">
+                  <img
+                    src="/amir_shekh.png"
+                    alt="Amir Sheikh - Co Founder"
+                    className="w-full h-full object-cover object-center"
+                  />
+                </div>
+                <div className="flex-1 text-center md:text-left space-y-4">
+                  <p className="text-xs font-black uppercase tracking-[0.3em] text-neon-lime">Co-Founder</p>
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
+                    Amir <span className="text-neon-lime">Sheikh</span>
+                  </h3>
+                  <p className="text-xl md:text-2xl font-semibold text-neon-lime">The Driving Engine</p>
+                  <p className="text-base md:text-lg font-bold text-white leading-relaxed">
+                    As we say, If it's happening in the city, it's on City Pulse.
+                  </p>
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                    As someone who has spent years discovering and promoting what's happening across the city, I've seen every week, new communities, unique events, and fresh ideas emerge. Communities are growing, interests are becoming more niche, and meaningful experiences are happening everywhere. City Pulse is our way of bringing them together on one platform and become the digital pulse of our city.
+                  </p>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
@@ -278,7 +302,7 @@ const AboutPage = () => {
 
         {/* Why We Exist */}
         <LazySection>
-          <section className="py-12 md:py-20 container px-3 md:px-4">
+          <section className="py-8 md:py-12 container px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-6 md:space-y-10">
             <div>
               <PublicPageHeader
@@ -302,7 +326,7 @@ const AboutPage = () => {
                   <h3 className="text-lg md:text-xl font-black tracking-tighter uppercase italic text-neon-lime">For People</h3>
                 </div>
                 <p className="text-xs md:text-sm text-muted-foreground leading-relaxed text-center md:text-left">
-                  City Pulse removes the stress of discovering what to do next. No more hunting across:
+                  City Pulse removes the stress of discovering what to do next.
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {["Instagram", "WhatsApp Groups", "Facebook Pages", "Multiple Websites"].map((platform) => (
@@ -314,7 +338,7 @@ const AboutPage = () => {
                 </div>
                 <div className="pt-2 border-t border-border/40">
                   <p className="text-xs md:text-sm font-bold text-foreground">
-                    Everything happening in and around your city—in one place.
+                    Everything happening in and around your city, in one place.
                   </p>
                 </div>
               </div>
@@ -339,22 +363,33 @@ const AboutPage = () => {
                 </div>
                 <div className="pt-2 border-t border-border/40">
                   <p className="text-xs md:text-sm font-bold text-foreground">
-                    Reach the right audience—without massive advertising budgets.
+                    Reach the right audience, without massive advertising budgets.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 md:p-10 rounded-2xl md:rounded-[2rem] backdrop-blur-xl text-center space-y-2"
+            <div className="px-6 py-4 md:px-10 rounded-2xl md:rounded-[2rem] backdrop-blur-xl text-center"
               style={{ background: `${neon}0F`, border: `1px solid ${neon}33` }}
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-lime">Our Goal</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-black tracking-tighter italic text-foreground leading-tight">
-                Create a bridge between people looking for experiences and the people creating them.
-              </p>
-              <p className="text-xs md:text-sm text-muted-foreground pt-1">
-                When discovery becomes easier, cities become more connected.
-              </p>
+              <PublicPageHeader
+                title=
+                {
+                   <>
+                      Our <span className="text-neon-lime">Goal</span>
+                    </>
+                }
+                subtitle={
+                  <>
+                    Create a bridge between people looking for experiences and the people creating them.
+                    <span className="block mt-2 text-xs md:text-sm text-muted-foreground pt-1">
+                      When discovery becomes easier, cities become more connected.
+                    </span>
+                  </>
+                }
+                size="md"
+                className="text-center mb-0"
+              />
             </div>
           </div>
         </section>
@@ -362,7 +397,7 @@ const AboutPage = () => {
 
         {/* Stats Grid */}
         <LazySection>
-          <section className="py-12 md:py-20 container px-3 md:px-4">
+          <section className="py-8 md:py-12 container px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {stats.map((stat, i) => (
               <div
@@ -384,7 +419,7 @@ const AboutPage = () => {
 
         {/* More Than a Ticketing Platform */}
         <LazySection>
-          <section className="py-12 md:py-20 container px-3 md:px-4">
+          <section className="py-8 md:py-12 container px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-6 md:space-y-10">
             <div className="space-y-3 md:space-y-4">
               <PublicPageHeader
@@ -402,7 +437,7 @@ const AboutPage = () => {
             <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
               {[
                 { icon: Search, color: "text-violet-500", title: "Discover", desc: "A city isn't defined only by its biggest events. It's defined by thousands of experiences happening every single day." },
-                { icon: CalendarDays, color: "text-amber-500", title: "Plan", desc: "Weekend plans, next adventures, local businesses, event tickets—everything you need to stay connected to your city." },
+                { icon: CalendarDays, color: "text-amber-500", title: "Plan", desc: "Weekend plans, next adventures, local businesses, event tickets, everything you need to stay connected to your city." },
                 { icon: Compass, color: "text-rose-500", title: "Explore", desc: "Break free from the mundane. Immerse yourself in local culture. Your city, neatly organized and instantly accessible." },
               ].map((item) => (
                 <FeatureCard
@@ -421,7 +456,7 @@ const AboutPage = () => {
 
         {/* Features Section */}
         <LazySection>
-          <section className="py-12 md:py-20 container relative px-3 md:px-4">
+          <section className="py-8 md:py-12 container relative px-3 md:px-4">
             <div className="max-w-6xl mx-auto px-3 md:px-0 space-y-10 md:space-y-16">
             <PublicPageHeader
               pillText="Everything You Need"
@@ -451,9 +486,101 @@ const AboutPage = () => {
         </section>
         </LazySection>
 
-        <LazySection minHeight="min-h-64">
-          <CircularWorkflowSection />
-        </LazySection>
+        {/* ═══ ORGANIZER CTA ═══ */}
+        <section className="py-8 md:py-12 border-t border-border/20">
+          <div className="container px-3 md:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="rounded-2xl border border-border/40 overflow-hidden"
+            >
+              {/* Customer Steps */}
+              <div className="relative overflow-hidden bg-background py-16 md:py-24 text-center px-6">
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('/images/concert-crowd-silhouette.jpg')" }}
+                />
+                <div className="absolute inset-0 bg-background/85" />
+
+                <div className="relative z-10 max-w-2xl mx-auto mb-12">
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight text-foreground mb-3 leading-tight">
+                    We Help you to{" "}
+                    <span className="text-neon-lime">catch the City Pulse</span>
+                  </h2>
+                  <p className="text-muted-foreground text-sm">
+                    Discover events, book your spot, create memories
+                  </p>
+                </div>
+
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10 max-w-4xl mx-auto">
+                  {[
+                    { icon: Search, title: "Discover Events", accent: "you like", desc: "Find the absolute best concerts, secret parties, and local workshops happening right around you." },
+                    { icon: Ticket, title: "Book Your", accent: "Spot", desc: "Purchase tickets instantly with secure one-tap checkout. No booking fees, no complications." },
+                    { icon: Camera, title: "Get Memories", accent: "& Friends", desc: "Attend events, share vibes with awesome folks, and bring home epic memories that last forever." },
+                  ].map(({ icon: Icon, title, accent, desc }, i) => (
+                    <motion.div
+                      key={title}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.4, delay: i * 0.12 }}
+                      className="flex flex-col items-center"
+                    >
+                      <div className="h-14 w-14 rounded-full border-2 border-neon-lime flex items-center justify-center text-neon-lime mb-5 shrink-0">
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <h3 className="text-xl md:text-2xl font-black text-foreground mb-2">
+                        {title} <span className="text-neon-lime">{accent}</span>
+                      </h3>
+                      <p className="text-muted-foreground text-sm leading-relaxed max-w-xs">{desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* For Creators & Organizers */}
+              <div className="relative border-t border-border/20 py-16 md:py-24 text-center px-6">
+                {/* Background image with overlay */}
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{ backgroundImage: "url('/images/performer-stage-silhouette.jpg')" }}
+                />
+                <div className="absolute inset-0 bg-background/85" />
+
+                {/* Content */}
+                <div className="relative z-10">
+                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-muted-foreground mb-3">
+                    For Creators & Organizers
+                  </p>
+                  <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground mb-6 leading-tight">
+                    The City{" "}
+                    <span className="text-neon-lime">Experience</span>
+                  </h2>
+
+                  <div className="max-w-3xl mx-auto space-y-4 mb-8">
+                    <h3 className="text-lg md:text-xl font-black text-foreground leading-tight">
+                      List Your Events, Venues, Stores, Artists, Adventure Camps, and Sports Activities
+                    </h3>
+                    <p className="text-muted-foreground text-sm md:text-base italic">
+                      Less than 2 minutes to go live and maximize your impact
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <Link to="/list-your-event">
+                      <Button className="h-11 px-6 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase tracking-widest text-[10px]">
+                        <Megaphone className="h-4 w-4 mr-2" />
+                        List Your Event
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
       </main>
 
       <Footer />
@@ -465,7 +592,7 @@ const NeonBadge = ({ children }: { children: React.ReactNode }) => {
   const neon = "hsl(71,100%,47%)";
   return (
     <div
-      className="inline-flex items-center px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-neon-lime leading-none"
+      className="inline-flex items-center px-4 py-2 rounded-full text-xs md:text-sm font-black uppercase tracking-widest text-neon-lime leading-none"
       style={{ background: `${neon}18`, border: `1px solid ${neon}40` }}
     >
       {children}

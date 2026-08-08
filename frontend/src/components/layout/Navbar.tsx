@@ -92,11 +92,11 @@ const Navbar = () => {
           {/* Location selector */}
           <button
             onClick={() => setShowCityModal(true)}
-            className="flex items-center gap-1.5 h-8 px-3 rounded-lg hover:bg-muted/60 transition-colors text-[11px] font-bold uppercase tracking-widest text-foreground/50 hover:text-foreground"
+            className="flex items-center gap-1.5 h-8 px-3 rounded-lg hover:bg-muted/60 transition-colors text-[11px] font-bold uppercase tracking-widest text-black/90 dark:text-white/90 hover:text-black dark:hover:text-white"
           >
             <MapPin className="h-3 w-3 shrink-0" />
             {selectedCity || "City"}
-            <ChevronDown className="h-2.5 w-2.5 text-foreground/30" />
+            <ChevronDown className="h-2.5 w-2.5 text-black/50 dark:text-white/50" />
           </button>
 
           {/* Divider */}
@@ -109,15 +109,15 @@ const Navbar = () => {
               to={link.href}
               className={`relative h-8 px-3 flex items-center text-[11px] font-bold uppercase tracking-[0.12em] transition-colors duration-150 rounded-lg ${
                 isActive(link.href)
-                  ? "text-foreground"
-                  : "text-foreground/45 hover:text-foreground"
+                  ? "text-black dark:text-white"
+                  : "text-black/90 dark:text-white/90 hover:text-black dark:hover:text-white"
               }`}
             >
               {link.label}
               {isActive(link.href) && (
                 <motion.span
                   layoutId="nav-underline"
-                  className="absolute inset-x-2 -bottom-px h-px bg-foreground rounded-full"
+                  className="absolute inset-x-2 -bottom-px h-px bg-black dark:bg-white rounded-full"
                 />
               )}
             </Link>
@@ -207,11 +207,11 @@ const Navbar = () => {
               {/* City */}
               <button
                 onClick={() => { setShowCityModal(true); setIsOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-bold text-foreground/50 hover:text-foreground hover:bg-muted/40 transition-all text-left"
+                className="w-full flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-bold text-black/90 dark:text-white/90 hover:text-black dark:hover:text-white hover:bg-muted/40 transition-all text-left"
               >
                 <MapPin className="h-4 w-4 shrink-0" />
                 {selectedCity || "Select a city"}
-                <ChevronDown className="h-3.5 w-3.5 ml-auto text-foreground/30" />
+                <ChevronDown className="h-3.5 w-3.5 ml-auto text-black/50 dark:text-white/50" />
               </button>
 
               <div className="h-px bg-border/30 my-1" />
@@ -222,13 +222,13 @@ const Navbar = () => {
                   to={link.href}
                   className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
                     isActive(link.href)
-                      ? "text-foreground bg-foreground/6"
-                      : "text-foreground/55 hover:text-foreground hover:bg-muted/40"
+                      ? "text-black dark:text-white bg-black/10 dark:bg-white/10"
+                      : "text-black/60 dark:text-white/60 hover:text-black dark:hover:text-white hover:bg-muted/40"
                   }`}
                 >
                   {link.label}
                   {isActive(link.href) && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-foreground" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-black dark:bg-white" />
                   )}
                 </Link>
               ))}

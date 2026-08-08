@@ -33,65 +33,64 @@ const PLANS = [
   {
     id: "starter",
     name: "Spark",
-    price: "₹3,999",
+    price: "₹4,999",
     description: "Ideal for local hype and initial traction.",
     features: [
-      "1 Targeted Instagram Post",
-      "2 Strategic Stories",
-      "Basic Analytics Report",
-      "City-specific Tagging"
+      "2 Instagram Reel of Event",
+      "1 Static Post/Carousel of Event",
+      "2 Stories on Instagram"
     ],
     icon: AtSign,
+    image: "/images/plan/spark.png",
     color: "from-cyan-500/20 to-blue-500/20",
-    glowClass: "shadow-[0_0_30px_rgba(6,182,212,0.08)] hover:border-cyan-500/30",
-    selectedGlowClass: "border-neon-cyan shadow-[0_0_40px_rgba(6,182,212,0.25)]",
+    glowClass: "hover:border-cyan-500/30",
+    selectedGlowClass: "border-neon-cyan shadow-sm",
     spotlightColor: "rgba(6, 182, 212, 0.1)",
     accentColor: "text-cyan-500",
-    badgeColor: "bg-cyan-500/10 text-cyan-500 border border-cyan-500/20",
-    btnSelected: "bg-cyan-500 text-white hover:bg-cyan-600 shadow-[0_0_15px_rgba(6,182,212,0.4)]"
+    badgeColor: "bg-cyan-500/10 text-white border border-cyan-500/20",
+    btnSelected: "bg-cyan-500 text-white hover:bg-cyan-600"
   },
   {
     id: "velocity",
-    name: "Catalyst",
+    name: "Accelerator",
     price: "₹9,999",
-    description: "Maximum momentum for high-capacity events.",
+    description: "Ideal for creating buzz and momentum.",
     features: [
-      "1 High-Impact Reel",
-      "5 Story Series with CTAs",
-      "Newsletter Feature",
-      "WhatsApp Group Blast",
-      "Detailed Engagement Analysis"
+      "3-4 Instagram Reel of Event",
+      "2 Static Post/Carousel of Event",
+      "3-4 Stories on Instagram"
     ],
     icon: Zap,
+    image: "/images/plan/accelator.png",
     color: "from-pink-500/20 to-purple-500/20",
     popular: true,
-    glowClass: "shadow-[0_0_30px_rgba(236,72,153,0.08)] hover:border-pink-500/30",
-    selectedGlowClass: "border-neon-pink shadow-[0_0_40px_rgba(236,72,153,0.3)]",
+    glowClass: "hover:border-pink-500/30",
+    selectedGlowClass: "border-neon-pink shadow-sm",
     spotlightColor: "rgba(236, 72, 153, 0.15)",
     accentColor: "text-pink-500",
-    badgeColor: "bg-neon-pink text-black font-extrabold",
-    btnSelected: "bg-neon-pink text-black hover:bg-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.4)]"
+    badgeColor: "bg-neon-pink text-white font-extrabold",
+    btnSelected: "bg-neon-pink text-white hover:bg-pink-400"
   },
   {
     id: "elite",
     name: "Impact",
-    price: "₹14,999",
-    description: "The ultimate exposure package for premier productions.",
+    price: "₹17,499",
+    description: "Ideal for creating maximum impact.",
     features: [
-      "Influencer Collaboration",
-      "Full Media Coverage",
-      "Top-spot Carousel Placement",
-      "Dedicated Ad Campaign",
-      "White-glove Marketing Support"
+      "Includes Strategy and customised marketing support",
+      "2 Instagram Reel of Event",
+      "2 Static Post/Carousel of Event",
+      "2 Stories on Instagram"
     ],
     icon: Rocket,
+    image: "/images/plan/impact.png",
     color: "from-orange-500/20 to-amber-500/20",
-    glowClass: "shadow-[0_0_30px_rgba(249,115,22,0.08)] hover:border-orange-500/30",
-    selectedGlowClass: "border-neon-orange shadow-[0_0_40px_rgba(249,115,22,0.25)]",
+    glowClass: "hover:border-orange-500/30",
+    selectedGlowClass: "border-neon-orange shadow-sm",
     spotlightColor: "rgba(249, 115, 22, 0.1)",
     accentColor: "text-orange-500",
-    badgeColor: "bg-orange-500/10 text-orange-500 border border-orange-500/20",
-    btnSelected: "bg-orange-500 text-white hover:bg-orange-600 shadow-[0_0_15px_rgba(249,115,22,0.4)]"
+    badgeColor: "bg-orange-500/10 text-white border border-orange-500/20",
+    btnSelected: "bg-orange-500 text-white hover:bg-orange-600"
   }
 ];
 
@@ -171,12 +170,16 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
       whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
       onClick={onClick}
       onMouseMove={handleMouseMove}
-      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/40 w-[85vw] max-w-[26rem] md:w-auto md:max-w-none shrink-0 snap-start ${
+      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/10 w-[85vw] max-w-[26rem] md:w-auto md:max-w-none shrink-0 snap-start ${
         isSelected
           ? plan.selectedGlowClass
-          : `border-border/60 hover:border-transparent hover:shadow-2xl ${plan.glowClass}`
+          : `border-border/60 hover:border-transparent ${plan.glowClass}`
       }`}
     >
+      <div
+        className="absolute inset-0 z-0 bg-cover bg-center opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{ backgroundImage: `url(${plan.image})` }}
+      />
       <motion.div
         className="absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0"
         style={{
@@ -193,48 +196,37 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
       <div className={`absolute -right-12 -top-12 h-32 w-32 rounded-full blur-[60px] opacity-20 transition-all duration-700 group-hover:scale-125 pointer-events-none z-0 bg-gradient-to-br ${plan.color}`} />
 
       {plan.popular && (
-        <motion.div 
+        <motion.div
           animate={{ scale: [1, 1.03, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className={`absolute top-5 right-6 text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg z-10 flex items-center gap-1.5 ${plan.badgeColor}`}
+          className={`absolute -top-2 -right-2 md:top-5 md:right-6 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1.5 ${plan.badgeColor}`}
         >
-          <Sparkles className="h-3 w-3 animate-pulse" />
-          Recommended
+          <Sparkles className="h-2.5 w-2.5 animate-pulse" />
+          <span className="hidden md:inline">Recommended</span>
+          <span className="md:hidden">Rec</span>
         </motion.div>
       )}
 
-      <div className="relative z-10 flex flex-col flex-1">
-        <motion.div
-          variants={iconVariants}
-          initial="initial"
-          animate="animate"
-          className={`h-12 w-12 md:h-14 md:w-14 rounded-xl md:rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center mb-5 md:mb-8 shadow-inner border border-white/5 relative overflow-hidden`}
-        >
-          <div className="absolute inset-0 bg-white/5 hover:bg-white/10 transition-colors" />
-          <plan.icon className={`h-5 w-5 md:h-6 md:w-6 relative z-10 transition-colors duration-300 ${isSelected ? plan.accentColor : "text-muted-foreground group-hover:text-foreground"}`} />
-        </motion.div>
-
-        <h3 className="text-xl md:text-2xl font-black brand-font uppercase tracking-tighter italic mb-1.5 md:mb-2 group-hover:text-primary transition-colors">
+      <div className="relative z-10 flex flex-col flex-1 text-center">
+        <h3 className="text-xl md:text-2xl font-black brand-font uppercase tracking-tighter italic mb-1.5 md:mb-2 text-white transition-colors text-center">
           {plan.name}
         </h3>
 
-        <div className="flex flex-col mb-4 md:mb-6">
-          <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-wider mb-1">Starting from</span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-              {plan.price}
-            </span>
-            <span className="text-[9px] md:text-[10px] font-black text-muted-foreground uppercase tracking-wider">
-              / Event
-            </span>
-          </div>
+        <div className="flex flex-col items-center mb-4 md:mb-6">
+          <span className="text-[9px] md:text-[10px] font-black text-white/70 uppercase tracking-wider mb-1">Starting from</span>
+          <span className="text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+            {plan.price}
+          </span>
+          <span className="text-[9px] md:text-[10px] font-black text-white/70 uppercase tracking-wider mt-1">
+            / Event
+          </span>
         </div>
 
-        <p className="text-[11px] md:text-[12px] font-medium text-muted-foreground leading-relaxed mb-5 md:mb-8 min-h-[32px] md:min-h-[36px]">
+        <p className="text-[11px] md:text-[12px] font-medium text-white/80 leading-relaxed mb-5 md:mb-8 min-h-[32px] md:min-h-[36px]">
           {plan.description}
         </p>
 
-        <div className="h-[1px] w-full bg-border/40 mb-5 md:mb-8" />
+        <div className="h-[1px] w-full bg-white/20 mb-5 md:mb-8" />
 
         <ul className="space-y-3 md:space-y-4 mb-6 md:mb-10 flex-1">
           {plan.features.map((feature, fIdx) => (
@@ -243,7 +235,7 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 + fIdx * 0.08, ease: "easeOut" }}
-              className="flex items-start gap-2 md:gap-3 text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-foreground/80 leading-tight group/item"
+              className="flex items-start gap-2 md:gap-3 text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-white/80 leading-tight group/item"
             >
               <motion.div
                 variants={checkVariants}
@@ -251,9 +243,9 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
                 whileHover="hovered"
                 className="shrink-0 mt-0.5"
               >
-                <CheckCircle2 className={`h-3.5 w-3.5 md:h-4 md:w-4 shrink-0 transition-colors duration-300 ${isSelected ? plan.accentColor : "text-primary"}`} />
+                <CheckCircle2 className={`h-3.5 w-3.5 md:h-4 md:w-4 shrink-0 transition-colors duration-300 text-neon-lime`} />
               </motion.div>
-              <span className="transition-colors duration-300 group-hover/item:text-foreground">
+              <span className="transition-colors duration-300 group-hover/item:text-white">
                 {feature}
               </span>
             </motion.li>
@@ -266,7 +258,7 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
           className={`w-full rounded-xl md:rounded-2xl h-12 md:h-14 flex items-center justify-center border-2 font-black uppercase tracking-widest text-[10px] md:text-[11px] italic transition-all duration-300 select-none ${
             isSelected
               ? `${plan.btnSelected} border-transparent`
-              : "border-border/80 hover:border-foreground/20 hover:bg-foreground/5 bg-transparent text-muted-foreground hover:text-foreground"
+              : "border-white/30 hover:border-white/50 hover:bg-white/10 bg-transparent text-white/70 hover:text-white"
           }`}
         >
           {isSelected ? (
@@ -348,6 +340,21 @@ const BoostMarketingPage = () => {
               />
             ))}
           </div>
+
+          {/* Customized Marketing Support */}
+          {/* <div className="max-w-4xl mx-auto px-6 md:px-10 py-8 md:py-12 rounded-3xl border-2 border-border/60 bg-card/50 backdrop-blur-sm"> */}
+            <PublicPageHeader
+              pillText="Custom Solutions"
+              title={
+                <>
+                  {/* Customise <span className="text-neon-lime">Marketing Support</span> */}
+                </>
+              }
+              subtitle="Beyond the above packages, we offer highly customized, end-to-end marketing support including influencer collaborations, digital campaigns, content creation, media coverage, and on-ground promotions—tailored specifically for your event."
+              size="md"
+              className="text-center mb-0"
+            />
+          {/* </div> */}
         </section>
 
         {/* Showcase Section */}

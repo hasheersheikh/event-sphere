@@ -205,7 +205,7 @@ const EventSchema: Schema = new Schema(
     },
     isApproved: { type: Boolean, default: false },
     isSponsored: { type: Boolean, default: false },
-    viewCount: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 10000 },
     vouchers: [
       {
         code: { type: String, required: true },

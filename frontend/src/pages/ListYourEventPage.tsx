@@ -435,20 +435,21 @@ const ListYourEventPage = () => {
 
         {/* ── FINAL CTA ── */}
         <section>
-          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-14 md:py-20">
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 py-10 md:py-14">
+            <div className="max-w-4xl mx-auto">
             <motion.div
               {...fadeUp(0)}
-              className="rounded-2xl md:rounded-3xl bg-neon-lime p-8 md:p-20 text-black relative overflow-hidden group"
+              className="rounded-2xl md:rounded-3xl bg-neon-lime p-6 md:p-10 text-black relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-10 md:p-16 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none">
-                <TicketIcon size={240} />
+              <div className="absolute top-0 right-0 p-6 md:p-10 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-700 pointer-events-none">
+                <TicketIcon size={140} />
               </div>
               <div className="relative z-10">
-                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black/50 mb-5">Ready to start?</p>
-                <h2 className="font-display font-black text-5xl md:text-7xl tracking-tighter leading-[0.85] mb-6">
+                <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black/50 mb-3">Ready to start?</p>
+                <h2 className="font-display font-black text-3xl md:text-5xl tracking-tighter leading-[0.85] mb-4">
                   Start listing<br />today.
                 </h2>
-                <p className="text-black/70 text-sm md:text-base leading-relaxed mb-8 max-w-md">
+                <p className="text-black/70 text-sm md:text-base leading-relaxed mb-6 max-w-md">
                   Join thousands of organizers already selling tickets on City Pulse.
                   Free to sign up, no credit card required.
                 </p>
@@ -469,6 +470,7 @@ const ListYourEventPage = () => {
                 </div>
               </div>
             </motion.div>
+            </div>
           </div>
         </section>
 
