@@ -26,9 +26,9 @@ import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 
 const PLANS = [
-  { id: "starter", name: "Spark", price: "₹4,999", color: "cyan", bgClass: "bg-cyan-500", textClass: "text-cyan-500", borderClass: "border-cyan-500", hoverClass: "hover:border-cyan-500/50" },
-  { id: "velocity", name: "Accelerator", price: "₹9,999", color: "pink", bgClass: "bg-neon-pink", textClass: "text-neon-pink", borderClass: "border-neon-pink", hoverClass: "hover:border-neon-pink/50" },
-  { id: "elite", name: "Impact", price: "₹17,499", color: "orange", bgClass: "bg-orange-500", textClass: "text-orange-500", borderClass: "border-orange-500", hoverClass: "hover:border-orange-500/50" }
+  { id: "starter", name: "Spark", price: "₹4,999", color: "red", bgClass: "bg-red-500", textClass: "text-red-500", borderClass: "border-red-500", hoverClass: "hover:border-red-500/50" },
+  { id: "velocity", name: "Accelerator", price: "₹9,999", color: "yellow", bgClass: "bg-neon-yellow", textClass: "text-neon-yellow", borderClass: "border-neon-yellow", hoverClass: "hover:border-neon-yellow/50" },
+  { id: "elite", name: "Impact", price: "₹17,499", color: "purple", bgClass: "bg-purple-500", textClass: "text-purple-500", borderClass: "border-purple-500", hoverClass: "hover:border-purple-500/50" }
 ];
 
 const BoostRequestPage = () => {

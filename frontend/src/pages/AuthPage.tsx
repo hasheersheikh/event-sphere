@@ -151,7 +151,7 @@ const AuthPage = () => {
               </h1>
               <p className="text-sm text-white/50 font-medium leading-relaxed max-w-xs">
                 <span className="text-black dark:text-white">
-                  Incredible Shows, Trending Venues & People, Unique Stores, Sports & Adventure
+                  Events & Shows, Trending Venues, Unique Stores & Sports
                 </span>
                 <br /><br />
                 <span className="inline-block px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black font-medium">

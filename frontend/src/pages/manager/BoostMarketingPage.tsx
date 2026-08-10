@@ -42,13 +42,12 @@ const PLANS = [
     ],
     icon: AtSign,
     image: "/images/plan/spark.png",
-    color: "from-cyan-500/20 to-blue-500/20",
-    glowClass: "hover:border-cyan-500/30",
-    selectedGlowClass: "border-neon-cyan shadow-sm",
-    spotlightColor: "rgba(6, 182, 212, 0.1)",
-    accentColor: "text-cyan-500",
-    badgeColor: "bg-cyan-500/10 text-white border border-cyan-500/20",
-    btnSelected: "bg-cyan-500 text-white hover:bg-cyan-600"
+    glowClass: "hover:border-red-500/30",
+    selectedGlowClass: "border-neon-red shadow-sm",
+    spotlightColor: "rgba(239, 68, 68, 0.15)",
+    accentColor: "text-red-500",
+    badgeColor: "bg-red-500/10 text-white border border-red-500/20",
+    btnSelected: "bg-red-500 text-white hover:bg-red-600"
   },
   {
     id: "velocity",
@@ -62,14 +61,13 @@ const PLANS = [
     ],
     icon: Zap,
     image: "/images/plan/accelator.png",
-    color: "from-pink-500/20 to-purple-500/20",
     popular: true,
-    glowClass: "hover:border-pink-500/30",
-    selectedGlowClass: "border-neon-pink shadow-sm",
-    spotlightColor: "rgba(236, 72, 153, 0.15)",
-    accentColor: "text-pink-500",
-    badgeColor: "bg-neon-pink text-white font-extrabold",
-    btnSelected: "bg-neon-pink text-white hover:bg-pink-400"
+    glowClass: "hover:border-yellow-500/30",
+    selectedGlowClass: "border-neon-yellow shadow-sm",
+    spotlightColor: "rgba(234, 179, 8, 0.15)",
+    accentColor: "text-yellow-500",
+    badgeColor: "bg-neon-yellow text-black font-extrabold",
+    btnSelected: "bg-neon-yellow text-black hover:bg-yellow-400"
   },
   {
     id: "elite",
@@ -77,20 +75,19 @@ const PLANS = [
     price: "₹17,499",
     description: "Ideal for creating maximum impact.",
     features: [
-      "Includes Strategy and customised marketing support",
+      "Includes Strategy & customised marketing support",
       "2 Instagram Reel of Event",
       "2 Static Post/Carousel of Event",
       "2 Stories on Instagram"
     ],
     icon: Rocket,
     image: "/images/plan/impact.png",
-    color: "from-orange-500/20 to-amber-500/20",
-    glowClass: "hover:border-orange-500/30",
-    selectedGlowClass: "border-neon-orange shadow-sm",
-    spotlightColor: "rgba(249, 115, 22, 0.1)",
-    accentColor: "text-orange-500",
-    badgeColor: "bg-orange-500/10 text-white border border-orange-500/20",
-    btnSelected: "bg-orange-500 text-white hover:bg-orange-600"
+    glowClass: "hover:border-purple-500/30",
+    selectedGlowClass: "border-neon-purple shadow-sm",
+    spotlightColor: "rgba(168, 85, 247, 0.15)",
+    accentColor: "text-purple-500",
+    badgeColor: "bg-purple-500/10 text-white border border-purple-500/20",
+    btnSelected: "bg-purple-500 text-white hover:bg-purple-600"
   }
 ];
 
@@ -132,6 +129,7 @@ interface PlanCardProps {
 }
 
 const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
+  const navigate = useNavigate();
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -162,24 +160,26 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: 0.6, 
+      transition={{
+        duration: 0.6,
         delay: idx * 0.1,
         ease: [0.16, 1, 0.3, 1]
       }}
       whileHover={{ y: -8, transition: { duration: 0.2, ease: "easeOut" } }}
       onClick={onClick}
       onMouseMove={handleMouseMove}
-      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 backdrop-blur-md bg-card/10 w-[85vw] max-w-[26rem] md:w-auto md:max-w-none shrink-0 snap-start ${
+      className={`relative group cursor-pointer rounded-2xl md:rounded-[2.5rem] border-2 p-5 md:p-8 flex flex-col overflow-hidden transition-all duration-300 w-[85vw] max-w-[26rem] md:w-auto md:max-w-none shrink-0 snap-start ${
         isSelected
           ? plan.selectedGlowClass
           : `border-border/60 hover:border-transparent ${plan.glowClass}`
       }`}
     >
       <div
-        className="absolute inset-0 z-0 bg-cover bg-center opacity-100 transition-opacity duration-500 pointer-events-none"
+        className="absolute inset-0 z-0 bg-cover bg-top pointer-events-none"
         style={{ backgroundImage: `url(${plan.image})` }}
       />
+      <div className="absolute inset-0 z-0 dark:bg-gradient-to-b dark:from-black/20 dark:via-black/70 dark:to-black/95 pointer-events-none" />
+
       <motion.div
         className="absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-0"
         style={{
@@ -193,13 +193,11 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
         }}
       />
 
-      <div className={`absolute -right-12 -top-12 h-32 w-32 rounded-full blur-[60px] opacity-20 transition-all duration-700 group-hover:scale-125 pointer-events-none z-0 bg-gradient-to-br ${plan.color}`} />
-
       {plan.popular && (
         <motion.div
           animate={{ scale: [1, 1.03, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className={`absolute -top-2 -right-2 md:top-5 md:right-6 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1.5 ${plan.badgeColor}`}
+          className={`absolute top-3 right-3 md:top-4 md:right-4 text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg z-10 flex items-center gap-1.5 ${plan.badgeColor}`}
         >
           <Sparkles className="h-2.5 w-2.5 animate-pulse" />
           <span className="hidden md:inline">Recommended</span>
@@ -208,13 +206,13 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
       )}
 
       <div className="relative z-10 flex flex-col flex-1 text-center">
-        <h3 className="text-xl md:text-2xl font-black brand-font uppercase tracking-tighter italic mb-1.5 md:mb-2 text-white transition-colors text-center">
+        <h3 className={`text-3xl md:text-4xl font-black brand-font uppercase tracking-tighter mb-1.5 md:mb-2 transition-colors text-center text-white drop-shadow-[0_0_16px_rgba(255,255,255,0.6)] ${plan.popular ? "mt-7 md:mt-6" : ""}`}>
           {plan.name}
         </h3>
 
         <div className="flex flex-col items-center mb-4 md:mb-6">
           <span className="text-[9px] md:text-[10px] font-black text-white/70 uppercase tracking-wider mb-1">Starting from</span>
-          <span className="text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+          <span className="inline-block pr-2 md:pr-3 text-3xl md:text-4xl font-black italic tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
             {plan.price}
           </span>
           <span className="text-[9px] md:text-[10px] font-black text-white/70 uppercase tracking-wider mt-1">
@@ -222,20 +220,20 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
           </span>
         </div>
 
-        <p className="text-[11px] md:text-[12px] font-medium text-white/80 leading-relaxed mb-5 md:mb-8 min-h-[32px] md:min-h-[36px]">
+        <p className="text-[11px] md:text-[12px] font-bold text-white/90 leading-relaxed mb-5 md:mb-8 min-h-[32px] md:min-h-[36px]">
           {plan.description}
         </p>
 
         <div className="h-[1px] w-full bg-white/20 mb-5 md:mb-8" />
 
-        <ul className="space-y-3 md:space-y-4 mb-6 md:mb-10 flex-1">
+        <ul className="space-y-3 md:space-y-4 mb-6 md:mb-10 flex-1 text-left">
           {plan.features.map((feature, fIdx) => (
             <motion.li
               key={fIdx}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: idx * 0.1 + fIdx * 0.08, ease: "easeOut" }}
-              className="flex items-start gap-2 md:gap-3 text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-white/80 leading-tight group/item"
+              className="flex items-start gap-2 md:gap-3 text-[9px] md:text-[10px] font-bold uppercase tracking-wide text-white/90 leading-tight group/item"
             >
               <motion.div
                 variants={checkVariants}
@@ -255,6 +253,14 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
         <motion.div
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isSelected) {
+              navigate(`/boost/request?plan=${plan.id}`);
+            } else {
+              onClick();
+            }
+          }}
           className={`w-full rounded-xl md:rounded-2xl h-12 md:h-14 flex items-center justify-center border-2 font-black uppercase tracking-widest text-[10px] md:text-[11px] italic transition-all duration-300 select-none ${
             isSelected
               ? `${plan.btnSelected} border-transparent`
@@ -263,7 +269,7 @@ const PlanCard = ({ plan, isSelected, onClick, idx }: PlanCardProps) => {
         >
           {isSelected ? (
             <span className="flex items-center gap-1.5 md:gap-2">
-              Selected <span className="hidden sm:inline">Plan</span> <CheckCircle2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              Proceed <ArrowRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </span>
           ) : (
             "Select Plan"
@@ -325,7 +331,11 @@ const BoostMarketingPage = () => {
                 Select Your <span className="text-neon-lime">Plan</span>
               </>
             }
-            subtitle="Choose a plan that fits your event scale."
+            subtitle={
+              <span className="text-foreground/90 font-semibold">
+                Choose a plan that fits your event scale.
+              </span>
+            }
             size="md"
             className="text-center mb-0"
           />

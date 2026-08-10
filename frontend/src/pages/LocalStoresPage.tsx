@@ -56,11 +56,11 @@ const LocalStoresPage = () => {
               transition={{ duration: 0.4 }}
               className="mb-4"
             >
-              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
+              {/* <p className="text-[10px] font-black uppercase tracking-[0.45em] text-neon-lime mb-2">
                 Discover
-              </p>
+              </p> */}
               <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
-                New Stores <span className="text-neon-lime">In Your City</span>
+                Discover New Stores <span className="text-neon-lime">In Your City</span>
               </h1>
              
             </motion.div>

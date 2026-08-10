@@ -191,8 +191,10 @@ const EventsPage = () => {
               className="space-y-2"
             >
               <div className="mb-4">
-                <p className="text-[9px] font-black uppercase tracking-[0.6em] text-neon-lime mb-1">Discover Experiences That Moves You</p>
-                <h1 className="text-4xl font-black tracking-tighter">Events</h1>
+                {/* <p className="text-[9px] font-black uppercase tracking-[0.6em] text-neon-lime mb-1">Discover Experiences That Moves You</p> */}
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter">
+                Discover Experiences <span className="text-neon-lime">That Moves You</span>
+              </h1>
               </div>
               <form onSubmit={handleSearch} className="max-w-md">
                 <div className="flex items-stretch gap-1.5 p-1.5 bg-card border border-border/30 rounded-2xl shadow-[0_6px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-[0_6px_24px_rgba(0,0,0,0.65),0_2px_8px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.07)]">
