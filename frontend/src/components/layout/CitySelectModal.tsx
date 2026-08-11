@@ -26,14 +26,14 @@ const CITY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 
 // City images
 const CITY_IMAGES: Record<string, string> = {
-  "Nagpur": "/images/city/Nagpur.jpg",
-  "Mumbai": "/images/city/Mumbai.jpg",
-  "Delhi": "/images/city/Delhi.jpg",
-  "Bengaluru": "", // No image yet
-  "Hyderabad": "/images/city/Hyderabad.jpg",
-  "Chennai": "/images/city/Chennai.jpg",
-  "Pune": "/images/city/Pune.jpg",
-  "Kolkata": "/images/city/Kolkata.jpg",
+  "Nagpur": "/images/city/nagpur.png",
+  "Mumbai": "/images/city/mumbai.png",
+  "Delhi": "/images/city/delhi.png",
+  "Bengaluru": "/images/city/bengaluru.png",
+  "Hyderabad": "/images/city/hyderabad.png",
+  "Chennai": "/images/city/chennai.png",
+  "Pune": "/images/city/pune.png",
+  "Kolkata": "/images/city/kolkata.png",
 };
 
 const CitySelectModal = () => {
@@ -243,7 +243,7 @@ const CitySelectModal = () => {
                             />
                           )}
                           <div className="relative z-10 flex flex-col items-center gap-2 w-full">
-                            <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-muted">
+                            <div className="relative w-full aspect-square rounded-full overflow-hidden bg-muted">
                               {cityImage ? (
                                 <img
                                   src={cityImage}

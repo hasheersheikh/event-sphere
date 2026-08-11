@@ -7,7 +7,7 @@ import EventManager from '../models/EventManager.js';
 import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
-import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailService.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin, sendPartnerContractEmail } from '../utils/emailService.js';
 import { claimGuestBookings } from './otpController.js';
 
 const jwtSecret = (): string => {
@@ -155,6 +155,7 @@ export const register = async (req: Request, res: Response) => {
           await sendWelcomeEmail(user.email, user.name);
           if (userRole === 'event_manager') {
             await sendManagerSignUpNotificationToAdmin(user.name, user.email);
+            await sendPartnerContractEmail(user.email, user.name, 'Event Manager');
           }
         } catch (err) {
           console.error('Failed to send registration emails:', err);

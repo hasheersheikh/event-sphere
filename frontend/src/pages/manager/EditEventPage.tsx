@@ -603,6 +603,7 @@ const EditEventPage = () => {
     "Health",
     "Sports",
     "Education",
+    "Exhibition",
     "Other",
   ];
 

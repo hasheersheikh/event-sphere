@@ -249,13 +249,14 @@ const EventDetailPage = () => {
 
   const getCategoryImage = (category: string = "other") => {
     const cats: Record<string, string> = {
-      music: "/images/categories/music.jpg", technology: "/images/categories/technology.jpg",
-      business: "/images/categories/business.jpg", entertainment: "/images/categories/entertainment.jpg",
-      comedy: "/images/categories/entertainment.jpg",
-      health: "/images/categories/health.jpg", sports: "/images/categories/sports.jpg",
-      education: "/images/categories/education.jpg", workshop: "/images/categories/technology.jpg",
-      other: "/images/categories/other.jpg", art: "/images/categories/entertainment.jpg",
-      meetup: "/images/categories/business.jpg", tech: "/images/categories/technology.jpg",
+      music: "/images/categories/music.png", technology: "/images/categories/music.png",
+      business: "/images/categories/meetups.png", entertainment: "/images/categories/comedy.png",
+      comedy: "/images/categories/comedy.png",
+      health: "/images/categories/health.png", sports: "/images/categories/sports.png",
+      education: "/images/categories/meetups.png", workshop: "/images/categories/meetups.png",
+      other: "/images/categories/meetups.png", art: "/images/categories/arts.png",
+      exhibition: "/images/categories/arts.png",
+      meetup: "/images/categories/meetups.png", tech: "/images/categories/music.png",
     };
     return cats[category.toLowerCase()] || cats.other;
   };

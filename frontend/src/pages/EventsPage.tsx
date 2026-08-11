@@ -61,13 +61,14 @@ const EventsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const categoryImages: Record<string, string> = {
-    "Music": "/categories/music.jpeg",
-    "Comedy": "/categories/comedy.jpeg",
-    "Sports": "/categories/sports.jpg",
-    "Arts": "/categories/arts.jpeg",
-    "Food & Drink": "/categories/food-drink.jpeg",
-    "Health": "/categories/health.jpg",
-    "Meetups": "/categories/meetups.jpeg",
+    "Music": "/images/categories/music.png",
+    "Comedy": "/images/categories/comedy.png",
+    "Sports": "/images/categories/sports.png",
+    "Arts": "/images/categories/arts.png",
+    "Food & Drink": "/images/categories/food-drink.png",
+    "Health": "/images/categories/health.png",
+    "Meetups": "/images/categories/meetups.png",
+    "Exhibition": "/images/categories/arts.png",
   };
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
@@ -265,8 +266,8 @@ const EventsPage = () => {
           </div>
         </section>
 
-        {/* ─── Mobile: Instagram stories-style categories ─────────────────── */}
-        <section className="md:hidden py-4 px-8">
+        {/* ─── Categories (circular, all breakpoints) ──────────────────────── */}
+        <section className="py-4 px-8">
           <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide snap-x px-8 py-2">
               {categories.map((cat) => (
                 <button
@@ -290,7 +291,7 @@ const EventsPage = () => {
                     )}
                   >
                     <img
-                      src={categoryImages[cat.name] || "/images/categories/other.jpg"}
+                      src={categoryImages[cat.name] || "/images/categories/meetups.png"}
                       alt={cat.name}
                       className={cn(
                         "w-full h-full object-cover transition-all duration-200",
@@ -311,36 +312,6 @@ const EventsPage = () => {
                   </span>
                 </button>
               ))}
-          </div>
-        </section>
-
-        {/* ─── Desktop: Category pills ─────────────────────────────────────────── */}
-        <section className="hidden md:block py-2">
-          <div className="container px-8">
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => {
-                    const next = selectedCategory === cat.name ? "" : cat.name;
-                    setSelectedCategory(next);
-                    const params = new URLSearchParams(searchParams);
-                    if (next) params.set("category", next);
-                    else params.delete("category");
-                    setSearchParams(params);
-                  }}
-                  className={cn(
-                    "whitespace-nowrap px-3.5 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border transition-all duration-200 shrink-0 flex items-center gap-1 md:gap-1.5",
-                    selectedCategory === cat.name
-                      ? "bg-foreground border-foreground text-background"
-                      : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground bg-transparent"
-                  )}
-                >
-                  <span className="text-xs md:text-sm">{cat.icon}</span>
-                  {cat.name}
-                </button>
-              ))}
-            </div>
           </div>
         </section>
 

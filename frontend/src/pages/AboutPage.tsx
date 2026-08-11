@@ -220,9 +220,9 @@ const AboutPage = () => {
 
               {/* Person 1: Mohsin Sheikh */}
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-0">
+                <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/mohsin_sheikh.png"
+                    src="/images/founder/Mohsin f.png"
                     alt="Mohsin Sheikh - Founder"
                     className="w-full h-full object-cover object-center"
                   />
@@ -232,7 +232,7 @@ const AboutPage = () => {
                   <h3 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
                     Mohsin <span className="text-neon-lime">Sheikh</span>
                   </h3>
-                  <p className="text-xl md:text-2xl font-semibold text-neon-lime">Founder, City Pulse</p>
+                  <p className="text-xl md:text-2xl font-semibold text-neon-lime">The Driving Force</p>
                   <p className="text-base md:text-lg font-bold text-white leading-relaxed">
                     Every event, big or small, deserves to be discovered and find its audience.
                   </p>
@@ -244,9 +244,9 @@ const AboutPage = () => {
 
               {/* Person 2: Gulfeshan Aftab */}
               <div className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
-                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-0">
+                <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/gulfeshan.png"
+                    src="/images/founder/Gulfeshan final.png"
                     alt="Gulfeshan Aftab - CPO"
                     className="w-full h-full object-cover object-center"
                   />
@@ -268,9 +268,9 @@ const AboutPage = () => {
 
               {/* Person 3: Amir Sheikh */}
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-                <div className="w-full md:w-80 lg:w-96 aspect-[4/5] rounded-3xl overflow-hidden border-4 border-neon-lime/30 shadow-2xl shrink-2xl shrink-0">
+                <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/amir_shekh.png"
+                    src="/images/founder/aamir.png"
                     alt="Amir Sheikh - Co Founder"
                     className="w-full h-full object-cover object-center"
                   />

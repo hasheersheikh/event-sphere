@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { uploadImageToBackend } from "@/lib/localUpload";
+import { VENUE_CATEGORIES } from "@/constants/venueCategories";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ interface TrendingVenue {
   _id: string;
   name: string;
   location: string;
+  category?: string;
   description?: string;
   image?: string;
   images?: string[];
@@ -45,6 +47,7 @@ interface TrendingVenue {
 const BLANK_FORM = {
   name: "",
   location: "",
+  category: "",
   description: "",
   image: "",
   images: [] as string[],
@@ -135,6 +138,7 @@ const TrendingVenueManagementPage = () => {
     setForm({
       name: venue.name,
       location: venue.location,
+      category: venue.category || "",
       description: venue.description || "",
       image: venue.image || "",
       images: venue.images || [],
@@ -421,6 +425,21 @@ const TrendingVenueManagementPage = () => {
                   onChange={(e) => setForm({ ...form, location: e.target.value })}
                   className="rounded-xl font-bold uppercase italic"
                 />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Category</label>
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="w-full h-10 rounded-xl border border-border bg-transparent px-3 text-sm font-bold uppercase italic focus:outline-none focus:ring-2 focus:ring-primary/40"
+                >
+                  <option value="">Select a category</option>
+                  {VENUE_CATEGORIES.filter((c) => c !== "All").map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Description (Optional)</label>

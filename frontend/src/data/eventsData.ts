@@ -15,6 +15,7 @@ const categoryImageMap: Record<string, string> = {
   "Workshops": techConferenceImage,
   "Food & Drink": foodWineImage,
   "Health": yogaRetreatImage,
+  "Exhibition": concertImage,
 };
 
 export const eventsWithImages = mockEvents.map((event) => ({

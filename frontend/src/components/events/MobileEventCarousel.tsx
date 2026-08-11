@@ -13,20 +13,21 @@ interface MobileEventCarouselProps {
 
 const getCategoryImage = (category: string = "other") => {
   const cats: Record<string, string> = {
-    music: "/images/categories/music.jpg",
-    comedy: "/images/categories/entertainment.jpg",
-    technology: "/images/categories/technology.jpg",
-    business: "/images/categories/business.jpg",
-    entertainment: "/images/categories/entertainment.jpg",
-    health: "/images/categories/health.jpg",
-    sports: "/images/categories/sports.jpg",
-    education: "/images/categories/education.jpg",
-    workshop: "/images/categories/technology.jpg",
-    "food & drink": "/images/categories/other.jpg",
-    arts: "/images/categories/entertainment.jpg",
-    meetups: "/images/categories/business.jpg",
-    tech: "/images/categories/technology.jpg",
-    other: "/images/categories/other.jpg",
+    music: "/images/categories/music.png",
+    comedy: "/images/categories/comedy.png",
+    technology: "/images/categories/music.png",
+    business: "/images/categories/meetups.png",
+    entertainment: "/images/categories/comedy.png",
+    health: "/images/categories/health.png",
+    sports: "/images/categories/sports.png",
+    education: "/images/categories/meetups.png",
+    workshop: "/images/categories/meetups.png",
+    "food & drink": "/images/categories/food-drink.png",
+    arts: "/images/categories/arts.png",
+    meetups: "/images/categories/meetups.png",
+    exhibition: "/images/categories/arts.png",
+    tech: "/images/categories/music.png",
+    other: "/images/categories/meetups.png",
   };
   return cats[category.toLowerCase()] || cats.other;
 };

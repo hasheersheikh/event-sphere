@@ -3,6 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ITrendingVenue extends Document {
   name: string;
   location: string;
+  category?: string;
   description?: string;
   image?: string;
   images?: string[];
@@ -16,6 +17,7 @@ const TrendingVenueSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
     location: { type: String, required: true },
+    category: { type: String },
     description: { type: String },
     image: { type: String },
     images: { type: [String], default: [] },

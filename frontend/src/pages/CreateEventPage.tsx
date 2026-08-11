@@ -444,7 +444,7 @@ const CreateEventPage = () => {
     form.handleSubmit(onSubmit)();
   };
 
-  const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Other"];
+  const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Exhibition", "Other"];
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 

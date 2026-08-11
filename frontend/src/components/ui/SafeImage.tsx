@@ -7,7 +7,7 @@ interface SafeImageProps extends ImgHTMLAttributes<HTMLImageElement> {
 const SafeImage = ({ 
   src, 
   alt, 
-  fallback = "/images/categories/other.jpg", 
+  fallback = "/images/categories/meetups.png", 
   className,
   ...props 
 }: SafeImageProps) => {

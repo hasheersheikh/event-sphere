@@ -154,7 +154,7 @@ const AuthPage = () => {
                   Events & Shows, Trending Venues, Unique Stores & Sports
                 </span>
                 <br /><br />
-                <span className="inline-block px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black font-medium">
+                <span className="text-black dark:text-white">
                   Discover what's happening around you with City Pulse.
                 </span>
               </p>

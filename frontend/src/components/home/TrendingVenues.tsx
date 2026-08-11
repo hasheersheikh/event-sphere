@@ -14,11 +14,13 @@ import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 import DetailModal from "@/components/shared/DetailModal";
 import ReadMore from "@/components/shared/ReadMore";
+import { VENUE_CATEGORIES } from "@/constants/venueCategories";
 
 interface TrendingVenue {
   _id: string;
   name: string;
   location: string;
+  category?: string;
   description?: string;
   image?: string;
   images?: string[];
@@ -80,6 +82,11 @@ const TrendingVenues = () => {
 
   const [selectedVenue, setSelectedVenue] = useState<TrendingVenue | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  const filteredVenues = (trendingVenues ?? []).filter(
+    (venue) => activeCategory === "All" || venue.category === activeCategory
+  );
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -108,10 +115,27 @@ const TrendingVenues = () => {
           </Link>
         </PublicPageHeader>
 
+        {/* Category filter pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-5 md:pb-1 pl-3 pr-4 md:px-8 justify-start md:justify-center">
+          {VENUE_CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-shrink-0 text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] px-3 md:px-4 py-1.5 rounded-full border transition-all duration-200 ${
+                activeCategory === cat
+                  ? "bg-foreground text-background border-transparent"
+                  : "bg-transparent text-foreground border-border/40 hover:border-foreground/30 hover:text-foreground"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
         <div className="md:hidden">
-          <MobileMarqueeCarousel>
-            {trendingVenues?.map((venue) => (
+          <MobileMarqueeCarousel key={activeCategory}>
+            {filteredVenues.map((venue) => (
               <button
                 key={venue._id}
                 onClick={() => setSelectedVenue(venue)}
@@ -125,8 +149,8 @@ const TrendingVenues = () => {
 
         {/* Desktop: continuous drift marquee */}
         <div className="relative hidden md:block">
-          <MarqueeCarousel>
-            {trendingVenues?.map((venue, idx) => (
+          <MarqueeCarousel key={activeCategory}>
+            {filteredVenues.map((venue, idx) => (
               <motion.div
                 key={venue._id}
                 initial={{ opacity: 0, y: 16 }}

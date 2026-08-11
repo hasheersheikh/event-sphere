@@ -13,6 +13,7 @@ const venues = [
   {
     name: 'Madison Square Garden',
     location: 'New York, USA',
+    category: 'Entertainment',
     description: 'The world\'s most famous arena, hosting legendary concerts and sporting events.',
     image: 'https://images.unsplash.com/photo-1577030553030-246f748fa240?auto=format&fit=crop&q=80&w=1000',
     order: 1,
@@ -21,6 +22,7 @@ const venues = [
   {
     name: 'Sydney Opera House',
     location: 'Sydney, Australia',
+    category: 'Culture',
     description: 'An iconic performing arts center known for its unique shell-like design.',
     image: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&q=80&w=1000',
     order: 2,
@@ -29,6 +31,7 @@ const venues = [
   {
     name: 'The O2 Arena',
     location: 'London, UK',
+    category: 'Entertainment',
     description: 'One of the busiest music arenas in the world, located in the heart of London.',
     image: 'https://images.unsplash.com/photo-1563811771046-ba984ff30900?auto=format&fit=crop&q=80&w=1000',
     order: 3,
@@ -37,6 +40,7 @@ const venues = [
   {
     name: 'Marina Bay Sands',
     location: 'Singapore',
+    category: 'Nightlife',
     description: 'Luxury resort and event space with the world\'s largest rooftop infinity pool.',
     image: 'https://images.unsplash.com/photo-1527786356703-4b100091cd2c?auto=format&fit=crop&q=80&w=1000',
     order: 4,
@@ -45,6 +49,7 @@ const venues = [
   {
     name: 'Red Rocks Amphitheatre',
     location: 'Morrison, Colorado',
+    category: 'Hidden Gems',
     description: 'A geologically spectacular open-air amphitheatre carved into rock.',
     image: 'https://images.unsplash.com/photo-1599739291060-4578e77dac5d?auto=format&fit=crop&q=80&w=1000',
     order: 5,
@@ -53,6 +58,7 @@ const venues = [
   {
     name: 'Burj Al Arab',
     location: 'Dubai, UAE',
+    category: 'Stay',
     description: 'The world\'s only 7-star hotel and a landmark of modern architectural luxury.',
     image: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&q=80&w=1000',
     order: 6,

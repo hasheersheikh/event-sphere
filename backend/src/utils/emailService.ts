@@ -540,3 +540,50 @@ export const sendMarketingBoostRequestEmail = async (managerName: string, manage
     logger.error('Failed to send marketing boost request email', err);
   }
 };
+
+export const sendPartnerContractEmail = async (email: string, partnerName: string, partnerType: 'Event Manager' | 'Store Owner') => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await resend.emails.send({
+      from: 'City Pulse <legal@eventsphere.dev>',
+      to: [email],
+      subject: `Confidential Partner Contract — City Pulse (${partnerType})`,
+      html: `
+        <div style="font-family: sans-serif; color: #1e293b; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+          <div style="background-color: #050505; padding: 40px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em;">City Pulse</h1>
+            <p style="margin: 5px 0 0; color: #10B981; font-weight: bold; letter-spacing: 0.1em; text-transform: uppercase; font-size: 12px;">Confidential Partner Contract</p>
+          </div>
+          <div style="padding: 40px;">
+            <h2>Dear ${partnerName},</h2>
+            <p>Welcome to the City Pulse collective. As part of your onboarding as a <strong>${partnerType}</strong>, please find attached your confidential partner contract below.</p>
+
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+              <p style="margin: 0 0 8px; font-size: 12px; font-weight: bold; text-transform: uppercase; color: #64748b;">CONFIDENTIAL — CONTRACT SUMMARY</p>
+              <p style="margin: 4px 0;"><strong>Parties:</strong> City Pulse Collective & ${partnerName}</p>
+              <p style="margin: 4px 0;"><strong>Role:</strong> ${partnerType}</p>
+              <p style="margin: 4px 0;"><strong>Effective Date:</strong> Date of account activation</p>
+              <p style="margin: 8px 0 0; color: #475569; font-size: 13px; line-height: 1.6;">
+                [CONTRACT TERMS GO HERE — REPLACE THIS SECTION WITH THE FINAL PARTNER CONTRACT: commission structure, payment cycles, content ownership, exclusivity, confidentiality obligations, termination terms, and any other policy terms.]
+              </p>
+            </div>
+
+            <p style="color: #475569; line-height: 1.6;">By continuing to use the City Pulse platform, you agree to the terms outlined in this contract. Please retain this email for your records — it is confidential and should not be shared with third parties.</p>
+
+            <div style="margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:8080'}" style="background-color: #10B981; color: black; padding: 18px 32px; text-decoration: none; border-radius: 12px; font-weight: 900; display: inline-block; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px;">Visit City Pulse</a>
+            </div>
+
+            <p style="color: #94a3b8; font-size: 13px;">If you have any questions about this contract, please reply to this email and our team will assist you.</p>
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;" />
+            <p style="color: #64748b; font-size: 12px; font-style: italic;">City Pulse Collective</p>
+          </div>
+        </div>
+      `,
+    });
+    logger.info(`Partner contract email sent to ${email} (${partnerType})`);
+  } catch (err) {
+    logger.error('Failed to send partner contract email', err);
+  }
+};
