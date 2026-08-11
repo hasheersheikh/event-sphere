@@ -25,7 +25,7 @@ const getCategoryImage = (category: string = "other") => {
     "food & drink": "/images/categories/food-drink.png",
     arts: "/images/categories/arts.png",
     meetups: "/images/categories/meetups.png",
-    exhibition: "/images/categories/arts.png",
+    exhibition: "/images/categories/exhibition.png",
     tech: "/images/categories/music.png",
     other: "/images/categories/meetups.png",
   };

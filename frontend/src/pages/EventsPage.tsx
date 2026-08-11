@@ -68,7 +68,7 @@ const EventsPage = () => {
     "Food & Drink": "/images/categories/food-drink.png",
     "Health": "/images/categories/health.png",
     "Meetups": "/images/categories/meetups.png",
-    "Exhibition": "/images/categories/arts.png",
+    "Exhibition": "/images/categories/exhibition.png",
   };
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");

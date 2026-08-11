@@ -255,7 +255,7 @@ const EventDetailPage = () => {
       health: "/images/categories/health.png", sports: "/images/categories/sports.png",
       education: "/images/categories/meetups.png", workshop: "/images/categories/meetups.png",
       other: "/images/categories/meetups.png", art: "/images/categories/arts.png",
-      exhibition: "/images/categories/arts.png",
+      exhibition: "/images/categories/exhibition.png",
       meetup: "/images/categories/meetups.png", tech: "/images/categories/music.png",
     };
     return cats[category.toLowerCase()] || cats.other;

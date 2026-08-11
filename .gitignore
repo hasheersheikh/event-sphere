@@ -1,9 +1,18 @@
-*.agents*
-*skills*
+# Command Code (local AI assistant config — not for version control)
+.commandcode/
+.agents/
+commandcode/
+
+# Environment files (secrets)
+.env
+.env.local
+.env.*.local
+frontend/.env
+backend/.env
 
 # Logs
 *.log
 backend/uploads/
 
-
-./commandcode
+# macOS
+.DS_Store
