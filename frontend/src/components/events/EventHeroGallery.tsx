@@ -269,7 +269,7 @@ export const EventHeroGallery = ({
       {assets[currentIndex]?.type === "video" && (
         <button
           onClick={toggleMute}
-          className="absolute top-3 right-3 z-20 h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all duration-150 active:scale-90"
+          className="absolute bottom-4 left-3 z-20 h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all duration-150 active:scale-90"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
           {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
