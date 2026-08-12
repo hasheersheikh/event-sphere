@@ -269,6 +269,14 @@ const HeroManagementPage = () => {
 
   // ── Cloudinary upload widget ──────────────────────────────────────────────
 
+  // Aspect ratio (w/h) enforced by the widget's interactive crop step,
+  // based on the target device the hero is being uploaded for.
+  const cropAspectRatio = (device: "mobile" | "desktop" | "all"): number => {
+    if (device === "mobile") return 2; // 2:1 landscape
+    if (device === "desktop") return 0.8; // 4:5 portrait
+    return 1; // square fallback for "all"
+  };
+
   const openUploadWidget = () => {
     // @ts-ignore
     if (!window.cloudinary) {
@@ -292,6 +300,8 @@ const HeroManagementPage = () => {
           resourceType: "auto",
           clientAllowedFormats: ["jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm"],
           maxFileSize: 50_000_000,
+          cropping: true,
+          croppingAspectRatio: cropAspectRatio(form.targetDevice),
           singleUploadAutoClose: true,
           showCompletedButton: false,
           styles: {
@@ -594,9 +604,15 @@ const HeroManagementPage = () => {
                   </label>
                   <Select
                     value={form.targetDevice}
-                    onValueChange={(v: "all" | "desktop" | "mobile") =>
-                      setForm((f) => ({ ...f, targetDevice: v }))
-                    }
+                    onValueChange={(v: "all" | "desktop" | "mobile") => {
+                      setForm((f) => ({ ...f, targetDevice: v }));
+                      // Rebuild the widget so the interactive crop ratio matches
+                      // the newly selected target device.
+                      if (widgetRef.current) {
+                        widgetRef.current.destroy();
+                        widgetRef.current = null;
+                      }
+                    }}
                   >
                     <SelectTrigger className="h-10">
                       <SelectValue />

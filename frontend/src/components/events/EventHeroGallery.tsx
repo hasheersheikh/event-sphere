@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 
 interface Asset {
   type: "image" | "video";
@@ -20,6 +20,7 @@ export const EventHeroGallery = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -58,8 +59,14 @@ export const EventHeroGallery = ({
     if (assets[currentIndex]?.type !== "video" || !videoRef.current) return;
     const video = videoRef.current;
     video.currentTime = 0;
+    video.muted = isMuted;
     video.play().catch(() => {
-      timerRef.current = setTimeout(() => setCurrentIndex(0), 5000);
+      // Browser blocked autoplay with sound — fall back to muted playback
+      video.muted = true;
+      setIsMuted(true);
+      video.play().catch(() => {
+        timerRef.current = setTimeout(() => setCurrentIndex(0), 5000);
+      });
     });
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [currentIndex]);
@@ -67,9 +74,22 @@ export const EventHeroGallery = ({
   // Loop when only video
   useEffect(() => {
     if (!imageUrl && videoUrl && videoRef.current) {
-      videoRef.current.play().catch(() => {});
+      const video = videoRef.current;
+      video.muted = isMuted;
+      video.play().catch(() => {
+        video.muted = true;
+        setIsMuted(true);
+        video.play().catch(() => {});
+      });
     }
   }, [imageUrl, videoUrl]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = !isMuted;
+    setIsMuted(next);
+    if (videoRef.current) videoRef.current.muted = next;
+  };
 
   const handleVideoEnded = () => {
     if (hasBoth) setCurrentIndex(0);
@@ -210,7 +230,7 @@ export const EventHeroGallery = ({
             ) : (
               <video
                 ref={videoRef}
-                muted
+                muted={isMuted}
                 playsInline
                 onEnded={handleVideoEnded}
                 className="w-full h-full object-cover"
@@ -242,6 +262,17 @@ export const EventHeroGallery = ({
           aria-label="Next"
         >
           <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
+
+      {/* Mute toggle */}
+      {assets[currentIndex]?.type === "video" && (
+        <button
+          onClick={toggleMute}
+          className="absolute top-3 right-3 z-20 h-8 w-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all duration-150 active:scale-90"
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
+        >
+          {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </button>
       )}
 

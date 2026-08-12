@@ -84,10 +84,6 @@ const TrendingVenues = () => {
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
-  const filteredVenues = (trendingVenues ?? []).filter(
-    (venue) => activeCategory === "All" || venue.category === activeCategory
-  );
-
   useEffect(() => {
     setActiveImageIndex(0);
   }, [selectedVenue]);
@@ -134,8 +130,8 @@ const TrendingVenues = () => {
 
         {/* Mobile: snap carousel, one active card, dots — same engine as Upcoming Events */}
         <div className="md:hidden">
-          <MobileMarqueeCarousel key={activeCategory}>
-            {filteredVenues.map((venue) => (
+          <MobileMarqueeCarousel>
+            {(trendingVenues ?? []).map((venue) => (
               <button
                 key={venue._id}
                 onClick={() => setSelectedVenue(venue)}
@@ -149,8 +145,8 @@ const TrendingVenues = () => {
 
         {/* Desktop: continuous drift marquee */}
         <div className="relative hidden md:block">
-          <MarqueeCarousel key={activeCategory}>
-            {filteredVenues.map((venue, idx) => (
+          <MarqueeCarousel>
+            {(trendingVenues ?? []).map((venue, idx) => (
               <motion.div
                 key={venue._id}
                 initial={{ opacity: 0, y: 16 }}

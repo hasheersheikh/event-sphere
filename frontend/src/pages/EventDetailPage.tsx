@@ -371,29 +371,52 @@ const EventDetailPage = () => {
                     <div className="grid grid-cols-2 gap-4">
                       {visibleReels.map((reel, idx) => {
                         const data = getReelData(reel);
-                        const embedUrl = data?.type === 'youtube'
-                          ? `https://www.youtube.com/embed/${data.id}?controls=0&modestbranding=1&rel=0`
+                        const modalUrl = data?.type === 'youtube'
+                          ? `https://www.youtube.com/embed/${data.id}?autoplay=1&rel=0&modestbranding=1`
                           : data?.type === 'instagram'
                             ? `https://www.instagram.com/reel/${data.id}/embed`
                             : null;
-
+                        const thumb = data?.type === 'youtube'
+                          ? `https://img.youtube.com/vi/${data.id}/hqdefault.jpg`
+                          : null;
                         return (
-                          <div key={idx} className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group">
-                            {embedUrl ? (
-                              <iframe
-                                src={embedUrl}
-                                className="absolute inset-0 w-full h-full pointer-events-auto"
-                                title={`Event reel ${idx + 1}`}
-                                allowFullScreen
-                                style={{ border: 0 }}
+                          <button
+                            key={idx}
+                            onClick={() => modalUrl && setVideoModal({ url: modalUrl, vertical: true })}
+                            className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 shadow-lg border border-border/30 group w-full block"
+                          >
+                            {/* Branded fallback — visible when no thumb or thumb fails */}
+                            <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${data?.type === 'instagram' ? 'bg-gradient-to-br from-[#405DE6] via-[#E1306C] to-[#FCAF45]' : 'bg-zinc-800'}`}>
+                              {data?.type === 'instagram' ? (
+                                <>
+                                  <Instagram className="h-10 w-10 text-white" />
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-white/70">Instagram Reel</span>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="h-12 w-12 rounded-full bg-red-600 flex items-center justify-center">
+                                    <Play className="h-6 w-6 text-white ml-0.5" />
+                                  </div>
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-white/50">YouTube Short</span>
+                                </>
+                              )}
+                            </div>
+                            {/* Thumbnail sits on top, hidden on error */}
+                            {thumb && (
+                              <img
+                                src={thumb}
+                                alt={`Reel ${idx + 1}`}
+                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.opacity = '0'; }}
                               />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                                <Play className="h-8 w-8 text-muted-foreground" />
-                              </div>
                             )}
-                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
-                          </div>
+                            {/* Play overlay */}
+                            <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <div className="h-12 w-12 rounded-full bg-white/90 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-200">
+                                <Play className="h-5 w-5 text-black ml-0.5" />
+                              </div>
+                            </div>
+                          </button>
                         );
                       })}
                     </div>
