@@ -25,7 +25,9 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { motion } from "framer-motion";
-import { uploadImageToBackend } from "@/lib/localUpload";
+import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 
 interface Influencer {
   _id: string;
@@ -65,14 +67,22 @@ const InfluencerManagementPage = () => {
   const handleLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.influencerPhoto);
+    if (validationError) {
+      toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.influencerPhoto.aspect!);
+    if (!cropped) { e.target.value = ""; return; }
     setUploading(true);
     try {
       const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
       let url: string;
-      if (cloudName && uploadPreset) {
+      if (CLOUDINARY_ENABLED && cloudName && uploadPreset) {
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", cropped);
         formData.append("upload_preset", uploadPreset);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
           method: "POST",
@@ -82,7 +92,7 @@ const InfluencerManagementPage = () => {
         if (!data.secure_url) throw new Error("Upload failed");
         url = data.secure_url;
       } else {
-        url = await uploadImageToBackend(file);
+        url = await uploadImageToBackend(cropped);
       }
       setForm((f) => ({ ...f, image: url }));
       toast.success("Image uploaded.");
@@ -373,7 +383,7 @@ const InfluencerManagementPage = () => {
               <input
                 ref={imageInputRef}
                 type="file"
-                accept="image/*"
+                accept={UPLOAD_SPECS.influencerPhoto.accept}
                 className="hidden"
                 onChange={handleLocalImageUpload}
               />
@@ -403,6 +413,7 @@ const InfluencerManagementPage = () => {
                   </span>
                 </button>
               </div>
+              <p className="text-[9px] text-muted-foreground/70 ml-1">{UPLOAD_SPECS.influencerPhoto.hint}</p>
             </div>
 
             <div className="flex items-center gap-3 pt-2">

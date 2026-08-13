@@ -41,16 +41,23 @@ const uploadPdfToCloudinary = async (pdfBuffer: Buffer, bookingId: string): Prom
 /**
  * Send a WhatsApp message with the ticket PDF attached.
  *
- * Provider: Twilio WhatsApp Business API
- * Docs: https://www.twilio.com/docs/whatsapp/api
+ * Provider: MSG91 WhatsApp Business API
+ * Docs: https://docs.msg91.com/whatsapp
  *
  * Required env vars:
- *   TWILIO_ACCOUNT_SID      — from console.twilio.com
- *   TWILIO_AUTH_TOKEN       — from console.twilio.com
- *   TWILIO_WHATSAPP_NUMBER  — format: +14155238886 (sandbox) or your approved number
+ *   MSG91_API_KEY                 — authkey from control.msg91.com (same key used for SMS OTP)
+ *   MSG91_WHATSAPP_NUMBER         — WhatsApp Business number integrated in the MSG91 panel
+ *   MSG91_WHATSAPP_TEMPLATE_NAME  — name of the approved template used for ticket delivery
+ *   MSG91_WHATSAPP_NAMESPACE      — template namespace, shown next to the template in the MSG91 panel
  *
- * Also requires Cloudinary env vars for PDF hosting:
+ * Also requires Cloudinary env vars for PDF hosting (WhatsApp needs a public media URL):
  *   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+ *
+ * IMPORTANT: the `components` keys below (header_1, body_1, body_2, ...) depend on
+ * how the approved template is structured. Before going live, open the template in
+ * MSG91 → WhatsApp → Templates → "Code" tab, copy the exact `to_and_components`
+ * shape it generates, and adjust the payload below to match — variable count/order
+ * must line up with the template or the send will be rejected.
  *
  * If any of these are missing the function logs a warning and returns without throwing,
  * so a missing config never blocks the booking confirmation response.
@@ -61,37 +68,76 @@ export const sendTicketWhatsApp = async (
   event: any,
   pdfBuffer: Buffer
 ): Promise<{ success: boolean; messageId?: string; error?: any }> => {
-  const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER } = process.env;
+  const {
+    MSG91_API_KEY,
+    MSG91_WHATSAPP_NUMBER,
+    MSG91_WHATSAPP_TEMPLATE_NAME,
+    MSG91_WHATSAPP_NAMESPACE,
+  } = process.env;
 
-  if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_WHATSAPP_NUMBER) {
-    logger.warn('[WHATSAPP] Twilio env vars not set — skipping WhatsApp notification', {
+  if (!MSG91_API_KEY || !MSG91_WHATSAPP_NUMBER || !MSG91_WHATSAPP_TEMPLATE_NAME) {
+    logger.warn('[WHATSAPP] MSG91 WhatsApp env vars not set — skipping WhatsApp notification', {
       phoneNumber,
       event: event?.title,
     });
-    return { success: false, error: 'Twilio not configured' };
+    return { success: false, error: 'MSG91 WhatsApp not configured' };
   }
 
-  // Normalise phone: must be E.164 format e.g. +919876543210
-  const normalised = phoneNumber.startsWith('+') ? phoneNumber : `+91${phoneNumber}`;
+  // Normalise phone: MSG91 expects the country code with no leading '+', e.g. 919876543210
+  const normalised = phoneNumber.startsWith('+')
+    ? phoneNumber.slice(1)
+    : phoneNumber.startsWith('91')
+      ? phoneNumber
+      : `91${phoneNumber}`;
 
   try {
     // 1. Upload PDF to Cloudinary to get a public URL
     const pdfUrl = await uploadPdfToCloudinary(pdfBuffer, event?._id?.toString() || Date.now().toString());
 
-    // 2. Send via Twilio
-    // Dynamic import so the package is only loaded when the feature is actually used
-    const twilio = (await import('twilio')).default;
-    const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+    const eventDate = event?.date
+      ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '';
+    const venue = event?.location?.venueName || event?.location?.address || '';
 
-    const message = await client.messages.create({
-      from: `whatsapp:${TWILIO_WHATSAPP_NUMBER}`,
-      to: `whatsapp:${normalised}`,
-      body: `Hi ${userName}! 🎟️ Your tickets for *${event?.title || 'the event'}* are confirmed.\n\n📅 ${event?.date ? new Date(event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : ''} at ${event?.time || ''}\n📍 ${event?.location?.venueName || event?.location?.address || ''}\n\nYour ticket PDF is attached below. Present the QR code at the venue. See you there! 🚀`,
-      mediaUrl: [pdfUrl],
+    // 2. Send via MSG91 WhatsApp API
+    const res = await fetch('https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/', {
+      method: 'POST',
+      headers: { authkey: MSG91_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        integrated_number: MSG91_WHATSAPP_NUMBER,
+        content_type: 'template',
+        payload: {
+          messaging_product: 'whatsapp',
+          type: 'template',
+          template: {
+            name: MSG91_WHATSAPP_TEMPLATE_NAME,
+            language: { code: 'en', policy: 'deterministic' },
+            namespace: MSG91_WHATSAPP_NAMESPACE,
+            to_and_components: [
+              {
+                to: [normalised],
+                components: {
+                  header_1: { type: 'document', value: pdfUrl, filename: `ticket_${event?._id || Date.now()}.pdf` },
+                  body_1: { type: 'text', value: userName },
+                  body_2: { type: 'text', value: event?.title || 'the event' },
+                  body_3: { type: 'text', value: eventDate },
+                  body_4: { type: 'text', value: venue },
+                },
+              },
+            ],
+          },
+        },
+      }),
     });
 
-    logger.info('[WHATSAPP] Ticket sent', { to: normalised, event: event?.title, sid: message.sid });
-    return { success: true, messageId: message.sid };
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`MSG91 WhatsApp error: ${body}`);
+    }
+
+    const data: any = await res.json();
+    logger.info('[WHATSAPP] Ticket sent', { to: normalised, event: event?.title, response: data });
+    return { success: true, messageId: data?.request_id || data?.data?.message_id };
   } catch (error: any) {
     logger.error('[WHATSAPP] Failed to send ticket', {
       phoneNumber: normalised,

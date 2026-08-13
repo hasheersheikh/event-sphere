@@ -19,12 +19,16 @@ import {
   MapPin,
   Users,
   Video,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { uploadImageToBackend } from "@/lib/localUpload";
+import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   RefreshCw,
@@ -74,6 +78,11 @@ const eventSchema = z.object({
   videoUrl: z.string().optional(),
   eventVideo: z.string().optional(),
   reels: z.array(z.string()).optional(),
+  artist: z.object({
+    name: z.string().optional(),
+    instagramHandle: z.string().optional(),
+    profileImage: z.string().optional(),
+  }).optional(),
   lineup: z.array(z.object({
     name: z.string().min(1, "Name is required"),
     role: z.string().optional(),
@@ -261,6 +270,7 @@ const EditEventPage = () => {
       videoUrl: "",
       eventVideo: "",
       reels: [],
+      artist: { name: "", instagramHandle: "", profileImage: "" },
       days: [],
       ticketTypes: [],
       vouchers: [],
@@ -347,6 +357,11 @@ const EditEventPage = () => {
         videoUrl: event.videoUrl || "",
         eventVideo: (event as any).eventVideo || "",
         reels: event.reels || [],
+        artist: {
+          name: event.artist?.name || "",
+          instagramHandle: event.artist?.instagramHandle || "",
+          profileImage: event.artist?.profileImage || "",
+        },
         days: event.days?.map((d: any) => ({
           ...d,
           date: d.date ? new Date(d.date) : undefined
@@ -522,12 +537,14 @@ const EditEventPage = () => {
 
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const artistPhotoInputRef = useRef<HTMLInputElement>(null);
+  const [artistPhotoUploading, setArtistPhotoUploading] = useState(false);
 
   // Direct Cloudinary REST upload — no widget, no local backend
   const uploadToCloudinary = async (file: File, resourceType: "image" | "video" = "image"): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-    if (cloudName && uploadPreset) {
+    if (CLOUDINARY_ENABLED && cloudName && uploadPreset) {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("upload_preset", uploadPreset);
@@ -547,8 +564,16 @@ const EditEventPage = () => {
   const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.eventBanner);
+    if (validationError) {
+      toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.eventBanner.aspect!);
+    if (!cropped) { e.target.value = ""; return; }
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(cropped);
       form.setValue("image", url);
       toast.success("Banner uploaded.");
     } catch {
@@ -557,16 +582,38 @@ const EditEventPage = () => {
     e.target.value = "";
   };
 
+  const handleArtistPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.artistPhoto);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.artistPhoto.aspect!, UPLOAD_SPECS.artistPhoto.cropShape);
+    if (!cropped) return;
+    setArtistPhotoUploading(true);
+    try {
+      const url = await uploadToCloudinary(cropped);
+      form.setValue("artist.profileImage", url);
+      toast.success("Artist photo uploaded.");
+    } catch {
+      toast.error("Upload failed.");
+    } finally {
+      setArtistPhotoUploading(false);
+    }
+  };
+
   const handleVideoUpload = () => { videoInputRef.current?.click(); };
 
   const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (4MB limit)
-    const maxSize = 4 * 1024 * 1024; // 4MB
-    if (file.size > maxSize) {
-      toast.error("Video file must be under 4MB.");
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.eventVideo);
+    if (validationError) {
+      toast.error(validationError);
       e.target.value = "";
       return;
     }
@@ -782,7 +829,7 @@ const EditEventPage = () => {
                               <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1 block">
                                 Event Banner <span className="text-destructive">*</span>
                               </FormLabel>
-                              <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
+                              <input ref={bannerInputRef} type="file" accept={UPLOAD_SPECS.eventBanner.accept} className="hidden" onChange={handleLocalBannerUpload} />
                               <button
                                 type="button"
                                 onClick={handleUpload}
@@ -795,6 +842,7 @@ const EditEventPage = () => {
                                     : "Upload Image"}
                                 </span>
                               </button>
+                              <p className="text-[9px] text-muted-foreground/60 ml-1">{UPLOAD_SPECS.eventBanner.hint}</p>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -874,7 +922,7 @@ const EditEventPage = () => {
                           <input
                             ref={videoInputRef}
                             type="file"
-                            accept="video/*"
+                            accept={UPLOAD_SPECS.eventVideo.accept}
                             className="hidden"
                             onChange={handleVideoFileUpload}
                           />
@@ -890,7 +938,7 @@ const EditEventPage = () => {
                           </button>
                           <div className="space-y-1">
                             <p className="text-[9px] text-muted-foreground/60">
-                              Max 4MB. Video will be displayed in a gallery with your banner image.
+                              {UPLOAD_SPECS.eventVideo.hint}. Video will be displayed in a gallery with your banner image.
                             </p>
                             <p className="text-[8px] text-orange-500/70 font-medium">
                               ⚠️ Use Instagram photo aspect ratio (4:5 portrait). Other ratios will be cropped.
@@ -909,6 +957,65 @@ const EditEventPage = () => {
                               </button>
                             </div>
                           )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="p-1.5 bg-primary/10 rounded-lg"><Users className="h-3.5 w-3.5 text-primary" /></div>
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-primary block">Artist Information (Optional)</FormLabel>
+                        </div>
+                        <div className="grid md:grid-cols-3 gap-3">
+                          <FormField control={form.control} name="artist.name" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Artist Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Artist name" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="artist.instagramHandle" render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Instagram Handle</FormLabel>
+                              <FormControl>
+                                <Input placeholder="@username" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormItem>
+                            <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Artist Photo</FormLabel>
+                            <div className="flex items-center gap-3">
+                              <input
+                                ref={artistPhotoInputRef}
+                                type="file"
+                                accept={UPLOAD_SPECS.artistPhoto.accept}
+                                className="hidden"
+                                onChange={handleArtistPhotoUpload}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => artistPhotoInputRef.current?.click()}
+                                disabled={artistPhotoUploading}
+                                className="relative h-10 w-10 shrink-0 rounded-full overflow-hidden border-2 border-dashed border-white/10 hover:border-primary/50 transition-colors flex items-center justify-center bg-background/50 group"
+                              >
+                                {form.watch("artist.profileImage") ? (
+                                  <>
+                                    <img src={form.watch("artist.profileImage")} alt="Artist" className="h-full w-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Camera className="h-3.5 w-3.5 text-white" />
+                                    </div>
+                                  </>
+                                ) : artistPhotoUploading ? (
+                                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                ) : (
+                                  <Camera className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                                )}
+                              </button>
+                              <span className="text-[9px] text-muted-foreground/60 leading-snug">{UPLOAD_SPECS.artistPhoto.hint}</span>
+                            </div>
+                          </FormItem>
                         </div>
                       </div>
 

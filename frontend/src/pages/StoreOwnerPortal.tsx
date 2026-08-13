@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -453,15 +455,22 @@ const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void })
 
   const handleLocalProductImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.productImage);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.productImage.aspect!);
+    if (!cropped) return;
     try {
-      const url = await uploadImageToBackend(file);
+      const url = await uploadImageToBackend(cropped);
       form.setValue("image", url);
       toast.success("Image uploaded.");
     } catch {
       toast.error("Upload failed.");
     }
-    e.target.value = "";
   };
 
   const mutation = useMutation({
@@ -530,7 +539,7 @@ const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void })
                   </button>
                 </div>
               )}
-              <input ref={productImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalProductImageUpload} />
+              <input ref={productImageInputRef} type="file" accept={UPLOAD_SPECS.productImage.accept} className="hidden" onChange={handleLocalProductImageUpload} />
               <button
                 type="button"
                 onClick={handleProductImageUpload}
@@ -538,6 +547,7 @@ const AddProductForm = ({ owner, onClose }: { owner: any; onClose: () => void })
               >
                 <Upload className="h-3.5 w-3.5" /> {form.watch("image") ? "Change Image" : "Upload Image"}
               </button>
+              <p className="text-[9px] text-muted-foreground/70">{UPLOAD_SPECS.productImage.hint}</p>
             </div>
             <Button
               type="button"

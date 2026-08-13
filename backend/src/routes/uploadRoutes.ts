@@ -39,7 +39,10 @@ const upload = multer({
 
 const getBaseUrl = () => process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
 
+// Explicit opt-in — CLOUDINARY_ENABLED defaults to false, so Cloudinary is only
+// used when someone deliberately turns it on, even if leftover keys are present.
 const isCloudinaryConfigured = () => {
+  if (process.env.CLOUDINARY_ENABLED !== 'true') return false;
   return !!(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 };
 

@@ -23,6 +23,9 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import api from "@/lib/api";
+import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 
 const CATEGORIES = ["Food & Beverage", "Grocery", "Bakery", "Crafts & Art", "Fashion", "Electronics", "Books", "Health & Beauty", "General"];
 const PAYMENT_OPTIONS = [
@@ -156,6 +159,9 @@ const CreateStorePage = () => {
   const uploadToCloudinary = async (file: File): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+    if (!CLOUDINARY_ENABLED || !cloudName || !uploadPreset) {
+      return uploadImageToBackend(file);
+    }
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", uploadPreset);
@@ -171,9 +177,20 @@ const CreateStorePage = () => {
   const handleBannerFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.storeBanner);
+    if (validationError) {
+      toast.error(validationError);
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.storeBanner.aspect!);
+    if (!cropped) {
+      if (bannerInputRef.current) bannerInputRef.current.value = "";
+      return;
+    }
     setBannerUploading(true);
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(cropped);
       form.setValue("bannerPhoto", url);
       toast.success("Banner photo uploaded!");
     } catch {
@@ -187,9 +204,20 @@ const CreateStorePage = () => {
   const handleListingFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.storeListingPhoto);
+    if (validationError) {
+      toast.error(validationError);
+      if (listingInputRef.current) listingInputRef.current.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.storeListingPhoto.aspect!);
+    if (!cropped) {
+      if (listingInputRef.current) listingInputRef.current.value = "";
+      return;
+    }
     setListingUploading(true);
     try {
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(cropped);
       form.setValue("listingPhoto", url);
       toast.success("Listing photo uploaded!");
     } catch {
@@ -210,11 +238,25 @@ const CreateStorePage = () => {
       return;
     }
     const toUpload = files.slice(0, maxAllowed);
+    for (const file of toUpload) {
+      const validationError = validateUploadFile(file, UPLOAD_SPECS.storeListingPhoto);
+      if (validationError) {
+        toast.error(`${file.name}: ${validationError}`);
+        if (galleryInputRef.current) galleryInputRef.current.value = "";
+        return;
+      }
+    }
     setGalleryUploading(true);
     try {
-      const urls = await Promise.all(toUpload.map(uploadToCloudinary));
+      // Crop dialog is a singleton — crop each photo one at a time before uploading.
+      const cropped: File[] = [];
+      for (const file of toUpload) {
+        const result = await requestImageCrop(file, UPLOAD_SPECS.storeListingPhoto.aspect!);
+        if (result) cropped.push(result);
+      }
+      const urls = await Promise.all(cropped.map(uploadToCloudinary));
       urls.forEach((url) => appendPhoto(url as any));
-      toast.success(`${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded!`);
+      if (urls.length) toast.success(`${urls.length} photo${urls.length > 1 ? "s" : ""} uploaded!`);
     } catch {
       toast.error("Failed to upload one or more photos");
     } finally {
@@ -611,9 +653,9 @@ const CreateStorePage = () => {
                     <CardContent className="p-4 space-y-6">
 
                       {/* Hidden file inputs */}
-                      <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerFileChange} />
-                      <input ref={listingInputRef} type="file" accept="image/*" className="hidden" onChange={handleListingFileChange} />
-                      <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryFileChange} />
+                      <input ref={bannerInputRef} type="file" accept={UPLOAD_SPECS.storeBanner.accept} className="hidden" onChange={handleBannerFileChange} />
+                      <input ref={listingInputRef} type="file" accept={UPLOAD_SPECS.storeListingPhoto.accept} className="hidden" onChange={handleListingFileChange} />
+                      <input ref={galleryInputRef} type="file" accept={UPLOAD_SPECS.storeListingPhoto.accept} multiple className="hidden" onChange={handleGalleryFileChange} />
 
                       {/* Banner Photo */}
                       <div className="space-y-2">
@@ -658,7 +700,7 @@ const CreateStorePage = () => {
                           </button>
                         )}
                         <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
-                          Landscape hero shown at top of store page. Recommended <strong>1500 × 600 px</strong> (5:2 ratio).
+                          Landscape hero shown at top of store page. Recommended <strong>1500 × 600 px</strong> (5:2 ratio). {UPLOAD_SPECS.storeBanner.hint}
                         </p>
                       </div>
 
@@ -706,7 +748,7 @@ const CreateStorePage = () => {
                             </button>
                           )}
                           <p className="text-[10px] text-muted-foreground/70 italic font-medium mt-1">
-                            Square thumbnail shown on store listing cards. Recommended <strong>800 × 800 px</strong> (1:1). Keep your subject centred.
+                            Square thumbnail shown on store listing cards. Recommended <strong>800 × 800 px</strong> (1:1). Keep your subject centred. {UPLOAD_SPECS.storeListingPhoto.hint}
                           </p>
                         </div>
                       </div>
@@ -747,7 +789,7 @@ const CreateStorePage = () => {
                           )}
                         </button>
                         <p className="text-[10px] text-muted-foreground/70 italic font-medium ml-1">
-                          Shown in the in-page photo strip. Any size, landscape works best.
+                          Shown in the in-page photo strip. Landscape works best. {UPLOAD_SPECS.storeListingPhoto.hint}
                         </p>
                       </div>
 

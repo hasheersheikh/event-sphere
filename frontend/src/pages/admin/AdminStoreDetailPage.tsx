@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,6 +25,9 @@ import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalStatCard } from "@/components/portal/PortalStatCard";
 import { PortalDataTable } from "@/components/portal/PortalDataTable";
 import { PortalGrid } from "@/components/portal/PortalGrid";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 
 // ── Add Product Modal ────────────────────────────────────────────────────────
 const productSchema = z.object({
@@ -45,7 +48,13 @@ const AddProductModal = ({ storeId, onClose }: { storeId: string; onClose: () =>
     defaultValues: { name: "", price: 0, discountPercent: 0, image: "", description: "", isAvailable: true },
   });
 
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+
   const handleImageUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      productImageInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     window.cloudinary.createUploadWidget(
       {
@@ -60,6 +69,25 @@ const AddProductModal = ({ storeId, onClose }: { storeId: string; onClose: () =>
         if (!error && result?.event === "success") form.setValue("image", result.info.secure_url);
       },
     ).open();
+  };
+
+  const handleLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.productImage);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.productImage.aspect!);
+    if (!cropped) return;
+    try {
+      const url = await uploadImageToBackend(cropped);
+      form.setValue("image", url);
+    } catch {
+      toast.error("Upload failed.");
+    }
   };
 
   const mutation = useMutation({
@@ -127,10 +155,12 @@ const AddProductModal = ({ storeId, onClose }: { storeId: string; onClose: () =>
                 </button>
               </div>
             )}
+            <input type="file" ref={productImageInputRef} onChange={handleLocalImageUpload} accept={UPLOAD_SPECS.productImage.accept} className="hidden" />
             <button type="button" onClick={handleImageUpload}
               className="w-full h-9 rounded-lg border border-dashed border-border bg-muted/20 hover:bg-muted/40 text-[8px] font-black uppercase tracking-widest text-muted-foreground flex items-center justify-center gap-1.5 transition-colors italic">
               <Upload className="h-3.5 w-3.5" /> {form.watch("image") ? "Modify" : "Upload"}
             </button>
+            <p className="text-[8px] text-muted-foreground text-center italic">{UPLOAD_SPECS.productImage.hint}</p>
 
             <Button type="button"
               onClick={() => form.handleSubmit((v) => mutation.mutate(v))()}

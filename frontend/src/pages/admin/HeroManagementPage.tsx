@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -277,7 +280,47 @@ const HeroManagementPage = () => {
     return 1; // square fallback for "all"
   };
 
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleLocalFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    e.target.value = "";
+    if (!selected) return;
+    const spec = selected.type.startsWith("video/") ? UPLOAD_SPECS.heroVideo : UPLOAD_SPECS.heroImage;
+    const validationError = validateUploadFile(selected, spec);
+    if (validationError) {
+      toast({ title: "Upload rejected", description: validationError, variant: "destructive" });
+      return;
+    }
+    const isVideo = selected.type.startsWith("video/");
+    let fileToUpload: File = selected;
+    if (!isVideo) {
+      const cropped = await requestImageCrop(selected, cropAspectRatio(form.targetDevice));
+      if (!cropped) return;
+      fileToUpload = cropped;
+    }
+    setUploading(true);
+    try {
+      const url = await uploadImageToBackend(fileToUpload);
+      const file: UploadedFile = { url, type: isVideo ? "video" : "image" };
+      setUploadedFile(file);
+      setForm((prev) => ({ ...prev, url, type: isVideo ? "video" : "image" }));
+    } catch (err) {
+      toast({
+        title: "Upload failed",
+        description: "Could not upload the file to local storage.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const openUploadWidget = () => {
+    if (USE_LOCAL_STORAGE) {
+      heroFileInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     if (!window.cloudinary) {
       toast({
@@ -489,6 +532,13 @@ const HeroManagementPage = () => {
             </div>
 
             {/* Upload zone */}
+            <input
+              type="file"
+              ref={heroFileInputRef}
+              onChange={handleLocalFileUpload}
+              accept={`${UPLOAD_SPECS.heroImage.accept},${UPLOAD_SPECS.heroVideo.accept}`}
+              className="hidden"
+            />
             <button
               type="button"
               onClick={openUploadWidget}
@@ -533,7 +583,7 @@ const HeroManagementPage = () => {
                       <Upload className="h-8 w-8" />
                       <span className="text-sm font-medium">Click to upload image or video</span>
                       <span className="text-xs opacity-60">
-                        JPG, PNG, WebP, GIF, MP4, MOV (max 50 MB)
+                        Images: {UPLOAD_SPECS.heroImage.hint} · Videos: {UPLOAD_SPECS.heroVideo.hint}
                       </span>
                     </>
                   )}

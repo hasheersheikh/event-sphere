@@ -99,10 +99,15 @@ export const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+// Roles the public /register endpoint may create directly. 'admin' is deliberately
+// excluded — admin accounts must be created out-of-band (seed script or an
+// already-authenticated admin), never via an unauthenticated request body.
+const SELF_REGISTERABLE_ROLES = ['user', 'event_manager', 'volunteer'];
+
 export const register = async (req: Request, res: Response) => {
   const { name, password, role } = req.body;
   const email = req.body.email?.toLowerCase();
-  const userRole = role || 'user';
+  const userRole = SELF_REGISTERABLE_ROLES.includes(role) ? role : 'user';
   const Model = getModelByRole(userRole);
 
   try {

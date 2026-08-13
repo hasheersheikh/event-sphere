@@ -35,6 +35,8 @@ import {
   uploadImageToBackend,
   uploadImagesToBackend,
 } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -266,16 +268,30 @@ const StoreForm = ({
   const handleLocalPhotosUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const files = Array.from(e.target.files || []);
+    const files = Array.from(e.target.files || []).slice(0, 5);
+    e.target.value = "";
     if (!files.length) return;
+    for (const file of files) {
+      const validationError = validateUploadFile(file, UPLOAD_SPECS.storeListingPhoto);
+      if (validationError) {
+        toast.error(`${file.name}: ${validationError}`);
+        return;
+      }
+    }
     try {
-      const urls = await uploadImagesToBackend(files.slice(0, 5));
+      // Crop dialog is a singleton — crop each photo one at a time before uploading.
+      const cropped: File[] = [];
+      for (const file of files) {
+        const result = await requestImageCrop(file, UPLOAD_SPECS.storeListingPhoto.aspect!);
+        if (result) cropped.push(result);
+      }
+      if (!cropped.length) return;
+      const urls = await uploadImagesToBackend(cropped);
       urls.forEach((url) => appendPhoto(url as any));
       toast.success("Photos uploaded.");
     } catch {
       toast.error("Upload failed.");
     }
-    e.target.value = "";
   };
 
   const mutation = useMutation({
@@ -458,7 +474,7 @@ const StoreForm = ({
                   <input
                     ref={photosInputRef}
                     type="file"
-                    accept="image/*"
+                    accept={UPLOAD_SPECS.storeListingPhoto.accept}
                     multiple
                     className="hidden"
                     onChange={handleLocalPhotosUpload}
@@ -470,6 +486,7 @@ const StoreForm = ({
                   >
                     <Upload className="h-3.5 w-3.5" /> Deploy Assets
                   </button>
+                  <p className="text-[8px] text-muted-foreground text-center italic">{UPLOAD_SPECS.storeListingPhoto.hint}</p>
                 </div>
               </>
             )}
@@ -865,15 +882,22 @@ const AddProductForm = ({
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
+    e.target.value = "";
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.productImage);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.productImage.aspect!);
+    if (!cropped) return;
     try {
-      const url = await uploadImageToBackend(file);
+      const url = await uploadImageToBackend(cropped);
       form.setValue("image", url);
       toast.success("Image uploaded.");
     } catch {
       toast.error("Upload failed.");
     }
-    e.target.value = "";
   };
 
   const mutation = useMutation({
@@ -1009,7 +1033,7 @@ const AddProductForm = ({
               <input
                 ref={productImageInputRef}
                 type="file"
-                accept="image/*"
+                accept={UPLOAD_SPECS.productImage.accept}
                 className="hidden"
                 onChange={handleLocalProductImageUpload}
               />
@@ -1021,6 +1045,7 @@ const AddProductForm = ({
                 <Upload className="h-4 w-4" />{" "}
                 {form.watch("image") ? "Change Image" : "Upload Image"}
               </button>
+              <p className="text-[9px] text-muted-foreground/70 ml-1">{UPLOAD_SPECS.productImage.hint}</p>
             </div>
             <Button
               type="button"

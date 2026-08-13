@@ -24,13 +24,17 @@ import {
   Users,
   XCircle,
   Video,
+  Camera,
+  Loader2,
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadImageToBackend } from "@/lib/localUpload";
+import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -447,12 +451,14 @@ const CreateEventPage = () => {
   const categories = ["Music", "Technology", "Business", "Entertainment", "Health", "Sports", "Education", "Exhibition", "Other"];
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const artistPhotoInputRef = useRef<HTMLInputElement>(null);
+  const [artistPhotoUploading, setArtistPhotoUploading] = useState(false);
 
   // Direct Cloudinary REST upload — no widget/popup
   const uploadToCloudinary = async (file: File, resourceType: "image" | "video" = "image"): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-    if (cloudName && uploadPreset) {
+    if (CLOUDINARY_ENABLED && cloudName && uploadPreset) {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("upload_preset", uploadPreset);
@@ -472,12 +478,43 @@ const CreateEventPage = () => {
   const handleLocalBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.eventBanner);
+    if (validationError) {
+      toast.error(validationError);
+      e.target.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.eventBanner.aspect!);
+    if (!cropped) { e.target.value = ""; return; }
     try {
-      const url = await uploadToCloudinary(file, "image");
+      const url = await uploadToCloudinary(cropped, "image");
       form.setValue("image", url);
       toast.success("Banner uploaded.");
     } catch { toast.error("Upload failed."); }
     e.target.value = "";
+  };
+
+  const handleArtistPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.artistPhoto);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.artistPhoto.aspect!, UPLOAD_SPECS.artistPhoto.cropShape);
+    if (!cropped) return;
+    setArtistPhotoUploading(true);
+    try {
+      const url = await uploadToCloudinary(cropped, "image");
+      form.setValue("artist.profileImage", url);
+      toast.success("Artist photo uploaded.");
+    } catch {
+      toast.error("Upload failed.");
+    } finally {
+      setArtistPhotoUploading(false);
+    }
   };
 
   const handleVideoUpload = () => { videoInputRef.current?.click(); };
@@ -486,10 +523,9 @@ const CreateEventPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (4MB limit)
-    const maxSize = 4 * 1024 * 1024; // 4MB
-    if (file.size > maxSize) {
-      toast.error("Video file must be under 4MB.");
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.eventVideo);
+    if (validationError) {
+      toast.error(validationError);
       e.target.value = "";
       return;
     }
@@ -621,7 +657,7 @@ const CreateEventPage = () => {
 
                         <div className="space-y-2">
                           <Label className={labelCls}>Event Banner <span className="text-destructive">*</span></Label>
-                          <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={handleLocalBannerUpload} />
+                          <input ref={bannerInputRef} type="file" accept={UPLOAD_SPECS.eventBanner.accept} className="hidden" onChange={handleLocalBannerUpload} />
                           <button type="button" onClick={handleUpload} className={cn(
                             "w-full h-12 bg-background/50 border border-dashed rounded-xl flex items-center justify-center gap-3 hover:bg-primary/5 hover:border-primary/50 transition-all group",
                             form.formState.errors.image ? "border-destructive/60" : "border-border/50"
@@ -635,7 +671,7 @@ const CreateEventPage = () => {
                             <p className="text-[11px] text-destructive font-medium">{form.formState.errors.image.message}</p>
                           )}
                           <p className="text-[10px] text-muted-foreground/60">
-                            Use your Instagram post photo (4:5 portrait, 1080 × 1350 px). This is the standard Instagram feed size, so no separate photo needed.
+                            Use your Instagram post photo (4:5 portrait, 1080 × 1350 px). This is the standard Instagram feed size, so no separate photo needed. {UPLOAD_SPECS.eventBanner.hint}
                           </p>
                         </div>
                       </div>
@@ -689,15 +725,38 @@ const CreateEventPage = () => {
                                <FormMessage />
                              </FormItem>
                            )} />
-                           <FormField control={form.control} name="artist.profileImage" render={({ field }) => (
-                             <FormItem>
-                               <FormLabel className={labelCls}>Artist Profile Image</FormLabel>
-                               <FormControl>
-                                 <Input placeholder="Profile image URL" className={cn(inputCls, "h-11")} {...field} />
-                               </FormControl>
-                               <FormMessage />
-                             </FormItem>
-                           )} />
+                           <FormItem>
+                             <FormLabel className={labelCls}>Artist Photo</FormLabel>
+                             <div className="flex items-center gap-3">
+                               <input
+                                 ref={artistPhotoInputRef}
+                                 type="file"
+                                 accept={UPLOAD_SPECS.artistPhoto.accept}
+                                 className="hidden"
+                                 onChange={handleArtistPhotoUpload}
+                               />
+                               <button
+                                 type="button"
+                                 onClick={() => artistPhotoInputRef.current?.click()}
+                                 disabled={artistPhotoUploading}
+                                 className="relative h-11 w-11 shrink-0 rounded-full overflow-hidden border-2 border-dashed border-border/50 hover:border-primary/50 transition-colors flex items-center justify-center bg-background/50 group"
+                               >
+                                 {form.watch("artist.profileImage") ? (
+                                   <>
+                                     <img src={form.watch("artist.profileImage")} alt="Artist" className="h-full w-full object-cover" />
+                                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <Camera className="h-3.5 w-3.5 text-white" />
+                                     </div>
+                                   </>
+                                 ) : artistPhotoUploading ? (
+                                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                 ) : (
+                                   <Camera className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                                 )}
+                               </button>
+                               <span className="text-[10px] text-muted-foreground/60 leading-snug">{UPLOAD_SPECS.artistPhoto.hint}</span>
+                             </div>
+                           </FormItem>
                           </div>
                         </div>
 
@@ -776,7 +835,7 @@ const CreateEventPage = () => {
                           <input
                             ref={videoInputRef}
                             type="file"
-                            accept="video/*"
+                            accept={UPLOAD_SPECS.eventVideo.accept}
                             className="hidden"
                             onChange={handleVideoFileUpload}
                           />
@@ -792,7 +851,7 @@ const CreateEventPage = () => {
                           </button>
                           <div className="space-y-1">
                             <p className="text-[10px] text-muted-foreground/60">
-                              Max 4MB. Video will be displayed in a gallery with your banner image (5s image → video loop).
+                              {UPLOAD_SPECS.eventVideo.hint}. Video will be displayed in a gallery with your banner image (5s image → video loop).
                             </p>
                             <p className="text-[9px] text-orange-500/70 font-medium">
                               ⚠️ Use Instagram photo aspect ratio (4:5 portrait, 1080 × 1350 px). Videos in other aspect ratios will be cropped.

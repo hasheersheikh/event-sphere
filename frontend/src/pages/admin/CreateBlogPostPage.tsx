@@ -11,6 +11,9 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
+import { USE_LOCAL_STORAGE, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -110,7 +113,13 @@ const CreateBlogPostPage = () => {
     setTagInput("");
   };
 
+  const coverImageInputRef = useRef<HTMLInputElement>(null);
+
   const handleCoverUpload = () => {
+    if (USE_LOCAL_STORAGE) {
+      coverImageInputRef.current?.click();
+      return;
+    }
     // @ts-ignore
     window.cloudinary.createUploadWidget(
       {
@@ -127,6 +136,25 @@ const CreateBlogPostPage = () => {
         }
       },
     ).open();
+  };
+
+  const handleLocalCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.blogCover);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.blogCover.aspect!);
+    if (!cropped) return;
+    try {
+      const url = await uploadImageToBackend(cropped);
+      setForm((f) => ({ ...f, coverImage: url }));
+    } catch {
+      toast.error("Upload failed.");
+    }
   };
 
   const TOOLBAR = [
@@ -241,6 +269,7 @@ const CreateBlogPostPage = () => {
           </div>
 
           {/* Cover image */}
+          <input type="file" ref={coverImageInputRef} onChange={handleLocalCoverUpload} accept={UPLOAD_SPECS.blogCover.accept} className="hidden" />
           {form.coverImage ? (
             <div className="relative rounded-2xl overflow-hidden h-48 group">
               <img src={form.coverImage} alt="" className="w-full h-full object-cover" />
@@ -260,6 +289,9 @@ const CreateBlogPostPage = () => {
               className="w-full h-32 rounded-2xl border-2 border-dashed border-border bg-muted/10 hover:bg-muted/20 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground transition-colors">
               <Upload className="h-4 w-4" /> Upload Cover Image
             </button>
+          )}
+          {!form.coverImage && (
+            <p className="text-[10px] text-muted-foreground text-center">{UPLOAD_SPECS.blogCover.hint}</p>
           )}
 
           {/* Tags */}

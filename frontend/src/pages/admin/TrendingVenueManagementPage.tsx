@@ -25,7 +25,9 @@ import {
   X,
   Image as ImageIcon,
 } from "lucide-react";
-import { uploadImageToBackend } from "@/lib/localUpload";
+import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
+import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
+import { requestImageCrop } from "@/lib/imageCropController";
 import { VENUE_CATEGORIES } from "@/constants/venueCategories";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -164,7 +166,7 @@ const TrendingVenueManagementPage = () => {
   const uploadToCloudinary = async (file: File): Promise<string> => {
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
-    if (cloudName && uploadPreset) {
+    if (CLOUDINARY_ENABLED && cloudName && uploadPreset) {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("upload_preset", uploadPreset);
@@ -182,9 +184,17 @@ const TrendingVenueManagementPage = () => {
   const handleLocalPrimaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const validationError = validateUploadFile(file, UPLOAD_SPECS.venueImage);
+    if (validationError) {
+      toast({ title: "Upload rejected", description: validationError, variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
+    const cropped = await requestImageCrop(file, UPLOAD_SPECS.venueImage.aspect!);
+    if (!cropped) { e.target.value = ""; return; }
     try {
       setUploading(true);
-      const url = await uploadToCloudinary(file);
+      const url = await uploadToCloudinary(cropped);
       setForm((prev) => ({ ...prev, image: url }));
       toast({ title: "Cover image uploaded" });
     } catch {
@@ -202,11 +212,21 @@ const TrendingVenueManagementPage = () => {
   const handleLocalGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+    for (const file of files) {
+      const validationError = validateUploadFile(file, UPLOAD_SPECS.venueImage);
+      if (validationError) {
+        toast({ title: "Upload rejected", description: `${file.name}: ${validationError}`, variant: "destructive" });
+        e.target.value = "";
+        return;
+      }
+    }
     try {
       setUploading(true);
       const urls: string[] = [];
       for (const file of files) {
-        const url = await uploadToCloudinary(file);
+        const cropped = await requestImageCrop(file, UPLOAD_SPECS.venueImage.aspect!);
+        if (!cropped) continue;
+        const url = await uploadToCloudinary(cropped);
         urls.push(url);
       }
       setForm((prev) => ({ ...prev, images: [...(prev.images || []), ...urls] }));
@@ -323,14 +343,14 @@ const TrendingVenueManagementPage = () => {
             <input
               ref={primaryFileInputRef}
               type="file"
-              accept="image/*"
+              accept={UPLOAD_SPECS.venueImage.accept}
               className="hidden"
               onChange={handleLocalPrimaryUpload}
             />
             <input
               ref={galleryFileInputRef}
               type="file"
-              accept="image/*"
+              accept={UPLOAD_SPECS.venueImage.accept}
               multiple
               className="hidden"
               onChange={handleLocalGalleryUpload}
@@ -362,7 +382,7 @@ const TrendingVenueManagementPage = () => {
               )}
             </button>
             <p className="text-[9px] font-bold text-muted-foreground/70 text-center -mt-1">
-              Use <span className="text-primary font-black">4:5 ratio (1080 × 1350 px)</span> — matches Instagram portrait posts exactly
+              Use <span className="text-primary font-black">4:5 ratio (1080 × 1350 px)</span> — matches Instagram portrait posts exactly. {UPLOAD_SPECS.venueImage.hint}
             </p>
 
             {/* Gallery Images Section */}
@@ -405,6 +425,7 @@ const TrendingVenueManagementPage = () => {
                 <Upload className="h-3.5 w-3.5" />
                 Upload Gallery Images
               </button>
+              <p className="text-[9px] text-muted-foreground/70 ml-1">{UPLOAD_SPECS.venueImage.hint}</p>
             </div>
 
             <div className="space-y-3">
