@@ -19,11 +19,24 @@ const storage = multer.diskStorage({
   destination: uploadsDir,
   filename: (_req, file, cb) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, unique + path.extname(file.originalname));
+    // Sanitize: only allow alphanumeric, hyphen, underscore, dot in original name,
+    // then append unique prefix with safe extension
+    const ext = path.extname(file.originalname).toLowerCase().replace(/[^a-z0-9.]/g, '');
+    const safeExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.mov', '.webm', '.avi'];
+    const finalExt = safeExts.includes(ext) ? ext : '.bin'; // fallback if suspicious
+    cb(null, `${unique}${finalExt}`);
   },
 });
 
 const fileFilter = (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Whitelist of safe extensions — don't trust client-supplied mimetype
+  const ext = path.extname(file.originalname).toLowerCase();
+  const safeExts = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.mov', '.webm', '.avi'];
+  if (!safeExts.includes(ext)) {
+    cb(new Error(`File type ${ext} is not allowed. Allowed: ${safeExts.join(', ')}`));
+    return;
+  }
+  // Still check mimetype as a basic sanity check (though it can be spoofed)
   if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
     cb(null, true);
   } else {

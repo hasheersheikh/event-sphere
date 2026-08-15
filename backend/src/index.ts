@@ -58,9 +58,22 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(compression());
 
-// CORS — temporarily disabled for development
+// CORS — restrict to configured frontend origin in production
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+const allowedOrigins = [
+  frontendUrl,
+  // Add alternate origins here if needed (e.g., www vs non-www, staging env)
+];
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Allow localhost in development
+    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) return callback(null, true);
+    // Allow configured origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('CORS not allowed for this origin'));
+  },
   credentials: true,
 }));
 

@@ -7,6 +7,7 @@ import { generateTicketPDF } from '../utils/pdfGenerator.js';
 import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailService.js';
 import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
+import { reserveTickets, releaseTickets } from '../utils/inventory.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
@@ -111,58 +112,37 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     const isImmediate = totalAmount === 0;
 
-    // Only increment sold counts now for free (immediately confirmed) tickets.
-    // For paid tickets, sold is incremented in verifyPaymentLink after Razorpay confirms.
-    // Use atomic findOneAndUpdate to prevent race conditions on overselling.
-    if (isImmediate) {
-      const reserved: string[] = [];
-      try {
-        for (const item of enrichedTickets) {
-          const tt = event.ticketTypes.find(t => t.name === item.type);
-          if (!tt) continue;
-
-          const updated = await Event.findOneAndUpdate(
-            {
-              _id: eventId,
-              'ticketTypes.name': item.type,
-              'ticketTypes.sold': tt.sold,
-            },
-            { $inc: { 'ticketTypes.$.sold': item.quantity } },
-            { new: true }
-          );
-
-          if (!updated) {
-            throw new Error(`Sold out: ${item.type}`);
-          }
-          reserved.push(item.type);
-        }
-      } catch {
-        // Rollback: decrement sold for types we successfully reserved
-        for (const name of reserved) {
-          const qty = enrichedTickets.find(t => t.type === name)?.quantity || 0;
-          await Event.updateOne(
-            { _id: eventId, 'ticketTypes.name': name },
-            { $inc: { 'ticketTypes.$.sold': -qty } }
-          );
-        }
-        return res.status(409).json({ message: 'Tickets sold out. Please refresh and try again.' });
-      }
+    // Reserve inventory atomically at booking creation time — for BOTH free and
+    // paid bookings. Pending (unpaid) bookings must hold their capacity too,
+    // otherwise concurrent checkouts can all pass the availability check above
+    // and later all be confirmed at payment time, overselling the event.
+    // Reservation is released on cancellation or pending-booking expiry.
+    const reserveOk = await reserveTickets(eventId, enrichedTickets);
+    if (!reserveOk) {
+      return res.status(409).json({ message: 'Tickets sold out. Please refresh and try again.' });
     }
 
-    const booking = await Booking.create({
-      user: userId,
-      event: eventId,
-      tickets: enrichedTickets,
-      subtotal,
-      discount,
-      taxRate,
-      taxAmount,
-      totalAmount,
-      email,
-      phoneNumber,
-      contactName: contactName || undefined,
-      status: req.body.status || (isImmediate ? 'confirmed' : 'pending'),
-    });
+    let booking;
+    try {
+      booking = await Booking.create({
+        user: userId,
+        event: eventId,
+        tickets: enrichedTickets,
+        subtotal,
+        discount,
+        taxRate,
+        taxAmount,
+        totalAmount,
+        email,
+        phoneNumber,
+        contactName: contactName || undefined,
+        status: req.body.status || (isImmediate ? 'confirmed' : 'pending'),
+      });
+    } catch (err) {
+      // Booking record failed to save — release the inventory we just reserved.
+      await releaseTickets(eventId, enrichedTickets);
+      throw err;
+    }
 
     // Only send ticket notifications for bookings that are immediately confirmed (free tickets).
     // Paid bookings remain 'pending' here — notifications fire from verifyPaymentLink after payment.
@@ -377,16 +357,25 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'All tickets of this type are already checked-in' });
     }
 
-    ticket.checkedInCount = currentCheckedIn + 1;
-    await booking.save();
+    // Atomically increment check-in count to prevent duplicate scan race
+    const updated = await Booking.findOneAndUpdate(
+      { _id: id, 'tickets.type': ticketType, 'tickets.checkedInCount': currentCheckedIn },
+      { $inc: { 'tickets.$.checkedInCount': 1 } },
+      { new: true }
+    );
 
-    res.json({ 
-      message: 'Check-in successful!', 
+    if (!updated) {
+      return res.status(409).json({ message: 'Concurrent check-in detected. Please try scanning again.' });
+    }
+
+    const updatedTicket = updated.tickets.find(t => t.type === ticketType);
+    res.json({
+      message: 'Check-in successful!',
       booking: {
-        userName: (booking as any).user?.name || 'Guest',
-        ticketType: ticket.type,
-        checkedInCount: ticket.checkedInCount,
-        totalQuantity: ticket.quantity
+        userName: (updated as any).user?.name || 'Guest',
+        ticketType: ticketType,
+        checkedInCount: updatedTicket?.checkedInCount || 1,
+        totalQuantity: updatedTicket?.quantity || 1
       }
     });
   } catch (error) {
@@ -413,13 +402,12 @@ export const cancelBooking = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: `Booking is already ${booking.status}` });
     }
 
-    // Decrement sold counts for confirmed bookings (offline or otherwise)
-    if (booking.status === 'confirmed') {
-      for (const item of booking.tickets) {
-        const ticketType = event.ticketTypes.find(t => t.name === item.type);
-        if (ticketType) ticketType.sold = Math.max(0, ticketType.sold - item.quantity);
-      }
-      await event.save();
+    // Release held inventory — both 'confirmed' and 'pending' bookings hold a
+    // reservation (pending bookings reserve capacity at creation time, before
+    // payment). 'expired' bookings already had their reservation released by
+    // the expiry cron, so don't double-release those.
+    if (booking.status === 'confirmed' || booking.status === 'pending') {
+      await releaseTickets(booking.event, booking.tickets);
     }
 
     booking.status = 'cancelled';

@@ -3,6 +3,7 @@ import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import winston from 'winston';
 import { sendReminderEmail, sendReviewEmail } from './emailService.js';
+import { releaseTickets } from './inventory.js';
 import axios from 'axios';
 
 const logger = winston.createLogger({
@@ -146,12 +147,18 @@ export const checkAndSendReviewRequests = async () => {
 export const expirePendingBookings = async () => {
   try {
     const cutoff = new Date(Date.now() - 60 * 60 * 1000); // 60 minutes
-    const result = await Booking.updateMany(
-      { status: 'pending', createdAt: { $lt: cutoff } },
-      { $set: { status: 'expired' } }
-    );
-    if (result.modifiedCount > 0) {
-      logger.info(`Expired ${result.modifiedCount} stale pending bookings (older than 60 min)`);
+    const stale = await Booking.find({ status: 'pending', createdAt: { $lt: cutoff } });
+
+    for (const booking of stale) {
+      // Release the inventory this pending booking was holding since creation,
+      // otherwise abandoned checkouts permanently lock capacity that was never paid for.
+      await releaseTickets(booking.event, booking.tickets);
+      booking.status = 'expired';
+      await booking.save();
+    }
+
+    if (stale.length > 0) {
+      logger.info(`Expired ${stale.length} stale pending bookings (older than 60 min) and released held inventory`);
     }
   } catch (error) {
     logger.error('Error expiring pending bookings:', error);

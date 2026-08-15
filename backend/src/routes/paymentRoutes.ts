@@ -4,24 +4,39 @@ import razorpay from '../utils/razorpay.js';
 import { optionalProtect, AuthRequest } from '../middleware/auth.js';
 import crypto from 'crypto';
 
+// Timing-safe HMAC comparison helper
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
 const router = express.Router();
 
 import Booking from '../models/Booking.js';
-import Event from '../models/Event.js';
 import StoreOrder from '../models/StoreOrder.js';
 import Payout from '../models/Payout.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
 import { sendTicketEmail, sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailService.js';
+import { reserveTickets } from '../utils/inventory.js';
 
 export const createPaymentLink: RequestHandler = async (req: AuthRequest, res: Response) => {
-  const { bookingId, amount, currency = 'INR', customerName, customerEmail, customerPhone, eventTitle } = req.body;
+  const { bookingId, currency = 'INR', customerName, customerEmail, customerPhone, eventTitle } = req.body;
 
   try {
+    const booking = await Booking.findById(bookingId);
+    if (!booking) { res.status(404).json({ message: 'Booking not found' }); return; }
+    if (booking.status !== 'pending') {
+      res.status(400).json({ message: `Cannot create payment link for booking with status: ${booking.status}` });
+      return;
+    }
+
     const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
     const callbackUrl = `${frontendUrl}/payment/callback?bookingId=${bookingId}`;
 
+    // Amount is derived from the booking's server-computed total — never trust
+    // a client-supplied amount, or a client could pay an arbitrary low price.
     const paymentLink = await (razorpay as any).paymentLink.create({
-      amount: Math.round(amount * 100), // paise
+      amount: Math.round(booking.totalAmount * 100), // paise
       currency,
       accept_partial: false,
       description: `Booking for ${eventTitle || 'Event'}`,
@@ -69,7 +84,7 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
       .update(sign)
       .digest('hex');
 
-    if (razorpay_signature !== expectedSign) {
+    if (!timingSafeEqual(razorpay_signature, expectedSign)) {
       res.status(400).json({ success: false, message: 'Invalid signature' });
       return;
     }
@@ -86,31 +101,39 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
       return;
     }
 
-    if (booking.status !== 'pending') {
+    if (booking.status === 'expired') {
+      // Payment landed after the pending-booking timeout — the expiry cron
+      // already released this booking's held inventory. Try to re-reserve it
+      // now that we know the payment actually succeeded.
+      const reserveOk = await reserveTickets((booking.event as any)._id || booking.event, booking.tickets);
+      if (!reserveOk) {
+        booking.status = 'refunded';
+        booking.paymentId = razorpay_payment_id;
+        await booking.save();
+        try {
+          await (razorpay as any).payments.refund(razorpay_payment_id, {
+            notes: { reason: 'Booking expired before payment confirmation and tickets sold out in the interim' },
+          });
+        } catch (refundErr) {
+          console.error('Auto-refund failed for expired-then-paid booking', bookingId, refundErr);
+        }
+        res.status(409).json({
+          success: false,
+          message: 'Your payment succeeded but the tickets are no longer available. A refund has been initiated automatically.',
+        });
+        return;
+      }
+    } else if (booking.status !== 'pending') {
       res.status(400).json({ success: false, message: `Cannot confirm booking with status: ${booking.status}` });
       return;
     }
 
+    // Inventory was already reserved atomically when the booking was created
+    // (or just re-reserved above for the expired-recovery case) — confirming
+    // here only needs to flip status, never re-touch sold counts.
     booking.status = 'confirmed';
     booking.paymentId = razorpay_payment_id;
     await booking.save();
-
-    // Atomically increment sold counts — prevents race on concurrent confirmations
-    const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
-    if (eventDoc) {
-      for (const ticket of booking.tickets) {
-        const tt = eventDoc.ticketTypes.find(t => t.name === ticket.type);
-        if (!tt) continue;
-        await Event.findOneAndUpdate(
-          {
-            _id: eventDoc._id,
-            'ticketTypes.name': ticket.type,
-            'ticketTypes.sold': tt.sold,
-          },
-          { $inc: { 'ticketTypes.$.sold': ticket.quantity } },
-        );
-      }
-    }
 
     // Send ticket (non-blocking)
     (async () => {
@@ -155,7 +178,7 @@ export const handleRazorpayWebhook: RequestHandler = async (req: express.Request
       .update(rawBody)
       .digest("hex");
 
-    if (expectedSignature !== signature) {
+    if (!timingSafeEqual(expectedSignature, signature)) {
       res.status(400).json({ message: "Invalid signature" });
       return;
     }
@@ -181,13 +204,35 @@ export const handleRazorpayWebhook: RequestHandler = async (req: express.Request
 };
 
 export const createStoreOrderPaymentLink: RequestHandler = async (req: AuthRequest, res: Response) => {
-  const { orderId, amount, currency = 'INR', customerName, customerEmail, customerPhone, storeName } = req.body;
+  // Accept either a single orderId (legacy) or orderIds (multi-store cart checkout).
+  const { orderId, orderIds, currency = 'INR', customerName, customerEmail, customerPhone, storeName } = req.body;
+
   try {
+    const ids: string[] = Array.isArray(orderIds) ? orderIds : orderId ? [orderId] : [];
+    if (ids.length === 0) {
+      res.status(400).json({ message: 'orderIds is required' });
+      return;
+    }
+
+    const orders = await StoreOrder.find({ _id: { $in: ids } });
+    if (orders.length !== ids.length) {
+      res.status(404).json({ message: 'One or more orders not found' });
+      return;
+    }
+    if (orders.some((o) => o.status !== 'pending')) {
+      res.status(400).json({ message: 'One or more orders are not in a payable state' });
+      return;
+    }
+
+    // Amount is the sum of each order's server-computed total — never trust a
+    // client-supplied amount, or a client could pay an arbitrary low price.
+    const totalAmount = orders.reduce((sum, o) => sum + o.totalAmount, 0);
+
     const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
-    const callbackUrl = `${frontendUrl}/payment/callback?orderId=${orderId}`;
+    const callbackUrl = `${frontendUrl}/payment/callback?orderIds=${ids.join(',')}`;
 
     const paymentLink = await (razorpay as any).paymentLink.create({
-      amount: Math.round(amount * 100),
+      amount: Math.round(totalAmount * 100),
       currency,
       accept_partial: false,
       description: `Order from ${storeName || 'Local Store'}`,
@@ -212,6 +257,7 @@ export const verifyStoreOrderPayment: RequestHandler = async (req: AuthRequest, 
     razorpay_payment_link_status,
     razorpay_signature,
     orderId,
+    orderIds,
   } = req.body;
 
   try {
@@ -231,36 +277,54 @@ export const verifyStoreOrderPayment: RequestHandler = async (req: AuthRequest, 
       .update(sign)
       .digest('hex');
 
-    if (razorpay_signature !== expectedSign) {
+    if (!timingSafeEqual(razorpay_signature, expectedSign)) {
       res.status(400).json({ success: false, message: 'Invalid signature' });
       return;
     }
 
-    const order = await StoreOrder.findById(orderId);
-    if (!order) { res.status(404).json({ message: 'Order not found' }); return; }
+    // Accept an array, a comma-joined string (from the callback URL query param), or the legacy single orderId.
+    const ids: string[] = Array.isArray(orderIds)
+      ? orderIds
+      : typeof orderIds === 'string' && orderIds.length > 0
+        ? orderIds.split(',').filter(Boolean)
+        : orderId
+          ? [orderId]
+          : [];
 
-    order.status = 'confirmed';
-    order.paymentId = razorpay_payment_id;
-    await order.save();
+    if (ids.length === 0) {
+      res.status(400).json({ message: 'Missing order reference' });
+      return;
+    }
 
-    // Send confirmation emails (non-blocking)
-    (async () => {
-      try {
-        if (order.storeEmail) await sendStoreOrderEmail(order.storeEmail, order.storeName, order);
-        await sendCustomerOrderEmail(order.customer.email, order.customer.name, order.storeName, order);
-      } catch (err) {
-        console.error('Failed to send store order confirmation emails:', err);
-      }
-    })();
+    const orders = await StoreOrder.find({ _id: { $in: ids } });
+    if (orders.length === 0) { res.status(404).json({ message: 'Order not found' }); return; }
 
-    res.json({ success: true, message: 'Payment verified and order confirmed' });
+    // A multi-store cart pays for all orders with a single Razorpay payment link,
+    // so every order tied to that payment must be confirmed here — not just one.
+    for (const order of orders) {
+      if (order.status === 'confirmed') continue; // idempotent — already processed
+      order.status = 'confirmed';
+      order.paymentId = razorpay_payment_id;
+      await order.save();
+
+      (async () => {
+        try {
+          if (order.storeEmail) await sendStoreOrderEmail(order.storeEmail, order.storeName, order);
+          await sendCustomerOrderEmail(order.customer.email, order.customer.name, order.storeName, order);
+        } catch (err) {
+          console.error('Failed to send store order confirmation emails:', err);
+        }
+      })();
+    }
+
+    res.json({ success: true, message: 'Payment verified and order(s) confirmed' });
   } catch (error) {
     res.status(500).json({ message: 'Verification failed', error });
   }
 };
 
 export const createOrder: RequestHandler = async (req: AuthRequest, res: Response) => {
-  const { bookingId, amount, currency = 'INR' } = req.body;
+  const { bookingId, currency = 'INR' } = req.body;
   try {
     const booking = await Booking.findById(bookingId);
     if (!booking) { res.status(404).json({ message: 'Booking not found' }); return; }
@@ -269,8 +333,10 @@ export const createOrder: RequestHandler = async (req: AuthRequest, res: Respons
       return;
     }
 
+    // Amount is derived from the booking's server-computed total — never trust
+    // a client-supplied amount, or a client could pay an arbitrary low price.
     const order = await (razorpay as any).orders.create({
-      amount: Math.round(amount * 100), // paise
+      amount: Math.round(booking.totalAmount * 100), // paise
       currency,
       receipt: `booking_${bookingId}`,
     });
@@ -300,7 +366,7 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
       .update(sign)
       .digest('hex');
 
-    if (razorpay_signature !== expectedSign) {
+    if (!timingSafeEqual(razorpay_signature, expectedSign)) {
       res.status(400).json({ success: false, message: 'Invalid payment signature' });
       return;
     }
@@ -313,31 +379,39 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
       return;
     }
 
-    if (booking.status !== 'pending') {
+    if (booking.status === 'expired') {
+      // Payment landed after the pending-booking timeout — the expiry cron
+      // already released this booking's held inventory. Try to re-reserve it
+      // now that we know the payment actually succeeded.
+      const reserveOk = await reserveTickets((booking.event as any)._id || booking.event, booking.tickets);
+      if (!reserveOk) {
+        booking.status = 'refunded';
+        booking.paymentId = razorpay_payment_id;
+        await booking.save();
+        try {
+          await (razorpay as any).payments.refund(razorpay_payment_id, {
+            notes: { reason: 'Booking expired before payment confirmation and tickets sold out in the interim' },
+          });
+        } catch (refundErr) {
+          console.error('Auto-refund failed for expired-then-paid booking', bookingId, refundErr);
+        }
+        res.status(409).json({
+          success: false,
+          message: 'Your payment succeeded but the tickets are no longer available. A refund has been initiated automatically.',
+        });
+        return;
+      }
+    } else if (booking.status !== 'pending') {
       res.status(400).json({ success: false, message: `Cannot confirm booking with status: ${booking.status}` });
       return;
     }
 
+    // Inventory was already reserved atomically when the booking was created
+    // (or just re-reserved above for the expired-recovery case) — confirming
+    // here only needs to flip status, never re-touch sold counts.
     booking.status = 'confirmed';
     booking.paymentId = razorpay_payment_id;
     await booking.save();
-
-    // Atomically increment sold counts
-    const eventDoc = await Event.findById((booking.event as any)._id || booking.event);
-    if (eventDoc) {
-      for (const ticket of booking.tickets) {
-        const tt = eventDoc.ticketTypes.find(t => t.name === ticket.type);
-        if (!tt) continue;
-        await Event.findOneAndUpdate(
-          {
-            _id: eventDoc._id,
-            'ticketTypes.name': ticket.type,
-            'ticketTypes.sold': tt.sold,
-          },
-          { $inc: { 'ticketTypes.$.sold': ticket.quantity } },
-        );
-      }
-    }
 
     // Send ticket confirmation (non-blocking)
     (async () => {

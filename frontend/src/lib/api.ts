@@ -7,8 +7,16 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const user = localStorage.getItem('user');
   if (user) {
-    const { token } = JSON.parse(user);
-    config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const { token } = JSON.parse(user);
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (parseErr) {
+      // If localStorage.user is corrupted, treat as logged-out and let the user re-auth
+      console.warn('Failed to parse user from localStorage, treating as logged-out', parseErr);
+      localStorage.removeItem('user');
+    }
   }
   return config;
 });

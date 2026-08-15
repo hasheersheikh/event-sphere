@@ -33,4 +33,7 @@ export interface IPayout extends Document {
   { timestamps: true }
 );
 
+// Prevent duplicate payouts for the same event (only one processing/completed payout per event)
+PayoutSchema.index({ event: 1, status: 1 }, { unique: true, partialFilterExpression: { status: { $in: ['processing', 'completed'] } } });
+
 export default mongoose.model<IPayout>('Payout', PayoutSchema);

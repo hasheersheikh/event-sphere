@@ -213,18 +213,11 @@ export const declineEvent: RequestHandler = async (req: AuthRequest, res: Respon
 
 export const processEventPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { eventId } = req.params;
-  
+
   try {
     const event = await Event.findById(eventId);
     if (!event) {
       res.status(404).json({ message: 'Event not found' });
-      return;
-    }
-    
-    // Check if payout already exists
-    const existingPayout = await Payout.findOne({ event: eventId, status: { $in: ['pending', 'processing', 'completed'] } });
-    if (existingPayout) {
-      res.status(400).json({ message: 'Payout for this event has already been initiated or completed.' });
       return;
     }
 
@@ -232,6 +225,25 @@ export const processEventPayout: RequestHandler = async (req: AuthRequest, res: 
     if (!manager) {
       res.status(404).json({ message: 'Manager not found' });
       return;
+    }
+
+    // Check if payout already exists
+    const existingPayout = await Payout.findOne({ event: eventId, status: { $in: ['pending', 'processing', 'completed'] } });
+    if (existingPayout) {
+      res.status(400).json({ message: 'Payout for this event has already been initiated or completed.' });
+      return;
+    }
+
+    // Create a unique pending marker to prevent concurrent payouts — this will
+    // fail on the unique index if another request already created a processing/completed payout for this event.
+    try {
+      await Payout.create({ event: eventId, manager: manager._id, amount: 0, status: 'pending' });
+    } catch (lockErr: any) {
+      if (lockErr.code === 11000 || lockErr.message.includes('duplicate key')) {
+        res.status(400).json({ message: 'Payout for this event is already being processed by another request.' });
+        return;
+      }
+      throw lockErr;
     }
 
     // Calculate revenue
@@ -455,28 +467,33 @@ export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Respons
     const managerCount = await EventManager.countDocuments({});
     const total = userCount + managerCount;
 
-    // This is a bit tricky since it's two collections. 
-    // For simplicity, we'll fetch both and combine, but real pagination would need 
-    // a more complex aggregation or a unified User model.
-    // Given the current structure, we'll fetch recent from both.
-    const users = await User.find().select("-password").sort({ createdAt: -1 }).limit(limit);
-    const managers = await EventManager.find().select("-password").sort({ createdAt: -1 }).limit(limit);
-    
+    // Since users and managers are in separate collections, true cross-collection
+    // pagination would require aggregation. For now, we return the most recent
+    // 2*limit items combined and limit pagination metadata to what's actually available.
+    const combinedLimit = limit * 2;
+    const users = await User.find().select("-password").sort({ createdAt: -1 }).limit(combinedLimit);
+    const managers = await EventManager.find().select("-password").sort({ createdAt: -1 }).limit(combinedLimit);
+
     const combined = [...users, ...managers]
-      .sort((a, b) => (b as any).createdAt - (a as any).createdAt)
-      .slice(skip, skip + limit);
+      .sort((a, b) => (b as any).createdAt - (a as any).createdAt);
+
+    const paginated = combined.slice(skip, skip + limit);
+    const availableCount = combined.length;
 
     res.json({
-      data: combined,
+      data: paginated,
       pagination: {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit),
+        // Actual items returned may be less than requested for higher pages
+        // since we're only fetching 2*limit items from each collection.
+        available: availableCount,
+        hasMore: skip + limit < availableCount,
       },
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    res.status(500).json({ message: 'Server error', error });
   }
 };
 

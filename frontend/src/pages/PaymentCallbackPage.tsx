@@ -13,7 +13,8 @@ const PaymentCallbackPage = () => {
   useEffect(() => {
     const verify = async () => {
       const bookingId = searchParams.get("bookingId");
-      const orderId = searchParams.get("orderId");
+      const orderIdsParam = searchParams.get("orderIds") || searchParams.get("orderId");
+      const orderIds = orderIdsParam ? orderIdsParam.split(",").filter(Boolean) : [];
       const razorpay_payment_id = searchParams.get("razorpay_payment_id");
       const razorpay_payment_link_id = searchParams.get("razorpay_payment_link_id");
       const razorpay_payment_link_reference_id = searchParams.get("razorpay_payment_link_reference_id");
@@ -37,9 +38,9 @@ const PaymentCallbackPage = () => {
 
         let data: any;
 
-        if (orderId) {
-          // Store order payment
-          const res = await api.post("/payments/verify-store-order", { ...payload, orderId });
+        if (orderIds.length > 0) {
+          // Store order payment (single store or multi-store cart)
+          const res = await api.post("/payments/verify-store-order", { ...payload, orderIds });
           data = res.data;
         } else if (bookingId) {
           // Event booking payment
@@ -59,7 +60,7 @@ const PaymentCallbackPage = () => {
             origin: { y: 0.6 },
             colors: ["#f59e0b", "#10b981", "#ffffff"],
           });
-          setTimeout(() => navigate(orderId ? "/my-orders" : "/my-tickets"), 3000);
+          setTimeout(() => navigate(orderIds.length > 0 ? "/my-orders" : "/my-tickets"), 3000);
         } else {
           setStatus("failed");
           setMessage(data.message || "Payment verification failed.");

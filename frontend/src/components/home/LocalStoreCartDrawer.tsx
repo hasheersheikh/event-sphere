@@ -79,13 +79,9 @@ const LocalStoreCartDrawer = () => {
         // If cart has items from multiple stores, create one payment link for total
         // and create orders for each store
         const orderIds: string[] = [];
-        let totalOnline = 0;
         let firstStoreName = "";
 
         for (const [storeId, storeItems] of storeEntries) {
-          const storeTotal = storeItems.reduce((s, i) => {
-            return s + i.price * (1 - (i.discountPercent || 0) / 100) * i.quantity;
-          }, 0);
           const { data: order } = await api.post("/store-orders", {
             storeId,
             items: storeItems.map((i) => ({
@@ -97,14 +93,13 @@ const LocalStoreCartDrawer = () => {
             notes: form.notes,
           });
           orderIds.push(order._id);
-          totalOnline += storeTotal;
           if (!firstStoreName) firstStoreName = storeItems[0].storeName;
         }
 
-        // Create a single Razorpay payment link (orderId = first order, multiple store note)
+        // Create a single Razorpay payment link covering every store's order —
+        // the backend confirms all of them once payment is verified.
         const { data: payLink } = await api.post("/payments/create-store-order-payment-link", {
-          orderId: orderIds[0],
-          amount: totalOnline,
+          orderIds,
           customerName: form.name,
           customerEmail: form.email,
           customerPhone: form.phone,
