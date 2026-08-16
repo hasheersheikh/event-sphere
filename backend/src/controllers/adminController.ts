@@ -213,6 +213,7 @@ export const declineEvent: RequestHandler = async (req: AuthRequest, res: Respon
 
 export const processEventPayout: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { eventId } = req.params;
+  let lockPayout: any = null;
 
   try {
     const event = await Event.findById(eventId);
@@ -236,8 +237,11 @@ export const processEventPayout: RequestHandler = async (req: AuthRequest, res: 
 
     // Create a unique pending marker to prevent concurrent payouts — this will
     // fail on the unique index if another request already created a processing/completed payout for this event.
+    // We reuse (update) this same document once the payout succeeds, rather than
+    // creating a second record, and delete it if anything below fails so the
+    // event isn't permanently locked out of retries.
     try {
-      await Payout.create({ event: eventId, manager: manager._id, amount: 0, status: 'pending' });
+      lockPayout = await Payout.create({ event: eventId, manager: manager._id, amount: 0, status: 'pending' });
     } catch (lockErr: any) {
       if (lockErr.code === 11000 || lockErr.message.includes('duplicate key')) {
         res.status(400).json({ message: 'Payout for this event is already being processed by another request.' });
@@ -251,6 +255,7 @@ export const processEventPayout: RequestHandler = async (req: AuthRequest, res: 
     const totalCollected = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
 
     if (totalCollected <= 0) {
+      await Payout.findByIdAndDelete(lockPayout._id);
       res.status(400).json({ message: 'No collected revenue for this event.' });
       return;
     }
@@ -268,30 +273,46 @@ export const processEventPayout: RequestHandler = async (req: AuthRequest, res: 
     const payoutAmount = totalCollected - platformFee;
 
     // Razorpay Integration
-    const contact = await createRazorpayContact(manager, `contact_mgr_${manager._id}`);
-    const fundAccount = await createRazorpayFundAccount(contact.id, manager);
-    const payoutOrder = await initiateRazorpayPayout(
-      fundAccount.id, 
-      payoutAmount, 
-      `payout_evt_${eventId}_${Date.now()}`,
-      'payout'
-    );
+    let contact, fundAccount, payoutOrder;
+    try {
+      contact = await createRazorpayContact(manager, `contact_mgr_${manager._id}`);
+      fundAccount = await createRazorpayFundAccount(contact.id, manager);
+      payoutOrder = await initiateRazorpayPayout(
+        fundAccount.id,
+        payoutAmount,
+        `payout_evt_${eventId}_${Date.now()}`,
+        'payout'
+      );
+    } catch (razorpayErr) {
+      await Payout.findByIdAndDelete(lockPayout._id);
+      throw razorpayErr;
+    }
 
-    const payout = await Payout.create({
-      manager: manager._id,
-      event: eventId,
-      amount: payoutAmount,
-      status: 'processing',
-      fundAccountId: fundAccount.id,
-      razorpayPayoutId: payoutOrder.id,
-      notes: `Payout for event ${event.title}`,
-    });
+    // Update the same lock document in place — avoids leaving an orphaned
+    // 'pending' record behind alongside the real payout.
+    lockPayout.amount = payoutAmount;
+    lockPayout.status = 'processing';
+    lockPayout.fundAccountId = fundAccount.id;
+    lockPayout.razorpayPayoutId = payoutOrder.id;
+    lockPayout.notes = `Payout for event ${event.title}`;
+    await lockPayout.save();
+    const payout = lockPayout;
 
     manager.totalPaid = (manager.totalPaid || 0) + payoutAmount;
     await manager.save();
 
     res.json({ message: 'Payout initiated successfully', payout, totalCollected, platformFee, payoutAmount });
   } catch (error: any) {
+    // Best-effort cleanup: if the lock record never made it past 'pending',
+    // remove it so this event isn't permanently blocked from retrying.
+    if (lockPayout?._id) {
+      try {
+        const stuck = await Payout.findById(lockPayout._id);
+        if (stuck && stuck.status === 'pending') await Payout.findByIdAndDelete(lockPayout._id);
+      } catch {
+        // Ignore cleanup failure — the original error is more important to surface
+      }
+    }
     res.status(500).json({ message: 'Payout processing failed', error: error.message || error });
   }
 };
@@ -306,6 +327,7 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
   }
 
   const payoutAmount = Number(amount);
+  let lockAcquired = false;
 
   try {
     const manager = await EventManager.findById(id);
@@ -313,6 +335,20 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
       res.status(404).json({ message: 'Manager not found.' });
       return;
     }
+
+    // Atomically acquire a per-manager payout lock — prevents two concurrent
+    // admin requests from both reading the same pre-payout balance and both
+    // initiating a Razorpay transfer before either write lands.
+    const locked = await EventManager.findOneAndUpdate(
+      { _id: id, payoutLock: { $ne: true } },
+      { $set: { payoutLock: true } },
+      { new: true }
+    );
+    if (!locked) {
+      res.status(409).json({ message: 'A payout for this manager is already being processed. Please wait for it to complete.' });
+      return;
+    }
+    lockAcquired = true;
 
     // Require payment details before processing
     const hasBankDetails = !!(manager.bankDetails?.accountNumber && manager.bankDetails?.ifscCode);
@@ -392,6 +428,11 @@ export const processPayout: RequestHandler = async (req: AuthRequest, res: Respo
   } catch (error: any) {
     console.error('processPayout error:', error);
     res.status(500).json({ message: error.message || 'Payout failed. Please try again.' });
+  } finally {
+    // Always release the lock on the way out, regardless of success/failure/early-return.
+    if (lockAcquired) {
+      await EventManager.updateOne({ _id: id }, { $set: { payoutLock: false } }).catch(() => {});
+    }
   }
 };
 

@@ -58,8 +58,11 @@ app.set('trust proxy', 1);
 app.use(helmet());
 app.use(compression());
 
-// CORS — restrict to configured frontend origin in production
-const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+// CORS — restrict to configured frontend origin in production.
+// Strip any trailing slash — FRONTEND_URL may be set with or without one, but
+// the browser's Origin header never has a trailing slash, so an un-normalized
+// comparison here can silently reject every real request.
+const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
 const allowedOrigins = [
   frontendUrl,
   // Add alternate origins here if needed (e.g., www vs non-www, staging env)

@@ -7,6 +7,7 @@ export interface IEventManager extends Document {
   role: 'event_manager';
   isApproved: boolean;
   totalPaid: number;
+  payoutLock?: boolean;
   commissionType: 'flat' | 'percentage';
   commissionValue: number;
   commissionHistory: Array<{
@@ -47,6 +48,12 @@ const EventManagerSchema: Schema = new Schema(
     totalPaid: {
       type: Number,
       default: 0,
+    },
+    // Atomic mutex to prevent two concurrent admin requests from both passing
+    // the balance check and initiating a duplicate Razorpay payout for this manager.
+    payoutLock: {
+      type: Boolean,
+      default: false,
     },
     commissionType: {
       type: String,
