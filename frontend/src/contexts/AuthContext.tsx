@@ -123,6 +123,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Update last activity time on mount
         localStorage.setItem("lastActivity", Date.now().toString());
+
+        // The cached profile can go stale (e.g. isApproved flips after admin
+        // action) — refresh it from the server without waiting on a re-login.
+        api
+          .get("/auth/me")
+          .then(({ data }) => {
+            const refreshed = { ...userData, ...data, token: userData.token };
+            setUser(refreshed);
+            localStorage.setItem("user", JSON.stringify(refreshed));
+          })
+          .catch(() => {});
       } catch (e) {
         localStorage.removeItem("user");
         localStorage.removeItem("lastActivity");
