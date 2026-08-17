@@ -68,12 +68,13 @@ async function sendMsg91Email(options: {
     from: { email: options.from || MSG91_EMAIL_FROM, name: MSG91_EMAIL_FROM_NAME },
     domain: MSG91_EMAIL_DOMAIN,
     template_id: MSG91_EMAIL_TEMPLATE_ID,
+    validate_before_send: true,
   };
 
   if (options.attachments?.length) {
     payload.attachments = options.attachments.map((att) => ({
-      filename: att.filename,
-      content: att.content.toString('base64'),
+      fileName: att.filename,
+      file: `data:application/pdf;base64,${att.content.toString('base64')}`,
     }));
   }
 
