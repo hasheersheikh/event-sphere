@@ -25,16 +25,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import api from "@/lib/api";
+import OtpVerificationStep from "@/components/auth/OtpVerificationStep";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showOtpStep, setShowOtpStep] = useState(false);
   const role = "user";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, register, googleLogin } = useAuth();
+  const { login, sendRegistrationOtp, verifyRegistrationOtp, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -75,10 +77,10 @@ const AuthPage = () => {
           toast.error(result.message || "Login failed.");
         }
       } else {
-        const result = await register(name, email, password, role);
+        const result = await sendRegistrationOtp(name, email, password, role);
         if (result.success) {
-          toast.success("Account created successfully.");
-          navigate("/events");
+          toast.success("Verification code sent to your email.");
+          setShowOtpStep(true);
         } else {
           toast.error(result.message || "Registration failed.");
         }
@@ -204,6 +206,19 @@ const AuthPage = () => {
             transition={{ duration: 0.5 }}
             className="w-full max-w-sm"
           >
+            {showOtpStep ? (
+              <OtpVerificationStep
+                email={email}
+                onVerify={(otp) => verifyRegistrationOtp(email, otp)}
+                onResend={() => sendRegistrationOtp(name, email, password, role)}
+                onBack={() => setShowOtpStep(false)}
+                onVerified={() => {
+                  toast.success("Account created successfully.");
+                  navigate("/events");
+                }}
+              />
+            ) : (
+              <>
             {/* Header */}
             <div className="mb-10">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 border border-border/60 bg-muted/30 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-5 rounded-lg">
@@ -380,6 +395,8 @@ const AuthPage = () => {
                 {isLogin ? "Sign Up" : "Sign In"}
               </button>
             </p>
+              </>
+            )}
 
             {/* Staff portal link */}
             <div className="mt-10 pt-8 border-t border-border/30 text-center">

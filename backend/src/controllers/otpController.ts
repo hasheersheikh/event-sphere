@@ -3,13 +3,30 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/User.js';
+import Admin from '../models/Admin.js';
+import EventManager from '../models/EventManager.js';
 import Booking from '../models/Booking.js';
 import OtpToken from '../models/OtpToken.js';
-import { sendWelcomeEmail } from '../utils/emailProvider.js';
+import {
+  sendWelcomeEmail,
+  sendManagerSignUpNotificationToAdmin,
+  sendPartnerContractEmail,
+} from '../utils/emailProvider.js';
+import { isDisposableEmail } from '../utils/emailValidation.js';
 
 const OTP_ENABLED = process.env.ENABLE_OTP_AUTH === 'true';
 const MAX_ATTEMPTS = 3;
 const OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const REGISTRATION_OTP_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// Roles the public registration-OTP flow may create directly — mirrors
+// authController's SELF_REGISTERABLE_ROLES. 'admin' is deliberately excluded.
+const SELF_REGISTERABLE_ROLES = ['user', 'event_manager', 'volunteer'];
+
+const getModelByRole = (role: string): any => {
+  if (role === 'event_manager') return EventManager;
+  return User;
+};
 
 const jwtSecret = (): string => {
   if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');
@@ -172,6 +189,170 @@ export const verifyOtp = async (req: Request, res: Response) => {
     role: user.role,
     avatar: user.avatar,
     isNew,
+    token: generateToken(user._id.toString(), user.role),
+  });
+};
+
+// ---------------------------------------------------------------------------
+// Password signup, gated behind email OTP verification. The account is only
+// created once the OTP is confirmed — no unverified account ever exists.
+//
+// Send OTP  POST /auth/register/send-otp
+// Body: { name, email, password, role? }
+// ---------------------------------------------------------------------------
+export const sendRegistrationOtp = async (req: Request, res: Response) => {
+  const { name, password } = req.body as { name: string; password: string };
+  const email = (req.body.email as string)?.toLowerCase().trim();
+  const role = req.body.role as string;
+  const userRole = SELF_REGISTERABLE_ROLES.includes(role) ? role : 'user';
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'Name, email, and password are required.' });
+  }
+
+  if (isDisposableEmail(email)) {
+    return res.status(400).json({
+      message: 'Please use a real email address. Disposable/temporary email providers are not allowed.',
+    });
+  }
+
+  // Ghost users (created during guest checkout — no password, no googleId) are
+  // allowed to proceed; they'll be upgraded in place once the OTP is verified.
+  const ghostUser = userRole === 'user'
+    ? await User.findOne({ email, password: { $exists: false }, googleId: { $exists: false } })
+    : null;
+
+  if (!ghostUser) {
+    const models = [User, Admin, EventManager];
+    for (const M of models) {
+      const existing = await (M as any).findOne({ email });
+      if (existing) {
+        return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+      }
+    }
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const otp = crypto.randomInt(100000, 999999).toString();
+  const expiresAt = new Date(Date.now() + REGISTRATION_OTP_TTL_MS);
+
+  await OtpToken.findOneAndUpdate(
+    { identifier: email, identifierType: 'email', purpose: 'register' },
+    {
+      identifier: email,
+      identifierType: 'email',
+      purpose: 'register',
+      otp,
+      attempts: 0,
+      expiresAt,
+      pendingName: name,
+      pendingPasswordHash: passwordHash,
+      pendingRole: userRole,
+    },
+    { upsert: true, new: true }
+  );
+
+  try {
+    await sendOtpEmail(email, otp);
+  } catch (err) {
+    console.error('Registration OTP send failed:', err);
+    return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
+  }
+
+  res.json({ message: 'OTP sent successfully.' });
+};
+
+// ---------------------------------------------------------------------------
+// Verify OTP and create the account  POST /auth/register/verify-otp
+// Body: { email, otp }
+// ---------------------------------------------------------------------------
+export const verifyRegistrationOtp = async (req: Request, res: Response) => {
+  const email = (req.body.email as string)?.toLowerCase().trim();
+  const { otp } = req.body as { otp: string };
+
+  if (!email || !otp) {
+    return res.status(400).json({ message: 'email and otp are required.' });
+  }
+
+  const record = await OtpToken.findOne({ identifier: email, identifierType: 'email', purpose: 'register' });
+
+  if (!record) {
+    return res.status(400).json({ message: 'No OTP found. Please request a new one.' });
+  }
+  if (record.expiresAt < new Date()) {
+    await OtpToken.deleteOne({ _id: record._id });
+    return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+  }
+  if (record.attempts >= MAX_ATTEMPTS) {
+    return res.status(400).json({ message: 'Too many attempts. Please request a new OTP.' });
+  }
+  if (record.otp !== otp) {
+    await OtpToken.updateOne({ _id: record._id }, { $inc: { attempts: 1 } });
+    return res.status(400).json({ message: 'Invalid OTP.' });
+  }
+
+  const { pendingName, pendingPasswordHash, pendingRole } = record;
+  await OtpToken.deleteOne({ _id: record._id });
+
+  const userRole = pendingRole || 'user';
+  const Model = getModelByRole(userRole);
+
+  // Ghost user upgrade (guest checkout account, 'user' role only)
+  const ghostUser = userRole === 'user'
+    ? await User.findOne({ email, password: { $exists: false }, googleId: { $exists: false } })
+    : null;
+
+  if (ghostUser) {
+    ghostUser.password = pendingPasswordHash || undefined;
+    if (pendingName) ghostUser.name = pendingName;
+    await ghostUser.save();
+    await claimGuestBookings(ghostUser._id.toString(), email, ghostUser.phoneNumber);
+    return res.status(201).json({
+      _id: ghostUser._id,
+      name: ghostUser.name,
+      email: ghostUser.email,
+      role: ghostUser.role,
+      isApproved: true,
+      token: generateToken(ghostUser._id.toString(), ghostUser.role),
+    });
+  }
+
+  // Re-check uniqueness — the email could have been registered elsewhere
+  // between send-otp and verify-otp.
+  const models = [User, Admin, EventManager];
+  for (const M of models) {
+    const existing = await (M as any).findOne({ email });
+    if (existing) {
+      return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+    }
+  }
+
+  const user = await Model.create({
+    name: pendingName,
+    email,
+    password: pendingPasswordHash,
+    role: userRole,
+    ...(userRole === 'event_manager' && { isApproved: false }),
+  });
+
+  (async () => {
+    try {
+      await sendWelcomeEmail(user.email, user.name);
+      if (userRole === 'event_manager') {
+        await sendManagerSignUpNotificationToAdmin(user.name, user.email);
+        await sendPartnerContractEmail(user.email, user.name, 'Event Manager');
+      }
+    } catch (err) {
+      console.error('Failed to send registration emails:', err);
+    }
+  })();
+
+  res.status(201).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    isApproved: (user as any).isApproved ?? true,
     token: generateToken(user._id.toString(), user.role),
   });
 };

@@ -35,6 +35,16 @@ interface AuthContextType {
     password: string,
     role: string,
   ) => Promise<{ success: boolean; message?: string }>;
+  sendRegistrationOtp: (
+    name: string,
+    email: string,
+    password: string,
+    role: string,
+  ) => Promise<{ success: boolean; message?: string }>;
+  verifyRegistrationOtp: (
+    email: string,
+    otp: string,
+  ) => Promise<{ success: boolean; message?: string }>;
   googleLogin: (credential: string) => Promise<{ success: boolean; role?: string | null; message?: string }>;
   logout: () => void;
   isLoading: boolean;
@@ -225,6 +235,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const sendRegistrationOtp = async (
+    name: string,
+    email: string,
+    password: string,
+    role: string = "user",
+  ) => {
+    try {
+      await api.post("/auth/register/send-otp", { name, email, password, role });
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to send OTP. Please try again.",
+      };
+    }
+  };
+
+  const verifyRegistrationOtp = async (email: string, otp: string) => {
+    try {
+      const response = await api.post("/auth/register/verify-otp", { email, otp });
+      const data = response.data;
+
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("lastActivity", Date.now().toString());
+
+      setSessionTimeout();
+
+      return { success: true };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "OTP verification failed. Please try again.",
+      };
+    }
+  };
+
   const googleLogin = async (accessToken: string) => {
     try {
       const response = await api.post("/auth/google", { accessToken });
@@ -261,6 +308,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isAuthenticated: !!user,
         login,
         register,
+        sendRegistrationOtp,
+        verifyRegistrationOtp,
         googleLogin,
         logout,
         isLoading,

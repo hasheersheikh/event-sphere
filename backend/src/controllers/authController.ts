@@ -8,6 +8,7 @@ import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
 import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin, sendPartnerContractEmail } from '../utils/emailProvider.js';
+import { isDisposableEmail } from '../utils/emailValidation.js';
 import { claimGuestBookings } from './otpController.js';
 
 const jwtSecret = (): string => {
@@ -109,6 +110,12 @@ export const register = async (req: Request, res: Response) => {
   const email = req.body.email?.toLowerCase();
   const userRole = SELF_REGISTERABLE_ROLES.includes(role) ? role : 'user';
   const Model = getModelByRole(userRole);
+
+  if (isDisposableEmail(email)) {
+    return res.status(400).json({
+      message: 'Please use a real email address. Disposable/temporary email providers are not allowed.',
+    });
+  }
 
   try {
     // Check if a ghost user exists (created during guest checkout — no password, no googleId)

@@ -6,6 +6,12 @@ const OtpTokenSchema = new Schema({
   otp: { type: String, required: true },
   attempts: { type: Number, default: 0 },
   expiresAt: { type: Date, required: true },
+  // Only set when purpose is 'register' — holds the submitted signup details so
+  // the account is created only after the OTP is verified, never before.
+  purpose: { type: String, enum: ['login', 'register'], default: 'login' },
+  pendingName: { type: String },
+  pendingPasswordHash: { type: String },
+  pendingRole: { type: String },
 });
 
 // TTL index — MongoDB auto-deletes expired docs

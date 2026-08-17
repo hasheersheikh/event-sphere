@@ -24,15 +24,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import api from "@/lib/api";
+import OtpVerificationStep from "@/components/auth/OtpVerificationStep";
 
 const ManagerLoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [showOtpStep, setShowOtpStep] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { login, register } = useAuth();
+  const { login, sendRegistrationOtp, verifyRegistrationOtp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,10 +51,10 @@ const ManagerLoginPage = () => {
           toast.error(result.message || "Login failed.");
         }
       } else {
-        const result = await register(name, email, password, "event_manager");
+        const result = await sendRegistrationOtp(name, email, password, "event_manager");
         if (result.success) {
-          toast.success("Manager profile created.");
-          navigate("/portal");
+          toast.success("Verification code sent to your email.");
+          setShowOtpStep(true);
         } else {
           toast.error(result.message || "Registration failed.");
         }
@@ -151,6 +153,23 @@ const ManagerLoginPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="w-full max-w-sm relative z-10"
         >
+          {showOtpStep ? (
+            <div className="mb-14">
+              <OtpVerificationStep
+                email={email}
+                title="Verify Your Email"
+                subtitle={`Enter the 6-digit code sent to ${email} to establish your manager entity.`}
+                onVerify={(otp) => verifyRegistrationOtp(email, otp)}
+                onResend={() => sendRegistrationOtp(name, email, password, "event_manager")}
+                onBack={() => setShowOtpStep(false)}
+                onVerified={() => {
+                  toast.success("Manager profile created.");
+                  navigate("/portal");
+                }}
+              />
+            </div>
+          ) : (
+          <>
           <div className="mb-14 text-center md:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-primary/30 bg-muted/50 text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-6 rounded-xl shadow-sm">
               <Zap className="h-3.5 w-3.5" />
@@ -301,6 +320,8 @@ const ManagerLoginPage = () => {
               {isLogin ? "Join the Network" : "Authenticate Access"}
             </button>
           </p>
+          </>
+          )}
         </motion.div>
 
         <div className="absolute bottom-10 left-10 md:left-24 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] opacity-50 italic text-muted-foreground/30">
