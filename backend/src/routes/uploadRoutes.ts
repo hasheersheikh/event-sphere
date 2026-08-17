@@ -44,13 +44,20 @@ const fileFilter = (_req: express.Request, file: Express.Multer.File, cb: multer
   }
 };
 
-const upload = multer({ 
-  storage, 
-  fileFilter, 
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB
+// Largest legitimate use case is the hero video spec (20MB, see frontend
+// uploadSpecs.ts) — capped a bit above that, well below the old 50MB, to
+// keep the VPS's limited disk from filling up with oversized uploads.
+const upload = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 25 * 1024 * 1024 } // 25MB
 });
 
-const getBaseUrl = () => process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
+// BACKEND_URL is an explicit override; otherwise derive the public-facing origin
+// from the request itself (Caddy sets X-Forwarded-Proto/Host and Express trusts
+// it via `trust proxy`), so this works on any domain without per-deploy config.
+const getBaseUrl = (req: express.Request) =>
+  process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
 
 // Explicit opt-in — CLOUDINARY_ENABLED defaults to false, so Cloudinary is only
 // used when someone deliberately turns it on, even if leftover keys are present.
@@ -73,7 +80,7 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
       fs.unlinkSync(req.file.path);
       res.json({ url });
     } else {
-      res.json({ url: `${getBaseUrl()}/uploads/${req.file.filename}` });
+      res.json({ url: `${getBaseUrl(req)}/uploads/${req.file.filename}` });
     }
   } catch (error) {
     console.error('Upload error:', error);
@@ -94,7 +101,7 @@ router.post('/single', protect, upload.single('file'), async (req, res) => {
       fs.unlinkSync(req.file.path);
       res.json({ url });
     } else {
-      res.json({ url: `${getBaseUrl()}/uploads/${req.file.filename}` });
+      res.json({ url: `${getBaseUrl(req)}/uploads/${req.file.filename}` });
     }
   } catch (error) {
     console.error('Upload error:', error);
@@ -119,7 +126,7 @@ router.post('/multiple', protect, upload.array('files', 5), async (req, res) => 
       }));
       res.json({ urls });
     } else {
-      res.json({ urls: files.map(f => `${getBaseUrl()}/uploads/${f.filename}`) });
+      res.json({ urls: files.map(f => `${getBaseUrl(req)}/uploads/${f.filename}`) });
     }
   } catch (error) {
     console.error('Multi-upload error:', error);
@@ -156,7 +163,7 @@ router.post('/event-video', protect, videoUpload.single('video'), async (req, re
       });
     } else {
       res.json({
-        url: `${getBaseUrl()}/uploads/${req.file.filename}`,
+        url: `${getBaseUrl(req)}/uploads/${req.file.filename}`,
         warning: 'Video should be in Instagram photo aspect ratio (4:5 portrait). Videos in other aspect ratios will be cropped.'
       });
     }
