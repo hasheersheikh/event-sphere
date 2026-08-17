@@ -22,9 +22,15 @@ const MSG91_EMAIL_FROM_NAME = process.env.MSG91_EMAIL_FROM_NAME || 'City Pulse';
 // The mailer91 sending domain shown in MSG91 → Email → Domains (e.g. "yourcompany.mailer91.com"
 // or your own verified custom domain).
 const MSG91_EMAIL_DOMAIN = process.env.MSG91_EMAIL_DOMAIN;
-// A single "pass-through" template created in MSG91 with two variables (subject, body)
-// whose body just renders {{body}} — lets every email type below keep generating its
-// own dynamic HTML instead of needing a separate MSG91 template per email type.
+// A single "pass-through" template created in MSG91 (Email → Templates, HTML & Text
+// Editor) with one variable named "body", whose content is JUST `{{{body}}}`
+// (triple-brace — MSG91 templates use Handlebars, and double-brace {{body}} would
+// HTML-escape our markup instead of rendering it). Try setting the template's
+// Subject field to `{{subject}}` too so per-email subjects come through; if MSG91's
+// editor won't accept a variable there, the template's static subject is used instead
+// and the `subject` variable below is sent but ignored.
+// Lets every email type below keep generating its own dynamic HTML instead of
+// needing a separate MSG91 template per email type.
 const MSG91_EMAIL_TEMPLATE_ID = process.env.MSG91_EMAIL_TEMPLATE_ID;
 
 /**
