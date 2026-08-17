@@ -538,11 +538,11 @@ export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Respons
   }
 };
 
-import { 
-  sendManagerApprovalEmail, 
-  sendEventApprovalEmail, 
-  sendEventDeclineEmail 
-} from '../utils/emailService.js';
+import {
+  sendManagerApprovalEmail,
+  sendEventApprovalEmail,
+  sendEventDeclineEmail
+} from '../utils/emailProvider.js';
 
 export const approveManager: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;

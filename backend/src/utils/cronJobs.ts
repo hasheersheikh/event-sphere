@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
 import winston from 'winston';
-import { sendReminderEmail, sendReviewEmail } from './emailService.js';
+import { sendReminderEmail, sendReviewEmail } from './emailProvider.js';
 import { releaseTickets } from './inventory.js';
 import axios from 'axios';
 

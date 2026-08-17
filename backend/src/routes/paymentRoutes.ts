@@ -16,7 +16,7 @@ import Booking from '../models/Booking.js';
 import StoreOrder from '../models/StoreOrder.js';
 import Payout from '../models/Payout.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail, sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailService.js';
+import { sendTicketEmail, sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailProvider.js';
 import { reserveTickets } from '../utils/inventory.js';
 
 export const createPaymentLink: RequestHandler = async (req: AuthRequest, res: Response) => {

@@ -4,7 +4,7 @@ import Booking from '../models/Booking.js';
 import Event from '../models/Event.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailService.js';
+import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailProvider.js';
 import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { reserveTickets, releaseTickets } from '../utils/inventory.js';

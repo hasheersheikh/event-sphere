@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import StoreOrder from '../models/StoreOrder.js';
 import LocalStore from '../models/LocalStore.js';
 import { AuthRequest } from '../middleware/auth.js';
-import { sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailService.js';
+import { sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailProvider.js';
 
 export const createOrder = async (req: Request, res: Response) => {
   try {

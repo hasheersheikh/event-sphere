@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 import Booking from '../models/Booking.js';
 import OtpToken from '../models/OtpToken.js';
-import { sendWelcomeEmail } from '../utils/emailService.js';
+import { sendWelcomeEmail } from '../utils/emailProvider.js';
 
 const OTP_ENABLED = process.env.ENABLE_OTP_AUTH === 'true';
 const MAX_ATTEMPTS = 3;

@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import StoreOwner from '../models/StoreOwner.js';
 import LocalStore from '../models/LocalStore.js';
 import { AuthRequest } from '../middleware/auth.js';
-import { sendStoreOwnerWelcomeEmail, sendPartnerContractEmail } from '../utils/emailService.js';
+import { sendStoreOwnerWelcomeEmail, sendPartnerContractEmail } from '../utils/emailProvider.js';
 
 const jwtSecret = (): string => {
   if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');

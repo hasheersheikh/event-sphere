@@ -7,7 +7,7 @@ import EventManager from '../models/EventManager.js';
 import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
-import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin, sendPartnerContractEmail } from '../utils/emailService.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin, sendPartnerContractEmail } from '../utils/emailProvider.js';
 import { claimGuestBookings } from './otpController.js';
 
 const jwtSecret = (): string => {
