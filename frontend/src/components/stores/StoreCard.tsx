@@ -16,6 +16,8 @@ interface LocalStore {
   name: string;
   address: string;
   description?: string;
+  listingPhoto?: string;
+  bannerPhoto?: string;
   photos: string[];
   category: string;
   products: Product[];
@@ -52,9 +54,9 @@ const StoreCard = ({ store, index = 0, showProducts = true }: StoreCardProps) =>
               animate={imageLoaded ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.5 }}
             >
-              {store.photos?.[0] ? (
+              {(store.listingPhoto || store.bannerPhoto || store.photos?.[0]) ? (
                 <SafeImage
-                  src={store.photos[0]}
+                  src={store.listingPhoto || store.bannerPhoto || store.photos[0]}
                   alt={store.name}
                   className="w-full h-full object-cover"
                   onLoad={() => setImageLoaded(true)}

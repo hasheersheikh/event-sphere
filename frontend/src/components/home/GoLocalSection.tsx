@@ -36,6 +36,8 @@ interface LocalStore {
   name: string;
   address: string;
   description?: string;
+  listingPhoto?: string;
+  bannerPhoto?: string;
   photos: string[];
   category: string;
   products: Product[];
