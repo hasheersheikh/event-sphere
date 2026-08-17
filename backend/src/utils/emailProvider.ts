@@ -73,9 +73,3 @@ export const sendMarketingBoostRequestEmail = EMAIL_PROVIDER === 'msg91'
 export const sendPartnerContractEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendPartnerContractEmail
   : ResendService.sendPartnerContractEmail;
-
-// Export validation function (MSG91 only)
-export const validateEmail = MSG91Service.validateEmail;
-
-// Export CSS inliner (MSG91 only)
-export const inlineEmailCSS = MSG91Service.inlineEmailCSS;
