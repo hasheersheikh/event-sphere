@@ -394,7 +394,7 @@ export const requestMarketingBoost: RequestHandler = async (req: AuthRequest, re
     }
 
     // Import email service dynamically to avoid circular dependencies if any
-    const { sendMarketingBoostRequestEmail } = await import('../utils/emailService.js');
+    const { sendMarketingBoostRequestEmail } = await import('../utils/emailProvider.js');
 
     await sendMarketingBoostRequestEmail(managerName, managerEmail, {
       eventTitle: event.title,
