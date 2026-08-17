@@ -361,7 +361,7 @@ export const deleteEvent = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    deleteEventAssets(event.image, event.reels).catch(() => {});
+    deleteEventAssets(event.image, event.reels, event.eventVideo).catch(() => {});
     await event.deleteOne();
     res.json({ message: 'Event removed' });
   } catch (error) {

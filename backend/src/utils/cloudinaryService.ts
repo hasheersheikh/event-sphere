@@ -61,11 +61,12 @@
 	  }
 	};
 
-	// Delete multiple assets (banner + reels) for an event
-	export const deleteEventAssets = async (imageUrl?: string, reels?: string[]): Promise<void> => {
+	// Delete multiple assets (banner + reels + banner video) for an event
+	export const deleteEventAssets = async (imageUrl?: string, reels?: string[], eventVideo?: string): Promise<void> => {
 	  const tasks: Promise<void>[] = [];
 	  if (imageUrl) tasks.push(deleteAsset(imageUrl));
 	  if (reels?.length) reels.forEach(url => tasks.push(deleteAsset(url)));
+	  if (eventVideo) tasks.push(deleteAsset(eventVideo));
 	  await Promise.allSettled(tasks);
 	};
 

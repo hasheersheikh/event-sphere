@@ -656,7 +656,7 @@ export const deleteEvent: RequestHandler = async (req: AuthRequest, res: Respons
     await Booking.deleteMany({ event: id });
 
     // Delete associated assets from Cloudinary / local storage (non-blocking)
-    deleteEventAssets(event.image, event.reels).catch(() => {});
+    deleteEventAssets(event.image, event.reels, event.eventVideo).catch(() => {});
 
     // Delete the event
     await event.deleteOne();

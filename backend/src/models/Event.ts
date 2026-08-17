@@ -100,6 +100,8 @@ export interface IEvent extends Document {
   }[];
   status: 'draft' | 'under_review' | 'published' | 'cancelled' | 'blocked' | 'past';
   isApproved: boolean;
+  /** Set once the 30-day-past-expiry media retention job has deleted this event's image/reels/video. */
+  mediaPurged?: boolean;
   isSponsored: boolean;
   viewCount?: number;
   createdAt: Date;
@@ -165,6 +167,7 @@ const EventSchema: Schema = new Schema(
     videoUrl: { type: String },
     eventVideo: { type: String }, // Uploaded video file for event banner gallery
     reels: [{ type: String }],
+    mediaPurged: { type: Boolean, default: false },
     artist: {
       name: { type: String },
       instagramHandle: { type: String },

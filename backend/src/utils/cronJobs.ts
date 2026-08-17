@@ -4,7 +4,10 @@ import Booking from '../models/Booking.js';
 import winston from 'winston';
 import { sendReminderEmail, sendReviewEmail } from './emailProvider.js';
 import { releaseTickets } from './inventory.js';
+import { deleteEventAssets } from './cloudinaryService.js';
 import axios from 'axios';
+
+const MEDIA_RETENTION_DAYS = 30;
 
 const logger = winston.createLogger({
   level: 'info',
@@ -165,6 +168,50 @@ export const expirePendingBookings = async () => {
   }
 };
 
+// Frees VPS disk: an event's banner/reels/video are only useful while it's
+// upcoming or recently past (reviews, disputes). Once an event has been over
+// for MEDIA_RETENTION_DAYS, delete the media files but keep the event record
+// itself (bookings/revenue history still need it).
+export const purgeExpiredEventMedia = async () => {
+  try {
+    const cutoff = new Date(Date.now() - MEDIA_RETENTION_DAYS * 24 * 60 * 60 * 1000);
+    const candidates = await Event.find({ status: 'past', mediaPurged: { $ne: true } })
+      .select('_id scheduleType date recurrence days image reels eventVideo');
+
+    let purgedCount = 0;
+    for (const event of candidates) {
+      const effectiveEndDate =
+        event.scheduleType === 'recurring'
+          ? event.recurrence?.endDate
+          : event.scheduleType === 'multi_day' && event.days?.length
+            ? event.days.reduce((max, d) => (d.date > max ? d.date : max), event.days[0].date)
+            : event.date;
+
+      if (!effectiveEndDate || effectiveEndDate > cutoff) continue;
+      if (!event.image && !event.eventVideo && !event.reels?.length) {
+        // Nothing to delete, just mark so we stop re-checking it every run
+        event.mediaPurged = true;
+        await event.save();
+        continue;
+      }
+
+      await deleteEventAssets(event.image, event.reels, event.eventVideo);
+      event.image = undefined;
+      event.reels = [];
+      event.eventVideo = undefined;
+      event.mediaPurged = true;
+      await event.save();
+      purgedCount++;
+    }
+
+    if (purgedCount > 0) {
+      logger.info(`Purged media for ${purgedCount} events past their ${MEDIA_RETENTION_DAYS}-day retention window`);
+    }
+  } catch (error) {
+    logger.error('Error purging expired event media:', error);
+  }
+};
+
 export const pingExternalService = async () => {
   const serviceUrl = 'https://mnkhan.onrender.com/api/services';
   try {
@@ -198,6 +245,12 @@ export const initCronJobs = () => {
   cron.schedule('*/5 * * * *', () => {
     logger.info('Running external service ping...');
     pingExternalService();
+  });
+
+  // Daily disk-space cleanup: delete media for events past their retention window
+  cron.schedule('0 3 * * *', () => {
+    logger.info('Running expired event media purge...');
+    purgeExpiredEventMedia();
   });
 
   logger.info('Cron jobs initialized');
