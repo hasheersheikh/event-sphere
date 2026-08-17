@@ -41,7 +41,7 @@ const PLANS = [
       "2 Stories on Instagram"
     ],
     icon: AtSign,
-    image: "/images/plan/spark.png",
+    image: "/images/plan/spark.jpg",
     glowClass: "hover:border-red-500/30",
     selectedGlowClass: "border-neon-red shadow-sm",
     spotlightColor: "rgba(239, 68, 68, 0.15)",
@@ -60,7 +60,7 @@ const PLANS = [
       "3-4 Stories on Instagram"
     ],
     icon: Zap,
-    image: "/images/plan/accelator.png",
+    image: "/images/plan/accelator.jpg",
     popular: true,
     glowClass: "hover:border-yellow-500/30",
     selectedGlowClass: "border-neon-yellow shadow-sm",

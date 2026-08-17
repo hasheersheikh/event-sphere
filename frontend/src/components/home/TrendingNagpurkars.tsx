@@ -44,7 +44,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Amir Sheikh",
     tagline: "Jo X Factor par dikhta hai wo bikta hai",
     description: "Amir Sheikh is one of Nagpur's most recognized digital creators and entrepreneurs, widely regarded as a preferred choice for brands seeking impactful influencer marketing and audience engagement. He is known for creating high-performing lifestyle, business, fashion, travel, and entertainment content. Amir Sheikh also serves as the Brand Ambassador of NMC (Nagpur Municipal Corporation) and has been honored with several prestigious awards including Lokmat Awards, Pride of Real Estate Awards, Bharat Brands Conclave Awards, and the Power Influencer Award at IIM Nagpur.",
-    image: "/images/photos/amir-sheikh.png",
+    image: "/images/photos/amir-sheikh.jpg",
     contact: "nagpurxfactorb@gmail.com",
   },
   {
@@ -61,7 +61,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Gandhe Brothers",
     tagline: "Nagpur's Culinary Pride — Master Chef",
     description: "Vikram and Ajinkya Gandhe, popularly known as the Gandhe Brothers, are the winners of MasterChef India Season 9 and the first duo to win the prestigious culinary competition. Based in Nagpur, they are the founders of Place Bakehouse & Coffee, a popular café and restaurant known for its innovative baked creations and contemporary cuisine. Celebrated for their creativity and passion for food, the Gandhe Brothers have become among India's most recognized culinary creators, inspiring a new generation of chefs and food entrepreneurs.",
-    image: "/images/photos/gandhe-brothers.png",
+    image: "/images/photos/gandhe-brothers.jpg",
   },
   {
     id: 5,
@@ -69,7 +69,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Emcee Manoj",
     tagline: "The Ultimate Anchor for Unforgettable Events.",
     description: "Emcee Manoj is one of Nagpur's leading professional emcees, known for hosting corporate events, luxury weddings, award ceremonies, concerts, and entertainment shows. With a dynamic stage presence, exceptional audience engagement, and years of experience, he is a preferred host for leading brands, businesses, and high-profile events across Central India.",
-    image: "/images/photos/emcee-manoj.png",
+    image: "/images/photos/emcee-manoj.jpg",
   },
   {
     id: 6,
@@ -77,7 +77,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Sagar",
     tagline: "Vocalist with Rhythm and Soulful Voice",
     description: "Sagar, vocalist of SAAZ band, is known for weaving powerful melodies, rhythm, and emotion into unforgettable sonic landscapes. From high-energy studio productions to captivating live performances, Sagar from SAAZ Music blends cultural depth with modern beats to define a unique sound.",
-    image: "/images/photos/sagar-vocalist.png",
+    image: "/images/photos/sagar-vocalist.jpg",
   },
   {
     id: 7,
@@ -85,7 +85,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Divya Deshmukh",
     tagline: "The Golden Girl of Indian Chess.",
     description: "Divya Deshmukh is an extraordinary chess Grandmaster from Nagpur who has emerged as a leading icon in international chess. She etched her name in history by winning the FIDE Women's World Cup, becoming the first Indian woman to ever lift the prestigious trophy. This historic triumph directly earned her the full Grandmaster (GM) title, making her only the fourth Indian woman in history to achieve the milestone.",
-    image: "/images/photos/divya-deshmukh.png",
+    image: "/images/photos/divya-deshmukh.jpg",
   },
   {
     id: 8,
@@ -93,7 +93,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Onbookr.com",
     tagline: "Booking Made Simple for Service Businesses",
     description: "Onbookr is an online appointment scheduling platform that helps service businesses manage bookings, automate reminders, sync calendars, and accept payments from a single dashboard. Ideal for consultants, coaches, healthcare providers, salons, freelancers, and other service-based businesses looking to simplify scheduling and reduce no-shows.",
-    image: "/images/photos/onbookr.png",
+    image: "/images/photos/onbookr.jpg",
     isLogo: true,
   },
   {
@@ -102,7 +102,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "AgriPilot.AI",
     tagline: "AI for Smarter Agriculture",
     description: "AgriPilot.ai is an AI-powered agritech platform that helps farmers and agribusinesses improve productivity through real-time crop monitoring, weather insights, soil analysis, and data-driven recommendations. By combining AI, IoT, and satellite technology, it enables smarter farming decisions while improving resource efficiency and sustainability.",
-    image: "/images/photos/agripilot-ai.png",
+    image: "/images/photos/agripilot-ai.jpg",
     isLogo: true,
   },
   {
@@ -111,7 +111,7 @@ const NAGPURKARS: Nagpurkar[] = [
     name: "Clover Carte",
     tagline: "The Future of Unattended Retail",
     description: "Clover Carte, started in Nagpur, is a highly innovative Indian tech startup transforming the automated retail landscape. By designing and manufacturing fully custom, IoT-enabled smart vending machines, they have seamlessly bridged the gap between hardware precision and intelligent software. Their proprietary cloud platform gives businesses real-time control over inventory, analytics, and cashless payment tracking.",
-    image: "/images/photos/clover-carte.png",
+    image: "/images/photos/clover-carte.jpg",
     isLogo: true,
   },
   {
