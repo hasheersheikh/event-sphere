@@ -214,7 +214,9 @@ export const getEvents = async (req: Request, res: Response) => {
       sortOption.date = 1;
     }
 
-    const limitOption = limit ? parseInt(limit as string) : 0;
+    // Keep default at 1000 for EventsPage client-side pagination
+    // Only cap when explicitly requested (e.g., homepage carousel)
+    const limitOption = limit ? parseInt(limit as string) : 1000;
 
     const additionalFilters: any = {};
     if (q) {
@@ -244,19 +246,22 @@ export const getEvents = async (req: Request, res: Response) => {
       ...additionalFilters
     };
 
+    // OPTIMIZED: Use lean() to return plain JS objects (faster, less memory)
+    // Use select() to only fetch required fields (reduces data transfer)
+    // Include coordinator since EventCard displays coordinator.phone
     let events = await Event.find(baseQuery)
+      .select('title description date time endTime location city category image ticketTypes status isApproved isSponsored creator coordinator scheduleType slots recurrence days viewCount reels')
       .populate('creator', 'name email')
       .sort(sortOption)
-      .limit(limitOption || 1000);
+      .limit(limitOption)
+      .lean(); // Returns plain JS objects instead of Mongoose documents
 
     events = events.filter(event => isEventActive(event));
 
     const eventsWithStatus = events.map(event => {
-      const eventObj: any = event.toObject();
-      eventObj.isActive = isEventActive(event);
-      const nextOccurrence = getNextOccurrence(event);
-      eventObj.nextOccurrence = nextOccurrence;
-      return eventObj;
+      event.isActive = isEventActive(event);
+      event.nextOccurrence = getNextOccurrence(event);
+      return event;
     });
 
     res.json(eventsWithStatus);
@@ -271,16 +276,16 @@ export const getEventById = async (req: Request, res: Response) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id as string)) {
       return res.status(400).json({ message: 'Invalid event ID format' });
     }
+    // OPTIMIZED: Use lean() for better performance
     const event = await Event.findByIdAndUpdate(
       req.params.id,
       { $inc: { viewCount: 1 } },
       { new: true },
-    ).populate('creator', 'name email');
+    ).select('-__v').populate('creator', 'name email').lean();
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    const eventObj: any = event.toObject();
-    eventObj.isActive = isEventActive(event);
-    eventObj.nextOccurrence = getNextOccurrence(event);
-    res.json(eventObj);
+    event.isActive = isEventActive(event);
+    event.nextOccurrence = getNextOccurrence(event);
+    res.json(event);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

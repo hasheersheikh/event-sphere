@@ -2,15 +2,89 @@
 
 encode gzip zstd
 
+# API routes - no caching for dynamic content
 handle /api/* {
 	reverse_proxy backend:5001
+	header Cache-Control "no-store, no-cache, must-revalidate, private"
+	header X-Content-Type-Options "nosniff"
 }
 
-# Only used when USE_LOCAL_STORAGE=true (Cloudinary serves uploads directly otherwise)
+# Static assets - long cache, immutable (hashed filenames)
+handle /assets/* {
+	header Cache-Control "public, max-age=31536000, immutable"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+# Images - 30 day cache
+handle /images/* {
+	header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+# Public folder images - 30 day cache
+handle /*.jpg {
+	header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+handle /*.png {
+	header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+handle /*.svg {
+	header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+handle /*.webp {
+	header Cache-Control "public, max-age=2592000, stale-while-revalidate=86400"
+	header X-Content-Type-Options "nosniff"
+	reverse_proxy frontend:80
+}
+
+# Uploads (local storage only) - 7 day cache
 handle /uploads/* {
+	header Cache-Control "public, max-age=604800, stale-while-revalidate=3600"
+	header X-Content-Type-Options "nosniff"
 	reverse_proxy backend:5001
 }
 
+# HTML files - short cache, allow revalidation
+handle / {
+	# HTML files must not be cached for long - SPA needs fresh HTML with correct asset hashes
+	# after deploy. Stale HTML will 404 on non-existent hashed assets.
+	header Cache-Control "public, max-age=60, must-revalidate"
+	reverse_proxy frontend:80
+}
+
+# Favicon
+handle /favicon.ico {
+	header Cache-Control "public, max-age=2592000"
+	reverse_proxy frontend:80
+}
+
+# Manifest
+handle /manifest.webmanifest {
+	header Cache-Control "public, max-age=604800"
+	header Content-Type "application/manifest+json"
+	reverse_proxy frontend:80
+}
+
+# Service Worker - no cache
+handle /sw.js {
+	header Cache-Control "no-store, no-cache, must-revalidate, private"
+	reverse_proxy frontend:80
+}
+
+# All other requests
 handle {
+	# Short cache to avoid stale HTML references to non-existent hashed assets
+	header Cache-Control "public, max-age=60, must-revalidate"
 	reverse_proxy frontend:80
 }

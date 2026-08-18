@@ -56,7 +56,26 @@ const logger = winston.createLogger({
 app.set('trust proxy', 1);
 
 app.use(helmet());
-app.use(compression());
+app.use(compression({
+  threshold: 1024,        // Only compress responses >1KB
+  level: 6,              // Balanced compression (default is -1 for adaptive)
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      // Don't compress if client requests it
+      return false;
+    }
+    // Use default filter
+    return compression.filter(req, res);
+  },
+}));
+
+// HTTP cache headers for API responses - reduces redundant API calls
+app.use((_req, res, next) => {
+  // Short cache for public data
+  res.setHeader('Surrogate-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+});
 
 // CORS — restrict to configured frontend origin in production.
 // Strip any trailing slash — FRONTEND_URL may be set with or without one, but

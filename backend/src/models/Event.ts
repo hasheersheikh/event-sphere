@@ -221,9 +221,27 @@ const EventSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+// Performance indexes for optimized query performance
 // Public listing endpoint filters on status+isApproved and sorts by date —
 // this is the hottest read path in the app.
 EventSchema.index({ status: 1, isApproved: 1, date: 1 });
-EventSchema.index({ category: 1 });
+
+// Compound index for city-based filtering with date sorting
+EventSchema.index({ city: 1, status: 1, isApproved: 1, date: 1 });
+
+// Index for sponsored events sorting
+EventSchema.index({ isSponsored: -1, date: 1 });
+
+// Index for category filtering
+EventSchema.index({ category: 1, status: 1, isApproved: 1 });
+
+// Index for creator lookups
+EventSchema.index({ creator: 1, status: 1 });
+
+// Text search index for title/description search
+EventSchema.index({ title: 'text', description: 'text' });
+
+// View count sorting
+EventSchema.index({ viewCount: -1 });
 
 export default mongoose.model<IEvent>('Event', EventSchema);
