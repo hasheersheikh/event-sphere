@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence } from "framer-motion";
 import {
@@ -76,11 +76,11 @@ const CreateEventPage = () => {
 
   const scheduleType = form.watch("scheduleType");
 
-  // Field arrays needed here only to drive step-navigation validation —
-  // the actual step UIs subscribe to these independently in their own files.
-  const { fields: lineupFields } = useFieldArray({ name: "lineup", control: form.control });
-  const { fields: slotFields } = useFieldArray({ name: "slots", control: form.control });
-  const { fields: dayFields } = useFieldArray({ name: "days", control: form.control });
+  // NOTE: array counts for step-navigation validation are read via
+  // form.getValues() at click time. Registering useFieldArray here for the
+  // same names as the step components creates a second RHF field-array
+  // instance that desyncs (parent copy stays empty), which used to trip the
+  // "Please add at least one time slot" guard even with slots added.
 
   // ── Mutation ──────────────────────────────────────────────────────────────
   const mutation = useMutation({
@@ -142,7 +142,7 @@ const CreateEventPage = () => {
     const fieldsToValidate: any[] = [];
     if (currentStep === 1) {
       fieldsToValidate.push("title", "description", "category", "image", "ageRestriction");
-      lineupFields.forEach((_, i) => fieldsToValidate.push(`lineup.${i}.name`));
+      (form.getValues("lineup") || []).forEach((_, i) => fieldsToValidate.push(`lineup.${i}.name`));
     }
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city");
@@ -161,10 +161,10 @@ const CreateEventPage = () => {
     if (isValid) {
       if (currentStep === 2) {
         if (scheduleType === "multi_slot") {
-          if (slotFields.length === 0) { toast.error("Please add at least one time slot."); return; }
+          if ((form.getValues("slots") || []).length === 0) { toast.error("Please add at least one time slot."); return; }
           if (hasSlotOverlap(form.getValues("slots") || [])) { toast.error("Please resolve time slot overlaps."); return; }
         }
-        if (scheduleType === "multi_day" && dayFields.length === 0) {
+        if (scheduleType === "multi_day" && (form.getValues("days") || []).length === 0) {
           toast.error("Please select at least one event day."); return;
         }
       }
