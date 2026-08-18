@@ -86,7 +86,6 @@ const StoreOwnerPortal = () => {
   const setSessionTimeout = useCallback(() => {
     clearSessionTimeout();
     sessionTimeoutRef.current = setTimeout(() => {
-      console.log("Session expired due to inactivity");
       logout();
     }, SESSION_TIMEOUT);
   }, [clearSessionTimeout]);
@@ -125,7 +124,6 @@ const StoreOwnerPortal = () => {
     if (lastActivity) {
       const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
       if (timeSinceLastActivity > SESSION_TIMEOUT) {
-        console.log("Session expired. Please login again.");
         logout();
         return;
       }

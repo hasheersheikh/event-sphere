@@ -158,13 +158,6 @@ const Index = () => {
 
   const hasHeroAssets = filteredHeroAssets.length > 0;
 
-  useEffect(() => {
-    if (heroAssets) {
-      console.log('Hero Assets received:', heroAssets);
-      console.log('Final Hero Assets displayed (isMobile:', isMobile, '):', filteredHeroAssets);
-    }
-  }, [heroAssets, filteredHeroAssets, isMobile]);
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params = new URLSearchParams();

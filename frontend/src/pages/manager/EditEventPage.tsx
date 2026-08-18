@@ -189,8 +189,6 @@ const EditEventPage = () => {
       }
 
       console.group("🚀 EditEvent — API payload");
-      console.log("Schedule type:", st);
-      console.log("Full payload:", payload);
       console.groupEnd();
 
       const { data } = await api.put(`/events/${id}`, payload);
@@ -206,9 +204,6 @@ const EditEventPage = () => {
     },
     onError: (error: any) => {
       console.group("❌ EditEvent — API error");
-      console.log("Status:", error.response?.status);
-      console.log("Server message:", error.response?.data);
-      console.log("Full error:", error);
       console.groupEnd();
       toast.error(error.response?.data?.message || "Modification failed.");
     },
@@ -267,10 +262,6 @@ const EditEventPage = () => {
     const isValid = await form.trigger();
 
     console.group("🔍 EditEvent — handleFinalSubmit");
-    console.log("Form valid:", isValid);
-    console.log("Current form values:", form.getValues());
-    console.log("Raw errors object:", form.formState.errors);
-    console.log("All errors (flat):", flattenErrors(form.formState.errors));
     console.groupEnd();
 
     if (!isValid) {
@@ -284,7 +275,6 @@ const EditEventPage = () => {
           return;
         }
       }
-      console.log("❌ Errors not mapped to any step — full errors:", flattenErrors(form.formState.errors));
       toast.error("Please fix all errors before submitting.");
       return;
     }

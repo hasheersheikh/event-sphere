@@ -42,9 +42,10 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        // Enable offline analytics
+        // Delete leftover caches from previous deploys so they don't grow forever
+        cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/],
+        navigateFallbackDenylist: [/^\/api/, /^\/uploads/],
         runtimeCaching: [
           // Google Fonts - CacheFirst with very long cache
           {
@@ -76,10 +77,11 @@ export default defineConfig(({ mode }) => ({
               }
             }
           },
-          // Cloudinary images - StaleWhileRevalidate for fresh content
+          // Cloudinary images - CacheFirst: images are immutable (versioned URLs),
+          // serving from cache is faster than revalidating
           {
             urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
-            handler: 'StaleWhileRevalidate',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'cloudinary-cache',
               expiration: {
@@ -165,9 +167,12 @@ export default defineConfig(({ mode }) => ({
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: true,  // Remove console.logs in production
+        // Strip every console.* call (log/warn/error/info) from production bundles
+        drop_console: true,
         drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
+      },
+      format: {
+        comments: false,
       },
     },
     rollupOptions: {

@@ -121,23 +121,17 @@ const CreateEventPage = () => {
       }
 
       console.group("🚀 CreateEvent — API payload");
-      console.log("Schedule type:", st);
-      console.log("Full payload:", JSON.parse(JSON.stringify(payload)));
       console.groupEnd();
 
       const { data } = await api.post("/events", payload);
       return data;
     },
     onSuccess: (data) => {
-      console.log("✅ CreateEvent — success, event id:", data._id);
       toast.success("Event created successfully!");
       navigate(`/events/${data._id}/success`);
     },
     onError: (error: any) => {
       console.group("❌ CreateEvent — API error");
-      console.log("Status:", error.response?.status);
-      console.log("Server message:", error.response?.data);
-      console.log("Full error:", error);
       console.groupEnd();
       toast.error(error.response?.data?.message || "Something went wrong.");
     },
@@ -160,11 +154,7 @@ const CreateEventPage = () => {
     const isValid = await form.trigger(fieldsToValidate);
 
     console.group(`🔍 CreateEvent — nextStep (step ${currentStep} → ${currentStep + 1})`);
-    console.log("Fields validated:", fieldsToValidate);
-    console.log("Valid:", isValid);
     if (!isValid) {
-      console.log("Errors (flat):", flattenErrors(form.formState.errors));
-      console.log("Raw errors:", form.formState.errors);
     }
     console.groupEnd();
 
@@ -192,11 +182,6 @@ const CreateEventPage = () => {
     const isValid = await form.trigger();
 
     console.group("🔍 CreateEvent — handleFinalSubmit");
-    console.log("Form valid:", isValid);
-    console.log("Current form values:", JSON.parse(JSON.stringify(form.getValues())));
-    console.log("Schedule type:", form.getValues("scheduleType"));
-    console.log("All errors (flat):", flattenErrors(form.formState.errors));
-    console.log("Raw errors:", form.formState.errors);
     console.groupEnd();
 
     if (!isValid) {
@@ -210,7 +195,6 @@ const CreateEventPage = () => {
           return;
         }
       }
-      console.log("❌ Errors outside mapped steps:", flattenErrors(form.formState.errors));
       toast.error("Please fix all errors before submitting.");
       return;
     }

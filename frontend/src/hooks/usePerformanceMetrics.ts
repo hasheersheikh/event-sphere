@@ -63,18 +63,6 @@ export function usePerformanceMetrics(reportToAnalytics?: (metrics: PerformanceM
         hasReported.current = true;
         reportToAnalytics(metricsRef.current);
       }
-
-      // Log in development
-      if (import.meta.env.DEV) {
-        console.group('🚀 Performance Metrics');
-        console.log('TTFB:', metricsRef.current.ttfb, 'ms');
-        console.log('FCP:', metricsRef.current.fcp, 'ms');
-        console.log('LCP:', metricsRef.current.lcp, 'ms');
-        console.log('FID:', metricsRef.current.fid, 'ms');
-        console.log('CLS:', metricsRef.current.cls);
-        console.log('Load Time:', metricsRef.current.loadTime, 'ms');
-        console.groupEnd();
-      }
     }, 3000);
   };
 

@@ -69,14 +69,6 @@ app.use(compression({
   },
 }));
 
-// HTTP cache headers for API responses - reduces redundant API calls
-app.use((_req, res, next) => {
-  // Short cache for public data
-  res.setHeader('Surrogate-Control', 'no-store');
-  res.setHeader('Cache-Control', 'no-cache');
-  next();
-});
-
 // CORS — restrict to configured frontend origin in production.
 // Strip any trailing slash — FRONTEND_URL may be set with or without one, but
 // the browser's Origin header never has a trailing slash, so an un-normalized
