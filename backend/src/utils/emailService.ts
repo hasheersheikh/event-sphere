@@ -585,3 +585,23 @@ export const sendPartnerContractEmail = async (email: string, partnerName: strin
     logger.error('Failed to send partner onboarding email', err);
   }
 };
+
+// Unlike the other functions above, this one throws on failure — callers
+// (OTP send endpoints) need to surface the error to the user rather than
+// silently pretend an OTP went out when it didn't.
+export const sendOtpVerificationEmail = async (email: string, otp: string) => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured');
+  }
+
+  const { error } = await resend.emails.send({
+    from: process.env.EMAIL_FROM || 'City Pulse <noreply@citypulse.in>',
+    to: [email],
+    subject: `${otp} — your City Pulse verification code`,
+    html: `<p>Your City Pulse verification code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`,
+  });
+
+  if (error) {
+    throw new Error(`Resend error: ${JSON.stringify(error)}`);
+  }
+};

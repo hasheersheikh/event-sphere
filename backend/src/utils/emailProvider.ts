@@ -73,3 +73,7 @@ export const sendMarketingBoostRequestEmail = EMAIL_PROVIDER === 'msg91'
 export const sendPartnerContractEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendPartnerContractEmail
   : ResendService.sendPartnerContractEmail;
+
+export const sendOtpVerificationEmail = EMAIL_PROVIDER === 'msg91'
+  ? MSG91Service.sendOtpVerificationEmail
+  : ResendService.sendOtpVerificationEmail;

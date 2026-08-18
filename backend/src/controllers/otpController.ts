@@ -11,6 +11,7 @@ import {
   sendWelcomeEmail,
   sendManagerSignUpNotificationToAdmin,
   sendPartnerContractEmail,
+  sendOtpVerificationEmail,
 } from '../utils/emailProvider.js';
 import { isDisposableEmail } from '../utils/emailValidation.js';
 
@@ -100,7 +101,7 @@ export const sendOtp = async (req: Request, res: Response) => {
 
   try {
     if (type === 'email') {
-      await sendOtpEmail(identifier, otp);
+      await sendOtpVerificationEmail(identifier, otp);
     } else {
       await sendOtpSms(identifier, otp);
     }
@@ -253,7 +254,7 @@ export const sendRegistrationOtp = async (req: Request, res: Response) => {
   );
 
   try {
-    await sendOtpEmail(email, otp);
+    await sendOtpVerificationEmail(email, otp);
   } catch (err) {
     console.error('Registration OTP send failed:', err);
     return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
@@ -360,27 +361,6 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
 // ---------------------------------------------------------------------------
 // Provider helpers — swap out the implementation when ready
 // ---------------------------------------------------------------------------
-async function sendOtpEmail(email: string, otp: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error('RESEND_API_KEY not set');
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'City Pulse <noreply@citypulse.in>',
-      to: email,
-      subject: `${otp} — your City Pulse verification code`,
-      html: `<p>Your City Pulse verification code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`,
-    }),
-  });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Resend error: ${body}`);
-  }
-}
-
 async function sendOtpSms(phone: string, otp: string) {
   const apiKey = process.env.MSG91_API_KEY;
   const senderId = process.env.MSG91_SENDER_ID || 'CPULSE';

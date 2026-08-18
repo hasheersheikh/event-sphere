@@ -713,6 +713,18 @@ export const sendPartnerContractEmail = async (
   }
 };
 
+// Unlike the other functions above, this one lets errors from sendMsg91Email
+// propagate — callers (OTP send endpoints) need to surface the failure to the
+// user rather than silently pretend an OTP went out when it didn't.
+export const sendOtpVerificationEmail = async (email: string, otp: string) => {
+  await sendMsg91Email({
+    to: email,
+    subject: `${otp} — your City Pulse verification code`,
+    html: `<p>Your City Pulse verification code is <strong>${otp}</strong>. It expires in 10 minutes.</p>`,
+  });
+  logger.info(`OTP verification email sent via MSG91 to ${email}`);
+};
+
 // Helper function (shared across both implementations)
 const generateGoogleCalendarUrl = (event: {
   title: string;
