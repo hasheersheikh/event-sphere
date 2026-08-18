@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/api";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { PortalDataTable } from "@/components/portal/PortalDataTable";
 
@@ -13,6 +23,9 @@ const AttendeesPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [deleteAttendeeId, setDeleteAttendeeId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAttendees(page);
@@ -29,6 +42,25 @@ const AttendeesPage = () => {
       toast.error("Failed to load attendees directory.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string, force = false) => {
+    setIsDeleting(true);
+    try {
+      await api.delete(`/admin/attendees/${id}${force ? "?force=true" : ""}`);
+      toast.success("Attendee removed from platform.");
+      setDeleteAttendeeId(null);
+      setWarningMessage(null);
+      fetchAttendees(page);
+    } catch (error: any) {
+      if (error.response?.data?.hasBookings) {
+        setWarningMessage(error.response.data.message);
+      } else {
+        toast.error(error.response?.data?.message || "Failed to remove attendee.");
+      }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -86,6 +118,7 @@ const AttendeesPage = () => {
             <Mail className="h-3.5 w-3.5" />
           </Button>
           <Button
+            onClick={() => setDeleteAttendeeId(u._id)}
             size="icon"
             variant="ghost"
             className="h-7 w-7 rounded-lg border border-border hover:bg-rose-500 hover:text-white"
@@ -121,6 +154,44 @@ const AttendeesPage = () => {
         searchPlaceholder="SEARCH BY IDENTITY..."
         rowKey="_id"
       />
+
+      <AlertDialog
+        open={!!deleteAttendeeId}
+        onOpenChange={(open) => !open && setDeleteAttendeeId(null)}
+      >
+        <AlertDialogContent className="bg-background border border-border rounded-xl text-foreground max-w-md p-5 shadow-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-black brand-font uppercase tracking-tighter italic">
+              {warningMessage ? "CRITICAL OVERRIDE" : "REMOVE ATTENDEE"}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground font-bold italic pt-4 leading-relaxed text-[11px]">
+              {warningMessage ? (
+                <span className="text-rose-500 block mb-4 px-3 py-2 bg-rose-500/10 border-l-4 border-rose-500">
+                  {warningMessage}
+                </span>
+              ) : (
+                "This will permanently remove this attendee's account from the platform and cancel any pending or confirmed bookings. This operation is non-reversible."
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-4 gap-2">
+            <AlertDialogCancel className="bg-muted border-border text-foreground rounded-lg hover:bg-muted/80 text-[10px] font-black uppercase tracking-widest px-4 h-9 transition-all">
+              ABORT
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDelete(deleteAttendeeId!, !!warningMessage)}
+              disabled={isDeleting}
+              className={`${warningMessage ? "bg-rose-600 hover:bg-rose-700" : "bg-primary hover:bg-primary/90 text-primary-foreground"} rounded-lg text-[10px] font-black uppercase tracking-widest px-4 h-9 shadow-2xl transition-all border-none`}
+            >
+              {isDeleting
+                ? "REMOVING..."
+                : warningMessage
+                  ? "FORCE REMOVE"
+                  : "CONFIRM REMOVE"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

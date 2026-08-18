@@ -2,9 +2,10 @@ import express from 'express';
 import { 
   getAllUsers, 
   approveManager, 
-  getAdminStats, 
-  getAnalytics, 
-  getAttendees, 
+  getAdminStats,
+  getAnalytics,
+  getAttendees,
+  deleteAttendee,
   getManagers, 
   getManagerDetail,
   getPendingEvents,
@@ -33,6 +34,7 @@ router.use(authorize('admin'));
 
 router.get('/users', getAllUsers);
 router.get('/attendees', getAttendees);
+router.delete('/attendees/:id', deleteAttendee);
 router.get('/managers', getManagers);
 router.get('/managers/:id', getManagerDetail);
 router.post('/managers/:id/payout', processPayout);

@@ -38,6 +38,43 @@ export const getAttendees: RequestHandler = async (req: AuthRequest, res: Respon
   }
 };
 
+export const deleteAttendee: RequestHandler = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      res.status(404).json({ message: 'Attendee not found' });
+      return;
+    }
+
+    const bookingCount = await Booking.countDocuments({
+      user: id,
+      status: 'confirmed',
+    });
+
+    if (bookingCount > 0 && req.query.force !== 'true') {
+      res.status(400).json({
+        message: 'Attendee has active confirmed bookings. Cannot remove without force authorization.',
+        hasBookings: true,
+        bookingCount,
+      });
+      return;
+    }
+
+    // Cancel (not hard-delete) their bookings so revenue/booking history is preserved
+    await Booking.updateMany(
+      { user: id, status: { $in: ['pending', 'confirmed'] } },
+      { $set: { status: 'cancelled' } }
+    );
+
+    await user.deleteOne();
+
+    res.json({ message: 'Attendee removed from platform.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 export const getManagers: RequestHandler = async (req: AuthRequest, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
