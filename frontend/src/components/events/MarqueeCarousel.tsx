@@ -3,6 +3,9 @@ import { useReducedMotion } from "framer-motion";
 
 const DEFAULT_SPEED = 40; // px per second
 const TOUCH_RESUME_DELAY_MS = 2500;
+// Below this, a handful of cards typically already fit the viewport without
+// overflowing — looping/duplicating them just shows repeats for no benefit.
+const MIN_ITEMS_TO_SCROLL = 4;
 
 interface MarqueeCarouselProps {
   children: ReactNode;
@@ -11,6 +14,7 @@ interface MarqueeCarouselProps {
 }
 
 const MarqueeCarousel = ({ children, className = "", speed = DEFAULT_SPEED }: MarqueeCarouselProps) => {
+  const childCount = Children.count(children);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>();
   const lastTsRef = useRef(0);
@@ -42,7 +46,7 @@ const MarqueeCarousel = ({ children, className = "", speed = DEFAULT_SPEED }: Ma
   // Auto-scroll drifts the strip continuously; content is duplicated once so the
   // loop-back point is visually identical and never shows as a jump-cut.
   useEffect(() => {
-    if (shouldReduceMotion) return;
+    if (shouldReduceMotion || childCount < MIN_ITEMS_TO_SCROLL) return;
 
     const tick = (ts: number) => {
       const wrapper = wrapperRef.current;
@@ -63,7 +67,7 @@ const MarqueeCarousel = ({ children, className = "", speed = DEFAULT_SPEED }: Ma
       if (animRef.current) cancelAnimationFrame(animRef.current);
       lastTsRef.current = 0;
     };
-  }, [speed, shouldReduceMotion]);
+  }, [speed, shouldReduceMotion, childCount]);
 
   const pause = () => {
     isPaused.current = true;
@@ -112,7 +116,7 @@ const MarqueeCarousel = ({ children, className = "", speed = DEFAULT_SPEED }: Ma
   const onTouchStart = () => pause();
   const onTouchEnd = () => resumeSoon();
 
-  const duplicate = shouldReduceMotion
+  const duplicate = shouldReduceMotion || childCount < MIN_ITEMS_TO_SCROLL
     ? null
     : Children.map(children, (child, i) =>
         isValidElement(child)
