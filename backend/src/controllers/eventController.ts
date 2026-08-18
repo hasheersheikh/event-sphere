@@ -260,7 +260,7 @@ export const getEvents = async (req: Request, res: Response) => {
 
     const eventsWithStatus = events.map(event => {
       event.isActive = isEventActive(event);
-      event.nextOccurrence = getNextOccurrence(event);
+      event.nextOccurrence = getNextOccurrence(event) || undefined;
       return event;
     });
 
@@ -284,7 +284,7 @@ export const getEventById = async (req: Request, res: Response) => {
     ).select('-__v').populate('creator', 'name email').lean();
     if (!event) return res.status(404).json({ message: 'Event not found' });
     event.isActive = isEventActive(event);
-    event.nextOccurrence = getNextOccurrence(event);
+    event.nextOccurrence = getNextOccurrence(event) || undefined;
     res.json(event);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
