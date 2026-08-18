@@ -82,8 +82,8 @@ const RefundManagementPage = lazy(() => import("./pages/admin/RefundManagementPa
 const InfluencerManagementPage = lazy(() => import("./pages/admin/InfluencerManagementPage"));
 const TrendingVenueManagementPage = lazy(() => import("./pages/admin/TrendingVenueManagementPage"));
 const ShowcaseManagementPage = lazy(() => import("./pages/admin/ShowcaseManagementPage"));
-const BoostMarketingPage = lazy(() => import("./pages/BoostMarketingPage"));
-const BoostRequestPage = lazy(() => import("./pages/BoostRequestPage"));
+const BoostMarketingPage = lazy(() => import("./pages/manager/BoostMarketingPage"));
+const BoostRequestPage = lazy(() => import("./pages/manager/BoostRequestPage"));
 const ListYourEventPage = lazy(() => import("./pages/ListYourEventPage"));
 
 // Loading fallback component
