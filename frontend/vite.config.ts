@@ -177,61 +177,16 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       output: {
+        // Keep this SIMPLE. Splitting react/radix into their own chunks creates
+        // circular chunk dependencies (react-core → vendor → react-core) that
+        // break module initialization order ("Cannot read properties of
+        // undefined (reading 'forwardRef')"). All shared libs live in one
+        // 'vendor' chunk; only these self-contained heavy libs are split out.
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
-            // Check specific libraries BEFORE generic 'react' to avoid false matches
-            // UI library - Radix UI components
-            if (id.includes('@radix-ui')) {
-              return 'radix-ui';
-            }
-
-            // Tanstack Query - API state management
-            if (id.includes('@tanstack')) {
-              return 'tanstack';
-            }
-
-            // Heavy charting library
-            if (id.includes('recharts')) {
-              return 'recharts';
-            }
-
-            // Animation library
-            if (id.includes('framer-motion')) {
-              return 'framer-motion';
-            }
-
-            // PDF generation - heavy, lazy loaded
-            if (id.includes('jspdf') || id.includes('html2canvas')) {
-              return 'pdf-vendor';
-            }
-
-            // Authentication - check BEFORE 'react' to avoid @react-oauth matching
-            if (id.includes('@react-oauth') || id.includes('google-auth')) {
-              return 'auth-vendor';
-            }
-
-            // Form handling - check BEFORE 'react' to avoid react-hook-form matching
-            if (id.includes('react-hook-form') || id.includes('@hookform')) {
-              return 'forms';
-            }
-
-            // Date utilities
-            if (id.includes('date-fns')) {
-              return 'date-utils';
-            }
-
-            // Icons
-            if (id.includes('lucide')) {
-              return 'icons';
-            }
-
-            // Core React - must be AFTER specific checks to avoid false matches
-            // Use /node_modules/ boundary to ensure we only match core react packages
-            if (/\/node_modules\/(react|react-dom|react-router)\//.test(id)) {
-              return 'react-core';
-            }
-
-            // Everything else node_modules
+            if (id.includes('recharts')) return 'recharts';
+            if (id.includes('framer-motion')) return 'framer-motion';
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'pdf-vendor';
             return 'vendor';
           }
         },
