@@ -32,7 +32,7 @@ import {
 import { QRCodeSVG } from "qrcode.react";
 import { CalendarPlus } from "lucide-react";
 import { AddToCalendarButton } from "add-to-calendar-button-react";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatEventDate } from "@/lib/utils";
 
 const NEON = "#C4F000";
 
@@ -229,7 +229,7 @@ const TicketCard = ({
   const isConfirmed = booking.status === "confirmed";
 
   const dateStr = event?.date
-    ? new Date(event.date).toLocaleDateString("en-US", {
+    ? formatEventDate(event.date, {
         weekday: "short", month: "short", day: "numeric", year: "numeric",
       })
     : "Date unavailable";

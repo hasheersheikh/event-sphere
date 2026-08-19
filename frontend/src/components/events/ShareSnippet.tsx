@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 interface Event {
   title: string;
@@ -71,8 +71,8 @@ const ShareSnippet = ({ event, onClose }: ShareSnippetProps) => {
       if (!dateToUse) return "Upcoming Event";
       const parsedDate = new Date(dateToUse);
       if (isNaN(parsedDate.getTime())) return String(dateToUse);
-      
-      const mainDate = parsedDate.toLocaleDateString(undefined, {
+
+      const mainDate = formatEventDate(parsedDate, {
         month: "short",
         day: "numeric",
         year: "numeric",

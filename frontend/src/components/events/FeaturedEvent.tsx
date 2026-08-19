@@ -3,21 +3,20 @@ import { motion } from "framer-motion";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Event } from "@/types/event";
+import { formatEventDate } from "@/lib/utils";
 
 interface FeaturedEventProps {
   event: Event;
 }
 
 const FeaturedEvent = ({ event }: FeaturedEventProps) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+  const formatDate = (dateString: string) =>
+    formatEventDate(dateString, {
       weekday: "long",
       month: "long",
       day: "numeric",
       year: "numeric",
     });
-  };
 
   const formatPrice = (price?: number, currency?: string) => {
     if (price === 0 || price === undefined) return "Free";

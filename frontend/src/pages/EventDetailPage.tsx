@@ -48,7 +48,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 import { AddToCalendarButton } from "add-to-calendar-button-react";
 import ShareSnippet from "@/components/events/ShareSnippet";
 import BookingModal from "@/components/events/BookingModal";
@@ -122,30 +122,42 @@ const EventDetailPage = () => {
     if (!event?.nextOccurrence || !event?.isActive) return null;
 
     try {
-      const nextDate = new Date(event.nextOccurrence);
-      const now = new Date();
+      // nextOccurrence carries IST wall-clock values in its UTC fields, so its
+      // UTC components are the IST calendar date/time. Convert to a real
+      // instant by subtracting the IST offset (+5:30) — never use local
+      // setHours on it, that shifts the target by the browser's offset.
+      const istOffsetMs = 5.5 * 60 * 60 * 1000;
+      const occurrence = new Date(event.nextOccurrence);
+      const dayStartUtc = Date.UTC(
+        occurrence.getUTCFullYear(),
+        occurrence.getUTCMonth(),
+        occurrence.getUTCDate()
+      );
+      const msOfDay = (t?: string) => {
+        if (!t || t.trim() === '') return null;
+        const [h, m] = t.split(":").map(Number);
+        return (h * 60 + m) * 60 * 1000;
+      };
 
       // Build start datetime from the occurrence date + event.time
-      const startDateTime = new Date(nextDate);
-      if (event.time && event.time.trim() !== '') {
-        const [sh, sm] = event.time.split(":").map(Number);
-        startDateTime.setHours(sh, sm, 0, 0);
-      }
+      const startMsOfDay = msOfDay(event.time) ?? occurrence.getTime() - dayStartUtc;
+      const startDateTime = new Date(dayStartUtc + startMsOfDay - istOffsetMs);
 
       // Build end datetime if endTime is provided
       let endDateTime: Date | null = null;
-      if (event.endTime && event.endTime.trim() !== '') {
-        endDateTime = new Date(nextDate);
-        const [eh, em] = event.endTime.split(":").map(Number);
-        endDateTime.setHours(eh, em, 0, 0);
+      const endMsOfDay = msOfDay(event.endTime);
+      if (endMsOfDay !== null) {
+        endDateTime = new Date(dayStartUtc + endMsOfDay - istOffsetMs);
       }
 
-      const hasStarted = startDateTime <= now;
+      const now = Date.now();
+
+      const hasStarted = startDateTime.getTime() <= now;
       // After start: count to end (if available), otherwise nothing to show
       const target = hasStarted ? endDateTime : startDateTime;
       if (!target) return null;
 
-      const difference = target.getTime() - now.getTime();
+      const difference = target.getTime() - now;
       if (difference <= 0) return null;
 
       return {
@@ -214,7 +226,7 @@ const EventDetailPage = () => {
   }
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    formatEventDate(dateString, { weekday: "short", month: "short", day: "numeric" });
 
   // Multi-day events lead with their first day and show the full run, e.g. "Sat, Aug 22 – Sun, Aug 23"
   const getMultiDayRange = (): string => {

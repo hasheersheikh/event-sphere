@@ -13,7 +13,7 @@ import {
   ChevronLeft, ArrowRight, Check, Plus, Minus, Ticket, Trash2
 } from "lucide-react";
 import { Event } from "@/types/event";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -254,8 +254,15 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     });
   };
 
+  // For API timestamps (event.date, day.date) whose UTC fields carry IST
+  // wall-clock values — formatted in UTC so the stored day is shown as-is.
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    formatEventDate(dateString, { weekday: "short", month: "short", day: "numeric" });
+
+  // For locally-built Date objects (recurring date picker) — render in the
+  // browser's own timezone, matching how they were constructed.
+  const formatLocalDate = (date: Date) =>
+    date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
   
   const formatPrice = (price: number) => {
     if (price === 0) return "Free";
@@ -486,7 +493,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                             )}
                           >
                             <div>
-                              <span className="font-extrabold block">{formatDate(date.toISOString())}</span>
+                              <span className="font-extrabold block">{formatLocalDate(date)}</span>
                             </div>
                             <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center", isSelected ? "bg-primary border-primary text-primary-foreground" : "border-muted-foreground/30")}>
                               {isSelected && <Check className="h-3 w-3" />}

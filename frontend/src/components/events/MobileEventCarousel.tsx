@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Event } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 import { Eye } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
@@ -43,15 +43,12 @@ const formatViews = (viewCount?: number) => {
 const MobileEventCarousel = ({ events }: MobileEventCarouselProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const formatDate = (dateString: string, nextOccurrence?: string) => {
-    const dateToUse = nextOccurrence || dateString;
-    const date = new Date(dateToUse);
-    return date.toLocaleDateString("en-US", {
+  const formatDate = (dateString: string, nextOccurrence?: string) =>
+    formatEventDate(nextOccurrence || dateString, {
       weekday: "short",
       month: "short",
       day: "numeric",
     });
-  };
 
   const activeEvent = events[activeIndex];
   const activeMinPrice = activeEvent?.ticketTypes?.length

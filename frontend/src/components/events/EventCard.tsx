@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { MapPin, ImageIcon, Calendar, Phone, Eye } from "lucide-react";
 import { Event } from "@/types/event";
 import SafeImage from "@/components/ui/SafeImage";
-import { cn } from "@/lib/utils";
+import { cn, formatEventDate } from "@/lib/utils";
 
 interface EventCardProps {
   event: Event;
@@ -23,15 +23,12 @@ const formatViews = (viewCount?: number) => {
 const EventCard = ({ event, index = 0, imageRatio = "4/5", mobile = false }: EventCardProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const formatDate = (dateString: string, nextOccurrence?: string) => {
-    const dateToUse = nextOccurrence || dateString;
-    const date = new Date(dateToUse);
-    return date.toLocaleDateString("en-US", {
+  const formatDate = (dateString: string, nextOccurrence?: string) =>
+    formatEventDate(nextOccurrence || dateString, {
       weekday: "short",
       month: "short",
       day: "numeric",
     });
-  };
 
   const totalCapacity =
     event.ticketTypes?.reduce((acc, t) => acc + t.capacity, 0) || 0;

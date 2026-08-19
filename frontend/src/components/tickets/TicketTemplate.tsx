@@ -1,5 +1,6 @@
 import React from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { formatEventDate } from "@/lib/utils";
 
 interface TicketTemplateProps {
   booking: any;
@@ -20,7 +21,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
     const user = booking?.user || {};
 
     const dateStr = event.date
-      ? new Date(event.date).toLocaleDateString("en-US", {
+      ? formatEventDate(event.date, {
           weekday: "short", day: "numeric", month: "long", year: "numeric",
         })
       : "Date unavailable";
