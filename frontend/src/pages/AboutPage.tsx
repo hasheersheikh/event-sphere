@@ -222,7 +222,7 @@ const AboutPage = () => {
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                 <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/images/founder/Mohsin f.png"
+                    src="/images/founder/Mohsin f.jpg"
                     alt="Mohsin Sheikh - Founder"
                     className="w-full h-full object-cover object-center"
                   />
@@ -246,7 +246,7 @@ const AboutPage = () => {
               <div className="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
                 <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/images/founder/Gulfeshan final.png"
+                    src="/images/founder/Gulfeshan final.jpg"
                     alt="Gulfeshan Aftab - CPO"
                     className="w-full h-full object-cover object-center"
                   />
@@ -270,7 +270,7 @@ const AboutPage = () => {
               <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
                 <div className="w-full md:w-80 lg:w-96 aspect-square rounded-full overflow-hidden shadow-2xl shrink-0">
                   <img
-                    src="/images/founder/aamir.png"
+                    src="/images/founder/aamir.jpg"
                     alt="Amir Sheikh - Co Founder"
                     className="w-full h-full object-cover object-center"
                   />
