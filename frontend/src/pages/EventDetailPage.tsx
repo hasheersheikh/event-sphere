@@ -216,6 +216,17 @@ const EventDetailPage = () => {
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
+  // Multi-day events lead with their first day and show the full run, e.g. "Sat, Aug 22 – Sun, Aug 23"
+  const getMultiDayRange = (): string => {
+    const sorted = [...(event?.days || [])].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    if (!sorted.length) return "";
+    const first = formatDate(sorted[0].date);
+    const last = sorted.length > 1 ? ` – ${formatDate(sorted[sorted.length - 1].date)}` : "";
+    return `${first}${last}`;
+  };
+
   const formatDuration = (start: string, end?: string): string | null => {
     if (!end) return null;
     const [sh, sm] = start.split(":").map(Number);
@@ -520,7 +531,9 @@ const EventDetailPage = () => {
                       ? event.nextOccurrence
                         ? `${getRecurrenceText(event.recurrence)} • Next: ${formatDate(event.nextOccurrence)} at ${event.time}`
                         : `${getRecurrenceText(event.recurrence)}, ${event.time}`
-                      : `${formatDate(event.nextOccurrence || event.date)} at ${event.time}`}
+                      : event.scheduleType === "multi_day" && getMultiDayRange()
+                        ? `${getMultiDayRange()} at ${event.time}`
+                        : `${formatDate(event.nextOccurrence || event.date)} at ${event.time}`}
                   </p>
                   <div className="flex flex-wrap items-center gap-6 pt-3">
                     <div className="flex items-center gap-2 text-muted-foreground text-xs font-black uppercase tracking-[0.2em]">

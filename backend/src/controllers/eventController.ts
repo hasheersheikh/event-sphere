@@ -99,7 +99,25 @@ function getNextOccurrence(event: any): Date | null {
   }
 
   if (event.scheduleType === 'multi_day' && event.days && event.days.length > 0) {
-    const lastDay = event.days[event.days.length - 1];
+    const sortedDays = [...event.days]
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    // The event is listed by its next occurring date, so a multi-day run must lead
+    // with the first day that hasn't finished yet — not its final day.
+    for (const day of sortedDays) {
+      const dayDate = new Date(day.date);
+      const dayEndTime = day.endTime || '23:59';
+      const [endHours, endMinutes] = dayEndTime.split(':').map(Number);
+      const dayEnd = createUTCDate(dayDate, endHours, endMinutes);
+      if (dayEnd.getTime() > istNow.getTime()) {
+        const [startHours2, startMinutes2] = (day.startTime || '00:00').split(':').map(Number);
+        return createUTCDate(dayDate, startHours2, startMinutes2);
+      }
+    }
+
+    // Every day has finished — fall back to the last day so isEventActive can
+    // still detect that the run is over.
+    const lastDay = sortedDays[sortedDays.length - 1];
     const lastDayDate = new Date(lastDay.date);
     if (lastDay.endTime) {
       const [endHours, endMinutes] = lastDay.endTime.split(':').map(Number);
@@ -177,6 +195,28 @@ function getNextOccurrence(event: any): Date | null {
 }
 
 function isEventActive(event: any): boolean {
+  // Multi-day runs stay listed through the very last day's end, regardless of
+  // which day getNextOccurrence currently points at.
+  if (event.scheduleType === 'multi_day' && event.days && event.days.length > 0) {
+    const sortedDays = [...event.days]
+      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const lastDay = sortedDays[sortedDays.length - 1];
+    const lastDayDate = new Date(lastDay.date);
+    const runEndTime = lastDay.endTime || event.endTime || '23:59';
+    const [endHours, endMinutes] = runEndTime.split(':').map(Number);
+    const runEndIST = Date.UTC(
+      lastDayDate.getUTCFullYear(),
+      lastDayDate.getUTCMonth(),
+      lastDayDate.getUTCDate(),
+      endHours,
+      endMinutes,
+      0,
+      0
+    );
+    const nowIST = Date.now() + (5.5 * 60 * 60 * 1000);
+    return runEndIST > nowIST;
+  }
+
   const nextOccurrence = getNextOccurrence(event);
   if (!nextOccurrence) return false;
 
