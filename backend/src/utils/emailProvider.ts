@@ -3,15 +3,22 @@
  * Switches between Resend and MSG91 based on EMAIL_PROVIDER environment variable
  *
  * Set EMAIL_PROVIDER=msg91 to use MSG91, or EMAIL_PROVIDER=resend (default) to use Resend
+ *
+ * Test Mode: Set EMAIL_TEST_MODE=true to route all emails to TEST_EMAIL_RECIPIENT (default: pacifista)
  */
 
 import * as ResendService from './emailService.js';
 import * as MSG91Service from './msg91EmailService.js';
 
 const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'resend';
+const EMAIL_TEST_MODE = process.env.EMAIL_TEST_MODE === 'true';
+const TEST_EMAIL_RECIPIENT = process.env.TEST_EMAIL_RECIPIENT || 'pacifistatechnologies@gmail.com';
 
 // Log which provider is being used
 console.log(`📧 Email Provider: ${EMAIL_PROVIDER.toUpperCase()}`);
+if (EMAIL_TEST_MODE) {
+  console.log(`⚠️ EMAIL TEST MODE ENABLED - All emails will be sent to: ${TEST_EMAIL_RECIPIENT}`);
+}
 
 // Export all functions with provider switching
 export const sendTicketEmail = EMAIL_PROVIDER === 'msg91'
@@ -70,10 +77,10 @@ export const sendMarketingBoostRequestEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendMarketingBoostRequestEmail
   : ResendService.sendMarketingBoostRequestEmail;
 
-export const sendPartnerContractEmail = EMAIL_PROVIDER === 'msg91'
-  ? MSG91Service.sendPartnerContractEmail
-  : ResendService.sendPartnerContractEmail;
-
 export const sendOtpVerificationEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendOtpVerificationEmail
   : ResendService.sendOtpVerificationEmail;
+
+// Export test mode status for checking elsewhere
+export const isTestMode = () => EMAIL_TEST_MODE;
+export const getTestRecipient = () => TEST_EMAIL_RECIPIENT;

@@ -31,6 +31,7 @@ import {
   type EventFormValues,
 } from "@/lib/eventFormSchema";
 import api from "@/lib/api";
+import { resetSessionUploads, getSessionUploads, deleteUnusedUploads, collectEventMediaUrls } from "@/lib/uploadSession";
 
 const EditEventPage = () => {
   const { id } = useParams();
@@ -93,6 +94,25 @@ const EditEventPage = () => {
   // same names as the step components creates a second RHF field-array
   // instance that desyncs (parent copy stays empty), which used to trip the
   // "Please add at least one time slot" guard even with slots added.
+
+  // ── Orphaned upload cleanup ────────────────────────────────────────────────
+  // New media uploaded while editing belongs to no event until saved. If the
+  // edit is abandoned, ask the backend to delete this session's uploads — it
+  // verifies ownership and that nothing references them. The event's existing
+  // (saved) media was never session-uploaded, so it is never touched.
+  const savedRef = useRef(false);
+  useEffect(() => {
+    resetSessionUploads();
+    const cleanupAbandonedUploads = () => {
+      if (savedRef.current) return;
+      deleteUnusedUploads(getSessionUploads());
+    };
+    window.addEventListener("pagehide", cleanupAbandonedUploads);
+    return () => {
+      window.removeEventListener("pagehide", cleanupAbandonedUploads);
+      cleanupAbandonedUploads();
+    };
+  }, []);
 
   useEffect(() => {
     if (event && !formInitialized.current) {
@@ -195,7 +215,12 @@ const EditEventPage = () => {
       const { data } = await api.put(`/events/${id}`, payload);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, values) => {
+      savedRef.current = true;
+      // Session uploads the saved event no longer references (e.g. a banner
+      // replaced at the last moment) are orphans — clean them up too.
+      const used = collectEventMediaUrls(values);
+      deleteUnusedUploads(getSessionUploads().filter((u) => !used.includes(u)));
       toast.success("Event successfully updated.");
       if (user?.role === "admin") {
         navigate(`/portal/admin/events/${id}`);
@@ -219,11 +244,16 @@ const EditEventPage = () => {
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
-      else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
-      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
+      else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
+      else if (scheduleType === "recurring") {
+        fieldsToValidate.push("date", "time");
+        if ((form.getValues("slots") || []).length > 0) fieldsToValidate.push("slots");
+      }
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
-      const coordPhone = form.getValues("coordinator.phone");
-      if (coordPhone) fieldsToValidate.push("coordinator.phone");
+      // Phone is required when offline tickets are on; otherwise validate format only if entered
+      if (form.getValues("offlineTicketsAvailable") || form.getValues("coordinator.phone")) {
+        fieldsToValidate.push("coordinator.phone");
+      }
     }
     const isValid = await form.trigger(fieldsToValidate as any);
     if (isValid) {
@@ -231,6 +261,9 @@ const EditEventPage = () => {
         if (scheduleType === "multi_slot") {
           if ((form.getValues("slots") || []).length === 0) { toast.error("Please add at least one time slot."); return; }
           if (hasSlotOverlap(form.getValues("slots") || [])) { toast.error("Please resolve time slot overlaps."); return; }
+        }
+        if (scheduleType === "recurring" && hasSlotOverlap(form.getValues("slots") || [])) {
+          toast.error("Please resolve time slot overlaps."); return;
         }
         if (scheduleType === "multi_day" && (form.getValues("days") || []).length === 0) {
           toast.error("Please select at least one day on the calendar."); return;

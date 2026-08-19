@@ -10,7 +10,6 @@ import OtpToken from '../models/OtpToken.js';
 import {
   sendWelcomeEmail,
   sendManagerSignUpNotificationToAdmin,
-  sendPartnerContractEmail,
   sendOtpVerificationEmail,
 } from '../utils/emailProvider.js';
 import { isDisposableEmail } from '../utils/emailValidation.js';
@@ -336,12 +335,15 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
     ...(userRole === 'event_manager' && { isApproved: false }),
   });
 
+  // Event managers are pending approval at this point and can't do anything yet,
+  // so they only trigger an admin notification here — their welcome + getting-started
+  // email (with the manager agreement PDF) fires once from approveManager instead of twice.
   (async () => {
     try {
-      await sendWelcomeEmail(user.email, user.name);
       if (userRole === 'event_manager') {
         await sendManagerSignUpNotificationToAdmin(user.name, user.email);
-        await sendPartnerContractEmail(user.email, user.name, 'Event Manager');
+      } else {
+        await sendWelcomeEmail(user.email, user.name);
       }
     } catch (err) {
       console.error('Failed to send registration emails:', err);

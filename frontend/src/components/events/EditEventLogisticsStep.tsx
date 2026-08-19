@@ -178,6 +178,7 @@ export const EditEventLogisticsStep = () => {
                           <FormItem>
                             <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Capacity</FormLabel>
                             <FormControl><Input type="number" placeholder="100" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                            <FormMessage />
                           </FormItem>
                         )} />
                       </div>
@@ -294,6 +295,7 @@ export const EditEventLogisticsStep = () => {
                           Clear end date
                         </button>
                       )}
+                      <FormMessage />
                     </FormItem>
                   )} />
                 </div>
@@ -310,6 +312,13 @@ export const EditEventLogisticsStep = () => {
                     </Button>
                   </div>
 
+                  {slotFields.length > 1 && hasSlotOverlap(form.watch("slots") || []) && (
+                    <div className="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-orange-600 text-xs font-bold">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      Some time slots overlap. Please check the times.
+                    </div>
+                  )}
+
                   {slotFields.length > 0 && (
                     <div className="space-y-3">
                       {slotFields.map((slot, index) => (
@@ -325,6 +334,7 @@ export const EditEventLogisticsStep = () => {
                               <FormItem>
                                 <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Start</FormLabel>
                                 <FormControl><Input type="time" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold px-2" {...field} /></FormControl>
+                                <FormMessage />
                               </FormItem>
                             )} />
                             <FormField control={form.control} name={`slots.${index}.endTime`} render={({ field }) => (
@@ -343,6 +353,7 @@ export const EditEventLogisticsStep = () => {
                               <FormItem>
                                 <FormLabel className="text-[8px] font-black uppercase tracking-widest text-muted-foreground ml-1">Cap</FormLabel>
                                 <FormControl><Input type="number" placeholder="100" className="h-10 bg-background/50 border-white/5 rounded-lg text-xs font-bold" {...field} /></FormControl>
+                                <FormMessage />
                               </FormItem>
                             )} />
                           </div>

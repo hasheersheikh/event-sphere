@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,6 +34,7 @@ import {
   type EventFormValues,
 } from "@/lib/eventFormSchema";
 import api from "@/lib/api";
+import { resetSessionUploads, getSessionUploads, deleteUnusedUploads, collectEventMediaUrls } from "@/lib/uploadSession";
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -75,6 +76,26 @@ const CreateEventPage = () => {
   });
 
   const scheduleType = form.watch("scheduleType");
+
+  // ── Orphaned upload cleanup ────────────────────────────────────────────────
+  // Media uploaded at step 1 belongs to no event until this form is submitted.
+  // If the wizard is abandoned (route change, cancel, back, refresh, close),
+  // ask the backend to delete everything uploaded in this session — it
+  // verifies ownership and that nothing references the files before removing.
+  const submittedRef = useRef(false);
+  useEffect(() => {
+    resetSessionUploads();
+    const cleanupAbandonedUploads = () => {
+      if (submittedRef.current) return;
+      deleteUnusedUploads(getSessionUploads());
+    };
+    // pagehide covers refresh/close, where React unmount never runs
+    window.addEventListener("pagehide", cleanupAbandonedUploads);
+    return () => {
+      window.removeEventListener("pagehide", cleanupAbandonedUploads);
+      cleanupAbandonedUploads();
+    };
+  }, []);
 
   // NOTE: array counts for step-navigation validation are read via
   // form.getValues() at click time. Registering useFieldArray here for the
@@ -126,7 +147,12 @@ const CreateEventPage = () => {
       const { data } = await api.post("/events", payload);
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, values) => {
+      submittedRef.current = true;
+      // Uploads made this session that the created event doesn't reference
+      // (e.g. a banner that was uploaded, then replaced) are orphans too.
+      const used = collectEventMediaUrls(values);
+      deleteUnusedUploads(getSessionUploads().filter((u) => !used.includes(u)));
       toast.success("Event created successfully!");
       navigate(`/events/${data._id}/success`);
     },
@@ -147,9 +173,13 @@ const CreateEventPage = () => {
     if (currentStep === 2) {
       fieldsToValidate.push("location.address", "city");
       if (scheduleType === "single") fieldsToValidate.push("date", "time");
-      else if (scheduleType === "multi_slot") fieldsToValidate.push("date");
-      else if (scheduleType === "recurring") fieldsToValidate.push("date", "time");
+      else if (scheduleType === "multi_slot") fieldsToValidate.push("date", "slots");
+      else if (scheduleType === "recurring") {
+        fieldsToValidate.push("date", "time");
+        if ((form.getValues("slots") || []).length > 0) fieldsToValidate.push("slots");
+      }
       else if (scheduleType === "multi_day") fieldsToValidate.push("days");
+      if (form.getValues("offlineTicketsAvailable")) fieldsToValidate.push("coordinator.phone");
     }
     const isValid = await form.trigger(fieldsToValidate);
 
@@ -163,6 +193,15 @@ const CreateEventPage = () => {
         if (scheduleType === "multi_slot") {
           if ((form.getValues("slots") || []).length === 0) { toast.error("Please add at least one time slot."); return; }
           if (hasSlotOverlap(form.getValues("slots") || [])) { toast.error("Please resolve time slot overlaps."); return; }
+        }
+        if (scheduleType === "recurring" && hasSlotOverlap(form.getValues("slots") || [])) {
+          toast.error("Please resolve time slot overlaps."); return;
+        }
+        if (scheduleType === "recurring") {
+          const freq = form.getValues("recurrence.frequency");
+          if (freq === "weekly" && (form.getValues("recurrence.daysOfWeek") || []).length === 0) {
+            toast.error("Please select at least one day of the week for the recurring event."); return;
+          }
         }
         if (scheduleType === "multi_day" && (form.getValues("days") || []).length === 0) {
           toast.error("Please select at least one event day."); return;

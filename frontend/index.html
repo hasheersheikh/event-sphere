@@ -24,14 +24,21 @@
       content="Discover, book, and experience the best events in your city."
     />
     <meta property="og:type" content="website" />
-    <meta
-      property="og:image"
-      content="https://lovable.dev/opengraph-image-p98pqg.png"
-    />
+    <!-- Absolute production URL — social crawlers (Facebook, WhatsApp, X,
+         LinkedIn) read this tag without executing JavaScript, so the image
+         cannot be resolved from the runtime origin. Source file:
+         frontend/public/images/concert-crowd-silhouette.jpg (1200×800). -->
+    <meta property="og:image" content="https://citypulse360.com/images/concert-crowd-silhouette.jpg" />
+    <meta property="og:image:url" content="https://citypulse360.com/images/concert-crowd-silhouette.jpg" />
+    <meta property="og:image:secure_url" content="https://citypulse360.com/images/concert-crowd-silhouette.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="800" />
+    <meta property="og:image:alt" content="City Pulse — live events, concerts and experiences near you" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@Lovable" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@CityPulse" />
+    <meta name="twitter:image" content="https://citypulse360.com/images/concert-crowd-silhouette.jpg" />
+    <meta name="twitter:image:alt" content="City Pulse — live events, concerts and experiences near you" />
 
     <!-- PWA Primary Tags -->
     <meta name="theme-color" content="#10b981" />

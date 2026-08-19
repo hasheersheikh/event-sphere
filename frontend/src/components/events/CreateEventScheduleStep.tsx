@@ -202,6 +202,7 @@ export const CreateEventScheduleStep = () => {
                         <FormItem>
                           <FormLabel className={cn(labelCls, "text-[9px]")}>Capacity</FormLabel>
                           <FormControl><Input type="number" placeholder="e.g. 100" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                          <FormMessage />
                         </FormItem>
                       )} />
                     </div>
@@ -320,6 +321,7 @@ export const CreateEventScheduleStep = () => {
                         Clear end date
                       </button>
                     )}
+                    <FormMessage />
                   </FormItem>
                 )} />
               </div>
@@ -336,6 +338,13 @@ export const CreateEventScheduleStep = () => {
                   </Button>
                 </div>
 
+                {slotFields.length > 1 && hasSlotOverlap(form.watch("slots") || []) && (
+                  <div className="flex items-center gap-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-xl text-orange-600 text-xs font-bold">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    Some time slots overlap. Please check the times.
+                  </div>
+                )}
+
                 {slotFields.length > 0 && (
                   <div className="space-y-3">
                     {slotFields.map((slot, index) => (
@@ -351,6 +360,7 @@ export const CreateEventScheduleStep = () => {
                             <FormItem>
                               <FormLabel className={cn(labelCls, "text-[9px]")}>Start</FormLabel>
                               <FormControl><Input type="time" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                              <FormMessage />
                             </FormItem>
                           )} />
                           <FormField control={form.control} name={`slots.${index}.endTime`} render={({ field }) => (
@@ -369,6 +379,7 @@ export const CreateEventScheduleStep = () => {
                             <FormItem>
                               <FormLabel className={cn(labelCls, "text-[9px]")}>Capacity</FormLabel>
                               <FormControl><Input type="number" placeholder="100" className={cn(inputCls, "h-10 text-xs")} {...field} /></FormControl>
+                              <FormMessage />
                             </FormItem>
                           )} />
                         </div>

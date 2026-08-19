@@ -7,7 +7,7 @@ import EventManager from '../models/EventManager.js';
 import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
-import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin, sendPartnerContractEmail } from '../utils/emailProvider.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailProvider.js';
 import { isDisposableEmail } from '../utils/emailValidation.js';
 import { claimGuestBookings } from './otpController.js';
 
@@ -161,13 +161,16 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (user) {
-      // Trigger Welcome Email (Non-blocking)
+      // Trigger registration email(s) (non-blocking). Event managers are pending
+      // approval at this point and can't do anything yet, so they only trigger an
+      // admin notification here — their welcome + getting-started email (with the
+      // manager agreement PDF) fires once from approveManager instead of twice.
       (async () => {
         try {
-          await sendWelcomeEmail(user.email, user.name);
           if (userRole === 'event_manager') {
             await sendManagerSignUpNotificationToAdmin(user.name, user.email);
-            await sendPartnerContractEmail(user.email, user.name, 'Event Manager');
+          } else {
+            await sendWelcomeEmail(user.email, user.name);
           }
         } catch (err) {
           console.error('Failed to send registration emails:', err);

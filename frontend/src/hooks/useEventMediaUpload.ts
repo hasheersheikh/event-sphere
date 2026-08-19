@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CLOUDINARY_ENABLED, uploadImageToBackend } from "@/lib/localUpload";
 import { UPLOAD_SPECS, validateUploadFile } from "@/lib/uploadSpecs";
 import { requestImageCrop } from "@/lib/imageCropController";
+import { trackSessionUpload } from "@/lib/uploadSession";
 import type { EventFormValues } from "@/lib/eventFormSchema";
 
 // Shared banner/event-video/artist-photo upload logic for CreateEventPage and
@@ -32,9 +33,14 @@ export const useEventMediaUpload = () => {
       );
       const data = await res.json();
       if (!data.secure_url) throw new Error("Cloudinary upload failed");
+      // Direct-to-Cloudinary uploads have no backend ledger row, but tracking
+      // them here is harmless — the backend skips unknown URLs on cleanup.
+      trackSessionUpload(data.secure_url as string);
       return data.secure_url as string;
     }
-    return uploadImageToBackend(file);
+    const url = await uploadImageToBackend(file);
+    trackSessionUpload(url);
+    return url;
   };
 
   const handleUpload = () => { bannerInputRef.current?.click(); };

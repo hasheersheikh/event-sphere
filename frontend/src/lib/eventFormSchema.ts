@@ -7,7 +7,7 @@ import type { FieldErrors } from "react-hook-form";
 // same shape. `image` is validated with .url() since it always comes from
 // the upload flow (never a bare non-URL string) on either page.
 
-export const eventSchema = z.object({
+export const eventSchemaBase = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(20, "Description must be at least 20 characters"),
   category: z.string().min(1, "Please select a category"),
@@ -41,7 +41,12 @@ export const eventSchema = z.object({
     startTime: z.string().min(1, "Start time required"),
     endTime: z.string().optional(),
     label: z.string().optional(),
-    capacity: z.coerce.number().min(1).optional(),
+    // Cleared number inputs yield "" — coerce that to undefined instead of
+    // failing min(1) with an error the slot UIs never displayed.
+    capacity: z.preprocess(
+      (v) => (v === "" || v === null ? undefined : v),
+      z.coerce.number().min(1, "Capacity must be at least 1").optional()
+    ),
   })).optional(),
 
   // recurring
@@ -96,6 +101,59 @@ export const eventSchema = z.object({
     isActive: z.boolean().default(true),
   })).optional(),
 });
+
+// ─── Schedule-type cross-field rules ────────────────────────────────────────
+// `date` stays z.any() (Date object on create, ISO string from the API on
+// edit) and `time` a plain string, so their required-ness can't be expressed
+// per-field — it depends on scheduleType. These rules previously lived only
+// in scattered page guards (or nowhere), letting single/recurring events
+// through with no date (silently defaulted to today) or no time (00:00).
+const scheduleRules = (val: z.infer<typeof eventSchemaBase>, ctx: z.RefinementCtx) => {
+  const st = val.scheduleType;
+
+  // multi_day derives its date from days[]; every other type needs one.
+  if (st !== "multi_day" && !val.date) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["date"], message: "Date is required" });
+  }
+
+  if (st === "single" || st === "recurring") {
+    if (!val.time) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["time"], message: "Start time is required" });
+  }
+
+  if (st === "multi_slot" && (val.slots?.length ?? 0) === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["slots"], message: "Add at least one show slot" });
+  }
+
+  if (st === "multi_day" && (val.days?.length ?? 0) === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["days"], message: "Select at least one event day" });
+  }
+
+  if (st === "recurring") {
+    if (val.recurrence?.frequency === "weekly" && (val.recurrence.daysOfWeek?.length ?? 0) === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["recurrence", "daysOfWeek"], message: "Select at least one day of the week" });
+    }
+    if (val.recurrence?.endDate && val.date) {
+      const end = new Date(val.recurrence.endDate);
+      const start = new Date(val.date);
+      if (!isNaN(end.getTime()) && !isNaN(start.getTime())) {
+        // compare at day granularity — same day is fine
+        const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime();
+        const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime();
+        if (endDay < startDay) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["recurrence", "endDate"], message: "End date cannot be before the start date" });
+        }
+      }
+    }
+  }
+
+  // Offline tickets expose a "Call Coordinator" CTA — a phone number is
+  // essential for it to work.
+  if (val.offlineTicketsAvailable && !val.coordinator?.phone) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["coordinator", "phone"], message: "Coordinator number is required for offline tickets" });
+  }
+};
+
+export const eventSchema = eventSchemaBase.superRefine(scheduleRules);
 
 export type EventFormValues = z.infer<typeof eventSchema>;
 

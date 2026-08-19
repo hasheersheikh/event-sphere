@@ -5,6 +5,7 @@ import winston from 'winston';
 import { sendReminderEmail, sendReviewEmail } from './emailProvider.js';
 import { releaseTickets } from './inventory.js';
 import { deleteEventAssets } from './cloudinaryService.js';
+import { cleanupOrphanUploads } from './orphanUploads.js';
 import axios from 'axios';
 
 const MEDIA_RETENTION_DAYS = 30;
@@ -251,6 +252,12 @@ export const initCronJobs = () => {
   cron.schedule('0 3 * * *', () => {
     logger.info('Running expired event media purge...');
     purgeExpiredEventMedia();
+  });
+
+  // Every 6 hours: delete uploaded files that nothing references (e.g. a
+  // banner uploaded in the event wizard for an event that was never created)
+  cron.schedule('0 */6 * * *', () => {
+    cleanupOrphanUploads(logger).catch((err) => logger.error(`Orphan upload sweep crashed: ${err}`));
   });
 
   logger.info('Cron jobs initialized');

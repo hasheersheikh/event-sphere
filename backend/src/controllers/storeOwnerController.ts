@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import StoreOwner from '../models/StoreOwner.js';
 import LocalStore from '../models/LocalStore.js';
 import { AuthRequest } from '../middleware/auth.js';
-import { sendStoreOwnerWelcomeEmail, sendPartnerContractEmail } from '../utils/emailProvider.js';
+import { sendStoreOwnerWelcomeEmail } from '../utils/emailProvider.js';
 
 const jwtSecret = (): string => {
   if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET not configured');
@@ -33,11 +33,11 @@ export const createStoreOwner = async (req: AuthRequest, res: Response) => {
 
     const owner = await StoreOwner.create({ name, email, password: hashedPassword, storeId });
 
-    // Send welcome email with temporary password
+    // Send welcome email with temporary password (single email — it already
+    // covers onboarding, no need for a separate partner-contract email too)
     const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:8080'}/store-owner/login`;
     try {
       await sendStoreOwnerWelcomeEmail(email, name, store.name, loginUrl, tempPassword);
-      await sendPartnerContractEmail(email, name, 'Store Owner');
     } catch (emailErr) {
       console.error('Failed to send store owner email:', emailErr);
     }

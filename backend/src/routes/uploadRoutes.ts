@@ -3,8 +3,10 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { protect } from '../middleware/auth.js';
+import { protect, AuthRequest } from '../middleware/auth.js';
 import { uploadToCloudinary } from '../utils/cloudinaryService.js';
+import Upload from '../models/Upload.js';
+import { uploadKeyFromUrl, deleteUnusedUploads } from '../utils/orphanUploads.js';
 
 const router = express.Router();
 
@@ -59,6 +61,19 @@ const upload = multer({
 const getBaseUrl = (req: express.Request) =>
   process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
 
+// Record every stored file in the Upload ledger so abandoned uploads can be
+// identified and cleaned up later (orphanUploads.ts).
+const recordUpload = async (url: string, req: AuthRequest) => {
+  const key = uploadKeyFromUrl(url);
+  if (!key || !req.user?._id) return;
+  try {
+    await Upload.create({ url, key, uploader: req.user._id });
+  } catch (err) {
+    // Ledger failure must not fail the upload itself
+    console.error('Failed to record upload in ledger:', err);
+  }
+};
+
 // Explicit opt-in — CLOUDINARY_ENABLED defaults to false, so Cloudinary is only
 // used when someone deliberately turns it on, even if leftover keys are present.
 const isCloudinaryConfigured = () => {
@@ -78,13 +93,34 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
       const url = await uploadToCloudinary(req.file.path);
       // Delete local file after upload to Cloudinary
       fs.unlinkSync(req.file.path);
+      await recordUpload(url, req);
       res.json({ url });
     } else {
-      res.json({ url: `${getBaseUrl(req)}/uploads/${req.file.filename}` });
+      const url = `${getBaseUrl(req)}/uploads/${req.file.filename}`;
+      await recordUpload(url, req);
+      res.json({ url });
     }
   } catch (error) {
     console.error('Upload error:', error);
     res.status(500).json({ message: 'Upload failed', error });
+  }
+});
+
+// Delete uploads that ended up unused, e.g. a banner uploaded at step 1 of
+// the event wizard for an event that was never submitted. Only deletes files
+// the caller uploaded (per the ledger) that nothing references.
+router.delete('/unused', protect, async (req: AuthRequest, res) => {
+  const urls: unknown = req.body?.urls;
+  if (!Array.isArray(urls) || urls.length === 0 || urls.length > 50 || !urls.every((u) => typeof u === 'string')) {
+    res.status(400).json({ message: 'Provide urls as an array of strings (max 50)' });
+    return;
+  }
+  try {
+    const deleted = await deleteUnusedUploads(urls as string[], String(req.user?._id));
+    res.json({ deleted });
+  } catch (error) {
+    console.error('Unused-upload cleanup failed:', error);
+    res.status(500).json({ message: 'Cleanup failed', error });
   }
 });
 
@@ -99,9 +135,12 @@ router.post('/single', protect, upload.single('file'), async (req, res) => {
     if (isCloudinaryConfigured()) {
       const url = await uploadToCloudinary(req.file.path);
       fs.unlinkSync(req.file.path);
+      await recordUpload(url, req);
       res.json({ url });
     } else {
-      res.json({ url: `${getBaseUrl(req)}/uploads/${req.file.filename}` });
+      const url = `${getBaseUrl(req)}/uploads/${req.file.filename}`;
+      await recordUpload(url, req);
+      res.json({ url });
     }
   } catch (error) {
     console.error('Upload error:', error);
@@ -124,9 +163,12 @@ router.post('/multiple', protect, upload.array('files', 5), async (req, res) => 
         fs.unlinkSync(file.path);
         return url;
       }));
+      await Promise.all(urls.map((url) => recordUpload(url, req)));
       res.json({ urls });
     } else {
-      res.json({ urls: files.map(f => `${getBaseUrl(req)}/uploads/${f.filename}`) });
+      const urls = files.map(f => `${getBaseUrl(req)}/uploads/${f.filename}`);
+      await Promise.all(urls.map((url) => recordUpload(url, req)));
+      res.json({ urls });
     }
   } catch (error) {
     console.error('Multi-upload error:', error);
@@ -157,13 +199,16 @@ router.post('/event-video', protect, videoUpload.single('video'), async (req, re
     if (isCloudinaryConfigured()) {
       const url = await uploadToCloudinary(req.file.path, 'event-sphere/videos');
       fs.unlinkSync(req.file.path);
+      await recordUpload(url, req);
       res.json({
         url,
         warning: 'Video should be in Instagram photo aspect ratio (4:5 portrait). Videos in other aspect ratios will be cropped.'
       });
     } else {
+      const url = `${getBaseUrl(req)}/uploads/${req.file.filename}`;
+      await recordUpload(url, req);
       res.json({
-        url: `${getBaseUrl(req)}/uploads/${req.file.filename}`,
+        url,
         warning: 'Video should be in Instagram photo aspect ratio (4:5 portrait). Videos in other aspect ratios will be cropped.'
       });
     }
