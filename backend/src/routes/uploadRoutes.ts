@@ -7,6 +7,7 @@ import { protect, AuthRequest } from '../middleware/auth.js';
 import { uploadToCloudinary } from '../utils/cloudinaryService.js';
 import Upload from '../models/Upload.js';
 import { uploadKeyFromUrl, deleteUnusedUploads } from '../utils/orphanUploads.js';
+import { compressUpload } from '../utils/imageProcessing.js';
 
 const router = express.Router();
 
@@ -46,13 +47,14 @@ const fileFilter = (_req: express.Request, file: Express.Multer.File, cb: multer
   }
 };
 
-// Largest legitimate use case is the hero video spec (20MB, see frontend
-// uploadSpecs.ts) — capped a bit above that, well below the old 50MB, to
-// keep the VPS's limited disk from filling up with oversized uploads.
+// Largest legitimate use case is the hero video spec (5MB, see frontend
+// uploadSpecs.ts) — capped a bit above that as defense-in-depth for clients
+// that bypass frontend validation, to keep the VPS's limited disk from
+// filling up with oversized uploads.
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 25 * 1024 * 1024 } // 25MB
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
 });
 
 // BACKEND_URL is an explicit override; otherwise derive the public-facing origin
@@ -89,6 +91,7 @@ router.post('/', protect, upload.single('file'), async (req, res) => {
   }
 
   try {
+    await compressUpload(req.file);
     if (isCloudinaryConfigured()) {
       const url = await uploadToCloudinary(req.file.path);
       // Delete local file after upload to Cloudinary
@@ -132,6 +135,7 @@ router.post('/single', protect, upload.single('file'), async (req, res) => {
   }
 
   try {
+    await compressUpload(req.file);
     if (isCloudinaryConfigured()) {
       const url = await uploadToCloudinary(req.file.path);
       fs.unlinkSync(req.file.path);
@@ -157,6 +161,7 @@ router.post('/multiple', protect, upload.array('files', 5), async (req, res) => 
   }
 
   try {
+    await Promise.all(files.map((file) => compressUpload(file)));
     if (isCloudinaryConfigured()) {
       const urls = await Promise.all(files.map(async (file) => {
         const url = await uploadToCloudinary(file.path);

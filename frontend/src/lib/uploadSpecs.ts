@@ -26,8 +26,8 @@ export const UPLOAD_SPECS = {
   eventBanner: {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
-    maxSizeMB: 2,
-    hint: "JPG, PNG or WebP · 1080×1350px (4:5 portrait) recommended · max 2MB",
+    maxSizeMB: 1,
+    hint: "JPG, PNG or WebP · 1080×1350px (4:5 portrait) recommended · max 1MB",
     aspect: 4 / 5,
   },
   eventVideo: {
@@ -46,8 +46,8 @@ export const UPLOAD_SPECS = {
   storeBanner: {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
-    maxSizeMB: 2,
-    hint: "JPG, PNG or WebP · 1600×600px wide banner recommended · max 2MB",
+    maxSizeMB: 1,
+    hint: "JPG, PNG or WebP · 1600×600px wide banner recommended · max 1MB",
     aspect: 1600 / 600,
   },
   storeListingPhoto: {
@@ -60,8 +60,8 @@ export const UPLOAD_SPECS = {
   blogCover: {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
-    maxSizeMB: 2,
-    hint: "JPG, PNG or WebP · 1600×900px (16:9) recommended · max 2MB",
+    maxSizeMB: 1,
+    hint: "JPG, PNG or WebP · 1600×900px (16:9) recommended · max 1MB",
     aspect: 16 / 9,
   },
   influencerPhoto: {
@@ -82,22 +82,22 @@ export const UPLOAD_SPECS = {
   venueImage: {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
-    maxSizeMB: 2,
-    hint: "JPG, PNG or WebP · 1200×800px recommended · max 2MB",
+    maxSizeMB: 1,
+    hint: "JPG, PNG or WebP · 1200×800px recommended · max 1MB",
     aspect: 1200 / 800,
   },
   heroImage: {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
-    maxSizeMB: 3,
-    hint: "JPG, PNG or WebP · max 3MB",
+    maxSizeMB: 1,
+    hint: "JPG, PNG or WebP · max 1MB",
     // No fixed aspect — HeroManagementPage picks 2:1 / 4:5 / 1:1 based on target device.
   },
   heroVideo: {
     accept: VIDEO_ACCEPT,
     allowedMimeTypes: VIDEO_MIME_TYPES,
-    maxSizeMB: 20,
-    hint: "MP4, MOV or WebM · max 20MB",
+    maxSizeMB: 5,
+    hint: "MP4, MOV or WebM · max 5MB",
   },
 } as const satisfies Record<string, UploadSpec>;
 
