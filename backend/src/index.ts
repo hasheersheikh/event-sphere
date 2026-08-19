@@ -74,9 +74,14 @@ app.use(compression({
 // the browser's Origin header never has a trailing slash, so an un-normalized
 // comparison here can silently reject every real request.
 const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:8080').replace(/\/$/, '');
+// Derive the www variant (https://example.com -> https://www.example.com) so
+// the apex and www origins both work without extra config. Browsers send the
+// Origin header on every non-GET request (even same-origin POSTs), so an
+// origin missing here turns into a server-side 500 for that host.
+const wwwVariant = frontendUrl.replace(/^(https?:\/\/)(?!www\.)/, '$1www.');
 const allowedOrigins = [
   frontendUrl,
-  // Add alternate origins here if needed (e.g., www vs non-www, staging env)
+  wwwVariant,
 ];
 app.use(cors({
   origin: (origin, callback) => {
@@ -118,6 +123,15 @@ app.use(express.json({
 // Serve uploaded files when local storage is enabled
 if (process.env.USE_LOCAL_STORAGE === 'true') {
   const uploadsDir = path.resolve(__dirname, '../uploads');
+  // Public media is embedded cross-origin: event/store images are stored with
+  // absolute apex URLs, so pages served from www.citypulse360.com load them
+  // from citypulse360.com. helmet() sets CORP same-origin globally, which
+  // makes browsers silently block those images on the www origin — relax it
+  // for uploads only.
+  app.use('/uploads', (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  });
   app.use('/uploads', express.static(uploadsDir));
 }
 
