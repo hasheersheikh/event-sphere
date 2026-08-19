@@ -99,8 +99,10 @@ const infoBox = (title: string, content: string) => `<table role="presentation" 
   </tr>
 </table>`;
 
+// Event dates carry IST wall-clock values in their UTC fields; format in UTC
+// so emails always show the day the organizer saved, whatever the server TZ.
 const formatEventDate = (date: string | Date) =>
-  new Date(date).toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  new Date(date).toLocaleDateString('en-IN', { timeZone: 'UTC', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
 const orderRef = (order: any) => `#${order._id.toString().slice(-6).toUpperCase()}`;
 

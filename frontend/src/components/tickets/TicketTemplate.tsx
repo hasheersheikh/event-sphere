@@ -11,7 +11,7 @@ interface TicketTemplateProps {
   };
 }
 
-const NEON = "#C4F000";
+const ACCENT = "#ffffff"; // pure B&W per design direction
 const DARK = "#0d0d0d";
 const BORDER = "#282828";
 
@@ -49,14 +49,14 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
           userSelect: "none", overflow: "hidden",
         }}>
           {Array.from({ length: 20 }).map((_, i) => (
-            <span key={i} style={{ fontSize: 28, fontWeight: 900, color: NEON, whiteSpace: "nowrap", letterSpacing: 8 }}>
+            <span key={i} style={{ fontSize: 28, fontWeight: 900, color: ACCENT, whiteSpace: "nowrap", letterSpacing: 8 }}>
               CITY PULSE
             </span>
           ))}
         </div>
 
         {/* Top accent stripe */}
-        <div style={{ height: 4, background: `linear-gradient(90deg, ${NEON}, #aaee00, ${NEON})` }} />
+        <div style={{ height: 4, background: `linear-gradient(90deg, ${ACCENT}, #ffffff, ${ACCENT})` }} />
 
         {/* Main body */}
         <div style={{ display: "flex", padding: "32px 36px 28px 36px", gap: 0, alignItems: "stretch" }}>
@@ -68,7 +68,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
-                  width: 28, height: 28, borderRadius: 7, backgroundColor: NEON,
+                  width: 28, height: 28, borderRadius: 7, backgroundColor: ACCENT,
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <span style={{ fontSize: 11, fontWeight: 900, color: "#000", letterSpacing: -0.5 }}>CP</span>
@@ -84,7 +84,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
 
             {/* Event title */}
             <div>
-              <span style={{ fontSize: 8, fontWeight: 900, color: NEON, letterSpacing: 5, textTransform: "uppercase", display: "block", marginBottom: 7 }}>
+              <span style={{ fontSize: 8, fontWeight: 900, color: ACCENT, letterSpacing: 5, textTransform: "uppercase", display: "block", marginBottom: 7 }}>
                 Event
               </span>
               <span style={{ fontSize: 24, fontWeight: 900, color: "#ffffff", lineHeight: 1.15, letterSpacing: -0.5, display: "block" }}>
@@ -106,7 +106,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
                 <span style={{ fontSize: 7, fontWeight: 900, color: "#555", letterSpacing: 4, textTransform: "uppercase", display: "block", marginBottom: 4 }}>
                   Ticket Type
                 </span>
-                <span style={{ fontSize: 14, fontWeight: 900, color: NEON, letterSpacing: 1, textTransform: "uppercase" }}>
+                <span style={{ fontSize: 14, fontWeight: 900, color: ACCENT, letterSpacing: 1, textTransform: "uppercase" }}>
                   {ticket.quantity}× {ticket.type}
                 </span>
               </div>
@@ -124,7 +124,7 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
 
             {/* Footer note */}
             <div style={{ marginTop: "auto", paddingTop: 14, borderTop: `1px solid ${BORDER}`, display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: NEON, flexShrink: 0 }} />
+              <div style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: ACCENT, flexShrink: 0 }} />
               <span style={{ fontSize: 8, color: "#444", fontWeight: 700, letterSpacing: 0.5 }}>
                 Valid for one-time admission only · Do not duplicate or share
               </span>
@@ -147,8 +147,8 @@ const TicketTemplate = React.forwardRef<HTMLDivElement, TicketTemplateProps>(
           }}>
             <div style={{
               backgroundColor: "#fff", padding: 10, borderRadius: 12,
-              border: `2.5px solid ${NEON}`,
-              boxShadow: `0 0 20px ${NEON}28`,
+              border: `2.5px solid ${ACCENT}`,
+              boxShadow: `0 0 20px ${ACCENT}22`,
             }}>
               <QRCodeSVG
                 value={`citypulse://ticket/${booking._id}`}
