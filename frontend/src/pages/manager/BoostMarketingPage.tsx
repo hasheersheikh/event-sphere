@@ -81,7 +81,7 @@ const PLANS = [
       "2 Stories on Instagram"
     ],
     icon: Rocket,
-    image: "/images/plan/impact.png",
+    image: "/images/plan/impact.jpg",
     glowClass: "hover:border-purple-500/30",
     selectedGlowClass: "border-neon-purple shadow-sm",
     spotlightColor: "rgba(168, 85, 247, 0.15)",
