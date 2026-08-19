@@ -6,6 +6,7 @@ import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 import DetailModal from "@/components/shared/DetailModal";
 import ReadMore from "@/components/shared/ReadMore";
+import RevealImage from "@/components/ui/RevealImage";
 
 interface Nagpurkar {
   id: number;
@@ -132,14 +133,14 @@ const NagpurkarCardContent = ({ person }: { person: Nagpurkar }) => (
       {person.isLogo ? (
         /* Logo card — same 4:5 ratio, logo contained on dark bg */
         <div className="absolute inset-0 flex items-center justify-center p-10 bg-card/60">
-          <img
+          <RevealImage
             src={person.image!}
             alt={person.name}
             className="w-full h-full object-contain"
           />
         </div>
       ) : person.image ? (
-        <img
+        <RevealImage
           src={person.image}
           alt={person.name}
           className="w-full h-full object-cover"
@@ -254,14 +255,15 @@ const TrendingNagpurkars = () => {
         media={
           selected?.isLogo ? (
             <div className="flex items-center justify-center p-10 bg-card/60 aspect-[4/5] border-b sm:border-b-0 sm:border-r border-border/40">
-              <img src={selected.image!} alt={selected.name} className="w-36 sm:w-44 h-auto object-contain" />
+              <RevealImage src={selected.image!} alt={selected.name} className="w-36 sm:w-44 h-auto object-contain" />
             </div>
           ) : selected ? (
             <div className="relative w-full sm:w-80 aspect-[4/5] overflow-hidden bg-muted border-b sm:border-b-0 sm:border-r border-border/40">
               {selected.image ? (
-                <img
+                <RevealImage
                   src={selected.image}
                   alt={selected.name}
+                  spinner
                   className="w-full h-full object-cover object-top"
                 />
               ) : (

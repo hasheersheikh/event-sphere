@@ -14,6 +14,7 @@ import MarqueeCarousel from "@/components/events/MarqueeCarousel";
 import MobileMarqueeCarousel from "@/components/events/MobileMarqueeCarousel";
 import DetailModal from "@/components/shared/DetailModal";
 import ReadMore from "@/components/shared/ReadMore";
+import RevealImage from "@/components/ui/RevealImage";
 import { VENUE_CATEGORIES } from "@/constants/venueCategories";
 
 interface TrendingVenue {
@@ -34,7 +35,7 @@ const VenueCardContent = ({ venue }: { venue: TrendingVenue }) => {
       {/* Image — 4:5 Instagram portrait ratio */}
       <div className="relative aspect-[4/5] rounded-xl md:rounded-2xl overflow-hidden bg-muted border border-border/50 group-hover:border-border transition-all duration-300">
         {venue.image ? (
-          <img
+          <RevealImage
             src={venue.image}
             alt={venue.name}
             className="w-full h-full object-cover"
@@ -181,10 +182,12 @@ const TrendingVenues = () => {
             return (
               <div className="relative w-full sm:w-96 aspect-[4/5] rounded-t-3xl sm:rounded-none overflow-hidden bg-muted border-b sm:border-b-0 sm:border-r border-border/60">
                 {venueImages.length > 0 ? (
-                  <img
+                  <RevealImage
+                    key={venueImages[activeImageIndex]}
                     src={venueImages[activeImageIndex]}
                     alt={selectedVenue.name}
-                    className="w-full h-full object-cover transition-all duration-300"
+                    spinner
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-neon-lime/20 to-neon-lime/5 flex items-center justify-center">
@@ -246,7 +249,7 @@ const TrendingVenues = () => {
                         activeImageIndex === i ? "border-neon-lime" : "border-border/50 opacity-60 hover:opacity-100"
                       )}
                     >
-                      <img src={img} className="w-full h-full object-cover" />
+                      <RevealImage src={img} alt="" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>

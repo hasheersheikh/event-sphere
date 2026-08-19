@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import RevealImage from "@/components/ui/RevealImage";
+import { cn } from "@/lib/utils";
 
 interface HeroAsset {
   _id: string;
@@ -19,8 +21,25 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
   const HERO_ASSETS = assets;
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const preloadedUrls = useRef<Set<string>>(new Set());
+
+  // Preload every image slide up front so each slide reveals fully loaded
+  // instead of painting progressively as its bytes arrive
+  useEffect(() => {
+    HERO_ASSETS.forEach((asset) => {
+      if (asset.type !== "image" || preloadedUrls.current.has(asset.url)) return;
+      preloadedUrls.current.add(asset.url);
+      const img = new Image();
+      img.onload = () =>
+        setLoadedImages((prev) =>
+          prev.has(asset.url) ? prev : new Set(prev).add(asset.url)
+        );
+      img.src = asset.url;
+    });
+  }, [HERO_ASSETS]);
 
   const nextSlide = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -32,10 +51,15 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
     setCurrentIndex((prev) => (prev - 1 + HERO_ASSETS.length) % HERO_ASSETS.length);
   };
 
-  useEffect(() => {
-    if (HERO_ASSETS.length === 0) return;
+  const currentAsset = HERO_ASSETS[currentIndex];
+  const currentImageReady =
+    !currentAsset || currentAsset.type !== "image" || loadedImages.has(currentAsset.url);
 
-    const currentAsset = HERO_ASSETS[currentIndex];
+  useEffect(() => {
+    if (HERO_ASSETS.length === 0 || !currentAsset) return;
+
+    // Hold auto-advance until the current image has finished loading
+    if (currentAsset.type === "image" && !currentImageReady) return;
 
     if (currentAsset.type === "image") {
       timeoutRef.current = setTimeout(() => {
@@ -49,16 +73,48 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, HERO_ASSETS]);
+  }, [currentIndex, HERO_ASSETS, currentImageReady]);
 
   const handleVideoEnded = () => {
     nextSlide();
   };
 
-  if (HERO_ASSETS.length === 0) return null;
+  if (HERO_ASSETS.length === 0 || !currentAsset) return null;
 
-  const currentAsset = HERO_ASSETS[currentIndex];
   const hasTargetUrl = currentAsset?.targetUrl;
+
+  const renderMedia = (interactive: boolean) => {
+    const asset = HERO_ASSETS[currentIndex];
+    const mediaClassName = cn(
+      "w-full h-full object-cover",
+      interactive && "pointer-events-none"
+    );
+
+    if (asset.type === "image") {
+      return (
+        <RevealImage
+          key={asset.url}
+          src={asset.url}
+          alt="Hero gallery"
+          spinner
+          className={mediaClassName}
+        />
+      );
+    }
+
+    return (
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        onEnded={handleVideoEnded}
+        className={mediaClassName}
+      >
+        <source src={asset.url} type="video/mp4" />
+      </video>
+    );
+  };
 
   return (
     <div className="relative w-full aspect-[2/1] lg:aspect-[4/5] overflow-hidden rounded-lg border border-border bg-muted group">
@@ -71,45 +127,11 @@ const HeroGallery = ({ assets }: HeroGalleryProps) => {
           className="absolute inset-0 w-full h-full block z-10 cursor-pointer"
           aria-label={`View ${currentAsset.type === 'image' ? 'image' : 'video'} details`}
         >
-          {HERO_ASSETS[currentIndex].type === "image" ? (
-            <img
-              src={HERO_ASSETS[currentIndex].url}
-              alt="Hero gallery"
-              className="w-full h-full object-cover pointer-events-none"
-            />
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              onEnded={handleVideoEnded}
-              className="w-full h-full object-cover pointer-events-none"
-            >
-              <source src={HERO_ASSETS[currentIndex].url} type="video/mp4" />
-            </video>
-          )}
+          {renderMedia(true)}
         </a>
       ) : (
         <div className="absolute inset-0 w-full h-full">
-          {HERO_ASSETS[currentIndex].type === "image" ? (
-            <img
-              src={HERO_ASSETS[currentIndex].url}
-              alt="Hero gallery"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              onEnded={handleVideoEnded}
-              className="w-full h-full object-cover"
-            >
-              <source src={HERO_ASSETS[currentIndex].url} type="video/mp4" />
-            </video>
-          )}
+          {renderMedia(false)}
         </div>
       )}
 
