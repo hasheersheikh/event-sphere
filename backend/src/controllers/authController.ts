@@ -7,7 +7,7 @@ import EventManager from '../models/EventManager.js';
 import Volunteer from '../models/Volunteer.js';
 
 import crypto from 'crypto';
-import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerSignUpNotificationToAdmin } from '../utils/emailProvider.js';
+import { sendPasswordResetEmail, sendWelcomeEmail, sendManagerWelcomeEmail } from '../utils/emailProvider.js';
 import { isDisposableEmail } from '../utils/emailValidation.js';
 import { claimGuestBookings } from './otpController.js';
 
@@ -135,7 +135,6 @@ export const register = async (req: Request, res: Response) => {
         name: ghostUser.name,
         email: ghostUser.email,
         role: ghostUser.role,
-        isApproved: true,
         token: generateToken(ghostUser._id.toString(), ghostUser.role),
       });
     }
@@ -157,18 +156,16 @@ export const register = async (req: Request, res: Response) => {
       email,
       password: hashedPassword,
       role: userRole,
-      ...(userRole === 'event_manager' && { isApproved: false }),
     });
 
     if (user) {
-      // Trigger registration email(s) (non-blocking). Event managers are pending
-      // approval at this point and can't do anything yet, so they only trigger an
-      // admin notification here — their welcome + getting-started email (with the
-      // manager agreement PDF) fires once from approveManager instead of twice.
+      // Trigger registration email(s) (non-blocking). Event managers get the
+      // getting-started email with the manager agreement PDF right away — their
+      // events still go through admin moderation before going live.
       (async () => {
         try {
           if (userRole === 'event_manager') {
-            await sendManagerSignUpNotificationToAdmin(user.name, user.email);
+            await sendManagerWelcomeEmail(user.email, user.name);
           } else {
             await sendWelcomeEmail(user.email, user.name);
           }
@@ -182,7 +179,6 @@ export const register = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isApproved: (user as any).isApproved ?? true,
         token: generateToken(user._id.toString(), user.role),
       });
     } else {
@@ -223,7 +219,6 @@ export const login = async (req: Request, res: Response) => {
         name: user.name,
         email: user.email,
         role: user.role || userRole,
-        isApproved: (user as any).isApproved ?? true,
         token: generateToken(user._id.toString(), user.role || userRole),
         eventId: user.eventId,
         gate: user.gate,
@@ -322,7 +317,6 @@ export const googleAuth = async (req: Request, res: Response) => {
       email: user.email,
       role: user.role,
       avatar: user.avatar,
-      isApproved: true,
       token: generateToken(user._id.toString(), user.role),
     });
   } catch (error) {

@@ -31,7 +31,6 @@ const seedNewData = async () => {
         email: 'alex@events.com',
         password,
         role: 'event_manager',
-        isApproved: true,
         commissionType: 'percentage',
         commissionValue: 12,
       },
@@ -40,7 +39,6 @@ const seedNewData = async () => {
         email: 'sarah@production.io',
         password,
         role: 'event_manager',
-        isApproved: true,
         commissionType: 'flat',
         commissionValue: 500,
       },
@@ -49,7 +47,6 @@ const seedNewData = async () => {
         email: 'marcus@global.events',
         password,
         role: 'event_manager',
-        isApproved: true,
         commissionType: 'percentage',
         commissionValue: 15,
       }

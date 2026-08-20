@@ -1,11 +1,13 @@
 import cron from 'node-cron';
 import Event from '../models/Event.js';
 import Booking from '../models/Booking.js';
+import RefundRequest from '../models/RefundRequest.js';
 import winston from 'winston';
 import { sendReminderEmail, sendReviewEmail } from './emailProvider.js';
 import { releaseTickets } from './inventory.js';
 import { deleteEventAssets } from './cloudinaryService.js';
 import { cleanupOrphanUploads } from './orphanUploads.js';
+import razorpay from './razorpay.js';
 import axios from 'axios';
 
 const MEDIA_RETENTION_DAYS = 30;
@@ -223,6 +225,95 @@ export const pingExternalService = async () => {
   }
 };
 
+/**
+ * Crash recovery for user self-cancellations. A booking claimed for self-cancel
+ * (status 'cancelled') whose refund never left 'initiated' — e.g. the process
+ * died between the claim and the Razorpay call — would otherwise sit forever
+ * with money neither refunded nor queued for admin retry.
+ *
+ * Fetch-before-refund keeps this double-refund-safe: we only retry when
+ * Razorpay reports nothing refunded for the payment. All state transitions
+ * are guarded on 'selfCancel.refundStatus': 'initiated'' so a terminal state
+ * can never be clobbered.
+ */
+export const reconcileStuckSelfCancellations = async () => {
+  try {
+    const cutoff = new Date(Date.now() - 10 * 60 * 1000); // allow in-flight requests to finish
+    const stuck = await Booking.find({
+      status: 'cancelled',
+      'selfCancel.refundStatus': 'initiated',
+      'selfCancel.claimedAt': { $lt: cutoff },
+      paymentId: { $exists: true, $ne: 'OFFLINE' },
+    });
+
+    for (const booking of stuck) {
+      const expectedPaise = Math.round(booking.totalAmount * 100);
+      try {
+        const payment: any = await razorpay.payments.fetch(booking.paymentId as string);
+        if ((payment?.amount_refunded ?? 0) >= expectedPaise) {
+          // Refund actually went through (e.g. API call succeeded but the
+          // process died before the status update landed).
+          await Booking.updateOne(
+            { _id: booking._id, 'selfCancel.refundStatus': 'initiated' },
+            {
+              $set: {
+                status: 'refunded',
+                'selfCancel.refundStatus': 'succeeded',
+                'selfCancel.refundAmount': booking.totalAmount,
+              },
+            }
+          );
+          logger.info(`Reconciled booking ${booking._id}: refund already present at Razorpay, marked refunded`);
+          continue;
+        }
+
+        // Nothing refunded — safe to retry.
+        const refund: any = await razorpay.payments.refund(booking.paymentId as string, {
+          amount: expectedPaise,
+          notes: {
+            bookingId: booking._id.toString(),
+            reason: 'User self-service cancellation (reconciled retry)',
+          },
+        });
+        await Booking.updateOne(
+          { _id: booking._id, 'selfCancel.refundStatus': 'initiated' },
+          {
+            $set: {
+              status: 'refunded',
+              'selfCancel.refundStatus': 'succeeded',
+              'selfCancel.refundId': refund?.id,
+              'selfCancel.refundAmount': booking.totalAmount,
+            },
+          }
+        );
+        logger.info(`Reconciled booking ${booking._id}: refund retried successfully`);
+      } catch (err: any) {
+        logger.error(`Self-cancel reconciliation retry failed for booking ${booking._id}: ${err.message}`);
+        await RefundRequest.create({
+          booking: booking._id,
+          event: booking.event,
+          user: booking.user,
+          paymentId: booking.paymentId,
+          amount: booking.totalAmount,
+          reason: `Stuck self-cancel refund (cron retry): ${err.message}`,
+          status: 'pending', // retryable from the admin RefundManagementPage
+          failureReason: err.message,
+        });
+        await Booking.updateOne(
+          { _id: booking._id, 'selfCancel.refundStatus': 'initiated' },
+          { $set: { 'selfCancel.refundStatus': 'failed', 'selfCancel.failureReason': err.message } }
+        );
+      }
+    }
+
+    if (stuck.length > 0) {
+      logger.info(`Self-cancel reconciliation processed ${stuck.length} stuck booking(s)`);
+    }
+  } catch (error) {
+    logger.error('Error reconciling stuck self-cancellations:', error);
+  }
+};
+
 // Initialize cron jobs:
 export const initCronJobs = () => {
   // Hourly cleanup to move past events to 'past' status
@@ -240,6 +331,11 @@ export const initCronJobs = () => {
   // Expire pending bookings every 15 minutes
   cron.schedule('*/15 * * * *', () => {
     expirePendingBookings();
+  });
+
+  // Crash recovery: finish refunds for self-cancellations stuck in 'initiated'
+  cron.schedule('*/15 * * * *', () => {
+    reconcileStuckSelfCancellations();
   });
 
   // Ping external service every 5 minutes

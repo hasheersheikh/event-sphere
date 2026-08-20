@@ -6,6 +6,7 @@ import {
   checkInBooking,
   issueOfflineTicket,
   cancelBooking,
+  selfCancelBooking,
   getTaxRate,
 } from '../controllers/bookingController.js';
 import { protect, authorize, optionalProtect } from '../middleware/auth.js';
@@ -20,6 +21,8 @@ router.route('/offline').post(protect, authorize('event_manager', 'admin'), issu
 
 router.route('/:id/check-in').patch(protect, authorize('event_manager', 'admin'), checkInBooking);
 router.route('/:id/cancel').patch(protect, authorize('event_manager', 'admin'), cancelBooking);
+// User self-service cancellation (ownership + time-window rules enforced in controller)
+router.route('/:id/self-cancel').patch(protect, selfCancelBooking);
 
 router.route('/event/:eventId').get(protect, authorize('event_manager', 'admin'), getEventBookings);
 

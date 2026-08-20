@@ -44,9 +44,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventTicketsTable, toTicketRows } from "@/components/portal/EventTicketsTable";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
+import { PaginationControls } from "@/components/portal/PaginationControls";
 
 const defaultOfflineForm = {
   contactName: "",
@@ -62,6 +64,8 @@ interface EventInsights {
   stats: {
     totalRevenue: number;
     totalTicketsSold: number;
+    totalCheckedIn?: number;
+    offlineTickets?: number;
     capacity: number;
   };
   ticketStats: Array<{
@@ -79,12 +83,16 @@ interface EventInsights {
   }>;
   attendees: Array<{
     _id: string;
+    bookingId?: string;
     name: string;
     email: string;
-    tickets: Array<{ type: string; quantity: number }>;
+    phone?: string;
+    isOffline?: boolean;
+    tickets: Array<{ type: string; quantity: number; price?: number; checkedInCount?: number }>;
     bookedAt: string;
     totalAmount: number;
   }>;
+  pagination: { total: number; page: number; limit: number; pages: number };
 }
 
 const EventInsightsPage = () => {
@@ -131,13 +139,24 @@ const EventInsightsPage = () => {
   };
 
   useEffect(() => {
-    fetchInsights();
+    setAttendeesPage(1);
   }, [id]);
+
+  useEffect(() => {
+    fetchInsights();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, attendeesPage]);
 
   const fetchInsights = async () => {
     try {
-      const response = await api.get(`/admin/events/${id}/insights`);
+      const response = await api.get(`/admin/events/${id}/insights`, {
+        params: { page: attendeesPage, limit: ATTENDEES_PER_PAGE },
+      });
       setData(response.data);
+      // Server clamps out-of-range pages — keep the footer buttons in sync
+      if (response.data.pagination && response.data.pagination.page !== attendeesPage) {
+        setAttendeesPage(response.data.pagination.page);
+      }
     } catch (error) {
       toast.error("Failed to recover insights protocol.");
       navigate("/portal/admin/events");
@@ -178,8 +197,6 @@ const EventInsightsPage = () => {
 
   const { event, stats, ticketStats, attendees, volunteers } = data;
   const sellThroughRate = stats.capacity > 0 ? (stats.totalTicketsSold / stats.capacity) * 100 : 0;
-  const paginatedAttendees = attendees.slice((attendeesPage - 1) * ATTENDEES_PER_PAGE, attendeesPage * ATTENDEES_PER_PAGE);
-  const totalAttendeePages = Math.ceil(attendees.length / ATTENDEES_PER_PAGE);
 
   return (
     <div className="space-y-4 pb-8 p-3 md:p-4 bg-background text-foreground min-h-screen">
@@ -308,6 +325,12 @@ const EventInsightsPage = () => {
             className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground text-[9px] font-black uppercase tracking-widest px-4 h-8 transition-all italic"
           >
             Attendees
+          </TabsTrigger>
+          <TabsTrigger
+            value="tickets"
+            className="rounded-lg data-[state=active]:bg-background data-[state=active]:text-foreground text-[9px] font-black uppercase tracking-widest px-4 h-8 transition-all italic"
+          >
+            Tickets
           </TabsTrigger>
           <TabsTrigger
             value="personnel"
@@ -488,7 +511,7 @@ const EventInsightsPage = () => {
                   </thead>
                   <tbody className="divide-y divide-border/50">
                     {attendees.length > 0 ? (
-                      paginatedAttendees.map((at, i) => (
+                      attendees.map((at, i) => (
                         <tr key={i} className="hover:bg-muted/20 transition-colors group">
                           <td className="px-4 py-3">
                              <div className="font-black uppercase tracking-tight text-[12px] group-hover:text-orange-500 transition-colors text-foreground">{at.name}</div>
@@ -521,34 +544,72 @@ const EventInsightsPage = () => {
                   </tbody>
                 </table>
              </div>
-             {totalAttendeePages > 1 && (
-               <div className="p-4 border-t border-border flex items-center justify-between bg-muted/5">
-                 <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-50 italic">
-                   Page {attendeesPage} of {totalAttendeePages}
-                 </p>
-                 <div className="flex gap-2">
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     disabled={attendeesPage === 1}
-                     onClick={() => setAttendeesPage(p => p - 1)}
-                     className="h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border-border italic"
-                   >
-                     Prev
-                   </Button>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     disabled={attendeesPage === totalAttendeePages}
-                     onClick={() => setAttendeesPage(p => p + 1)}
-                     className="h-7 rounded-lg text-[8px] font-black uppercase tracking-widest border-border italic"
-                   >
-                     Next
-                   </Button>
-                 </div>
-               </div>
+             {data.pagination && (
+               <PaginationControls
+                 pagination={data.pagination}
+                 onPageChange={setAttendeesPage}
+                 label="ATTENDEES"
+                 className="p-4 border-t border-border bg-muted/5"
+               />
              )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="tickets" className="outline-none space-y-5">
+          {/* Summary strip — event-wide ticket stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Tickets Sold", value: stats.totalTicketsSold },
+              { label: "Checked In", value: stats.totalCheckedIn ?? 0 },
+              { label: "Offline Tickets", value: stats.offlineTickets ?? 0 },
+              { label: "Utilisation", value: `${sellThroughRate.toFixed(1)}%` },
+            ].map((kpi, i) => (
+              <motion.div
+                key={kpi.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-card border border-border p-4 rounded-2xl group hover:border-orange-500/30 transition-all shadow-sm"
+              >
+                <div className="text-[9px] font-black uppercase tracking-widest mb-3 text-orange-500/70 italic">
+                  {kpi.label}
+                </div>
+                <div className="text-lg font-black italic uppercase tabular-nums text-foreground">
+                  {kpi.value}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <EventTicketsTable
+            rows={toTicketRows(
+              (attendees || []).map((b) => ({
+                _id: b.bookingId || b._id,
+                name: b.name,
+                email: b.email,
+                phone: b.phone,
+                isOffline: b.isOffline,
+                createdAt: b.bookedAt,
+                tickets: b.tickets as Array<{ type: string; quantity: number; price: number; checkedInCount?: number }>,
+              }))
+            )}
+            footer={
+              data.pagination && (
+                <PaginationControls
+                  pagination={data.pagination}
+                  onPageChange={setAttendeesPage}
+                  label="BOOKINGS"
+                  showWhenSinglePage
+                  rightSlot={
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
+                      One row per ticket line item
+                    </p>
+                  }
+                  className="p-4 border-t border-border bg-muted/5"
+                />
+              )
+            }
+          />
         </TabsContent>
 
         <TabsContent value="personnel" className="outline-none">

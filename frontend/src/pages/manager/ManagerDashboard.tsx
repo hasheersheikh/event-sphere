@@ -11,7 +11,6 @@ import {
   PieChart,
   IndianRupee,
   Plus,
-  Clock,
   Eye,
   Instagram,
 } from "lucide-react";
@@ -89,32 +88,6 @@ const ManagerDashboard = () => {
       subtext: "Distinct users",
     },
   ];
-
-  if (user && !user.isApproved && user.role === "event_manager") {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="max-w-md w-full text-center glass-card p-12 rounded-[2.5rem] border shadow-2xl">
-          <div className="h-24 w-24 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-8 border border-orange-500/20">
-            <Clock className="h-12 w-12 text-orange-500 animate-pulse" />
-          </div>
-          <h1 className="text-3xl font-black mb-4 tracking-tight uppercase italic underline decoration-primary underline-offset-8">
-            Under Review
-          </h1>
-          <p className="text-muted-foreground font-medium mb-10 leading-relaxed italic">
-            Your manager account is being reviewed by our team. Once approved, you can create events and track sales here.
-          </p>
-          <Link to="/">
-            <Button
-              variant="outline"
-              className="rounded-full px-10 py-6 font-black uppercase tracking-widest text-[10px] bg-primary/5 border-primary/20 text-primary"
-            >
-              Approval Pending
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 pb-12 p-3 md:p-4 bg-background min-h-screen">

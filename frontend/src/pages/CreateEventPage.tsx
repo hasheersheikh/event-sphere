@@ -6,7 +6,6 @@ import { AnimatePresence } from "framer-motion";
 import {
   Plus,
   Info,
-  ShieldCheck,
   ChevronLeft,
   ChevronRight,
   Ticket,
@@ -14,7 +13,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 
 import Navbar from "@/components/layout/Navbar";
@@ -40,10 +38,7 @@ import { resetSessionUploads, getSessionUploads, deleteUnusedUploads, collectEve
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
-
-  const isUnapprovedManager = user?.role === "event_manager" && !user?.isApproved;
 
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventSchema),
@@ -268,16 +263,6 @@ const CreateEventPage = () => {
           <p className="mt-4 text-center text-[10px] text-muted-foreground font-medium">
             Fields marked <span className="text-destructive font-black">*</span> are required
           </p>
-
-          {isUnapprovedManager && (
-            <div className="mt-8 mx-auto max-w-2xl p-5 bg-orange-500/5 border border-orange-500/20 rounded-2xl flex items-center gap-4">
-              <ShieldCheck className="h-6 w-6 text-orange-500 shrink-0" />
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-orange-500">Verification Pending</p>
-                <p className="text-xs font-medium text-orange-500/80 mt-0.5">Public broadcasting disabled until your account is approved.</p>
-              </div>
-            </div>
-          )}
         </header>
 
         <Form {...form}>
@@ -296,12 +281,12 @@ const CreateEventPage = () => {
                 </Button>
               )}
               {currentStep < 3 ? (
-                <Button type="button" onClick={nextStep} disabled={mutation.isPending || isUnapprovedManager}
+                <Button type="button" onClick={nextStep} disabled={mutation.isPending}
                   className="h-14 flex-[2] rounded-xl font-black uppercase tracking-[0.3em] text-[10px] bg-primary text-primary-foreground hover:bg-primary/90">
                   Next <ChevronRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button type="button" onClick={handleFinalSubmit} disabled={mutation.isPending || isUnapprovedManager}
+                <Button type="button" onClick={handleFinalSubmit} disabled={mutation.isPending}
                   className="h-14 flex-[2] rounded-xl font-black uppercase tracking-[0.3em] text-[10px] bg-primary text-primary-foreground hover:bg-primary/90">
                   {mutation.isPending ? "Creating…" : "Create Event"}
                 </Button>

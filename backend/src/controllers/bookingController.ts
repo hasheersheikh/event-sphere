@@ -2,12 +2,15 @@ import { Response } from 'express';
 import crypto from 'crypto';
 import Booking from '../models/Booking.js';
 import Event from '../models/Event.js';
+import RefundRequest from '../models/RefundRequest.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail, sendAccountSetupEmail } from '../utils/emailProvider.js';
+import { sendTicketEmail, sendAccountSetupEmail, sendCancellationEmail } from '../utils/emailProvider.js';
 import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { reserveTickets, releaseTickets } from '../utils/inventory.js';
+import { evaluateCancellationEligibility } from '../utils/cancellation.js';
+import razorpay from '../utils/razorpay.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
@@ -177,7 +180,16 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 export const getMyBookings = async (req: AuthRequest, res: Response) => {
   try {
     const bookings = await Booking.find({ user: req.user?._id }).populate('event');
-    res.json(bookings);
+    // Attach server-computed cancellation eligibility so the frontend never
+    // re-implements the business rules (spread toJSON() — mongoose strips
+    // ad-hoc fields on plain docs otherwise).
+    const now = new Date();
+    res.json(
+      bookings.map((b) => ({
+        ...b.toJSON(),
+        cancellation: evaluateCancellationEligibility(b, (b as any).event, now),
+      }))
+    );
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -414,6 +426,175 @@ export const cancelBooking = async (req: AuthRequest, res: Response) => {
     await booking.save();
 
     res.json({ message: 'Booking cancelled successfully', booking });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+/**
+ * PATCH /bookings/:id/self-cancel
+ * User-initiated cancellation with automatic full refund.
+ *
+ * Eligibility (authoritative, shared with getMyBookings via cancellation.ts):
+ *   (a) more than 2h before the event start — blocks during/after the event too
+ *   (b) less than 12h since booking.createdAt
+ *
+ * Concurrency: the findOneAndUpdate claim below is the idempotency token —
+ * exactly one request ever transitions a booking out of 'confirmed' via this
+ * path, so a double refund is structurally impossible. The claim also kills
+ * ticket scanability immediately (checkInBooking requires 'confirmed').
+ */
+export const selfCancelBooking = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // ── Step 0: resolve + friendly validation (non-authoritative) ──────────
+    const booking = await Booking.findById(id).populate('event');
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (!booking.user || booking.user.toString() !== req.user?._id?.toString()) {
+      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+    }
+
+    const event: any = booking.event;
+    const eligibility = evaluateCancellationEligibility(booking, event, new Date());
+    if (!eligibility.eligible) {
+      return res.status(400).json({ message: eligibility.reasonMessage, reasonCode: eligibility.reasonCode });
+    }
+
+    // ── Step 1: atomic claim — one-shot transition out of 'confirmed' ──────
+    const needsRefund = booking.totalAmount > 0 && !!booking.paymentId;
+    const claimed = await Booking.findOneAndUpdate(
+      {
+        _id: booking._id,
+        user: req.user!._id,                 // re-assert ownership in the filter
+        status: 'confirmed',                 // re-assert eligibility in the filter
+        selfCancel: { $exists: false },      // one-shot: exactly one request ever wins
+      },
+      {
+        $set: {
+          status: 'cancelled',               // ticket invalidated immediately
+          selfCancel: {
+            claimedAt: new Date(),
+            refundStatus: needsRefund ? 'initiated' : 'not_required',
+            source: 'user',
+          },
+        },
+      },
+      { new: true }
+    );
+    if (!claimed) {
+      return res.status(400).json({
+        message: 'Booking is already cancelled or no longer eligible',
+        reasonCode: 'ALREADY_CANCELLED',
+      });
+    }
+
+    // ── Step 2: release inventory (failure logged, never blocks the refund) ─
+    try {
+      await releaseTickets(claimed.event, claimed.tickets);
+    } catch (releaseError) {
+      console.error(`Self-cancel: inventory release failed for booking ${claimed._id}:`, releaseError);
+    }
+
+    // ── Step 3: refund ──────────────────────────────────────────────────────
+    let refundStatus: 'succeeded' | 'failed' | 'not_required' = 'not_required';
+    let refundId: string | undefined;
+
+    if (needsRefund) {
+      try {
+        const refund: any = await razorpay.payments.refund(claimed.paymentId as string, {
+          amount: Math.round(claimed.totalAmount * 100), // paise, FULL amount
+          notes: {
+            bookingId: claimed._id.toString(),
+            reason: 'User self-service cancellation',
+          },
+        });
+        refundStatus = 'succeeded';
+        refundId = refund?.id;
+        // Guarded so a terminal state is never clobbered (crash-recovery race).
+        await Booking.updateOne(
+          { _id: claimed._id, 'selfCancel.refundStatus': 'initiated' },
+          {
+            $set: {
+              status: 'refunded',
+              'selfCancel.refundStatus': 'succeeded',
+              'selfCancel.refundId': refund?.id,
+              'selfCancel.refundAmount': claimed.totalAmount,
+            },
+          }
+        );
+      } catch (refundError: any) {
+        console.error(`Self-cancel: refund failed for booking ${claimed._id}:`, refundError);
+        refundStatus = 'failed';
+        // 'pending' is required for the admin RefundManagementPage retry flow.
+        await RefundRequest.create({
+          booking: claimed._id,
+          event: claimed.event,
+          user: claimed.user,
+          paymentId: claimed.paymentId,
+          amount: claimed.totalAmount,
+          reason: `User self-cancellation refund failed: ${refundError.message}`,
+          status: 'pending',
+          failureReason: refundError.message,
+        });
+        // Booking stays 'cancelled' — seat released, ticket dead, admin retries the money.
+        await Booking.updateOne(
+          { _id: claimed._id, 'selfCancel.refundStatus': 'initiated' },
+          {
+            $set: {
+              'selfCancel.refundStatus': 'failed',
+              'selfCancel.failureReason': refundError.message,
+            },
+          }
+        );
+      }
+    }
+
+    // ── Step 4: confirmation email (fire-and-forget) ───────────────────────
+    (async () => {
+      try {
+        const recipientEmail = claimed.email || (req.user as any)?.email;
+        const recipientName = claimed.contactName || (req.user as any)?.name || 'Guest';
+        if (recipientEmail && event) {
+          await sendCancellationEmail(
+            recipientEmail,
+            recipientName,
+            event.title,
+            event.date,
+            event.time,
+            refundStatus === 'succeeded' ? claimed.totalAmount : 0,
+            refundStatus === 'succeeded'
+          );
+        }
+      } catch (err) {
+        console.error('Failed to send cancellation confirmation:', err);
+      }
+    })();
+
+    // ── Step 5: respond ─────────────────────────────────────────────────────
+    // Refund failure still returns 200 — the cancellation itself succeeded and
+    // the money is queued for admin retry; an error status would invite a
+    // retry that must 400.
+    res.json({
+      message:
+        refundStatus === 'succeeded'
+          ? 'Booking cancelled. A full refund has been initiated.'
+          : refundStatus === 'failed'
+            ? 'Booking cancelled. Your refund is being retried by support and may take a few extra days.'
+            : 'Booking cancelled.',
+      booking: {
+        ...claimed.toJSON(),
+        cancellation: evaluateCancellationEligibility(claimed, event, new Date()),
+      },
+      refund: {
+        amount: needsRefund ? claimed.totalAmount : 0,
+        status: refundStatus,
+        refundId,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

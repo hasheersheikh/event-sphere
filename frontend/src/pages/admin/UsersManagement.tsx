@@ -4,7 +4,6 @@ import {
   UserCheck,
   UserMinus,
   Mail,
-  ShieldAlert,
   Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,17 +66,11 @@ const UsersManagement = () => {
     },
     {
       header: "Status",
-      accessor: (u: any) => (
+      accessor: () => (
         <div className="flex items-center gap-2">
-          <div
-            className={`h-1.5 w-1.5 rounded-full ${
-              u.status === "active" || u.isApproved
-                ? "bg-emerald-500 shadow-[0_0_8px_#10B981]" 
-                : "bg-orange-500 animate-pulse"
-            }`}
-          />
+          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10B981]" />
           <span className="text-[9px] font-black uppercase tracking-widest italic opacity-80">
-            {u.isApproved ? "Verified" : "Pending"}
+            Active
           </span>
         </div>
       ),
@@ -146,23 +139,7 @@ const UsersManagement = () => {
         rowKey="_id"
       />
 
-      <div className="grid md:grid-cols-2 gap-4 mt-6">
-        <PortalCard className="bg-orange-500/5 group hover:border-orange-500/40 border-orange-500/20 shadow-none">
-          <div className="flex items-center gap-4">
-            <div className="h-10 w-10 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-xl flex items-center justify-center shrink-0">
-              <ShieldAlert className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-foreground brand-font uppercase tracking-tight italic">
-                Pending Approvals
-              </h3>
-              <p className="text-muted-foreground text-[10px] font-black uppercase tracking-wider mt-0.5 italic">
-                {users.filter((u: any) => !u.isApproved).length} managers awaiting approval
-              </p>
-            </div>
-          </div>
-        </PortalCard>
-        
+      <div className="mt-6">
         <PortalCard className="bg-primary/5 group hover:border-primary/40 border-primary/20 shadow-none">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">

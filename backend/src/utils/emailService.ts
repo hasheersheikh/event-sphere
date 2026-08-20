@@ -13,12 +13,12 @@ import { getCachedManagerTermsPdf } from './managerTermsPdf.js';
 import {
   applyTestMode,
   ticketEmail,
+  cancellationEmail,
   reminderEmail,
   reviewEmail,
   passwordResetEmail,
   welcomeEmail,
-  managerSignupNotification,
-  managerApproval,
+  managerWelcome,
   eventApproval,
   eventDecline,
   storeOrder,
@@ -84,6 +84,29 @@ export const sendTicketEmail = async (
   }
 };
 
+export const sendCancellationEmail = async (
+  email: string,
+  userName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  refundAmount: number,
+  refunded: boolean
+) => {
+  if (!process.env.RESEND_API_KEY) return;
+
+  try {
+    await send(
+      'City Pulse <bookings@citypulse.in>',
+      email,
+      cancellationEmail(userName, eventTitle, eventDate, eventTime, refundAmount, refunded)
+    );
+    logger.info(`Cancellation email sent to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send cancellation email', err);
+  }
+};
+
 export const sendReminderEmail = async (
   email: string,
   userName: string,
@@ -134,18 +157,7 @@ export const sendWelcomeEmail = async (email: string, userName: string) => {
   }
 };
 
-export const sendManagerSignUpNotificationToAdmin = async (managerName: string, managerEmail: string) => {
-  if (!process.env.RESEND_API_KEY) return;
-
-  try {
-    await send('City Pulse <system@citypulse.in>', ADMIN_EMAIL, managerSignupNotification(managerName, managerEmail));
-    logger.info(`Admin notified of new manager: ${managerEmail}`);
-  } catch (err) {
-    logger.error('Failed to notify admin of manager sign-up', err);
-  }
-};
-
-export const sendManagerApprovalEmail = async (email: string, userName: string) => {
+export const sendManagerWelcomeEmail = async (email: string, userName: string) => {
   if (!process.env.RESEND_API_KEY) return;
 
   try {
@@ -153,12 +165,12 @@ export const sendManagerApprovalEmail = async (email: string, userName: string) 
     const id = await send(
       'City Pulse <portal@citypulse.in>',
       email,
-      managerApproval(userName),
+      managerWelcome(userName),
       [{ filename: 'City-Pulse-Manager-Agreement.pdf', content: pdfBuffer }]
     );
-    logger.info(`Manager approval email sent to ${email}`, { id });
+    logger.info(`Manager welcome email sent to ${email}`, { id });
   } catch (err) {
-    logger.error('Failed to send manager approval email', err);
+    logger.error('Failed to send manager welcome email', err);
   }
 };
 

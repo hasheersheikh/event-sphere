@@ -14,7 +14,6 @@ interface User {
   name: string;
   email: string;
   role: "user" | "event_manager" | "admin" | "volunteer";
-  isApproved: boolean;
   token: string;
   phoneNumber?: string;
   eventId?: string;
@@ -132,8 +131,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Update last activity time on mount
         localStorage.setItem("lastActivity", Date.now().toString());
 
-        // The cached profile can go stale (e.g. isApproved flips after admin
-        // action) — refresh it from the server without waiting on a re-login.
+        // The cached profile can go stale (e.g. the name changes on another
+        // device) — refresh it from the server without waiting on a re-login.
         api
           .get("/auth/me")
           .then(({ data }) => {

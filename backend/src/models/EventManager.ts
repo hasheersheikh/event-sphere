@@ -5,7 +5,6 @@ export interface IEventManager extends Document {
   email: string;
   password?: string;
   role: 'event_manager';
-  isApproved: boolean;
   totalPaid: number;
   payoutLock?: boolean;
   commissionType: 'flat' | 'percentage';
@@ -40,10 +39,6 @@ const EventManagerSchema: Schema = new Schema(
     role: {
       type: String,
       default: 'event_manager',
-    },
-    isApproved: {
-      type: Boolean,
-      default: false,
     },
     totalPaid: {
       type: Number,

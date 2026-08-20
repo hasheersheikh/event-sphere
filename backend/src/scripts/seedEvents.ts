@@ -27,8 +27,7 @@ const seedEvents = async () => {
         name: 'Test Manager',
         email: 'manager@test.com',
         password: hashedPassword,
-        role: 'event_manager',
-        isApproved: true
+        role: 'event_manager'
       });
       console.log('Test manager created.');
     }

@@ -172,6 +172,32 @@ export const ticketEmail = (userName: string, event: any): EmailContent => ({
   `),
 });
 
+export const cancellationEmail = (
+  userName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  refundAmount: number,
+  refunded: boolean
+): EmailContent => ({
+  subject: `Booking Cancelled: ${eventTitle}`,
+  html: emailWrapper(`
+    <h2 style="margin:0 0 16px;color:${styles.colors.black};font-size:22px;">Hi ${userName},</h2>
+    <p style="margin:0 0 24px;color:${styles.colors.gray600};line-height:1.6;">Your booking for <strong>${eventTitle}</strong> has been cancelled as requested.</p>
+    ${infoBox('CANCELLED BOOKING', `
+      <strong style="color:${styles.colors.black};">${eventTitle}</strong><br/>
+      📅 ${formatEventDate(eventDate)}<br/>
+      🕐 ${eventTime || 'See event page'}
+    `)}
+    ${
+      refunded
+        ? `<p style="margin:0 0 8px;color:${styles.colors.gray600};line-height:1.6;">A full refund of <strong>₹${refundAmount}</strong> has been initiated to your original payment method. It typically takes <strong>5–7 working days</strong> to reflect, depending on your bank.</p>`
+        : `<p style="margin:0 0 8px;color:${styles.colors.gray600};line-height:1.6;">No payment was charged for this booking, so no refund is due.</p>`
+    }
+    <p style="margin:24px 0 0;color:${styles.colors.gray400};font-size:13px;">Didn't request this? Reply to this email immediately.</p>
+  `),
+});
+
 export const reminderEmail = (
   userName: string,
   eventTitle: string,
@@ -220,24 +246,11 @@ export const welcomeEmail = (userName: string): EmailContent => ({
   `),
 });
 
-export const managerSignupNotification = (managerName: string, managerEmail: string): EmailContent => ({
-  subject: 'New Manager Application Pending 📋',
-  html: emailWrapper(`
-    <h2 style="margin:0 0 16px;color:${styles.colors.black};font-size:20px;">New Manager Application</h2>
-    <p style="margin:0 0 24px;color:${styles.colors.gray600};line-height:1.6;">A new event manager has applied for access.</p>
-    ${infoBox('APPLICANT DETAILS', `
-      <strong>Name:</strong> ${managerName}<br/>
-      <strong>Email:</strong> ${managerEmail}
-    `)}
-    ${button('Review Application', `${FRONTEND_URL}/portal/users`)}
-  `),
-});
-
-export const managerApproval = (userName: string): EmailContent => ({
-  subject: 'Pulse Manager Access Authorized! ✅',
+export const managerWelcome = (userName: string): EmailContent => ({
+  subject: 'Welcome to the Manager Portal! ✅',
   html: emailWrapper(`
     <h2 style="margin:0 0 16px;color:${styles.colors.black};font-size:22px;">Welcome Aboard, ${userName}!</h2>
-    <p style="margin:0 0 24px;color:${styles.colors.gray600};line-height:1.6;">Your manager application has been approved. You can now create events and manage your presence on City Pulse.</p>
+    <p style="margin:0 0 24px;color:${styles.colors.gray600};line-height:1.6;">Your manager account is active. You can now create events and manage your presence on City Pulse.</p>
     ${infoBox('GETTING STARTED', `
       • Log in to your dashboard to create your first event<br/>
       • Complete your profile with contact details<br/>

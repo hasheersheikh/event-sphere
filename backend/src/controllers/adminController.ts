@@ -10,6 +10,7 @@ import Payout from '../models/Payout.js';
 import Volunteer from '../models/Volunteer.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { createRazorpayContact, createRazorpayFundAccount, initiateRazorpayPayout } from '../utils/razorpayPayouts.js';
+import { parseListParams, matchesBookingSearch, paginate } from '../utils/attendeePagination.js';
 
 export const getAttendees: RequestHandler = async (req: AuthRequest, res: Response) => {
   const page = parseInt(req.query.page as string) || 1;
@@ -576,36 +577,9 @@ export const getAllUsers: RequestHandler = async (req: AuthRequest, res: Respons
 };
 
 import {
-  sendManagerApprovalEmail,
   sendEventApprovalEmail,
   sendEventDeclineEmail
 } from '../utils/emailProvider.js';
-
-export const approveManager: RequestHandler = async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
-  try {
-    const user = await EventManager.findById(id);
-    if (!user) {
-      res.status(404).json({ message: 'Manager not found' });
-      return;
-    }
-    user.isApproved = true;
-    await user.save();
-
-    // Trigger Approval Email (Non-blocking)
-    (async () => {
-      try {
-        await sendManagerApprovalEmail(user.email, user.name);
-      } catch (err) {
-        console.error('Failed to send manager approval email:', err);
-      }
-    })();
-
-    res.json({ message: 'Manager approved successfully', user });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
-  }
-};
 
 export const deleteManager: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
@@ -860,6 +834,7 @@ export const getAnalytics: RequestHandler = async (req: AuthRequest, res: Respon
 };
 export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
+  const { page, limit, search } = parseListParams(req.query);
   try {
     const event = await Event.findById(id).populate('creator', 'name email');
     if (!event) {
@@ -867,13 +842,25 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
       return;
     }
 
-    const passengers = await Booking.find({ event: id, status: 'confirmed' }).populate('user', 'name email');
+    const passengers = await Booking.find({ event: id, status: 'confirmed' })
+      .select('user tickets totalAmount email phoneNumber contactName status isOffline createdAt')
+      .sort({ createdAt: -1, _id: -1 })
+      .populate('user', 'name email')
+      .lean();
     const volunteers = await Volunteer.find({ event: id }).select('-password');
     
     const totalRevenue = passengers.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
     const totalTicketsSold = passengers.reduce((acc, b) => {
       return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
     }, 0);
+
+    // Tickets-tab stats — computed on the full pre-filter set, like the rest
+    const totalCheckedIn = passengers.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + (t.checkedInCount || 0), 0);
+    }, 0);
+    const offlineTickets = passengers
+      .filter(b => b.isOffline)
+      .reduce((acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0);
 
     // Group sales by ticket type
     const ticketStats = event.ticketTypes.map(tt => {
@@ -890,24 +877,39 @@ export const getEventInsights: RequestHandler = async (req: AuthRequest, res: Re
       };
     });
 
+    const { items: attendeePage, pagination } = paginate(
+      passengers.filter(b => matchesBookingSearch(b, search)),
+      page,
+      limit
+    );
+
     res.json({
       event,
       stats: {
         totalRevenue,
         totalTicketsSold,
+        totalCheckedIn,
+        offlineTickets,
         capacity: event.ticketTypes.reduce((acc, tt) => acc + tt.capacity, 0),
       },
       ticketStats,
       volunteers,
-      attendees: passengers.map(b => {
+      pagination,
+      attendees: attendeePage.map(b => {
         const attendee: any = b.user;
         return {
           _id: attendee?._id,
-          name: attendee?.name,
-          email: attendee?.email,
+          bookingId: String(b._id),
+          // Offline bookings carry the real attendee in contactName — the
+          // booking `user` is whoever issued the ticket. Same precedence as
+          // the manager analytics payload.
+          name: b.contactName || attendee?.name,
+          email: b.email || attendee?.email,
+          phone: b.phoneNumber || '',
           tickets: b.tickets,
           bookedAt: b.createdAt,
-          totalAmount: b.totalAmount
+          totalAmount: b.totalAmount,
+          isOffline: b.isOffline || false,
         };
       })
     });

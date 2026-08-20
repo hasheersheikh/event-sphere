@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   User,
   Lock,
@@ -208,8 +209,7 @@ const AccountSettingsPage = () => {
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground opacity-60" />
-                    <Input
-                      type="password"
+                    <PasswordInput
                       value={formData.currentPassword}
                       onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
                       className="h-10 pl-11 bg-muted/20 border-border/60 focus:border-primary rounded-xl font-bold transition-all text-xs"
@@ -222,8 +222,7 @@ const AccountSettingsPage = () => {
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       New Security Key
                     </label>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       value={formData.newPassword}
                       onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
                       className="h-10 bg-muted/20 border-border/60 focus:border-primary rounded-xl font-bold transition-all text-xs"
@@ -234,8 +233,7 @@ const AccountSettingsPage = () => {
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                       Confirm Transmission
                     </label>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                       className="h-10 bg-muted/20 border-border/60 focus:border-primary rounded-xl font-bold transition-all text-xs"

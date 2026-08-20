@@ -6,6 +6,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import Volunteer from '../models/Volunteer.js';
 import Payout from '../models/Payout.js';
 import bcrypt from 'bcrypt';
+import { parseListParams, matchesBookingSearch, paginate } from '../utils/attendeePagination.js';
 
 export const getManagerStats: RequestHandler = async (req: AuthRequest, res: Response) => {
   try {
@@ -84,6 +85,7 @@ export const getManagerStats: RequestHandler = async (req: AuthRequest, res: Res
 export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
   const userId = req.user?._id;
+  const { page, limit, search } = parseListParams(req.query);
 
   try {
     const event = await Event.findById(id);
@@ -104,13 +106,23 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
     const commissionValue = manager?.commissionValue ?? 10;
 
     const bookings = await Booking.find({ event: id, status: 'confirmed' })
-      .sort({ createdAt: -1 })
-      .populate('user', 'name email');
+      .select('user tickets totalAmount email phoneNumber contactName status isOffline createdAt')
+      .sort({ createdAt: -1, _id: -1 })
+      .populate('user', 'name email')
+      .lean();
     
     const grossRevenue = bookings.reduce((acc, b) => acc + (b.totalAmount || 0), 0);
     const totalTicketsSold = bookings.reduce((acc, b) => {
       return acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0);
     }, 0);
+
+    // Tickets-tab stats — computed on the full pre-filter set, like the rest
+    const totalCheckedIn = bookings.reduce((acc, b) => {
+      return acc + b.tickets.reduce((sum, t) => sum + (t.checkedInCount || 0), 0);
+    }, 0);
+    const offlineTickets = bookings
+      .filter(b => b.isOffline)
+      .reduce((acc, b) => acc + b.tickets.reduce((sum, t) => sum + t.quantity, 0), 0);
 
     // Commission Calculation — must match adminController logic exactly
     let platformCommission = 0;
@@ -151,6 +163,19 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
 
     const volunteers = await Volunteer.find({ event: id }).select('-password');
 
+    // Full-set counts for the attendees tab summary strip — the list itself is paginated
+    const bookingCounts = {
+      total: bookings.length,
+      online: bookings.filter(b => !b.isOffline).length,
+      offline: bookings.filter(b => b.isOffline).length,
+    };
+
+    const { items: recentBookingsPage, pagination } = paginate(
+      bookings.filter(b => matchesBookingSearch(b, search)),
+      page,
+      limit
+    );
+
     res.json({
       event,
       stats: {
@@ -158,6 +183,9 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
         platformCommission,
         netRevenue,
         totalTicketsSold,
+        totalCheckedIn,
+        offlineTickets,
+        bookingCounts,
         capacity: event.ticketTypes.reduce((acc, tt) => acc + tt.capacity, 0),
         commissionInfo: {
           type: commissionType,
@@ -167,7 +195,8 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       ticketStats,
       salesHistory: last7Days,
       volunteers,
-      recentBookings: bookings.map(b => ({
+      pagination,
+      recentBookings: recentBookingsPage.map(b => ({
         _id: b._id,
         userName: b.contactName || (b.user as any)?.name || 'Anonymous',
         userEmail: b.email || (b.user as any)?.email || '',

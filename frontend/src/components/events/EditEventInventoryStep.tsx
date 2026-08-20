@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Plus, Trash2, Ticket, Tag, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -55,6 +56,7 @@ export const EditEventInventoryStep = () => {
               onClick={() =>
                 appendTicket({
                   name: "",
+                  description: "",
                   price: 0,
                   capacity: 100,
                   isSoldOut: false,
@@ -152,6 +154,24 @@ export const EditEventInventoryStep = () => {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name={`ticketTypes.${index}.description`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">Tier Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="What does this tier include? e.g. Front-row seating, VIP lounge access, complimentary drinks…"
+                          className="min-h-[70px] bg-background/40 border-white/5 rounded-xl font-medium text-sm resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 {scheduleType === "multi_day" && (
                   <div className="space-y-6 pt-6 border-t border-white/5 mt-4">

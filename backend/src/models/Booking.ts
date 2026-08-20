@@ -25,6 +25,16 @@ export interface IBooking extends Document {
   offlineNote?: string;
   reminderSent: boolean;
   reviewEmailSent: boolean;
+  /** Set exactly once by the user self-cancel claim — idempotency + audit trail. */
+  selfCancel?: {
+    claimedAt: Date;
+    /** 'initiated' is the crash-recovery sentinel (reconciled by cron). */
+    refundStatus: 'initiated' | 'succeeded' | 'failed' | 'not_required';
+    refundId?: string; // Razorpay rfnd_...
+    refundAmount?: number;
+    failureReason?: string;
+    source?: string; // 'user'
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -61,6 +71,20 @@ const BookingSchema: Schema = new Schema(
     offlineNote: { type: String },
     reminderSent: { type: Boolean, default: false },
     reviewEmailSent: { type: Boolean, default: false },
+    selfCancel: {
+      // No `required` on inner fields — Mongoose fires nested-path validation
+      // on every create even when selfCancel is absent. Completeness is
+      // guaranteed by the atomic claim in selfCancelBooking instead.
+      claimedAt: { type: Date },
+      refundStatus: {
+        type: String,
+        enum: ['initiated', 'succeeded', 'failed', 'not_required'],
+      },
+      refundId: { type: String },
+      refundAmount: { type: Number },
+      failureReason: { type: String },
+      source: { type: String },
+    },
   },
   { timestamps: true }
 );

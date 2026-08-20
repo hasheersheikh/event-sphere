@@ -56,9 +56,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import api from "@/lib/api";
+import { PaginationControls } from "@/components/portal/PaginationControls";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EventTicketsTable, toTicketRows } from "@/components/portal/EventTicketsTable";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -96,6 +98,9 @@ const ManageEventPage = () => {
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [offlineForm, setOfflineForm] = useState(defaultOfflineForm);
   const [attendeeSearch, setAttendeeSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [attendeesPage, setAttendeesPage] = useState(1);
+  const ATTENDEES_PER_PAGE = 20;
 
   const toggleSoldOutMutation = useMutation({
     mutationFn: async (ticketIndex: number) => {
@@ -170,39 +175,53 @@ const ManageEventPage = () => {
   const getEventSlug = () =>
     data?.event?.title ? data.event.title.toLowerCase().replace(/[^a-z0-9]/g, "_") : "event";
 
-  const downloadCSV = () => {
-    if (!data?.recentBookings) return;
-    const headers = [
-      "Booking ID", "Attendee Name", "Email", "Phone",
-      "Ticket Details", "Total Tickets", "Amount Paid (INR)",
-      "Source", "Booking Date",
-    ];
-    const rows = data.recentBookings.map((b: any) => [
-      String(b._id),
-      b.userName || "Anonymous",
-      b.userEmail || "",
-      b.userPhone || "",
-      b.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join("; "),
-      b.tickets.reduce((s: number, t: any) => s + t.quantity, 0),
-      b.totalAmount || 0,
-      b.isOffline ? "Offline / Walk-in" : "Online",
-      new Date(b.createdAt).toLocaleString(),
-    ]);
-    const csv = [headers, ...rows]
-      .map((row) => row.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const link = document.createElement("a");
-    link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
-    link.download = `attendees_${getEventSlug()}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("CSV downloaded: " + data.recentBookings.length + " attendees");
+  // The list on screen is paginated — exports pull the full (search-filtered) set
+  const fetchAllForExport = async () => {
+    const { data: full } = await api.get(`/manager/events/${id}/analytics`, {
+      params: { limit: 0, search: appliedSearch || undefined },
+    });
+    return (full.recentBookings || []) as any[];
   };
 
-  const downloadPDF = () => {
-    if (!data?.recentBookings) return;
+  const downloadCSV = async () => {
     try {
+      const bookings = await fetchAllForExport();
+      if (!bookings.length) return;
+      const headers = [
+        "Booking ID", "Attendee Name", "Email", "Phone",
+        "Ticket Details", "Total Tickets", "Amount Paid (INR)",
+        "Source", "Booking Date",
+      ];
+      const rows = bookings.map((b: any) => [
+        String(b._id),
+        b.userName || "Anonymous",
+        b.userEmail || "",
+        b.userPhone || "",
+        b.tickets.map((t: any) => `${t.quantity}x ${t.type}`).join("; "),
+        b.tickets.reduce((s: number, t: any) => s + t.quantity, 0),
+        b.totalAmount || 0,
+        b.isOffline ? "Offline / Walk-in" : "Online",
+        new Date(b.createdAt).toLocaleString(),
+      ]);
+      const csv = [headers, ...rows]
+        .map((row) => row.map((v: any) => `"${String(v).replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+      const link = document.createElement("a");
+      link.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+      link.download = `attendees_${getEventSlug()}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success("CSV downloaded: " + bookings.length + " attendees");
+    } catch (err) {
+      toast.error("Export failed.");
+    }
+  };
+
+  const downloadPDF = async () => {
+    try {
+      const bookings = await fetchAllForExport();
+      if (!bookings.length) return;
       const doc = new jsPDF({ orientation: "landscape" });
       const ev = data.event;
       doc.setProperties({ title: `Attendees: ${ev?.title || "Event"}`, author: "City Pulse" });
@@ -225,7 +244,7 @@ const ManageEventPage = () => {
 
       doc.setFont("helvetica", "normal"); doc.setFontSize(7);
       let y = 48;
-      data.recentBookings.forEach((b: any) => {
+      bookings.forEach((b: any) => {
         if (y > 195) {
           doc.addPage();
           doc.setFont("helvetica", "bold");
@@ -249,7 +268,7 @@ const ManageEventPage = () => {
       });
 
       doc.setFontSize(7); doc.setTextColor(150);
-      doc.text(`Total attendees: ${data.recentBookings.length}`, 14, doc.internal.pageSize.height - 8);
+      doc.text(`Total attendees: ${bookings.length}`, 14, doc.internal.pageSize.height - 8);
 
       doc.save(`attendees_${getEventSlug()}.pdf`);
       toast.success("PDF downloaded.");
@@ -259,10 +278,11 @@ const ManageEventPage = () => {
     }
   };
 
-  const downloadJSON = () => {
-    if (!data?.recentBookings) return;
+  const downloadJSON = async () => {
     try {
-      const blob = new Blob([JSON.stringify(data.recentBookings, null, 2)], { type: "application/json" });
+      const bookings = await fetchAllForExport();
+      if (!bookings.length) return;
+      const blob = new Blob([JSON.stringify(bookings, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url; link.download = `attendees_${getEventSlug()}.json`;
@@ -273,15 +293,37 @@ const ManageEventPage = () => {
     }
   };
 
+  // Debounce the search box, then commit it as a fetch input
+  useEffect(() => {
+    const t = setTimeout(() => setAppliedSearch(attendeeSearch.trim()), 350);
+    return () => clearTimeout(t);
+  }, [attendeeSearch]);
+
+  // Any new context (event, search) restarts from page 1
+  useEffect(() => {
+    setAttendeesPage(1);
+  }, [id, appliedSearch]);
+
   useEffect(() => {
     fetchDetails();
-  }, [id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, attendeesPage, appliedSearch]);
 
   const fetchDetails = async () => {
     try {
       // Reusing the analytics endpoint as it contains most required data
-      const response = await api.get(`/manager/events/${id}/analytics`);
+      const response = await api.get(`/manager/events/${id}/analytics`, {
+        params: {
+          page: attendeesPage,
+          limit: ATTENDEES_PER_PAGE,
+          search: appliedSearch || undefined,
+        },
+      });
       setData(response.data);
+      // Server clamps out-of-range pages — keep the buttons in sync with what's shown
+      if (response.data.pagination && response.data.pagination.page !== attendeesPage) {
+        setAttendeesPage(response.data.pagination.page);
+      }
     } catch (error) {
       toast.error("Failed to recover event details.");
       navigate("/portal/events");
@@ -381,6 +423,12 @@ const ManageEventPage = () => {
             className="rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground text-[9px] font-black uppercase tracking-widest px-4 h-8 transition-all italic"
           >
             Attendees
+          </TabsTrigger>
+          <TabsTrigger
+            value="tickets"
+            className="rounded-md data-[state=active]:bg-background data-[state=active]:text-foreground text-[9px] font-black uppercase tracking-widest px-4 h-8 transition-all italic"
+          >
+            Tickets
           </TabsTrigger>
           <TabsTrigger
             value="personnel"
@@ -645,10 +693,10 @@ const ManageEventPage = () => {
           {/* Summary strip */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: "Total Bookings", value: (data.recentBookings || []).length },
-              { label: "Total Tickets", value: (data.recentBookings || []).reduce((s: number, b: any) => s + b.tickets.reduce((ss: number, t: any) => ss + t.quantity, 0), 0) },
-              { label: "Online Bookings", value: (data.recentBookings || []).filter((b: any) => !b.isOffline).length },
-              { label: "Offline / Walk-in", value: (data.recentBookings || []).filter((b: any) => b.isOffline).length },
+              { label: "Total Bookings", value: data.stats?.bookingCounts?.total ?? 0 },
+              { label: "Total Tickets", value: data.stats?.totalTicketsSold ?? 0 },
+              { label: "Online Bookings", value: data.stats?.bookingCounts?.online ?? 0 },
+              { label: "Offline / Walk-in", value: data.stats?.bookingCounts?.offline ?? 0 },
             ].map((s) => (
               <div key={s.label} className="p-3 bg-card border border-border rounded-xl">
                 <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">{s.label}</p>
@@ -670,7 +718,7 @@ const ManageEventPage = () => {
                   className="h-8 flex-1 bg-background border border-border/50 rounded-lg px-3 text-[11px] font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
                 />
               </div>
-              {data.recentBookings && data.recentBookings.length > 0 && (
+              {(data.pagination?.total ?? 0) > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button className="h-8 px-4 rounded-lg bg-foreground text-background hover:bg-primary hover:text-primary-foreground text-[8px] font-black uppercase tracking-widest transition-all gap-2 border-none shrink-0">
@@ -696,13 +744,7 @@ const ManageEventPage = () => {
             {/* Table */}
             <div className="overflow-x-auto">
               {(() => {
-                const q = attendeeSearch.toLowerCase();
-                const filtered = (data.recentBookings || []).filter((b: any) =>
-                  !q ||
-                  (b.userName || "").toLowerCase().includes(q) ||
-                  (b.userEmail || "").toLowerCase().includes(q) ||
-                  (b.userPhone || "").includes(q)
-                );
+                const bookings = data.recentBookings || [];
                 return (
                   <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
@@ -719,11 +761,11 @@ const ManageEventPage = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
-                      {filtered.length > 0 ? (
-                        filtered.map((booking: any, idx: number) => (
+                      {bookings.length > 0 ? (
+                        bookings.map((booking: any, idx: number) => (
                           <tr key={booking._id} className="hover:bg-muted/10 transition-colors">
                             <td className="px-4 py-3 font-black text-[9px] text-muted-foreground/50 tabular-nums italic">
-                              {idx + 1}
+                              {(attendeesPage - 1) * ATTENDEES_PER_PAGE + idx + 1}
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2.5">
@@ -784,26 +826,88 @@ const ManageEventPage = () => {
                 );
               })()}
             </div>
-            {data.recentBookings?.length > 0 && (
-              <div className="px-4 py-3 border-t border-border/30 bg-muted/10 flex items-center justify-between">
-                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
-                  Showing {(() => {
-                    const q = attendeeSearch.toLowerCase();
-                    return q
-                      ? (data.recentBookings || []).filter((b: any) =>
-                          (b.userName || "").toLowerCase().includes(q) ||
-                          (b.userEmail || "").toLowerCase().includes(q) ||
-                          (b.userPhone || "").includes(q)
-                        ).length + " of " + data.recentBookings.length
-                      : data.recentBookings.length;
-                  })()} attendees
-                </p>
-                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
-                  Confirmed bookings only
-                </p>
-              </div>
+            {data.pagination && (
+              <PaginationControls
+                pagination={data.pagination}
+                onPageChange={setAttendeesPage}
+                label="ATTENDEES"
+                showWhenSinglePage
+                rightSlot={
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
+                    Confirmed bookings only
+                  </p>
+                }
+                className="px-4 py-3 border-t border-border/30 bg-muted/10"
+              />
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="tickets" className="outline-none space-y-4">
+          {/* Summary strip — event-wide ticket stats (pre-filter server side) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: "Tickets Sold", value: stats?.totalTicketsSold ?? 0 },
+              { label: "Checked In", value: stats?.totalCheckedIn ?? 0 },
+              { label: "Offline Tickets", value: stats?.offlineTickets ?? 0 },
+              {
+                label: "Utilisation",
+                value: `${
+                  (stats?.capacity ?? 0) > 0
+                    ? (((stats?.totalTicketsSold ?? 0) / stats.capacity) * 100).toFixed(1)
+                    : 0
+                }%`,
+              },
+            ].map((s) => (
+              <div key={s.label} className="p-3 bg-card border border-border rounded-xl">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">{s.label}</p>
+                <p className="text-xl font-black tabular-nums">{s.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <EventTicketsTable
+            rows={toTicketRows(
+              (data.recentBookings || []).map((b: any) => ({
+                _id: b._id,
+                name: b.userName,
+                email: b.userEmail,
+                phone: b.userPhone,
+                isOffline: b.isOffline,
+                createdAt: b.createdAt,
+                tickets: b.tickets,
+              }))
+            )}
+            emptyLabel={attendeeSearch ? "No tickets match your search." : "No tickets sold yet."}
+            headerExtra={
+              <div className="flex items-center gap-3 w-full sm:max-w-xs">
+                <Users className="h-4 w-4 text-primary shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search by name, email or phone…"
+                  value={attendeeSearch}
+                  onChange={(e) => setAttendeeSearch(e.target.value)}
+                  className="h-8 flex-1 bg-background border border-border/50 rounded-lg px-3 text-[11px] font-medium placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                />
+              </div>
+            }
+            footer={
+              data.pagination && (
+                <PaginationControls
+                  pagination={data.pagination}
+                  onPageChange={setAttendeesPage}
+                  label="BOOKINGS"
+                  showWhenSinglePage
+                  rightSlot={
+                    <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/50 italic">
+                      One row per ticket line item
+                    </p>
+                  }
+                  className="px-4 py-3 border-t border-border/30 bg-muted/10"
+                />
+              )
+            }
+          />
         </TabsContent>
 
         <TabsContent value="personnel" className="outline-none">

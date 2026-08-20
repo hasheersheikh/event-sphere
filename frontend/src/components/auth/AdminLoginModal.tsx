@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, X, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -101,8 +102,7 @@ const AdminLoginModal = ({ isOpen, onClose }: AdminLoginModalProps) => {
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      type="password"
+                    <PasswordInput
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

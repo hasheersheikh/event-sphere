@@ -2,20 +2,13 @@ import React from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { PaginationControls, PaginationData } from "@/components/portal/PaginationControls";
 
 interface Column<T> {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
   className?: string;
   headerClassName?: string;
-}
-
-interface PaginationData {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
 }
 
 interface PortalDataTableProps<T> {
@@ -157,78 +150,13 @@ export function PortalDataTable<T>({
         </AnimatePresence>
       </div>
 
-      {pagination && pagination.pages > 1 && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-muted/10 p-4 rounded-xl border border-border mt-2">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground italic">
-              Record Count:
-            </span>
-            <span className="text-[10px] font-black text-foreground">
-              {pagination.total} ENTITIES
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pagination.page <= 1 || isLoading}
-              onClick={() => onPageChange?.(pagination.page - 1)}
-              className="h-8 px-3 rounded-lg bg-background border-border hover:bg-primary/10 hover:text-primary disabled:opacity-30 text-[9px] font-black uppercase tracking-tighter italic"
-            >
-              PREV
-            </Button>
-            
-            <div className="flex items-center gap-1 mx-2">
-              {[...Array(pagination.pages)].map((_, i) => {
-                const pageNum = i + 1;
-                // Simple logic to show only a few page numbers
-                if (
-                  pagination.pages > 7 &&
-                  pageNum !== 1 &&
-                  pageNum !== pagination.pages &&
-                  Math.abs(pageNum - pagination.page) > 2
-                ) {
-                  if (Math.abs(pageNum - pagination.page) === 3) {
-                    return <span key={pageNum} className="text-muted-foreground/30 px-1 font-black">...</span>;
-                  }
-                  return null;
-                }
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => onPageChange?.(pageNum)}
-                    className={cn(
-                      "h-8 w-8 rounded-lg text-[10px] font-black transition-all border",
-                      pagination.page === pageNum
-                        ? "bg-primary text-primary-foreground border-transparent shadow-[0_0_15px_rgba(var(--primary),0.3)] scale-110"
-                        : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                    )}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={pagination.page >= pagination.pages || isLoading}
-              onClick={() => onPageChange?.(pagination.page + 1)}
-              className="h-8 px-3 rounded-lg bg-background border-border hover:bg-primary/10 hover:text-primary disabled:opacity-30 text-[9px] font-black uppercase tracking-tighter italic"
-            >
-              NEXT
-            </Button>
-          </div>
-
-          <div className="hidden md:block">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground italic opacity-40">
-              Sector {pagination.page} / {pagination.pages}
-            </span>
-          </div>
-        </div>
+      {pagination && (
+        <PaginationControls
+          pagination={pagination}
+          onPageChange={onPageChange}
+          isLoading={isLoading}
+          className="bg-muted/10 p-4 rounded-xl border border-border mt-2"
+        />
       )}
     </div>
   );

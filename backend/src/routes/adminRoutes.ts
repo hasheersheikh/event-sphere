@@ -1,7 +1,6 @@
 import express from 'express';
-import { 
-  getAllUsers, 
-  approveManager, 
+import {
+  getAllUsers,
   getAdminStats,
   getAnalytics,
   getAttendees,
@@ -48,7 +47,6 @@ router.patch('/events/:id/approve', approveEvent);
 router.patch('/events/:id/decline', declineEvent);
 router.patch('/events/:id/toggle-sponsored', toggleSponsoredEvent);
 router.delete('/events/:id', deleteEvent);
-router.patch('/users/:id/approve', approveManager);
 router.get('/stats', getAdminStats);
 router.get('/analytics', getAnalytics);
 

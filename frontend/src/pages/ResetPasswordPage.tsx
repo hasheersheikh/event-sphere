@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Lock, ArrowRight, ShieldCheck } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import PulseLogo from "@/components/layout/PulseLogo";
@@ -96,9 +97,8 @@ const ResetPasswordPage = () => {
             </label>
             <div className="relative group">
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
-              <Input
+              <PasswordInput
                 required
-                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="YOUR NEW PASSWORD..."
@@ -113,9 +113,8 @@ const ResetPasswordPage = () => {
             </label>
             <div className="relative group">
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
-              <Input
+              <PasswordInput
                 required
-                type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="CONFIRM PASSWORD..."

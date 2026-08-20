@@ -9,7 +9,7 @@ import Booking from '../models/Booking.js';
 import OtpToken from '../models/OtpToken.js';
 import {
   sendWelcomeEmail,
-  sendManagerSignUpNotificationToAdmin,
+  sendManagerWelcomeEmail,
   sendOtpVerificationEmail,
 } from '../utils/emailProvider.js';
 import { isDisposableEmail } from '../utils/emailValidation.js';
@@ -312,7 +312,6 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
       name: ghostUser.name,
       email: ghostUser.email,
       role: ghostUser.role,
-      isApproved: true,
       token: generateToken(ghostUser._id.toString(), ghostUser.role),
     });
   }
@@ -332,16 +331,14 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
     email,
     password: pendingPasswordHash,
     role: userRole,
-    ...(userRole === 'event_manager' && { isApproved: false }),
   });
 
-  // Event managers are pending approval at this point and can't do anything yet,
-  // so they only trigger an admin notification here — their welcome + getting-started
-  // email (with the manager agreement PDF) fires once from approveManager instead of twice.
+  // Event managers get the getting-started email with the manager agreement PDF
+  // right away — their events still go through admin moderation before going live.
   (async () => {
     try {
       if (userRole === 'event_manager') {
-        await sendManagerSignUpNotificationToAdmin(user.name, user.email);
+        await sendManagerWelcomeEmail(user.email, user.name);
       } else {
         await sendWelcomeEmail(user.email, user.name);
       }
@@ -355,7 +352,6 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    isApproved: (user as any).isApproved ?? true,
     token: generateToken(user._id.toString(), user.role),
   });
 };

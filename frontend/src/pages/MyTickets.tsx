@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Ticket,
@@ -9,6 +9,7 @@ import {
   Clock,
   QrCode,
   CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
@@ -29,10 +30,33 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { CalendarPlus } from "lucide-react";
 import { AddToCalendarButton } from "add-to-calendar-button-react";
 import { formatPrice, formatEventDate } from "@/lib/utils";
+
+/** TRUE-UTC instants (like cancellation windowExpiresAt) render in real IST —
+ *  unlike event date fields, which carry IST wall-clock values in UTC fields. */
+const formatInstantIST = (value: string) =>
+  new Date(value).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 
 const NEON = "#C4F000";
 
@@ -41,12 +65,33 @@ const MyTickets = () => {
   const ticketRef = useRef<HTMLDivElement>(null);
   const [activeDownloadBooking, setActiveDownloadBooking] = useState<any>(null);
   const [selectedBookingForQR, setSelectedBookingForQR] = useState<any>(null);
+  const [cancelTarget, setCancelTarget] = useState<any>(null);
+  const queryClient = useQueryClient();
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ["my-bookings"],
     queryFn: async () => {
       const { data } = await api.get("/bookings");
       return data;
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.patch(`/bookings/${id}/self-cancel`);
+      return data;
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["my-bookings"] });
+      toast.success(
+        data?.refund?.amount
+          ? `Cancelled — ${formatPrice(data.refund.amount)} refund initiated (5–7 working days).`
+          : "Booking cancelled.",
+      );
+      setCancelTarget(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Cancellation failed.");
     },
   });
 
@@ -145,6 +190,10 @@ const MyTickets = () => {
                         index={i}
                         onDownload={() => handleDownload(booking)}
                         isLoading={isDownloading === booking._id}
+                        onCancel={() => setCancelTarget(booking)}
+                        isCancelling={
+                          cancelMutation.isPending && cancelTarget?._id === booking._id
+                        }
                       />
                     ))}
                   </div>
@@ -206,6 +255,72 @@ const MyTickets = () => {
             </div>
           ))}
       </div>
+
+      {/* Cancellation confirmation */}
+      <AlertDialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
+        <AlertDialogContent className="bg-background border border-border rounded-2xl max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-black tracking-tighter uppercase italic">
+              Cancel Booking?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground leading-relaxed pt-2 text-xs font-medium">
+              {cancelTarget && (
+                <span className="block space-y-3">
+                  <span>
+                    You're cancelling your booking for{" "}
+                    <strong className="text-foreground">
+                      {cancelTarget.event?.title}
+                    </strong>{" "}
+                    ({cancelTarget.tickets?.map((t: any) => `${t.quantity}× ${t.type}`).join(", ")}).
+                  </span>
+                  {cancelTarget.cancellation?.refundAmount > 0 ? (
+                    <span>
+                      A full refund of{" "}
+                      <strong className="text-foreground">
+                        {formatPrice(cancelTarget.cancellation.refundAmount)}
+                      </strong>{" "}
+                      will be initiated to your original payment method — it typically
+                      takes 5–7 working days to reflect.
+                    </span>
+                  ) : (
+                    <span>No payment was charged for this booking.</span>
+                  )}
+                  {cancelTarget.cancellation?.windowExpiresAt && (
+                    <span className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                      Free cancellation ends {formatInstantIST(cancelTarget.cancellation.windowExpiresAt)} IST
+                    </span>
+                  )}
+                  <span className="block text-[10px] font-black uppercase tracking-widest text-rose-500">
+                    This cannot be undone.
+                  </span>
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 pt-2">
+            <AlertDialogCancel className="rounded-xl h-10 text-[10px] font-black uppercase tracking-widest border border-border bg-muted/50 hover:bg-muted">
+              Keep Ticket
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={cancelMutation.isPending}
+              onClick={(e) => {
+                e.preventDefault(); // keep the dialog open while the mutation runs
+                if (cancelTarget?._id) cancelMutation.mutate(cancelTarget._id);
+              }}
+              className="rounded-xl h-10 text-[10px] font-black uppercase tracking-widest bg-rose-600 hover:bg-rose-700 text-white disabled:opacity-60"
+            >
+              {cancelMutation.isPending
+                ? "Cancelling…"
+                : cancelTarget?.cancellation?.refundAmount > 0
+                  ? "Cancel & Refund"
+                  : "Cancel Booking"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -218,12 +333,16 @@ const TicketCard = ({
   isPast,
   onDownload,
   isLoading,
+  onCancel,
+  isCancelling,
 }: {
   booking: any;
   index?: number;
   isPast?: boolean;
   onDownload?: () => void;
   isLoading?: boolean;
+  onCancel?: () => void;
+  isCancelling?: boolean;
 }) => {
   const event = booking.event;
   const isConfirmed = booking.status === "confirmed";
@@ -247,12 +366,22 @@ const TicketCard = ({
         <div className="flex items-center justify-between mb-3">
           <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2.5 py-1 rounded-full ${
             isPast
-              ? "bg-white/10 text-white/50"
+              ? booking.status === "refunded"
+                ? "bg-[#C4F000]/15 text-[#C4F000]"
+                : "bg-white/10 text-white/50"
               : isConfirmed
               ? "bg-[#C4F000]/15 text-[#C4F000]"
               : "bg-yellow-500/15 text-yellow-400"
           }`}>
-            {isPast ? "Expired" : isConfirmed ? "● Valid" : booking.status}
+            {isPast
+              ? booking.status === "refunded"
+                ? "Refunded"
+                : booking.status === "cancelled"
+                  ? "Cancelled"
+                  : "Expired"
+              : isConfirmed
+              ? "● Valid"
+              : booking.status}
           </span>
           <Ticket className="h-4 w-4 text-white/20" />
         </div>
@@ -309,6 +438,31 @@ const TicketCard = ({
           </span>
         </div>
       </div>
+
+      {/* ── Self-service cancellation ── */}
+      {!isPast && booking.cancellation?.eligible === true && (
+        <div className="px-5 pt-3 bg-white dark:bg-card">
+          <button
+            onClick={onCancel}
+            disabled={isCancelling}
+            className="w-full h-9 rounded-xl border border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60"
+          >
+            {isCancelling ? (
+              <div className="h-3.5 w-3.5 border-2 border-rose-300 dark:border-rose-500/40 border-t-rose-600 dark:border-t-rose-400 rounded-full animate-spin" />
+            ) : (
+              <XCircle className="h-3.5 w-3.5" />
+            )}
+            {booking.cancellation.refundAmount > 0 ? "Cancel & Refund" : "Cancel Booking"}
+          </button>
+        </div>
+      )}
+      {!isPast && booking.cancellation && !booking.cancellation.eligible && (
+        <div className="px-5 pt-3 bg-white dark:bg-card">
+          <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/70">
+            {booking.cancellation.reasonMessage}
+          </p>
+        </div>
+      )}
 
       {/* ── Actions ── */}
       <div className="px-5 pb-5 flex gap-2 pt-1 bg-white dark:bg-card border-t border-zinc-100 dark:border-border/20">

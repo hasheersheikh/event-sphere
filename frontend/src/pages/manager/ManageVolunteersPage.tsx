@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -240,9 +241,8 @@ const ManageVolunteersPage = () => {
                   <label className="text-[9px] font-black uppercase text-muted-foreground/60 tracking-widest ml-1">
                     Access Key
                   </label>
-                  <Input
+                  <PasswordInput
                     required
-                    type="password"
                     value={formData.password}
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })

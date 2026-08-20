@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   ShieldCheck,
   Lock,
@@ -144,8 +145,7 @@ const AdminLoginPage = () => {
               </label>
               <div className="relative group">
                 <Key className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="••••••••••••"
                   value={formData.password}
                   onChange={(e) =>

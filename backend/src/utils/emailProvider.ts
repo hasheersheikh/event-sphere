@@ -25,6 +25,10 @@ export const sendTicketEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendTicketEmail
   : ResendService.sendTicketEmail;
 
+export const sendCancellationEmail = EMAIL_PROVIDER === 'msg91'
+  ? MSG91Service.sendCancellationEmail
+  : ResendService.sendCancellationEmail;
+
 export const sendReminderEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendReminderEmail
   : ResendService.sendReminderEmail;
@@ -41,13 +45,9 @@ export const sendWelcomeEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendWelcomeEmail
   : ResendService.sendWelcomeEmail;
 
-export const sendManagerSignUpNotificationToAdmin = EMAIL_PROVIDER === 'msg91'
-  ? MSG91Service.sendManagerSignUpNotificationToAdmin
-  : ResendService.sendManagerSignUpNotificationToAdmin;
-
-export const sendManagerApprovalEmail = EMAIL_PROVIDER === 'msg91'
-  ? MSG91Service.sendManagerApprovalEmail
-  : ResendService.sendManagerApprovalEmail;
+export const sendManagerWelcomeEmail = EMAIL_PROVIDER === 'msg91'
+  ? MSG91Service.sendManagerWelcomeEmail
+  : ResendService.sendManagerWelcomeEmail;
 
 export const sendEventApprovalEmail = EMAIL_PROVIDER === 'msg91'
   ? MSG91Service.sendEventApprovalEmail

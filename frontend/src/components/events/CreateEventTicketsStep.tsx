@@ -5,6 +5,7 @@ import { Plus, Trash2, Ticket, Tag, LayoutGrid } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -44,7 +45,7 @@ export const CreateEventTicketsStep = () => {
               <div className="p-2 bg-primary/10 rounded-xl"><Ticket className="h-4 w-4 text-primary" /></div>
               Tickets
             </CardTitle>
-            <Button type="button" variant="ghost" size="sm" onClick={() => appendTicket({ name: "", price: 0, capacity: 100, isSoldOut: false, isFullPass: false })}
+            <Button type="button" variant="ghost" size="sm" onClick={() => appendTicket({ name: "", description: "", price: 0, capacity: 100, isSoldOut: false, isFullPass: false })}
               className="rounded-xl h-10 text-[9px] font-black uppercase tracking-[0.2em] gap-2 hover:bg-primary/10 text-primary">
               <Plus className="h-3 w-3" /> Add Tier
             </Button>
@@ -85,6 +86,20 @@ export const CreateEventTicketsStep = () => {
                     </FormItem>
                   )} />
                 </div>
+
+                <FormField control={form.control} name={`ticketTypes.${index}.description`} render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={cn(labelCls, "text-[9px]")}>Tier Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What does this tier include? e.g. Front-row seating, VIP lounge access, complimentary drinks…"
+                        className="min-h-[70px] bg-background/50 border-border/50 rounded-xl font-medium text-sm resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
 
                 {/* Multi-day pricing */}
                 {scheduleType === "multi_day" && dayFields.length > 0 && (

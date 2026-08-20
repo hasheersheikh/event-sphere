@@ -622,7 +622,9 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] block mt-2 ml-8">{ticket.description}</p>
+                          {ticket.description && (
+                            <p className="text-xs text-muted-foreground font-medium leading-relaxed max-w-[280px] block mt-2 ml-8">{ticket.description}</p>
+                          )}
                         </div>
                         <div className="text-right shrink-0">
                           <span className={cn(

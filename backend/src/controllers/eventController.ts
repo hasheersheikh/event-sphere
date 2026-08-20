@@ -17,12 +17,6 @@ export const createEvent = async (req: AuthRequest, res: Response) => {
       ticketTypes, vouchers, days, isMultiDay,
     } = req.body;
 
-    if (req.user?.role === 'event_manager' && !req.user?.isApproved) {
-      return res.status(403).json({
-        message: 'Your manager account is currently under review.',
-      });
-    }
-
     // Derive date from first day for multi-day events when date not provided
     const resolvedDate = date || (days?.[0]?.date) || new Date();
     const resolvedScheduleType = scheduleType || (isMultiDay ? 'multi_day' : 'single');

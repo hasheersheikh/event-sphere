@@ -17,6 +17,7 @@ import api from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -189,9 +190,8 @@ const AdminVolunteersPage = () => {
                       <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground ml-1">
                         Password
                       </label>
-                      <Input
+                      <PasswordInput
                         required
-                        type="password"
                         value={formData.password}
                         onChange={(e) =>
                           setFormData({ ...formData, password: e.target.value })

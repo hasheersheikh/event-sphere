@@ -12,12 +12,12 @@ import { getCachedManagerTermsPdf } from './managerTermsPdf.js';
 import {
   applyTestMode,
   ticketEmail,
+  cancellationEmail,
   reminderEmail,
   reviewEmail,
   passwordResetEmail,
   welcomeEmail,
-  managerSignupNotification,
-  managerApproval,
+  managerWelcome,
   eventApproval,
   eventDecline,
   storeOrder,
@@ -158,6 +158,26 @@ export const sendTicketEmail = async (
   }
 };
 
+export const sendCancellationEmail = async (
+  email: string,
+  userName: string,
+  eventTitle: string,
+  eventDate: string,
+  eventTime: string,
+  refundAmount: number,
+  refunded: boolean
+) => {
+  if (!MSG91_API_KEY) return;
+
+  try {
+    const content = cancellationEmail(userName, eventTitle, eventDate, eventTime, refundAmount, refunded);
+    await sendMsg91Email({ to: email, subject: content.subject, html: content.html });
+    logger.info(`Cancellation email sent via MSG91 to ${email}`);
+  } catch (err) {
+    logger.error('Failed to send cancellation email via MSG91', err);
+  }
+};
+
 export const sendReminderEmail = async (
   email: string,
   userName: string,
@@ -212,23 +232,11 @@ export const sendWelcomeEmail = async (email: string, userName: string) => {
   }
 };
 
-export const sendManagerSignUpNotificationToAdmin = async (managerName: string, managerEmail: string) => {
+export const sendManagerWelcomeEmail = async (email: string, userName: string) => {
   if (!MSG91_API_KEY) return;
 
   try {
-    const content = managerSignupNotification(managerName, managerEmail);
-    await sendMsg91Email({ to: ADMIN_EMAIL, subject: content.subject, html: content.html });
-    logger.info(`Admin notified via MSG91 of new manager: ${managerEmail}`);
-  } catch (err) {
-    logger.error('Failed to notify admin via MSG91 of manager sign-up', err);
-  }
-};
-
-export const sendManagerApprovalEmail = async (email: string, userName: string) => {
-  if (!MSG91_API_KEY) return;
-
-  try {
-    const content = managerApproval(userName);
+    const content = managerWelcome(userName);
     // Attach the manager agreement PDF (cached, 24h)
     const pdfBuffer = await getCachedManagerTermsPdf();
     await sendMsg91Email({
@@ -242,9 +250,9 @@ export const sendManagerApprovalEmail = async (email: string, userName: string) 
         },
       ],
     });
-    logger.info(`Manager approval email sent via MSG91 to ${email}`);
+    logger.info(`Manager welcome email sent via MSG91 to ${email}`);
   } catch (err) {
-    logger.error('Failed to send manager approval email via MSG91', err);
+    logger.error('Failed to send manager welcome email via MSG91', err);
   }
 };
 

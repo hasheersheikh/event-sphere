@@ -3,7 +3,6 @@ import {
   ShieldCheck,
   Search,
   Mail,
-  UserCheck,
   UserMinus,
   ChevronRight,
 } from "lucide-react";
@@ -49,16 +48,6 @@ const ManagersPage = () => {
       toast.error("Failed to load manager directory.");
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleApprove = async (id: string) => {
-    try {
-      await api.patch(`/admin/users/${id}/approve`);
-      toast.success("Manager status verified.");
-      fetchManagers();
-    } catch (error) {
-      toast.error("Failed to verify manager.");
     }
   };
 
@@ -115,19 +104,6 @@ const ManagersPage = () => {
       ),
     },
     {
-      header: "Validation",
-      accessor: (m: any) => (
-        <div className="flex items-center gap-1.5">
-          <div
-            className={`h-1.5 w-1.5 rounded-full ${m.isApproved ? "bg-emerald-500 shadow-[0_0_10px_#10B981]" : "bg-orange-500 animate-pulse"}`}
-          />
-          <span className="text-[8px] font-black uppercase tracking-widest text-foreground/80 italic">
-            {m.isApproved ? "Verified" : "Pending"}
-          </span>
-        </div>
-      ),
-    },
-    {
       header: "Operations",
       headerClassName: "text-right",
       accessor: (m: any) => (
@@ -137,16 +113,6 @@ const ManagersPage = () => {
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </Link>
-          {!m.isApproved && (
-            <Button
-              onClick={() => handleApprove(m._id)}
-              size="icon"
-              variant="ghost"
-              className="h-7 w-7 rounded-lg border border-border hover:bg-emerald-500 hover:text-white"
-            >
-              <UserCheck className="h-3.5 w-3.5" />
-            </Button>
-          )}
           <Button
             onClick={() => setDeleteManagerId(m._id)}
             size="icon"

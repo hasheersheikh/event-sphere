@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import PulseLogo from "@/components/layout/PulseLogo";
@@ -158,8 +159,7 @@ const VolunteerLoginPage = () => {
               </div>
               <div className="relative group">
                 <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-emerald-500 transition-colors" />
-                <Input
-                  type="password"
+                <PasswordInput
                   required
                   value={formData.password}
                   onChange={(e) =>
