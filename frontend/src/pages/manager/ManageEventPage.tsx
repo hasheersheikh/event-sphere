@@ -105,7 +105,7 @@ const ManageEventPage = () => {
     onSuccess: () => {
       toast.success("Inventory status synchronized");
       fetchDetails();
-      queryClient.invalidateQueries({ queryKey: ["event", id] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Trigger failed.");
@@ -120,7 +120,7 @@ const ManageEventPage = () => {
     onSuccess: () => {
       toast.success("Event cancelled and refunds initiated.");
       fetchDetails();
-      queryClient.invalidateQueries({ queryKey: ["event", id] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Cancellation failed.");
@@ -144,7 +144,7 @@ const ManageEventPage = () => {
       setOfflineOpen(false);
       setOfflineForm(defaultOfflineForm);
       fetchDetails();
-      queryClient.invalidateQueries({ queryKey: ["event", id] });
+      queryClient.invalidateQueries({ queryKey: ["event"] });
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to issue ticket.");

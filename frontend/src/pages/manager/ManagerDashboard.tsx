@@ -42,7 +42,7 @@ const ManagerDashboard = () => {
   const [page, setPage] = useState(1);
 
   const { data: response, isLoading: eventsLoading } = useQuery({
-    queryKey: ["my-events", page],
+    queryKey: ["my-events", "dashboard", page],
     queryFn: async () => {
       const { data } = await api.get(`/events/my?page=${page}&limit=4`);
       return data;

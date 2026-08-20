@@ -97,11 +97,11 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
       return;
     }
 
+    // Admins can own events too but have no EventManager profile — fall back
+    // to the default commission schedule, same as getManagerStats.
     const manager = await EventManager.findById(userId);
-    if (!manager) {
-      res.status(404).json({ message: 'Manager profile not found' });
-      return;
-    }
+    const commissionType = manager?.commissionType || 'percentage';
+    const commissionValue = manager?.commissionValue ?? 10;
 
     const bookings = await Booking.find({ event: id, status: 'confirmed' })
       .sort({ createdAt: -1 })
@@ -114,11 +114,11 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
 
     // Commission Calculation — must match adminController logic exactly
     let platformCommission = 0;
-    if (manager.commissionType === 'percentage') {
-      platformCommission = (grossRevenue * manager.commissionValue) / 100;
+    if (commissionType === 'percentage') {
+      platformCommission = (grossRevenue * commissionValue) / 100;
     } else {
       // Flat fee: charged per ticket sold (consistent with adminController)
-      platformCommission = manager.commissionValue * totalTicketsSold;
+      platformCommission = commissionValue * totalTicketsSold;
     }
 
     const netRevenue = Math.max(0, grossRevenue - platformCommission);
@@ -160,8 +160,8 @@ export const getManagerEventAnalytics: RequestHandler = async (req: AuthRequest,
         totalTicketsSold,
         capacity: event.ticketTypes.reduce((acc, tt) => acc + tt.capacity, 0),
         commissionInfo: {
-          type: manager.commissionType,
-          value: manager.commissionValue
+          type: commissionType,
+          value: commissionValue
         }
       },
       ticketStats,

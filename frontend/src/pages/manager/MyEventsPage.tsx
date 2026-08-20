@@ -38,7 +38,7 @@ const MyEventsPage = () => {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   const { data: response, isLoading } = useQuery({
-    queryKey: ["my-events", page],
+    queryKey: ["my-events", "list", page],
     queryFn: async () => {
       const { data } = await api.get(`/events/my?page=${page}&limit=10`);
       return data;

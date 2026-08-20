@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button";
@@ -40,8 +40,12 @@ const EditEventPage = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const formInitialized = useRef(false);
 
+  const queryClient = useQueryClient();
+
+  // Distinct key from EventDetailPage's ["event", id] — this queryFn reshapes
+  // `date` into a Date object, which must not leak into the detail page's cache.
   const { data: event, isLoading: isFetching } = useQuery({
-    queryKey: ["event", id],
+    queryKey: ["event", "edit", id],
     queryFn: async () => {
       const { data } = await api.get(`/events/${id}`);
       if (data.date) {
@@ -217,6 +221,9 @@ const EditEventPage = () => {
     },
     onSuccess: (_data, values) => {
       savedRef.current = true;
+      // Refresh the event caches so the detail page we navigate to below
+      // doesn't serve its (up to 5-minute stale) cached copy.
+      queryClient.invalidateQueries({ queryKey: ["event"] });
       // Session uploads the saved event no longer references (e.g. a banner
       // replaced at the last moment) are orphans — clean them up too.
       const used = collectEventMediaUrls(values);
