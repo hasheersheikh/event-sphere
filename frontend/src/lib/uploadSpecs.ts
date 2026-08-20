@@ -83,8 +83,11 @@ export const UPLOAD_SPECS = {
     accept: IMAGE_ACCEPT,
     allowedMimeTypes: IMAGE_MIME_TYPES,
     maxSizeMB: 1,
-    hint: "JPG, PNG or WebP · 1200×800px recommended · max 1MB",
-    aspect: 1200 / 800,
+    // Must match the 4:5 aspect the venue cards render at (TrendingVenueManagementPage
+    // grid + public TrendingVenues.tsx) — a mismatch here crops images that then get
+    // letterboxed/center-cropped again on display.
+    hint: "JPG, PNG or WebP · 1080×1350px (4:5 portrait) recommended · max 1MB",
+    aspect: 4 / 5,
   },
   heroImage: {
     accept: IMAGE_ACCEPT,

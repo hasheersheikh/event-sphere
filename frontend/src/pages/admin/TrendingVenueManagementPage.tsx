@@ -331,8 +331,21 @@ const TrendingVenueManagementPage = () => {
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()}>
-        <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
+      {/* modal={false}: this dialog hosts uploads that open a second, nested
+          Radix Dialog (ImageCropDialog). A modal Dialog traps focus/pointer
+          events for itself, which blocks all interaction with a dialog nested
+          inside it — the crop step would silently hang forever. The crop
+          dialog itself stays modal, so it still behaves like a normal modal.
+          onPointerDownOutside is also disabled: with modal={false}, Radix
+          treats any click inside the (separately-portalled) crop dialog as a
+          click "outside" this one and immediately dismisses it — which resets
+          the whole form via closeDialog(), discarding the just-uploaded image. */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => !open && closeDialog()} modal={false}>
+        <DialogContent
+          className="sm:max-w-md flex flex-col max-h-[90vh]"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader className="shrink-0">
             <DialogTitle className="font-black uppercase italic">
               {editingId ? "Edit Venue" : "Add Trending Venue"}
@@ -382,7 +395,7 @@ const TrendingVenueManagementPage = () => {
               )}
             </button>
             <p className="text-[9px] font-bold text-muted-foreground/70 text-center -mt-1">
-              Use <span className="text-primary font-black">4:5 ratio (1080 × 1350 px)</span> — matches Instagram portrait posts exactly. {UPLOAD_SPECS.venueImage.hint}
+              {UPLOAD_SPECS.venueImage.hint}
             </p>
 
             {/* Gallery Images Section */}
