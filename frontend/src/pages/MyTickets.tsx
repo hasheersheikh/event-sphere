@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import api from "@/lib/api";
+import { downloadTicketPdf } from "@/lib/downloadTicket";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -107,9 +108,16 @@ const MyTickets = () => {
 
   const handleDownload = async (booking: any) => {
     setIsDownloading(booking._id);
-    setActiveDownloadBooking(booking);
-    setTimeout(async () => {
-      try {
+    try {
+      if (booking.status === "confirmed") {
+        // Confirmed bookings get the server-generated PDF — the exact artifact
+        // the confirmation email carries, with the scanner QR. (The endpoint
+        // only serves confirmed bookings.)
+        await downloadTicketPdf(booking._id);
+      } else {
+        // Pending (unpaid) bookings fall back to the client-side render.
+        setActiveDownloadBooking(booking);
+        await new Promise((r) => setTimeout(r, 100));
         const element = ticketRef.current;
         if (!element) throw new Error("Template not found");
         const canvas = await html2canvas(element, {
@@ -121,14 +129,14 @@ const MyTickets = () => {
         pdf.addImage(imgData, "PNG", 0, 0, 800, canvasH);
         pdf.setProperties({ title: `CityPulse-Ticket-${booking._id}`, subject: "Event Admission Ticket", author: "City Pulse", creator: "Portal" });
         pdf.save(`Ticket-${booking.event?.title?.replace(/\s+/g, "-") || "Event"}.pdf`);
-        toast.success("Ticket downloaded!");
-      } catch (err) {
-        toast.error("Failed to generate ticket.");
-      } finally {
-        setIsDownloading(null);
-        setActiveDownloadBooking(null);
       }
-    }, 100);
+      toast.success("Ticket downloaded!");
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to generate ticket.");
+    } finally {
+      setIsDownloading(null);
+      setActiveDownloadBooking(null);
+    }
   };
 
   return (

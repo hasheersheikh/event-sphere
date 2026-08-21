@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import api from "@/lib/api";
+import { downloadTicketPdf } from "@/lib/downloadTicket";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import {
   Calendar, Clock, Building2, Mail, Phone,
-  ChevronLeft, ArrowRight, Check, Plus, Minus, Ticket, Trash2
+  ChevronLeft, ArrowRight, Check, Plus, Minus, Ticket, Trash2, Download, Loader2
 } from "lucide-react";
 import { Event } from "@/types/event";
 import { cn, formatEventDate } from "@/lib/utils";
@@ -40,6 +41,10 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
   const [isLoadingVoucher, setIsLoadingVoucher] = useState(false);
   const [taxRate, setTaxRate] = useState(0);
+  // Set when a free booking is confirmed — swaps the modal to a success panel
+  // with a ticket download (fallback for when the email never arrives).
+  const [confirmedBooking, setConfirmedBooking] = useState<{ _id: string; downloadToken?: string | null } | null>(null);
+  const [isDownloadingTicket, setIsDownloadingTicket] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -57,6 +62,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
       setNumberOfPeople(1);
       setAppliedVoucher(null);
       setVoucherCode("");
+      setConfirmedBooking(null);
       
       // Fetch global tax rate
       api.get("/bookings/tax-rate")
@@ -119,14 +125,24 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
         modal: { ondismiss: () => toast.error("Payment cancelled. Your booking is held for 60 minutes.") },
         handler: async (response: any) => {
           try {
-            await api.post("/payments/verify-order", {
+            const { data } = await api.post("/payments/verify-order", {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               bookingId: booking._id,
             });
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#ffffff", "#cccccc", "#888888"] });
-            toast.success("Payment successful! Your tickets are confirmed.");
+            // Auto-download the ticket so a failed confirmation email doesn't
+            // strand the buyer. Exactly one automatic attempt — browsers block
+            // multiples — with the toast action as the manual fallback.
+            const download = () =>
+              downloadTicketPdf(booking._id, data?.downloadToken).catch((err: any) =>
+                toast.error(err?.message || "Could not download ticket.")
+              );
+            download();
+            toast.success("Payment successful! Your tickets are confirmed.", {
+              action: { label: "Download", onClick: download },
+            });
           } catch {
             toast.error("Payment verification failed. Please contact support.");
           }
@@ -157,10 +173,15 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
     },
     onSuccess: async (booking) => {
       if (booking.status === "confirmed") {
-        // Free ticket — already confirmed on the backend
+        // Free ticket — already confirmed on the backend. Keep the modal open
+        // on a success panel so the ticket downloads to the device even when
+        // the email never arrives.
         confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ["#ffffff", "#cccccc", "#888888"] });
         toast.success("Booking confirmed! Your tickets are on their way.");
-        onClose();
+        setConfirmedBooking({ _id: booking._id, downloadToken: booking.downloadToken });
+        downloadTicketPdf(booking._id, booking.downloadToken).catch(() => {
+          // Auto-download failed/blocked — the panel's Download button covers it.
+        });
         return;
       }
       await openRazorpayPopup(booking);
@@ -169,6 +190,18 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
       toast.error(error.response?.data?.message || "Booking failed.");
     },
   });
+
+  const handleDownloadConfirmedTicket = async () => {
+    if (!confirmedBooking) return;
+    setIsDownloadingTicket(true);
+    try {
+      await downloadTicketPdf(confirmedBooking._id, confirmedBooking.downloadToken ?? undefined);
+    } catch (err: any) {
+      toast.error(err?.message || "Could not download ticket.");
+    } finally {
+      setIsDownloadingTicket(false);
+    }
+  };
 
   const getTicketPrice = (ticket: any) => {
     let basePrice = ticket.price;
@@ -325,7 +358,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
         {/* Header */}
         <div className="bg-muted/30 border-b border-border/30 p-5 shrink-0">
           <div className="flex items-center gap-3 mb-4">
-            {(step > (event.scheduleType === "single" || !event.scheduleType ? 1 : 0) || (step === 0 && sessionStep === 1)) && (
+            {!confirmedBooking && (step > (event.scheduleType === "single" || !event.scheduleType ? 1 : 0) || (step === 0 && sessionStep === 1)) && (
               <button 
                 onClick={() => {
                   if (step === 0 && sessionStep === 1) setSessionStep(0);
@@ -344,8 +377,8 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             </div>
           </div>
 
-          {/* Timeline Stepper - No numbers */}
-          <div className="flex items-center px-4 mt-2">
+          {/* Timeline Stepper - No numbers (hidden on the success panel) */}
+          <div className={cn("flex items-center px-4 mt-2", confirmedBooking && "hidden")}>
             {[
               { label: "Session", show: event.scheduleType && event.scheduleType !== "single", stepIndex: 0 },
               { label: "Quantity", show: true, stepIndex: 1 },
@@ -385,9 +418,25 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
         </div>
 
         <div className="p-5 overflow-y-auto">
-          
+
+          {/* SUCCESS PANEL — free booking confirmed, ticket downloads here */}
+          {confirmedBooking && (
+            <div className="flex flex-col items-center text-center py-10 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center mb-5">
+                <Check className="h-8 w-8 text-primary-foreground" strokeWidth={3} />
+              </div>
+              <h3 className="font-display font-extrabold text-2xl tracking-tighter mb-2">Booking Confirmed!</h3>
+              <p className="text-sm text-muted-foreground font-medium leading-relaxed mb-1">
+                Your ticket is downloading and is also on its way to your email.
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
+                Booking #{confirmedBooking._id.slice(-8).toUpperCase()}
+              </p>
+            </div>
+          )}
+
           {/* STEP 0: SESSION SELECTION */}
-          {step === 0 && (
+          {!confirmedBooking && step === 0 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <h3 className="font-extrabold text-lg mb-4">Select Session</h3>
 
@@ -543,7 +592,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           )}
 
           {/* STEP 1: NUMBER OF PEOPLE */}
-          {step === 1 && (
+          {!confirmedBooking && step === 1 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
               <h3 className="font-display font-extrabold text-2xl tracking-tighter">How many people?</h3>
               
@@ -573,7 +622,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           )}
 
           {/* STEP 2: TICKET TIER SELECTION */}
-          {step === 2 && (
+          {!confirmedBooking && step === 2 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
               <h3 className="font-display font-extrabold text-2xl tracking-tighter mb-6">Select Ticket Type</h3>
               
@@ -654,7 +703,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           )}
 
           {/* STEP 3: CHECKOUT DETAILS */}
-          {step === 3 && (
+          {!confirmedBooking && step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
               <h3 className="font-display font-extrabold text-2xl tracking-tighter">Contact Details</h3>
               
@@ -731,8 +780,35 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
           {/* Subtle gradient glow in footer */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
 
-          {step === 0 && (
-            <Button 
+          {confirmedBooking && (
+            <div className="space-y-3 relative z-10">
+              <Button
+                className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
+                disabled={isDownloadingTicket}
+                onClick={handleDownloadConfirmedTicket}
+              >
+                {isDownloadingTicket ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                {isDownloadingTicket ? "Preparing ticket..." : "Download Ticket"}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-xs"
+                onClick={() => {
+                  setConfirmedBooking(null);
+                  onClose();
+                }}
+              >
+                Done
+              </Button>
+            </div>
+          )}
+
+          {!confirmedBooking && step === 0 && (
+            <Button
               className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
               disabled={!canProceedFromSession()}
               onClick={() => {
@@ -747,8 +823,8 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             </Button>
           )}
 
-          {step === 1 && (
-            <Button 
+          {!confirmedBooking && step === 1 && (
+            <Button
               className="w-full h-14 rounded-2xl font-extrabold uppercase tracking-widest text-xs shadow-lg hover:shadow-primary/25 hover:scale-[1.02] transition-all duration-300"
               onClick={() => setStep(2)}
             >
@@ -756,7 +832,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             </Button>
           )}
 
-          {step === 2 && (
+          {!confirmedBooking && step === 2 && (
             <div className="flex items-center justify-between gap-4 relative z-10">
               <div className="flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-1">Total</p>
@@ -772,7 +848,7 @@ export default function BookingModal({ isOpen, onClose, event }: BookingModalPro
             </div>
           )}
 
-          {step === 3 && (
+          {!confirmedBooking && step === 3 && (
             <div className="space-y-5 relative z-10">
               <div className="space-y-5 relative z-10">
                 <div className="bg-card border-2 border-primary/20 rounded-2xl p-4 space-y-3 shadow-sm">

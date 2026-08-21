@@ -60,15 +60,21 @@ const send = async (
   return data?.id;
 };
 
+/** Result contract for sendTicketEmail — the delivery tracker stores this in
+ *  Booking.ticketEmail and decides retries from it. */
+export type TicketEmailResult =
+  | { ok: true; messageId?: string }
+  | { ok: false; reason: string };
+
 export const sendTicketEmail = async (
   email: string,
   userName: string,
   event: any,
   pdfBuffer: Buffer
-) => {
+): Promise<TicketEmailResult> => {
   if (!process.env.RESEND_API_KEY) {
     logger.warn('RESEND_API_KEY not found. Skipping email sending.');
-    return;
+    return { ok: false, reason: 'RESEND_API_KEY not configured' };
   }
 
   try {
@@ -79,8 +85,10 @@ export const sendTicketEmail = async (
       [{ filename: `Ticket-${event.title.replace(/\s+/g, '-')}.pdf`, content: pdfBuffer }]
     );
     logger.info('Ticket email sent successfully', { id });
-  } catch (err) {
+    return { ok: true, messageId: id };
+  } catch (err: any) {
     logger.error('Failed to send ticket email', err);
+    return { ok: false, reason: err?.message || String(err) };
   }
 };
 

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Download } from "lucide-react";
 import api from "@/lib/api";
+import { downloadTicketPdf } from "@/lib/downloadTicket";
 import confetti from "canvas-confetti";
 
 const PaymentCallbackPage = () => {
@@ -9,6 +10,24 @@ const PaymentCallbackPage = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"verifying" | "success" | "failed">("verifying");
   const [message, setMessage] = useState("");
+  // Set for event bookings so the ticket can be downloaded right here — the
+  // confirmation email is not always delivered.
+  const [ticketDownload, setTicketDownload] = useState<{ bookingId: string; token?: string | null } | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
+
+  const handleDownloadTicket = async () => {
+    if (!ticketDownload) return;
+    setIsDownloading(true);
+    setDownloadError("");
+    try {
+      await downloadTicketPdf(ticketDownload.bookingId, ticketDownload.token ?? undefined);
+    } catch (err: any) {
+      setDownloadError(err?.message || "Could not download ticket. You can retry from My Tickets.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   useEffect(() => {
     const verify = async () => {
@@ -60,7 +79,13 @@ const PaymentCallbackPage = () => {
             origin: { y: 0.6 },
             colors: ["#f59e0b", "#10b981", "#ffffff"],
           });
-          setTimeout(() => navigate(orderIds.length > 0 ? "/my-orders" : "/my-tickets"), 3000);
+          if (bookingId) {
+            // Auto-redirect is skipped for event bookings so the Download
+            // Ticket button below stays reachable.
+            setTicketDownload({ bookingId, token: data.downloadToken });
+          } else {
+            setTimeout(() => navigate("/my-orders"), 3000);
+          }
         } else {
           setStatus("failed");
           setMessage(data.message || "Payment verification failed.");
@@ -76,7 +101,7 @@ const PaymentCallbackPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="text-center max-w-sm">
+      <div className="text-center max-w-sm w-full">
         {status === "verifying" && (
           <>
             <Loader2 className="h-16 w-16 text-primary animate-spin mx-auto mb-6" />
@@ -88,9 +113,36 @@ const PaymentCallbackPage = () => {
           <>
             <CheckCircle className="h-16 w-16 text-emerald-500 mx-auto mb-6" />
             <h1 className="text-2xl font-black uppercase tracking-tighter mb-2">Payment Successful!</h1>
-            <p className="text-muted-foreground text-sm">
-              Your order has been confirmed. Redirecting...
+            <p className="text-muted-foreground text-sm mb-8">
+              {ticketDownload
+                ? "Your booking is confirmed. Download your ticket below — it's also on its way to your email."
+                : "Your order has been confirmed. Redirecting..."}
             </p>
+            {ticketDownload ? (
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleDownloadTicket}
+                  disabled={isDownloading}
+                  className="h-12 px-8 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  {isDownloading ? "Preparing ticket..." : "Download Ticket"}
+                </button>
+                <button
+                  onClick={() => navigate("/my-tickets")}
+                  className="h-12 px-8 rounded-2xl border border-border bg-card text-foreground font-black uppercase tracking-widest text-[10px]"
+                >
+                  View My Tickets
+                </button>
+                {downloadError && (
+                  <p className="text-destructive text-xs font-medium">{downloadError}</p>
+                )}
+              </div>
+            ) : null}
           </>
         )}
         {status === "failed" && (

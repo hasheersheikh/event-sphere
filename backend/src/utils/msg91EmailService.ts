@@ -8,6 +8,7 @@
 
 import dotenv from 'dotenv';
 import winston from 'winston';
+import type { TicketEmailResult } from './emailService.js';
 import { getCachedManagerTermsPdf } from './managerTermsPdf.js';
 import {
   applyTestMode,
@@ -134,15 +135,15 @@ export const sendTicketEmail = async (
   userName: string,
   event: any,
   pdfBuffer: Buffer
-) => {
+): Promise<TicketEmailResult> => {
   if (!MSG91_API_KEY) {
     logger.warn('MSG91_API_KEY not found. Skipping email sending.');
-    return;
+    return { ok: false, reason: 'MSG91_API_KEY not configured' };
   }
 
   try {
     const content = ticketEmail(userName, event);
-    await sendMsg91Email({
+    const data: any = await sendMsg91Email({
       to: email,
       subject: content.subject,
       html: content.html,
@@ -153,8 +154,16 @@ export const sendTicketEmail = async (
         },
       ],
     });
-  } catch (err) {
+    // Best-effort provider message id for webhook correlation — MSG91's
+    // response shape varies, so absence is fine.
+    const messageId =
+      Array.isArray(data?.message) && data.message[0]?.id
+        ? String(data.message[0].id)
+        : undefined;
+    return { ok: true, messageId };
+  } catch (err: any) {
     logger.error('Failed to send ticket email via MSG91', err);
+    return { ok: false, reason: err?.message || String(err) };
   }
 };
 

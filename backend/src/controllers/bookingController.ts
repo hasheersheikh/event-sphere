@@ -5,11 +5,13 @@ import Event from '../models/Event.js';
 import RefundRequest from '../models/RefundRequest.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail, sendAccountSetupEmail, sendCancellationEmail } from '../utils/emailProvider.js';
+import { sendAccountSetupEmail, sendCancellationEmail } from '../utils/emailProvider.js';
+import { deliverTicketEmail } from '../utils/ticketEmailDelivery.js';
 import User from '../models/User.js';
 import SystemSettings from '../models/SystemSettings.js';
 import { reserveTickets, releaseTickets } from '../utils/inventory.js';
 import { evaluateCancellationEligibility } from '../utils/cancellation.js';
+import { signTicketDownloadToken, verifyTicketDownloadToken } from '../utils/bookingDownloadToken.js';
 import razorpay from '../utils/razorpay.js';
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
@@ -150,28 +152,69 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
     // Only send ticket notifications for bookings that are immediately confirmed (free tickets).
     // Paid bookings remain 'pending' here — notifications fire from verifyPaymentLink after payment.
     if (booking.status === 'confirmed') {
-      (async () => {
-        try {
-          const pdfBuffer = await generateTicketPDF(booking, event as any);
-          // Prefer contactName from request body, then logged-in user name, then fallback
-          const recipientName = contactName || (req.user as any)?.name || 'Guest';
-          const recipientEmail = booking.email || (req.user as any)?.email;
-          const recipientPhone = booking.phoneNumber || (req.user as any)?.phoneNumber;
+      // Email: tracked delivery with retries (Booking.ticketEmail)
+      deliverTicketEmail(booking._id.toString()).catch((err) => {
+        console.error('Ticket email delivery crashed:', err);
+      });
 
-          if (recipientEmail) {
-            await sendTicketEmail(recipientEmail, recipientName, event, pdfBuffer);
-          }
-          if (recipientPhone) {
+      // WhatsApp: still fire-and-forget
+      const recipientName = contactName || (req.user as any)?.name || 'Guest';
+      const recipientPhone = booking.phoneNumber || (req.user as any)?.phoneNumber;
+      if (recipientPhone) {
+        (async () => {
+          try {
+            const pdfBuffer = await generateTicketPDF(booking, event as any);
             const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
             await sendTicketWhatsApp(recipientPhone, recipientName, event, pdfBuffer);
+          } catch (err) {
+            console.error('Failed to send free-ticket WhatsApp:', err);
           }
-        } catch (err) {
-          console.error('Failed to send free-ticket confirmation:', err);
-        }
-      })();
+        })();
+      }
     }
 
-    res.status(201).json(booking);
+    // downloadToken lets the buyer (guests included) fetch this booking's
+    // ticket PDF immediately after confirmation, even if the email never lands.
+    res.status(201).json({
+      ...booking.toJSON(),
+      downloadToken: signTicketDownloadToken(booking._id.toString()),
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+// Streams the same PDF that is attached to the ticket email. Authorized for
+// the booking owner, the event's manager, admins, or anyone presenting the
+// booking's signed download token (guest buyers).
+export const downloadTicket = async (req: AuthRequest, res: Response) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate('event');
+    if (!booking || !booking.event) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Never hand out a scannable ticket for an unpaid or cancelled booking.
+    if (booking.status !== 'confirmed') {
+      return res.status(403).json({ message: 'Ticket is not available for this booking' });
+    }
+
+    const event: any = booking.event;
+    const isOwner = !!req.user && booking.user?.toString() === req.user._id.toString();
+    const isManager =
+      !!req.user &&
+      (event.creator?.toString() === req.user._id.toString() || req.user.role === 'admin');
+    const hasDownloadToken = verifyTicketDownloadToken(req.query.token, booking._id.toString());
+
+    if (!isOwner && !isManager && !hasDownloadToken) {
+      return res.status(403).json({ message: 'Not authorized to download this ticket' });
+    }
+
+    const pdfBuffer = await generateTicketPDF(booking, event);
+    const slug = (event.title || 'Event').replace(/[^a-zA-Z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="Ticket-${slug}.pdf"`);
+    res.send(pdfBuffer);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -312,22 +355,29 @@ export const issueOfflineTicket = async (req: AuthRequest, res: Response) => {
     });
 
     // Send ticket via email / WhatsApp if contact details provided (non-blocking)
-    if (email || phoneNumber) {
+    // Email: tracked delivery with retries (Booking.ticketEmail)
+    if (email) {
+      deliverTicketEmail(booking._id.toString()).catch((err) => {
+        console.error('Offline ticket email delivery crashed:', err);
+      });
+    }
+    // WhatsApp: still fire-and-forget
+    if (phoneNumber) {
       (async () => {
         try {
           const pdfBuffer = await generateTicketPDF(booking, event as any);
-          if (email) await sendTicketEmail(email, contactName, event, pdfBuffer);
-          if (phoneNumber) {
-            const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
-            await sendTicketWhatsApp(phoneNumber, contactName, event, pdfBuffer);
-          }
+          const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
+          await sendTicketWhatsApp(phoneNumber, contactName, event, pdfBuffer);
         } catch (err) {
-          console.error('Offline ticket delivery failed:', err);
+          console.error('Offline ticket WhatsApp failed:', err);
         }
       })();
     }
 
-    res.status(201).json(booking);
+    res.status(201).json({
+      ...booking.toJSON(),
+      downloadToken: signTicketDownloadToken(booking._id.toString()),
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }
@@ -381,10 +431,21 @@ export const checkInBooking = async (req: AuthRequest, res: Response) => {
     }
 
     const updatedTicket = updated.tickets.find(t => t.type === ticketType);
+
+    // Attendee name: prefer the booking's contact name (captured at checkout for
+    // both account and guest bookings), falling back to the account holder's
+    // profile name. `updated.user` is an unpopulated ObjectId here, so it can
+    // never supply a name.
+    let userName = booking.contactName;
+    if (!userName && booking.user) {
+      const accountHolder = await User.findById(booking.user).select('name');
+      userName = accountHolder?.name;
+    }
+
     res.json({
       message: 'Check-in successful!',
       booking: {
-        userName: (updated as any).user?.name || 'Guest',
+        userName: userName || 'Guest',
         ticketType: ticketType,
         checkedInCount: updatedTicket?.checkedInCount || 1,
         totalQuantity: updatedTicket?.quantity || 1

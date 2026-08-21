@@ -4,7 +4,7 @@
 // stays a single row, matching how tickets are stored on the booking.
 
 import React from "react";
-import { Ticket } from "lucide-react";
+import { Ticket, Download, Loader2 } from "lucide-react";
 
 /** Canonical booking shape both pages map their API payloads into. */
 export interface TicketBookingInput {
@@ -63,9 +63,21 @@ interface EventTicketsTableProps {
   footer?: React.ReactNode;
   /** Override for the empty-state message. */
   emptyLabel?: string;
+  /** When provided, renders a per-row action that downloads the booking's
+   *  ticket PDF — for staff to resend tickets the email failed to deliver. */
+  onDownloadTicket?: (bookingId: string) => void;
+  /** Booking id currently being downloaded (shows a spinner on its rows). */
+  downloadingId?: string | null;
 }
 
-export function EventTicketsTable({ rows, headerExtra, footer, emptyLabel }: EventTicketsTableProps) {
+export function EventTicketsTable({
+  rows,
+  headerExtra,
+  footer,
+  emptyLabel,
+  onDownloadTicket,
+  downloadingId,
+}: EventTicketsTableProps) {
   return (
     <div className="bg-card border border-border rounded-xl overflow-hidden shadow-xl">
       <div className="p-4 border-b border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
@@ -82,7 +94,9 @@ export function EventTicketsTable({ rows, headerExtra, footer, emptyLabel }: Eve
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse min-w-[900px]">
+        <table
+          className={`w-full text-left border-collapse ${onDownloadTicket ? "min-w-[1000px]" : "min-w-[900px]"}`}
+        >
           <thead>
             <tr className="bg-muted/10 text-muted-foreground text-[8px] font-black uppercase tracking-[0.2em] border-b border-border italic">
               <th className="px-4 py-3">#</th>
@@ -93,6 +107,7 @@ export function EventTicketsTable({ rows, headerExtra, footer, emptyLabel }: Eve
               <th className="px-4 py-3 text-right">Amount</th>
               <th className="px-4 py-3 text-center">Source</th>
               <th className="px-4 py-3">Booked On</th>
+              {onDownloadTicket && <th className="px-4 py-3 text-center">Ticket</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-border/30">
@@ -156,11 +171,30 @@ export function EventTicketsTable({ rows, headerExtra, footer, emptyLabel }: Eve
                       {new Date(r.bookedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </td>
+                  {onDownloadTicket && (
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => onDownloadTicket(r.bookingId)}
+                        disabled={downloadingId === r.bookingId}
+                        title="Download this booking's ticket PDF (all tiers + QR)"
+                        className="h-8 w-8 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors disabled:opacity-50 mx-auto"
+                      >
+                        {downloadingId === r.bookingId ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Download className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground/50 italic">
+                <td
+                  colSpan={onDownloadTicket ? 9 : 8}
+                  className="px-6 py-16 text-center text-[10px] font-black uppercase text-muted-foreground/50 italic"
+                >
                   {emptyLabel || "No tickets sold yet."}
                 </td>
               </tr>

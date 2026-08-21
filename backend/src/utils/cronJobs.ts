@@ -7,6 +7,7 @@ import { sendReminderEmail, sendReviewEmail } from './emailProvider.js';
 import { releaseTickets } from './inventory.js';
 import { deleteEventAssets } from './cloudinaryService.js';
 import { cleanupOrphanUploads } from './orphanUploads.js';
+import { deliverTicketEmail } from './ticketEmailDelivery.js';
 import razorpay from './razorpay.js';
 import axios from 'axios';
 
@@ -314,6 +315,41 @@ export const reconcileStuckSelfCancellations = async () => {
   }
 };
 
+/**
+ * Hourly sweep: retry ticket emails that never made it out — real send
+ * failures whose immediate retries (30s / 2min inside deliverTicketEmail)
+ * were exhausted, and bookings that queued while the email provider was
+ * misconfigured (config failures don't burn attempts, so a fixed API key
+ * auto-recovers everything waiting here).
+ *
+ * Bookings whose ticketEmail record is absent — everything created before
+ * delivery tracking shipped — never match this query on purpose: with no
+ * delivery record we can't tell a success from a failure, and re-sending
+ * would duplicate tickets for buyers who already got theirs. Staff can
+ * still download/resend those from the attendee portal.
+ */
+export const retryFailedTicketEmails = async () => {
+  try {
+    const maxAttempts = parseInt(process.env.TICKET_EMAIL_MAX_ATTEMPTS || '10', 10);
+    const due = await Booking.find({
+      status: 'confirmed',
+      'ticketEmail.status': { $in: ['pending', 'failed'] },
+      'ticketEmail.nextRetryAt': { $lte: new Date() },
+      'ticketEmail.attempts': { $lt: maxAttempts },
+    }).select('_id');
+
+    for (const booking of due) {
+      await deliverTicketEmail(booking._id.toString());
+    }
+
+    if (due.length > 0) {
+      logger.info(`Ticket email retry sweep re-sent ${due.length} booking email(s)`);
+    }
+  } catch (error) {
+    logger.error('Error in ticket email retry sweep:', error);
+  }
+};
+
 // Initialize cron jobs:
 export const initCronJobs = () => {
   // Hourly cleanup to move past events to 'past' status
@@ -326,6 +362,11 @@ export const initCronJobs = () => {
     logger.info('Running hourly email journey cron...');
     checkAndSendReminders();
     checkAndSendReviewRequests();
+  });
+
+  // Hourly retry of undelivered ticket emails (see retryFailedTicketEmails)
+  cron.schedule('0 * * * *', () => {
+    retryFailedTicketEmails();
   });
 
   // Expire pending bookings every 15 minutes

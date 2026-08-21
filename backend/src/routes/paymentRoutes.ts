@@ -16,8 +16,10 @@ import Booking from '../models/Booking.js';
 import StoreOrder from '../models/StoreOrder.js';
 import Payout from '../models/Payout.js';
 import { generateTicketPDF } from '../utils/pdfGenerator.js';
-import { sendTicketEmail, sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailProvider.js';
+import { sendStoreOrderEmail, sendCustomerOrderEmail } from '../utils/emailProvider.js';
+import { deliverTicketEmail } from '../utils/ticketEmailDelivery.js';
 import { reserveTickets } from '../utils/inventory.js';
+import { signTicketDownloadToken } from '../utils/bookingDownloadToken.js';
 
 export const createPaymentLink: RequestHandler = async (req: AuthRequest, res: Response) => {
   const { bookingId, currency = 'INR', customerName, customerEmail, customerPhone, eventTitle } = req.body;
@@ -97,7 +99,11 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
 
     // Idempotency: if already confirmed, return success without reprocessing
     if (booking.status === 'confirmed') {
-      res.json({ success: true, message: 'Booking already confirmed' });
+      res.json({
+        success: true,
+        message: 'Booking already confirmed',
+        downloadToken: signTicketDownloadToken(booking._id.toString()),
+      });
       return;
     }
 
@@ -136,22 +142,30 @@ export const verifyPaymentLink: RequestHandler = async (req: AuthRequest, res: R
     await booking.save();
 
     // Send ticket (non-blocking)
-    (async () => {
-      try {
-        const event: any = booking.event;
-        const pdfBuffer = await generateTicketPDF(booking, event);
-        const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
-        if (booking.email) await sendTicketEmail(booking.email, recipientName, event, pdfBuffer);
-        if (booking.phoneNumber) {
+    // Email: tracked delivery with retries (Booking.ticketEmail)
+    deliverTicketEmail(booking._id.toString()).catch((err) => {
+      console.error('Ticket email delivery crashed:', err);
+    });
+    // WhatsApp: still fire-and-forget
+    if (booking.phoneNumber) {
+      (async () => {
+        try {
+          const event: any = booking.event;
+          const pdfBuffer = await generateTicketPDF(booking, event);
+          const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
           const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
           await sendTicketWhatsApp(booking.phoneNumber, recipientName, event, pdfBuffer);
+        } catch (err) {
+          console.error('Failed to send ticket WhatsApp after payment link:', err);
         }
-      } catch (err) {
-        console.error('Failed to send confirmation after payment link:', err);
-      }
-    })();
+      })();
+    }
 
-    res.json({ success: true, message: 'Payment verified and booking confirmed' });
+    res.json({
+      success: true,
+      message: 'Payment verified and booking confirmed',
+      downloadToken: signTicketDownloadToken(booking._id.toString()),
+    });
   } catch (error) {
     res.status(500).json({ message: 'Verification failed', error });
   }
@@ -375,7 +389,11 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
     if (!booking) { res.status(404).json({ message: 'Booking not found' }); return; }
 
     if (booking.status === 'confirmed') {
-      res.json({ success: true, message: 'Booking already confirmed' });
+      res.json({
+        success: true,
+        message: 'Booking already confirmed',
+        downloadToken: signTicketDownloadToken(booking._id.toString()),
+      });
       return;
     }
 
@@ -414,22 +432,30 @@ export const verifyOrder: RequestHandler = async (req: AuthRequest, res: Respons
     await booking.save();
 
     // Send ticket confirmation (non-blocking)
-    (async () => {
-      try {
-        const event: any = booking.event;
-        const pdfBuffer = await generateTicketPDF(booking, event);
-        const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
-        if (booking.email) await sendTicketEmail(booking.email, recipientName, event, pdfBuffer);
-        if (booking.phoneNumber) {
+    // Email: tracked delivery with retries (Booking.ticketEmail)
+    deliverTicketEmail(booking._id.toString()).catch((err) => {
+      console.error('Ticket email delivery crashed:', err);
+    });
+    // WhatsApp: still fire-and-forget
+    if (booking.phoneNumber) {
+      (async () => {
+        try {
+          const event: any = booking.event;
+          const pdfBuffer = await generateTicketPDF(booking, event);
+          const recipientName = (booking as any).contactName || (booking as any).user?.name || 'Guest';
           const { sendTicketWhatsApp } = await import('../utils/whatsappService.js');
           await sendTicketWhatsApp(booking.phoneNumber, recipientName, event, pdfBuffer);
+        } catch (err) {
+          console.error('Failed to send ticket WhatsApp after order payment:', err);
         }
-      } catch (err) {
-        console.error('Failed to send ticket after order payment:', err);
-      }
-    })();
+      })();
+    }
 
-    res.json({ success: true, message: 'Payment verified and booking confirmed' });
+    res.json({
+      success: true,
+      message: 'Payment verified and booking confirmed',
+      downloadToken: signTicketDownloadToken(booking._id.toString()),
+    });
   } catch (error) {
     res.status(500).json({ message: 'Verification failed', error });
   }

@@ -27,6 +27,7 @@ import refundRoutes from './routes/refundRoutes.js';
 import influencerRoutes from './routes/influencerRoutes.js';
 import trendingVenueRoutes from './routes/trendingVenueRoutes.js';
 import showcaseVideoRoutes from './routes/showcaseVideoRoutes.js';
+import webhookRoutes from './routes/webhookRoutes.js';
 import { initCronJobs } from './utils/cronJobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -162,6 +163,7 @@ app.use('/api/refunds', refundRoutes);
 app.use('/api/influencers', influencerRoutes);
 app.use('/api/trending-venues', trendingVenueRoutes);
 app.use('/api/showcase-videos', showcaseVideoRoutes);
+app.use('/api/webhooks', webhookRoutes);
 console.log('✅ Registered /api/hero-assets route');
 console.log('Registered /api/local-stores route');
 

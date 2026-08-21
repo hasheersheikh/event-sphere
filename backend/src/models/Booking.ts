@@ -35,6 +35,21 @@ export interface IBooking extends Document {
     failureReason?: string;
     source?: string; // 'user'
   };
+  /** Ticket-email delivery tracking. Absent on bookings created before this
+   *  field existed — the retry sweep deliberately skips those (no delivery
+   *  record means we can't tell success from failure, and re-sending would
+   *  duplicate tickets for buyers who already got theirs). */
+  ticketEmail?: {
+    /** pending → sent (provider accepted) → delivered (webhook-confirmed).
+     *  'bounced' stops retries; 'failed' retries hourly until the attempt cap. */
+    status: 'pending' | 'sent' | 'delivered' | 'bounced' | 'failed';
+    messageId?: string; // Resend email id / MSG91 id — webhook correlation
+    attempts?: number;
+    lastAttemptAt?: Date;
+    lastStatusAt?: Date;
+    failureReason?: string;
+    nextRetryAt?: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -85,6 +100,21 @@ const BookingSchema: Schema = new Schema(
       failureReason: { type: String },
       source: { type: String },
     },
+    ticketEmail: {
+      // Same no-required convention as selfCancel. Only written by
+      // ticketEmailDelivery — its presence is what opts a booking into the
+      // hourly retry sweep (legacy bookings without it are skipped).
+      status: {
+        type: String,
+        enum: ['pending', 'sent', 'delivered', 'bounced', 'failed'],
+      },
+      messageId: { type: String },
+      attempts: { type: Number },
+      lastAttemptAt: { type: Date },
+      lastStatusAt: { type: Date },
+      failureReason: { type: String },
+      nextRetryAt: { type: Date },
+    },
   },
   { timestamps: true }
 );
@@ -92,5 +122,7 @@ const BookingSchema: Schema = new Schema(
 // "My bookings" and per-event capacity/attendee lookups are the hot queries.
 BookingSchema.index({ user: 1, createdAt: -1 });
 BookingSchema.index({ event: 1 });
+// Hourly ticket-email retry sweep scans by delivery status + due time.
+BookingSchema.index({ status: 1, 'ticketEmail.status': 1, 'ticketEmail.nextRetryAt': 1 });
 
 export default mongoose.model<IBooking>('Booking', BookingSchema);

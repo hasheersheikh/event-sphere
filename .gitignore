@@ -9,6 +9,13 @@ commandcode/
 .env.*.local
 frontend/.env
 backend/.env
+backend/.env.qa-backup
+
+# Local editor/tool dirs
+.zcode/
+
+# QA working docs (reports, scratch notes — not shipped)
+docs/
 
 # Logs
 *.log

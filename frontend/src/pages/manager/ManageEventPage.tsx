@@ -61,6 +61,7 @@ import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventTicketsTable, toTicketRows } from "@/components/portal/EventTicketsTable";
+import { downloadTicketPdf } from "@/lib/downloadTicket";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,6 +101,20 @@ const ManageEventPage = () => {
   const [attendeeSearch, setAttendeeSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [attendeesPage, setAttendeesPage] = useState(1);
+  const [downloadingTicketId, setDownloadingTicketId] = useState<string | null>(null);
+
+  // Staff-side ticket retrieval — download a booking's PDF to forward it when
+  // the buyer's confirmation email was never delivered.
+  const handleDownloadTicket = async (bookingId: string) => {
+    setDownloadingTicketId(bookingId);
+    try {
+      await downloadTicketPdf(bookingId);
+    } catch (err: any) {
+      toast.error(err?.message || "Could not download ticket.");
+    } finally {
+      setDownloadingTicketId(null);
+    }
+  };
   const ATTENDEES_PER_PAGE = 20;
 
   const toggleSoldOutMutation = useMutation({
@@ -878,6 +893,8 @@ const ManageEventPage = () => {
                 tickets: b.tickets,
               }))
             )}
+            onDownloadTicket={handleDownloadTicket}
+            downloadingId={downloadingTicketId}
             emptyLabel={attendeeSearch ? "No tickets match your search." : "No tickets sold yet."}
             headerExtra={
               <div className="flex items-center gap-3 w-full sm:max-w-xs">

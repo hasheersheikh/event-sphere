@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventTicketsTable, toTicketRows } from "@/components/portal/EventTicketsTable";
+import { downloadTicketPdf } from "@/lib/downloadTicket";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
@@ -104,6 +105,20 @@ const EventInsightsPage = () => {
   const [showPayoutConfirm, setShowPayoutConfirm] = useState(false);
   const [payoutReleased, setPayoutReleased] = useState(false);
   const [attendeesPage, setAttendeesPage] = useState(1);
+  const [downloadingTicketId, setDownloadingTicketId] = useState<string | null>(null);
+
+  // Staff-side ticket retrieval — download a booking's PDF to forward it when
+  // the buyer's confirmation email was never delivered.
+  const handleDownloadTicket = async (bookingId: string) => {
+    setDownloadingTicketId(bookingId);
+    try {
+      await downloadTicketPdf(bookingId);
+    } catch (err: any) {
+      toast.error(err?.message || "Could not download ticket.");
+    } finally {
+      setDownloadingTicketId(null);
+    }
+  };
   const ATTENDEES_PER_PAGE = 20;
   const [offlineOpen, setOfflineOpen] = useState(false);
   const [offlineForm, setOfflineForm] = useState(defaultOfflineForm);
@@ -593,6 +608,8 @@ const EventInsightsPage = () => {
                 tickets: b.tickets as Array<{ type: string; quantity: number; price: number; checkedInCount?: number }>,
               }))
             )}
+            onDownloadTicket={handleDownloadTicket}
+            downloadingId={downloadingTicketId}
             footer={
               data.pagination && (
                 <PaginationControls
