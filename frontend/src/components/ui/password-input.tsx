@@ -14,6 +14,11 @@ const PasswordInput = React.forwardRef<HTMLInputElement, InputProps>(
           type={showPassword ? "text" : "password"}
           className={cn("pr-10", className)}
           ref={ref}
+          // Passwords are case-sensitive — never let a mobile keyboard inject
+          // capitals or "correct" them. (Explicit props still override these.)
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           {...props}
         />
         <button

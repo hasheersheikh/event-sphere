@@ -224,7 +224,8 @@ const ManagerLoginPage = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="manager@pulse.com"
-                  className="h-14 pl-14 bg-muted/20 border-border focus:border-primary/50 rounded-xl font-black text-xs uppercase italic tracking-widest shadow-inner"
+                  autoCapitalize="none"
+                  className="h-14 pl-14 bg-muted/20 border-border focus:border-primary/50 rounded-xl font-black text-xs italic tracking-widest shadow-inner"
                 />
               </div>
             </div>
@@ -261,7 +262,8 @@ const ManagerLoginPage = () => {
                             placeholder="your@email.com"
                             value={forgotEmail}
                             onChange={(e) => setForgotEmail(e.target.value)}
-                            className="h-12 bg-muted/10 border-border focus:border-primary/50 rounded-xl text-xs uppercase font-black"
+                            autoCapitalize="none"
+                            className="h-12 bg-muted/10 border-border focus:border-primary/50 rounded-xl text-xs font-black"
                           />
                         </div>
                         <Button
@@ -290,7 +292,7 @@ const ManagerLoginPage = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="h-14 pl-14 bg-muted/20 border-border focus:border-primary/50 rounded-xl font-black text-xs uppercase italic tracking-widest shadow-inner"
+                  className="h-14 pl-14 bg-muted/20 border-border focus:border-primary/50 rounded-xl font-black text-xs italic tracking-widest shadow-inner"
                 />
               </div>
             </div>

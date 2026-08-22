@@ -146,7 +146,8 @@ const VolunteerLoginPage = () => {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="volunteer@system.puls"
-                  className="h-16 bg-muted/20 border-border focus:border-emerald-500/20 pl-16 rounded-xl font-black text-xs uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
+                  autoCapitalize="none"
+                  className="h-16 bg-muted/20 border-border focus:border-emerald-500/20 pl-16 rounded-xl font-black text-xs tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
                 />
               </div>
             </div>
@@ -166,7 +167,7 @@ const VolunteerLoginPage = () => {
                     setFormData({ ...formData, password: e.target.value })
                   }
                   placeholder="••••••••"
-                  className="h-16 bg-muted/20 border-border focus:border-emerald-500/20 pl-16 rounded-xl font-black text-xs uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
+                  className="h-16 bg-muted/20 border-border focus:border-emerald-500/20 pl-16 rounded-xl font-black text-xs tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
                 />
               </div>
             </div>

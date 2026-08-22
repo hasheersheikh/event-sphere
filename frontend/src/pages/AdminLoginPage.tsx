@@ -133,7 +133,8 @@ const AdminLoginPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="h-16 pl-14 bg-muted/20 border-border focus:border-emerald-500/50 rounded-xl font-black text-xs uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
+                  autoCapitalize="none"
+                  className="h-16 pl-14 bg-muted/20 border-border focus:border-emerald-500/50 rounded-xl font-black text-xs tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
                   required
                 />
               </div>
@@ -151,7 +152,7 @@ const AdminLoginPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  className="h-16 pl-14 bg-muted/20 border-border focus:border-emerald-500/50 rounded-xl font-black text-xs uppercase tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
+                  className="h-16 pl-14 bg-muted/20 border-border focus:border-emerald-500/50 rounded-xl font-black text-xs tracking-widest text-foreground placeholder:text-muted-foreground/30 transition-all shadow-inner"
                   required
                 />
               </div>
