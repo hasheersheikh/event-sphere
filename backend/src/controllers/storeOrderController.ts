@@ -28,7 +28,7 @@ export const createOrder = async (req: Request, res: Response) => {
       userId,
       items,
       totalAmount,
-      paymentMethod: paymentMethod || 'cash',
+      paymentMethod: paymentMethod || 'cod',
       notes,
     });
 

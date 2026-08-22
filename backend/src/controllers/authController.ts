@@ -70,6 +70,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const resetPassword = async (req: Request, res: Response) => {
   const { token, password } = req.body;
 
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+  }
+
   try {
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
     const models = [User, Admin, EventManager];
@@ -111,6 +115,10 @@ export const register = async (req: Request, res: Response) => {
   const userRole = SELF_REGISTERABLE_ROLES.includes(role) ? role : 'user';
   const Model = getModelByRole(userRole);
 
+  if (!password || password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+  }
+
   if (isDisposableEmail(email)) {
     return res.status(400).json({
       message: 'Please use a real email address. Disposable/temporary email providers are not allowed.',
@@ -144,7 +152,7 @@ export const register = async (req: Request, res: Response) => {
     for (const M of models) {
       const existing = await (M as any).findOne({ email });
       if (existing) {
-        return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+        return res.status(400).json({ message: 'An account with this email already exists. Try signing in instead.' });
       }
     }
 

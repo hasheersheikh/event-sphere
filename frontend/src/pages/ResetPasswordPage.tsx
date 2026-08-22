@@ -99,6 +99,7 @@ const ResetPasswordPage = () => {
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
               <PasswordInput
                 required
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="YOUR NEW PASSWORD..."
@@ -115,6 +116,7 @@ const ResetPasswordPage = () => {
               <Lock className="absolute left-6 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-emerald-400 transition-colors" />
               <PasswordInput
                 required
+                minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="CONFIRM PASSWORD..."

@@ -5,6 +5,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
+  // Never override an explicit per-request Authorization header (e.g. the store-owner
+  // portal passes its own token) — the main-app session must not win that fight.
+  if (config.headers.Authorization) {
+    return config;
+  }
   const user = localStorage.getItem('user');
   if (user) {
     try {

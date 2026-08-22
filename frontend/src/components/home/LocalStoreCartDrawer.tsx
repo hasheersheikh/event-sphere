@@ -29,7 +29,9 @@ const LocalStoreCartDrawer = () => {
     state: "",
     pincode: "",
     country: "India",
-    paymentMethod: "cash",
+    // Must be "cod" or "online" — a stray value (e.g. "cash") matches neither
+    // branch, so a bare "Place Order" silently went through the online path.
+    paymentMethod: "cod",
     notes: "",
   });
 

@@ -16,7 +16,7 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 
 const AccountSettingsPage = () => {
-  const { user, login } = useAuth();
+  const { user, setAuthUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",
@@ -63,8 +63,11 @@ const AccountSettingsPage = () => {
       const { data } = await api.patch("/auth/profile", {
         name: formData.name,
       });
-      const token = localStorage.getItem("token");
-      if (token) login(token, data.user);
+      // Refresh the auth context + localStorage so the navbar and this page's
+      // identity heading show the new name without a full reload (BUG-005).
+      if (user && data?.user) {
+        setAuthUser({ ...user, name: data.user.name });
+      }
       toast.success("Profile updated successfully");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to update profile");

@@ -23,7 +23,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import api from "@/lib/api";
 import OtpVerificationStep from "@/components/auth/OtpVerificationStep";
@@ -285,52 +284,20 @@ const AuthPage = () => {
                     Password
                   </label>
                   {isLogin && (
-                    <Dialog open={isForgotOpen} onOpenChange={setIsForgotOpen}>
-                      <DialogTrigger asChild>
-                        <button className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors">
-                          Forgot?
-                        </button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-background border-border/60 rounded-2xl sm:max-w-md p-8">
-                        <DialogHeader className="mb-6">
-                          <DialogTitle className="text-2xl font-black uppercase tracking-tighter">
-                            Reset Password
-                          </DialogTitle>
-                        </DialogHeader>
-                        <form onSubmit={handleForgotPassword} className="space-y-5">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                              Email Address
-                            </label>
-                            <Input
-                              required
-                              type="email"
-                              placeholder="your@email.com"
-                              value={forgotEmail}
-                              onChange={(e) => setForgotEmail(e.target.value)}
-                              className="h-12 bg-muted/20 border-border/60 focus:border-primary/50 rounded-xl text-sm"
-                            />
-                          </div>
-                          <Button
-                            type="submit"
-                            disabled={isForgotLoading}
-                            className="w-full h-12 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-widest text-[10px]"
-                          >
-                            {isForgotLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <>Send Reset Link <ArrowRight className="h-4 w-4 ml-2" /></>
-                            )}
-                          </Button>
-                        </form>
-                      </DialogContent>
-                    </Dialog>
+                    <button
+                      type="button"
+                      onClick={() => setIsForgotOpen(true)}
+                      className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Forgot?
+                    </button>
                   )}
                 </div>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/40" />
                   <PasswordInput
                     required
+                    minLength={isLogin ? undefined : 8}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
@@ -355,6 +322,44 @@ const AuthPage = () => {
                 )}
               </Button>
             </form>
+
+            {/* Forgot-password dialog — kept OUTSIDE the login <form> so its submit
+                doesn't bubble up and fire a spurious login (BUG-004). */}
+            <Dialog open={isForgotOpen} onOpenChange={setIsForgotOpen}>
+              <DialogContent className="bg-background border-border/60 rounded-2xl sm:max-w-md p-8">
+                <DialogHeader className="mb-6">
+                  <DialogTitle className="text-2xl font-black uppercase tracking-tighter">
+                    Reset Password
+                  </DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
+                      Email Address
+                    </label>
+                    <Input
+                      required
+                      type="email"
+                      placeholder="your@email.com"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      className="h-12 bg-muted/20 border-border/60 focus:border-primary/50 rounded-xl text-sm"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isForgotLoading}
+                    className="w-full h-12 bg-primary text-primary-foreground rounded-xl font-black uppercase tracking-widest text-[10px]"
+                  >
+                    {isForgotLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>Send Reset Link <ArrowRight className="h-4 w-4 ml-2" /></>
+                    )}
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
 
             {/* Google Login */}
             <div className="mt-5 flex flex-col gap-4">

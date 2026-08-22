@@ -210,6 +210,10 @@ export const sendRegistrationOtp = async (req: Request, res: Response) => {
     return res.status(400).json({ message: 'Name, email, and password are required.' });
   }
 
+  if (typeof password !== 'string' || password.length < 8) {
+    return res.status(400).json({ message: 'Password must be at least 8 characters long.' });
+  }
+
   if (isDisposableEmail(email)) {
     return res.status(400).json({
       message: 'Please use a real email address. Disposable/temporary email providers are not allowed.',
@@ -227,7 +231,7 @@ export const sendRegistrationOtp = async (req: Request, res: Response) => {
     for (const M of models) {
       const existing = await (M as any).findOne({ email });
       if (existing) {
-        return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+        return res.status(400).json({ message: 'An account with this email already exists. Try signing in instead.' });
       }
     }
   }
@@ -322,7 +326,7 @@ export const verifyRegistrationOtp = async (req: Request, res: Response) => {
   for (const M of models) {
     const existing = await (M as any).findOne({ email });
     if (existing) {
-      return res.status(400).json({ message: 'Identity already exists in platform frequency' });
+      return res.status(400).json({ message: 'An account with this email already exists. Try signing in instead.' });
     }
   }
 

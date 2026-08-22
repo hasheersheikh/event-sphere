@@ -75,7 +75,6 @@ const HeroManagementPage = () => {
   const widgetRef = useRef<any>(null);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [isCloudinaryOpen, setIsCloudinaryOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(BLANK_FORM);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
@@ -385,14 +384,8 @@ const HeroManagementPage = () => {
               break;
             }
 
-            case "display-changed":
-              if (result.info === "shown") setIsCloudinaryOpen(true);
-              if (result.info === "hidden") setIsCloudinaryOpen(false);
-              break;
-
             case "close":
               setUploading(false);
-              setIsCloudinaryOpen(false);
               break;
           }
         }
@@ -405,7 +398,10 @@ const HeroManagementPage = () => {
   // ── Save ──────────────────────────────────────────────────────────────────
 
   const handleSave = () => {
-    if (!form.url || createMutation.isPending) return;
+    // Fall back to the preview's URL if the form copy went stale — the upload
+    // sets both, but they were observed desynced after nested-dialog churn.
+    const urlToSave = form.url || uploadedFile?.url;
+    if (!urlToSave || createMutation.isPending) return;
 
     // For new assets, find the next available order (max + 1)
     let finalOrder = form.order;
@@ -428,8 +424,8 @@ const HeroManagementPage = () => {
     }
 
     const payload = editingId
-      ? { ...form, id: editingId, order: finalOrder }
-      : { ...form, order: finalOrder };
+      ? { ...form, url: urlToSave, id: editingId, order: finalOrder }
+      : { ...form, url: urlToSave, order: finalOrder };
     createMutation.mutate(payload);
   };
 
@@ -492,15 +488,25 @@ const HeroManagementPage = () => {
         </div>
       )}
 
-      {/* Add asset dialog */}
+      {/* Add asset dialog — modal={false} + suppressed outside-dismissal for the
+          same reason as TrendingVenueManagementPage: uploads from this dialog
+          open a second, nested Radix Dialog (ImageCropDialog) / Cloudinary
+          widget. A modal Dialog traps focus/pointer events and treats clicks in
+          those nested portals as "outside" interactions, dismissing this dialog
+          and wiping the form via closeDialog() right after the crop is applied —
+          which is why Save Asset used to silently no-op (BUG-009). */}
       <Dialog
-        modal={!isCloudinaryOpen}
+        modal={false}
         open={dialogOpen}
         onOpenChange={(open) => {
           if (!open) closeDialog();
         }}
       >
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent
+          className="sm:max-w-lg"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{editingId ? "Edit Hero Asset" : "Add Hero Asset"}</DialogTitle>
           </DialogHeader>
@@ -713,7 +719,7 @@ const HeroManagementPage = () => {
               <Button
                 onClick={handleSave}
                 className="flex-1"
-                disabled={!form.url || createMutation.isPending}
+                disabled={!(form.url || uploadedFile?.url) || createMutation.isPending}
               >
                 {createMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
